@@ -1,0 +1,54 @@
+﻿The DATA for these codes are in Genotipi_DATA or MS_Imputation folder
+
+Alphabetised description of the codes:
+Add_Alleles_Govedo_PARENTAL_SNP800.R: R code that transforms the ped and map file with extracted 800 SNPs to the format for Govedo database – PARENTAL_SNP800 table. This script is utilised within Pipeline_NewGenotypes.sh and Pipeline_NewGenotypes_ADD.sh 
+
+Add_animals_to_ImputationBase.sh: bash script to add the newly genotyped animals (Sample) to the Imputation base of ~4000 animals provided by Matthew McClure since there were differences in Beagle imputation accuracy regarding different number of input animals. Base is in ~/Genotipi/MS_Imputation/beagle file
+
+Add_animals_to_ImputationBase.R: R code to add genotypes of four chromosomes to the imputation base.
+
+Combine_Zanardi.sh: bash script utilising Zanardi software to combine ped and map files. 
+
+Cross_validation.R: prepare cluste and SNP files for cross validation for SNP imputation.
+
+ExtractInd.sh: bash script to extract a list of genotypes individuals from original *ped files. The output file GenotypedInd contains a list of individuals, the chip on which they have been genotypes and the date of genotypisation
+
+extract_MSa.sh: bash script to extract lines with MS values from imputed beagle files
+
+Impute_chr2.sh: bash script to impute chromosome 2 since it has problems with marker order when imputing with the original reference and out sample. This problem does not occur when imputing with new reference in ~/Genotipi/MS_imputation/beagle folder
+
+Impute_MS_Beagle.sh: bash script to impute MS with sample and old/new reference. You have to specify which reference will you be using. Warning! - when using old reference the imputation is very slow if samples added to the base.
+
+MS_concordance_noCHR2.R: R code to check concordance when chromosome 2 not imputed – therefore there are no values for BM1221 microsatelite
+
+MS_concordance.R: R code to check concordance of imputed and lab microsatelites
+
+names.sh: find whether there are any animal names in the ped files. If they are they are in the third column (otherwise there should be 0s
+
+NewIndForGovedo.R: transform a list of newly genotyped individuals to the format used in Govedo database, table janao.genotipitirane_zivali. In this step sequences are added to the ID numberts. Utilised also within Pipeline_NewGenotypes.sh
+
+Order_markers_chr2.R: R code to order marker on chr2 in order to be able to impute it with the old reference. For this only the minimum SNP set is extracted from the chr2 genotype file.
+
+PARAMFILE_mergeANDmds.txt: Zanardi PARAMFILE in order to combine all the genotyped from all the chips and perform MDS analysis
+
+PARAMFILE.txt. Original PARAMFILE with dummy input names which is used by many scripts – it replaces the given strings with analysis specific inpute files and parameters
+
+Pipeline_NewGenotypes_ADD.sh: bash script to extract the names, chips, date of genotypisation and 800 SNPs for parental cerification from newly downlaoded genotypes. Required inputs are the name of the genotype files and date of download in order to create a temporary directory. The script prepared names and 800 SNPs in a format suitable for the Govedo database. BASH not SH script.
+
+Pipeline_NewGenotypes.sh: Does the same as the script above but with all up-to-date genotypes, not just new ones
+
+Procedure_combining_data
+
+Raw_to_ped.sh: bash script utilising SNPchimp software to transform raw downloaded genotype files to PLINK ped and map formats. Utilised also within Pipeline_NewGenotypes.sh
+
+Rjave_seq_ID.csv: file linking animals ID numbers (SI0-9) with sequences from Govedo
+
+Sifrant_chip.csv: Sifrant for Govedo database of all chip used for our animal genotypisation
+
+Sifrant_SNP.csv: Sifrant of 800 SNPs used for parental verification for Govedo database
+
+SNPchimpRepo: repo with SNPchimp software (PEDDAROW for raw to ped in here)
+
+SNP_parental_verification.R: the original script to find the names of the 800 SNPs on all the chips and to check the intersects of each chip with 800 SNPs. This script is a base for Add_alleles_Govedo … script
+
+Workflow_Msimputation.sh: instruction file with all the required steps to perform MS imputation, from raw genotyped file on

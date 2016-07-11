@@ -1,0 +1,38 @@
+#CHIP TYPES
+50K --> 54,610 SNPs --> 128 individuals
+GP3v02 --> 26,146 --> 15 individuals 
+GP4v01 --> 30,106 --> 33 individuals
+GGPv03 --> 26,152 --> 105
+GGPHD --> 76,884 --> 31 individuals
+GGP --> 19,721 --> 6 individuals
+
+#CREATING COMBINED PED FILES
+1. FinalReport + SNPMap (AB allele) Illumina to ped and map files 	##/home/janao/Genotipi/Genotipi1_12042016/Raw_to_Ped.sh
+2. combine genotyping packages (directories) from the same chip 	##
+3. create a list of ped & map files from the same chip (different directories)	##MapPed files in /home/janao/Genotipi/Genotipi1_12042016/
+4. use PLINK merge (and --recode) option to merge all the ped and map files from the same chip ##PLINK_combined_Ped.sh in /home/janao/Genotipi/Genotipi1_12042016/
+	#problem with GGPv03 chhip --> map file, Dominant_Red line
+	#problem with GGPv03 package --> less SNPs in map file then ped files
+5. created files in /home/janao/Genotipi/Genotipi1_12042016/Combined_AB:
+	#Ped50K
+	#PedGP3v02
+	#PedGP4v01
+	#PedHD
+6. create PED files by chromosome ##Ped_by_chr.sh in /home/janao/Genotipi/Genotipi1_12042016/Combined_AB
+	create directories for each chip and put chromosome ped and map files in there
+7. convert ped and map file to .bgl file (one for each chromosome, unphased) AND run imputation step with reference phased .bgl file 
+(txt file in /home/janao/Genotipi/MS_impute_phased_Ref+Marker_files/pAll*) and marker file (.txt file in /home/janao/Genotipi/MS_impute_phased_Ref+Marker_files
+/Min*) with Minimum SNP set (880 markers) ##PedToBgl_byChr.sh in /home/janao/Genotipi/Genotipi1_12042016/Combined_AB
+8. mkdir within each chip directory called Beagle_phased and gunzip phased bgl files
+9. extract MS from all individuals and compare with what is in the table GOVEDO.ZIVALI_GP --> MS data
+
+
+
+#get IDs from all genotyped individuals !!!except GGPv03 chip - did not work!
+less Ped50K.ped | cut -f2 -d " " | less > 50K_ind.txt
+less PedGP4v01.ped | cut -f2 -d " " | less > GP4_ind.txt
+less PedGP3v02.ped | cut -f2 -d " " | less > GP3_ind.txt
+less PedGGPv03.ped | cut -f2 -d " " | less > GGPv03_ind.txt
+less PedHD.ped | cut -f2 -d " " | less > HD_ind.txt
+less Matija_Rigler_GGP_22apr2014.ped | cut -f2 -d " " | less > GGP_ind.txt
+cat *_ind.txt | less > genotyped_ind.txt

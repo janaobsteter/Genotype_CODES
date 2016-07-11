@@ -1,0 +1,90 @@
+## This is a parameter file for Zanardi program. Follow the specifics below.
+## Please specify the variables required
+## Only what comes after the "=" is retained, so include as many comments as you like.
+## NOTES: ALL lines beginning with "#" will be skipped!
+##        DO NOT delete or modify ANY variable name (not even if you're not using the pgm!)
+##
+######
+## History:
+## Coded originally: Gabriele Marras & Ezequiel L. Nicolazzi (2015)
+######
+
+### ----------------------
+### --- SOFTWARE PATHS ---
+### ----------------------
+### --- *ABSOLUTE* path to the required software for all the analyses within Zanardi
+### --- If you don't have a required program installed please see README ( --download option)
+PGM_PLINK=/home/janao/bin
+PGM_FCGENE=/home/janao/Downloads/fcgene-1.0.7
+PGM_BEAGLE3=/home/janao/Downloads
+PGM_BEAGLE4=/home/janao/bin
+PGM_ADMIXTURE=/home/janao/Genotipi/Zanardi/UTILS//ADMIXTURE/admixture_linux-1.23/
+PGM_FIMPUTE=/home/janao/Genotipi/Zanardi/UTILS//FIMPUTE/FImpute
+
+### ---------------------------------------
+### --- GENOTYPE & PEDIGREE INPUT FILES ---
+### ---------------------------------------
+### --- *ABSOLUTE* path preferred 
+SPECIES= COW
+INPUT_PED=PathToPed
+INPUT_MAP=PathToMap
+INPUT_705= 
+INPUT_705_MAP= 
+INPUT_PEDIG= /home/janao/Genotipi/Genotipi1_12042016/Fixed_pedigree_rjave_noquote.txt
+INPUT_PHENO= 
+OUTPUT_NAME=OutputName
+
+### ---------------------------------------
+### --- PARAMETERS FOR plinkqc OPTION   ---
+### ---------------------------------------
+QCMISS_IND=
+QCMISS_SNP=
+QCMAF=
+QCHWE=
+QC_OTHOPT= 
+
+### ---------------------------------------
+### --- PARAMETERS FOR pedig OPTION  ---
+### ---------------------------------------
+PDSKIPCOUPLE=
+PDMEND_THRES= 0.02
+PDBESTALL='N'
+
+### --------------------------------------
+### --- PARAMETERS FOR mendchk OPTION  ---
+### --------------------------------------
+MENDERR_THRES= 0.02
+
+### ---------------------------------------
+### --- PARAMETERS FOR mds OPTION (Y/N) ---
+### ---------------------------------------
+MDSGROUPop='N'
+
+### --------------------------------------------------------
+### --- PARAMETERS FOR IMPUTATION - beagle3 AND beagle4  ---
+### --------------------------------------------------------
+BGMEMORY=1000
+BG3_MISSING=
+BG_OTHOPT=ref=/home/janao/Zanardi/OUTPU impute=true 
+
+### ---------------------------------------------------
+### --- PARAMETERS FOR IMPUTATION - fimpute OPTION  ---
+### ---------------------------------------------------
+FMP_NJOB=1
+FMP_OTHOPT=output_folder="/home/janao/"
+
+### -----------------------------------------
+### --- PARAMETERS FOR roh & froh OPTIONS ---
+### -----------------------------------------
+ROH_SNP=15
+ROH_MAXMIS=1
+ROH_MAXHET=1
+ROH_MINLEN=1
+
+### ----------------------------------------
+### --- PARAMETERS FOR admixture OPTION  ---
+### ----------------------------------------
+ADM_KVALUE=5
+ADM_CORE=2
+ADM_CV=10
+
