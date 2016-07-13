@@ -1,4 +1,4 @@
-setwd("~/Genotipi/Genotipi1_12042016/PLINK_genotypeFiles/")
+setwd("~/Genotipi/Genotipi_DATA/Genotipi1_12042016/PLINK_genotypeFiles/")
 #1) READ IN MAP FILES AND FIND THE SNPS COMMON TO ALL CHIPS
 GGP_map <- read.csv("GGP/OUTPUT/PLINK_MERGED.map", sep=" ", header=F)
 GGP3_map <- read.csv("GGPv03/OUTPUT/PLINK_MERGED.map", sep="\t", header=F)
@@ -6,11 +6,12 @@ GP3_map <- read.csv("GP3v02/OUTPUT/PLINK_MERGED.map", sep="\t", header=F)
 GP4_map <- read.csv("GP4/OUTPUT/PLINK_MERGED.map", sep="\t", header=F)
 HD_map <- read.csv("HD/OUTPUT/PLINK_MERGED.map", sep="\t", header=F)
 K50_map <- read.csv("50K/OUTPUT/PLINK_MERGED.map", sep="\t", header=F)
-HD138K_map <- read.csv("/home/janao/Genotipi/Genotipi03062016/PLINK_genotypeFiles/HD138K/OUTPUT/PLINK_MERGED.map", sep=" ", header=F)
-ISAG200 <- read.csv("~/Genotipi/ISAG_200SNPs.csv", header=F, sep=",") #200 proposed ISAG SNPs
+HD138K_map <- read.csv("/home/janao/Genotipi/Genotipi_DATA/Genotipi03062016/PLINK_genotypeFiles/HD138K/OUTPUT/PLINK_MERGED.map", sep=" ", header=F)
+ISAG200 <- read.csv("~/Genotipi/ParentalVerification_SNPSNP/ISAG_200SNPs.csv", header=F, sep=",") #200 proposed ISAG SNPs
 ICBF <- read.table("~/Genotipi/ParentalVerification_SNPSNP/ICBF_Parentage_SNP_Selection.csv", sep=",", header=T) #McClure proposed 800 SNPs
 ICBF800 <- subset(ICBF, ICBF$X800_Parentage_SNP==1)
-K50_map1 <- read.csv("~/Genotipi/Illumina50K_SNPChimp.csv", sep=",") #read in SNPChimP 50K SNP names
+K50_map1 <- read.csv("~/Genotipi/Genotipi_DATA/SNPChimp_Maps//Illumina50K_SNPChimp.csv", sep=",") #read in SNPChimP 50K SNP names
+min <- read.csv("~/Genotipi/MS_Imputation/MinSNP_Set.txt", header=F)
 
 
 #Check concordance between chips and min SNPset
@@ -79,30 +80,38 @@ hist(MAF$MAFsample, labels=T, main=NULL, ylim=c(0,200))
 
 
 #Check Min SNPSet for MS imputation names with Illumina and GeneSeek names
-min <- read.csv("~/Genotipi/Mcclure_Supplementary Tables/Mcclure_MinSNPset.csv", sep=",", header=T)
+min <- read.csv("~/Genotipi/MS_Imputation/Mcclure_Supplementary_Tables/Mcclure_MinSNPset.csv", sep=",", header=T)
 K50_UMD <- read.csv("~/Genotipi/Illumina50Kv02_UMD3.csv", sep=",")
 length(intersect(K50_UMD$position, min$UMD3Position)) #52
 length(intersect(K50_UMD$SNP_name, min$MarkerName)) #56
-GP3_UMD <- read.csv("~/Genotipi/GP3_UMD3.csv", sep=",")
+GP3_UMD <- read.csv("~/Genotipi/Genotipi_DATA/SNPChimp_Maps/GP3_UMD3.csv", sep=",")
 length(intersect(GP3_UMD$position, min$UMD3Position)) #52
 length(intersect(GP3_UMD$SNP_name, min$MarkerName)) #56
-HD <- read.csv ("~/Genotipi/Illumina700K.csv", sep=",")
+HD <- read.csv ("~/Genotipi/Genotipi_DATA/SNPChimp_Maps/Illumina700K.csv", sep=",")
 length(intersect(HD$SNP_name, min$MarkerName)) #880
 rs880 <- which(HD$SNP_name %in% min$MarkerName)
 rs880 <- HD[c(rs880),]
 colnames(min)[1] <- "SNP_name"
 rs880 <- merge (rs880, min, by="SNP_name")
+write.table(rs880, "~/Genotipi/MS_Imputation/MinSNPSet_rsNum.csv", row.names = F, quote = F)
+
 
 #check intersect of min880 SNPs with rs numbers
 length(intersect(GP3_UMD$rs, rs880$rs)) # 682
+length(intersect(GGP$rs, rs880$rs)) # 607
+length(intersect(HD$rs, rs880$rs)) # 751
+length(intersect(HDv02$rs, rs880$rs)) # 840
+length(intersect(K50_map1$rs, rs880$rs)) # 56
+K50v01 <- read.csv ("~/Genotipi/Genotipi_DATA/SNPChimp_Maps/Illumina50Kv01.csv", sep=",")
+length(intersect(K50v01$rs, rs880$rs)) # 57
 
 #check 800 for parental verification with GeneSeek Chips using rs
 length(intersect(ICBF800$rs, GP3_UMD$rs)) #800
-GGP <- read.csv("~/Genotipi/SNPChimp_Maps/GGPv02_map.csv", sep=",")
+GGP <- read.csv("~/Genotipi/Genotipi_DATA/SNPChimp_Maps/GGPv02_map.csv", sep=",")
 length(intersect(ICBF800$rs, GGP$rs))
-HD <- read.csv("~/Genotipi/HD_map.csv", sep=",")
+HD <- read.csv("~/Genotipi/Genotipi_DATA/SNPChimp_Maps/HD_map.csv", sep=",")
 length(intersect(ICBF800$rs, HD$rs))
-HDv02 <- read.csv("~/Genotipi/HDv02_map.csv", sep=",")
+HDv02 <- read.csv("~/Genotipi/Genotipi_DATA/SNPChimp_Maps/HDv02_map.csv", sep=",")
 length(intersect(ICBF800$rs, HDv02$rs))
 length(intersect(ICBF800$rs, K50_map1$rs))
 
