@@ -3,11 +3,12 @@
 #run from Imputation_GP4ref/OUTPUT
 ###############################################################################3
 
-REFPATH=/home/janao/Genotipi/MS_impute_phased_Ref+Marker_files/ #path to reference files (McClure)
+REFBGLPATH=/home/janao/Genotipi/MS_Imputation/MS_03062016/AddingToRef #path to reference files (McClure)
+REFMARKERPATH=/home/janao/Genotipi/MS_Imputation/beagle
+SPATH=/home/janao/Genotipi/MS_Imputation/MS_03062016
 for each in 1 2 3 5 9 15 16 18 19 20 21 23 #required chromosomes with MS
 	do 
-		/home/janao/Downloads/fcgene-1.0.7/fcgene --file Imputed_chr${each} --oformat beagle --out Chr${each} #convert each chromosome PED to BGL
-		java -Xmx1000m -jar ~/Downloads/beagle3.jar unphased=Chr${each}.bgl phased=$REFPATH/p_All_1kb+MS_BT_ref_chr${each}.txt markers=$REFPATH/MinSNP+MS_chr${each}.txt missing=? out=${FNAME}chr${each} #run each BGL with reference chromosome file
+		java -Xmx1000m -jar ~/bin/beagle3.jar unphased=$SPATH/Chr${each}.bgl phased=$REFBGLPATH/Chr${each}RefAdded.bgl markers=$REFMARKERPATH/MinSNP+MS_06112013_chr9${each}.txt missing=? niterations=10 out=AddedRef_10it #run each BGL with reference chromosome file
 done
 
 
