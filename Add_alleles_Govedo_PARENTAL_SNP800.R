@@ -1,8 +1,11 @@
+#seq has to have two columns - first is animals ID (Interbull or SIxxx številka) and the second the sequence
+
 #################################################
-sifrant_SNP <- read.csv(SifrantFile, sep=",")
-seq <- read.csv(IDSeqFile, sep=",")
+sifrant_SNP <- read.csv("~/Genotipi/Genotipi_CODES/Sifrant_SNP.csv", sep=",")
+seq <- read.csv(IDSeqFile, sep=",", header=T)
 Sample800_geno <- read.table(SNP800genoFile)
 Sample800_SNPs <- read.table(SNP800mapFile)
+
 
 rownames(Sample800_geno) <- Sample800_geno$V2
 Sample800_geno <- Sample800_geno[,-c(1,2,3,4,5,6)]
@@ -54,6 +57,7 @@ for (i in soda) {
 
 colnames(SNP800_sorted) <- c("ID", "ZGPL_VREDNOST", "SGPL_NAZIV")
 
+
 SNP800_codes <- as.data.frame(matrix(nrow=1, ncol=4))
 colnames(SNP800_codes) <- c("SGPL_NAZIV", "ID", "ZGPL_VREDNOST", "SGPL_SIFRA")
 #add codes of SNPs from sifrant
@@ -64,15 +68,21 @@ for (i in unique(SNP800_sorted$ID)) {
   SNP800_codes <- rbind(SNP800_codes, IndCode)
 }
 
+
+
+
 SNP800_codes <- SNP800_codes[-1,]
+
 
 #rearrange and remove MS_name
 #add sequence
 colnames(seq) [1] <- "ID"
+seq <- seq[,c(1,2)]
 SNP800_sorted1 <- merge (SNP800_codes, seq, by="ID")
 SNP800_sorted2 <- SNP800_sorted1[,c(5, 4, 3)]
 colnames(SNP800_sorted2) <- c("ZGP_ZIV_ID_SEQ","ZGP_SGPL_SIFRA","ZGP_VREDNOST")
 SNP800_sorted2$ZGP_VREDNOST <- gsub("0", "", SNP800_sorted2$ZGP_VREDNOST)
+
 
 
 write.table(SNP800_sorted2, Govedo800SNPFile, sep=",", row.names=F, quote=F)

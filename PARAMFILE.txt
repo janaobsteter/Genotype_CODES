@@ -18,8 +18,8 @@ PGM_PLINK=/home/janao/bin
 PGM_FCGENE=/home/janao/Downloads/fcgene-1.0.7
 PGM_BEAGLE3=/home/janao/Downloads
 PGM_BEAGLE4=/home/janao/bin
-PGM_ADMIXTURE=/home/janao/Genotipi/Zanardi/UTILS//ADMIXTURE/admixture_linux-1.23/
-PGM_FIMPUTE=/home/janao/Genotipi/Zanardi/UTILS//FIMPUTE/FImpute
+PGM_ADMIXTURE=/home/janao/Genotipi/Genotipi_CODES/Zanardi/UTILS//ADMIXTURE/admixture_linux-1.23/
+PGM_FIMPUTE=/home/janao/Genotipi/Genotipi_CODES/Zanardi/UTILS//FIMPUTE/FImpute
 
 ### ---------------------------------------
 ### --- GENOTYPE & PEDIGREE INPUT FILES ---
@@ -30,7 +30,7 @@ INPUT_PED=PathToPed
 INPUT_MAP=PathToMap
 INPUT_705= 
 INPUT_705_MAP= 
-INPUT_PEDIG= /home/janao/Genotipi/Genotipi1_12042016/Fixed_pedigree_rjave_noquote.txt
+INPUT_PEDIG=/home/janao/Genotipi/Genotipi_DATA/RJPedigre_ZANARDI
 INPUT_PHENO= 
 OUTPUT_NAME=OutputName
 
@@ -65,13 +65,13 @@ MDSGROUPop='N'
 ### --------------------------------------------------------
 BGMEMORY=1000
 BG3_MISSING=
-BG_OTHOPT=ref=/home/janao/Zanardi/OUTPU impute=true 
+BG_OTHOPT=
 
 ### ---------------------------------------------------
 ### --- PARAMETERS FOR IMPUTATION - fimpute OPTION  ---
 ### ---------------------------------------------------
 FMP_NJOB=1
-FMP_OTHOPT=output_folder="/home/janao/"
+FMP_OTHOPT=
 
 ### -----------------------------------------
 ### --- PARAMETERS FOR roh & froh OPTIONS ---
