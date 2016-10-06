@@ -85,4 +85,4 @@ SNP800_sorted2$ZGP_VREDNOST <- gsub("0", "", SNP800_sorted2$ZGP_VREDNOST)
 
 
 
-write.table(SNP800_sorted2, Govedo800SNPFile, sep=",", row.names=F, quote=F)
+write.table(SNP800_sorted2, Govedo800SNPFile, sep=",", row.names=F, quote=F, na="")

@@ -17,7 +17,7 @@ DOWNLOAD_PATH=~/Downloads
 #3) path to the genotype directory - where you want to create you temp directory 
 GEN_PATH=~/Genotipi/Genotipi_DATA
 #4) path to the directory where you store your latest and final genotypes
-GENLAT_PATH=~/Genotipi/Genotipi_DATA/Genotipi_latest 
+GENLAT_PATH=~/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava
 #5) path to the directory where you store info and files for parental verification (800 SNPs) - i.e. names of the required SNPs and previous SNP800 files
 PARSNP_PATH=~/Genotipi/ParentalVerification_SNPSNP
 #6) path to Zanardi
@@ -34,7 +34,7 @@ CODE_DIR=~/Genotipi/Genotipi_CODES
 
 #REQUIRED INPUT
 #|||||||||||||||||||||||||||||||||||||||||||||||||
-DATEDOWNLOAD=11082016 #date of downloading the file
+DATEDOWNLOAD=28092016 #date of downloading the file
 FILE=Matija_Rigler.zip # downloaded file
 #|||||||||||||||||||||||||||||||||||||||||||||||||
 
@@ -125,7 +125,7 @@ do
 	## copy the ped and map files to the chip directory in the genotipi latest
 	cp *ped $GENLAT_PATH/$CH_IP
 	cp *map $GENLAT_PATH/$CH_IP
-	echo "Copying ped and map files from $TEMPDIR/$i to ~/Genotipi_latest/$CH_IP"
+	echo "Copying ped and map files from $TEMPDIR/$i to pwd/Genotipi_latest/$CH_IP"
 	
 	#################################################################################
 	#get the list of newly obtained ped and map files for Zanardi PARAMFILE edit
@@ -169,8 +169,8 @@ do
 					print $0;
 				    }' ${ped}_IND.txt > ${ped}_INDI.txt
 
-	cat *INDI.txt > ${CH_IP}_INDIVIDUALS.txt
-	mv ${CH_IP}_INDIVIDUALS.txt $TEMPDIR
+	cat *INDI.txt > ${SERNUM}_INDIVIDUALS.txt
+	mv ${SERNUM}_INDIVIDUALS.txt $TEMPDIR
 	rm *ind*
 	rm *INDI.txt
 	rm *IND.*
@@ -181,9 +181,9 @@ do
 	#move them to temporary directory	
 	#######################################################################################
 	ped1=$(echo $ped |  sed "s/.ped$//")
-	~/bin/plink --file $ped1 --cow --extract $PARSNP_PATH/Names_800SNPs.txt  -recode --out ${CH_IP}_chip800
+	~/bin/plink --file $ped1 --cow --extract $PARSNP_PATH/Names_800SNPs.txt  -recode --out ${SERNUM}_chip800
 	
-	mv ${CH_IP}_chip800* $TEMPDIR
+	mv ${SERNUM}_chip800* $TEMPDIR
 	
 
 
@@ -201,7 +201,7 @@ do
 	sed -i "s%PathToMap%$mapfiles,$PWD/OUTPUT/PLINK_MERGED.map%g" PARAMFILE.txt
 	sed -i "s%OutputName%${CH_IP}_Merged%g" PARAMFILE.txt
 	cp PARAMFILE.txt $ZAN_PATH	
-	#python $ZAN_PATH/Zanardi.py --mds
+	python $ZAN_PATH/Zanardi.py --mds
 	
 
 	cd $TEMPDIR	

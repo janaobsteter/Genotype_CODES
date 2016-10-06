@@ -15,9 +15,9 @@ PATH_PR=/home/janao/Genotipi/Genotipi_CODES/SNPchimpRepo/source_codes/PEDDA_ROW
 #2)path to the newly downloaded genotype files
 DOWNLOAD_PATH=~/Downloads
 #3) path to the genotype directory - where you want to create you temp directory 
-GEN_PATH=~/Genotipi/Genotipi_DATA
+GEN_PATH=~/Genotipi/Genotipi_DATA/
 #4) path to the directory where you store your latest and final genotypes
-GENLAT_PATH=~/Genotipi/Genotipi_DATA/Genotipi_latest 
+GENLAT_PATH=~/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava
 #5) path to the directory where you store info and files for parental verification (800 SNPs) - i.e. names of the required SNPs and previous SNP800 files
 PARSNP_PATH=~/Genotipi/ParentalVerification_SNPSNP
 #6) path to Zanardi
@@ -34,8 +34,8 @@ CODE_DIR=~/Genotipi/Genotipi_CODES
 
 #REQUIRED INPUT
 #|||||||||||||||||||||||||||||||||||||||||||||||||
-DATEDOWNLOAD=11082016 #date of downloading the file
-FILE=Matija_Rigler.zip # downloaded file
+DATEDOWNLOAD=05092016 #date of downloading the file
+FILE=Matija_Rigler_BOVUHDV03_20160831.zip # downloaded file
 #|||||||||||||||||||||||||||||||||||||||||||||||||
 
 
@@ -125,7 +125,7 @@ do
 	## copy the ped and map files to the chip directory in the genotipi latest
 	cp *ped $GENLAT_PATH/$CH_IP
 	cp *map $GENLAT_PATH/$CH_IP
-	echo "Copying ped and map files from $TEMPDIR/$i to ~/Genotipi_latest/$CH_IP"
+	echo "Copying ped and map files from $TEMPDIR/$i to ~/Genotipi_latest/Rjava/$CH_IP"
 	
 	#################################################################################
 	#get the list of newly obtained ped and map files for Zanardi PARAMFILE edit
@@ -169,8 +169,8 @@ do
 					print $0;
 				    }' ${ped}_IND.txt > ${ped}_INDI.txt
 
-	cat *INDI.txt > ${CH_IP}_INDIVIDUALS.txt
-	mv ${CH_IP}_INDIVIDUALS.txt $TEMPDIR
+	cat *INDI.txt > ${SERNUM}_INDIVIDUALS.txt
+	mv ${SERNUM}_INDIVIDUALS.txt $TEMPDIR
 	rm *ind*
 	rm *INDI.txt
 	rm *IND.*
@@ -181,15 +181,9 @@ do
 	#move them to temporary directory	
 	#######################################################################################
 	ped1=$(echo $ped |  sed "s/.ped$//")
-	~/bin/plink --file $ped1 --cow --extract $PARSNP_PATH/Names_800SNPs.txt  -recode --out ${CH_IP}_chip800
-	
-	mv ${CH_IP}_chip800* $TEMPDIR
+	~/bin/plink --file $ped1 --cow --extract $PARSNP_PATH/Names_800SNPs.txt  -recode --out ${SERNUM}_chip800
 	
 
-
-
-
-	
 	    	
 	#########################################################################################
 	#ZANARDI to update the PLINK_MERGED files for the chip with addition of new genotypes
@@ -201,7 +195,7 @@ do
 	sed -i "s%PathToMap%$mapfiles,$PWD/OUTPUT/PLINK_MERGED.map%g" PARAMFILE.txt
 	sed -i "s%OutputName%${CH_IP}_Merged%g" PARAMFILE.txt
 	cp PARAMFILE.txt $ZAN_PATH	
-	#python $ZAN_PATH/Zanardi.py --mds
+	python $ZAN_PATH/Zanardi.py --mds
 	
 
 	cd $TEMPDIR	
@@ -235,31 +229,18 @@ echo "The number of animals with found corresponding sequence is $RANI"
 
 
 ########################################################################################
-#combine all the ped files with 800 parental SNPs using Zanardi
 #tranform in a format suitable for Govedo PARENTAL_SNP800
 ##############################################################################
-cp $CODE_DIR/PARAMFILE.txt .
-ls -d $PWD/*800*.ped > SNP800_ped.txt
-ls -d $PWD/*800*.map > SNP800_map.txt
-sed -n -i '1h;2,$H;${g;s/\n/,/g;p}' SNP800_ped.txt
-sed -n -i '1h;2,$H;${g;s/\n/,/g;p}' SNP800_map.txt
-pedfiles=$(cat SNP800_ped.txt)
-mapfiles=$(cat SNP800_map.txt)
-sed -i "s%PathToPed%$pedfiles%g" PARAMFILE.txt
-sed -i "s%PathToMap%$mapfiles%g" PARAMFILE.txt
-sed -i "s%OutputName%SNP800_Merged%g" PARAMFILE.txt
-cp PARAMFILE.txt $ZAN_PATH
-python $ZAN_PATH/Zanardi.py 
 
 #the output PLINK_MERGED ped and map are in the $TEMPDIR/OUTPUT
 #cd to the OUTPUT directory
 
-cd $TEMPDIR/OUTPUT
+
 cp $CODE_DIR/Add_alleles_Govedo_PARENTAL_SNP800.R .
 
 #11) ped and map SNP800 files of the sample
-SNP800GENO_FILE='"PLINK_MERGED.ped"'
-SNP800MAP_FILE='"PLINK_MERGED.map"'
+SNP800GENO_FILE="'$TEMPDIR/$(ls *chip800.ped)'"
+SNP800MAP_FILE="'$TEMPDIR/$(ls *chip800.map)'"
 
 #run R script to tranform into Govedo format
 #requires files: sifrant SNPov, file with animal IDs and sequences, 
@@ -271,7 +252,7 @@ sed -i "s%Govedo800SNPFile%'$TEMPDIR/GovedoSNP800.csv'%g" Add_alleles_Govedo_PAR
 
 
 #!/usr/bin/enc Rscript
-Rscript $TEMPDIR/OUTPUT/Add_alleles_Govedo_PARENTAL_SNP800.R
+Rscript $TEMPDIR/Add_alleles_Govedo_PARENTAL_SNP800.R
 
 
 
