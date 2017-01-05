@@ -9,13 +9,14 @@
 #it also utilises R scripts NewIndForGovedo.R and Add_alleles_Govedo_PARENTAL_SNP800.R
 ####################################################################################
 
+
 #set paths
 #1) path to the SNPchimpRepo
 PATH_PR=/home/janao/Genotipi/Genotipi_CODES/SNPchimpRepo/source_codes/PEDDA_ROW 
 #2)path to the newly downloaded genotype files
 DOWNLOAD_PATH=~/Downloads
 #3) path to the genotype directory - where you want to create you temp directory 
-GEN_PATH=~/Genotipi/Genotipi_DATA
+GEN_PATH=~/Genotipi/Genotipi_DATA/Rjava_TEMP
 #4) path to the directory where you store your latest and final genotypes
 GENLAT_PATH=~/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava
 #5) path to the directory where you store info and files for parental verification (800 SNPs) - i.e. names of the required SNPs and previous SNP800 files
@@ -34,7 +35,7 @@ CODE_DIR=~/Genotipi/Genotipi_CODES
 
 #REQUIRED INPUT
 #|||||||||||||||||||||||||||||||||||||||||||||||||
-DATEDOWNLOAD=28092016 #date of downloading the file
+DATEDOWNLOAD=20122016 #date of downloading the file
 FILE=Matija_Rigler.zip # downloaded file
 #|||||||||||||||||||||||||||||||||||||||||||||||||
 
@@ -89,6 +90,7 @@ do
 	sed -i "s%SI %SI%g" ${_FINREP} #remove blank space from SI #####
 	sed -i "s%SI %SI%g" ${_FINREP} #remove blank space from SI #####
 	sed -i "s%SI %SI%g" ${_FINREP} #remove blank space from SI #####
+	sed -i "s%  % %g" ${_FINREP} #replace double spaces in ped file with single space
 	sed -i "s/test_FinalReport.txt/"${_FINREP}"/g" peddar.param #change finrep parameter in place
 	sed -i "s/test_outputfile/"${SERNUM}"/g" peddar.param #change output prefix parameter in place
 	sed -i "s/TEST/$PASMA/g" peddar.param #change brdcode parameter in place

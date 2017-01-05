@@ -15,7 +15,7 @@ PATH_PR=/home/janao/Genotipi/Genotipi_CODES/SNPchimpRepo/source_codes/PEDDA_ROW
 #2)path to the newly downloaded genotype files
 DOWNLOAD_PATH=~/Downloads
 #3) path to the genotype directory - where you want to create you temp directory 
-GEN_PATH=~/Genotipi/Genotipi_DATA/
+GEN_PATH=~/Genotipi/Genotipi_DATA/Rjava_TEMP
 #4) path to the directory where you store your latest and final genotypes
 GENLAT_PATH=~/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava
 #5) path to the directory where you store info and files for parental verification (800 SNPs) - i.e. names of the required SNPs and previous SNP800 files
@@ -34,8 +34,8 @@ CODE_DIR=~/Genotipi/Genotipi_CODES
 
 #REQUIRED INPUT
 #|||||||||||||||||||||||||||||||||||||||||||||||||
-DATEDOWNLOAD=05092016 #date of downloading the file
-FILE=Matija_Rigler_BOVUHDV03_20160831.zip # downloaded file
+DATEDOWNLOAD=18102016 #date of downloading the file
+FILE=Matija_Rigler_BOVUHDV03_20161012.zip # downloaded file
 #|||||||||||||||||||||||||||||||||||||||||||||||||
 
 

@@ -5,12 +5,12 @@
 ################################################################
 
 
-cd /home/janao/Genotipi/Genotipi1_12042016
+cd /home/janao/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava
 
-for each in 50K GGP GGPv03 GP3v02 GP4 HD
+for each in 50Kv01 50Kv02 GGPv02 GGPv03 GGPv04 HD HDv02
 do
 	cd $each
-	cp /home/janao/Documents/PARAMFILE.txt .
+	cp /home/janao/Genotipi/Genotipi_CODES/PARAMFILE.txt .
 	ls -d $PWD/*.ped > ${each}_ped.txt
 	ls -d $PWD/*.map > ${each}_map.txt
 	sed -n -i '1h;2,$H;${g;s/\n/,/g;p}' ${each}_ped.txt
@@ -21,7 +21,7 @@ do
 	sed -i "s%PathToMap%$mapfiles%g" PARAMFILE.txt
 	sed -i "s%OutputName%${each}_Merged%g" PARAMFILE.txt
 	cp PARAMFILE.txt /home/janao/Genotipi/Zanardi	
-	python /home/janao/Genotipi/Zanardi/Zanardi.py --mds
+	python /home/janao/Genotipi/Genotipi_CODES/Zanardi/Zanardi.py --mds
 	cd ..
 done
 	
