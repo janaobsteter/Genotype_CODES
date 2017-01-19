@@ -2,16 +2,23 @@
 
 ####################################################
 #SCRIPT TO RUN IMPUTATION FROM SMALLER TO LARGER CHIP
+#RUN FROM STEPX DIRECTORY
 ####################################################
-CHIP1=GGP
-CHIP2=GGPv03
-EXCLUDE=/home/janao/Genotipi/Genotipi1_12042016/StepImputation/Exclude_from_GGP.txt #GGP exclusive SNPs
-SMALLPLINK=~/Genotipi/Genotipi1_12042016/PLINK_genotypeFiles/$CHIP1/OUTPUT/PLINK_MERGED
-LARGEPLINK=~/Genotipi/Genotipi1_12042016/PLINK_genotypeFiles/$CHIP2/OUTPUT/PLINK_MERGED
-LARGEPLINK2=/home/janao/Genotipi/Genotipi1_12042016/PLINK_genotypeFiles/GP3v02/OUTPUT/PLINK_MERGED #this is for 26K chip, because it has two chip names
-SNPSETS=/home/janao/Genotipi/Genotipi1_12042016/StepImputation/19K26K_CVSNPset
-CLUSTERFILE=/home/janao/Genotipi/Genotipi1_12042016/StepImputation/19K26K_Cluster.txt
-INDCLUSTER=/home/janao/Genotipi/Genotipi1_12042016/StepImputation/
+STEP=1 #<-- CHANGE!
+SCHIP=GGP #<-- CHANGE!
+LCHIP=GP4 #<-- CHANGE!
+#EXCLUDE=/home/janao/Genotipi/Genotipi1_12042016/StepImputation/Step$STEP/Exclude_from_Small.txt #SmallChip exclusive SNPs
+SMALLPLINK=/home/janao/Genotipi/Genotipi1_12042016/StepImputation/Step1/GGP_exc #input imputed file from the PREVIOUS  step
+LARGEPLINK=~/Genotipi/Genotipi03062016/PLINK_genotypeFiles/$LCHIP/OUTPUT/PLINK_MERGED
+LARGEPLINK2=/home/janao/Genotipi/Genotipi1_12042016/StepImputation/Step2/GP3_exc 
+LARGEPLINK3=/home/janao/Genotipi/Genotipi1_12042016/StepImputation/Step3/HD_exc
+LARGEPLINK4=/home/janao/Genotipi/Genotipi1_12042016/StepImputation/StepAllInOne/HD138K_exc
+LARGEPLINK5=/home/janao/Genotipi/Genotipi1_12042016/StepImputation/Step4/50K_exc
+SNPSETS=/home/janao/Genotipi/Genotipi1_12042016/StepImputation/Step$STEP/CVSNPset
+CLUSTERFILE=/home/janao/Genotipi/Genotipi1_12042016/StepImputation/Step$STEP/SNP_Cluster.txt
+INDCLUSTER=/home/janao/Genotipi/Genotipi1_12042016/StepImputation/Step$STEP
+
+rm Conc*
 
 #Rscript 
 echo "Did you run the R script to obtain exclude and cluster files?"
@@ -19,21 +26,25 @@ echo "Did you change the input file variables?"
 echo "Did you comment out metge two large plink files?"
 
 #first exclude the exclusive GGP SNPs from GGP file
-~/bin/plink --file $SMALLPLINK --cow --exclude $EXCLUDE  --chr 1-29 --recode --out 19K_excF
+~/bin/plink --file $SMALLPLINK --cow --chr 1-29 --recode --out ${SCHIP}_exc
 
 #merge GP3 and GGP3 maps together
-~/bin/plink --file  $LARGEPLINK --cow --merge $LARGEPLINK2.ped $LARGEPLINK2.map --chr 1-29 --recode --out 26KF
+~/bin/plink --file  $LARGEPLINK --cow --chr 1-29 --recode --out LARGEPLINK1 #${LCHIP}
+~/bin/plink --file  LARGEPLINK1 --cow --merge $LARGEPLINK2.ped $LARGEPLINK2.map --chr 1-29 --recode --out LARGEPLINK2
+~/bin/plink --file  LARGEPLINK2 --cow --merge $LARGEPLINK3.ped $LARGEPLINK3.map --chr 1-29 --recode --out LARGEPLINK3
+~/bin/plink --file  LARGEPLINK3 --cow --merge $LARGEPLINK4.ped $LARGEPLINK4.map --chr 1-29 --recode --out LARGEPLINK4
+~/bin/plink --file  LARGEPLINK4 --cow --merge $LARGEPLINK5.ped $LARGEPLINK5.map --chr 1-29 --recode --out ${LCHIP}
 
 #create a file with variants with the same physical position
 cut -d ";" ./OUTPUT/Error_SNP_position.txt -f1 | tail -n +2 > SamePosSNP.txt
 
 #Exclude these SNPs from PLINK files
-~/bin/plink --file 19K_excF --cow --exclude SamePosSNP.txt --recode --out 19K_exc
-~/bin/plink --file 26KF --cow --exclude SamePosSNP.txt --recode --out 26K
+~/bin/plink --file ${SCHIP}_exc --cow --exclude SamePosSNP.txt --recode --out ${SCHIP}_exc
+~/bin/plink --file ${LCHIP} --cow --exclude SamePosSNP.txt --recode --out ${LCHIP}
 
 #Extract individuals FID and ID from the genotype files - in order to create a cluster individuals file
-cut -d " " -f1,2 19K_exc.ped > 19K_ind.txt
-cut -d " " -f1,2 26K.ped > 26K_ind.txt
+cut -d " " -f1,2 ${SCHIP}_exc.ped > ${SCHIP}_ind.txt
+cut -d " " -f1,2 ${LCHIP}.ped > ${LCHIP}_ind.txt
 
 
 #mask every tenth SNP 
@@ -54,27 +65,21 @@ do
 		$i = value;
 		print $0;
 	    }
-	' 19K_ind.txt > 19K_ClustInd$i.txt
+	' ${SCHIP}_ind.txt > ${SCHIP}_ClustInd$i.txt
 
 
-	~/bin/plink --file 19K_exc --cow --zero-cluster $CLUSTERFILE --within 19K_ClustInd$i.txt --make-bed --out 19K_Masked$i
-	~/bin/plink --bfile 19K_Masked$i --recode --cow --out 19K_Masked$i
+	~/bin/plink --file ${SCHIP}_exc --cow --zero-cluster $CLUSTERFILE --within ${SCHIP}_ClustInd$i.txt --make-bed --out ${SCHIP}_Masked$i
+	~/bin/plink --bfile ${SCHIP}_Masked$i --recode --cow --out ${SCHIP}_Masked$i
 
-
-#############################################################
-#when ran for the first time you get an error - a list of duplicated SNPs from FImpute OUTPUT
-#remove them using PLINK -when u run for the second time
-############################################################################
-	~/bin/plink --bfile 19K_Masked$i --recode --cow --out 19K_Masked$i
 
 
 ####################################################3
-#Impute all 10 MergMasked files
+#Impute all 10 Masked files
 #######################################################
 
 	cp /home/janao/Genotipi/Genotipi1_12042016/PARAMFILE.txt .
-	sed -i "s%PathToPed%$PWD/19K_Masked${i}.ped,$PWD/26K.ped%g" PARAMFILE.txt #change ped file input 
-	sed -i "s%PathToMap%$PWD/19K_Masked${i}.map,$PWD/26K.map%g" PARAMFILE.txt #change map file input
+	sed -i "s%PathToPed%$PWD/${SCHIP}_Masked$i.ped,$PWD/${LCHIP}.ped%g" PARAMFILE.txt #change ped file input 
+	sed -i "s%PathToMap%$PWD/${SCHIP}_Masked$i.map,$PWD/${LCHIP}.map%g" PARAMFILE.txt #change map file input
 	sed -i "s%OutputName%ImpMasked${i}%g" PARAMFILE.txt #change output name
 	python ~/Genotipi/Zanardi/Zanardi.py --fimpute --save
 	rm PARAMFILE.txt
@@ -84,7 +89,7 @@ do
 #also check concordance simultaneously
 #############################################################################
 
-	~/bin/plink --file 19K_exc --extract 19K26K_${SNPSETS}${i}.txt --cow --recode --out Genotyped$i #extract masked SNPs from merged genotype file
+	~/bin/plink --file ${SCHIP}_exc --extract ${SNPSETS}${i}.txt --cow --recode --out Genotyped$i #extract masked SNPs from merged genotype file
 	~/bin/plink --file OUTPUT/FIMPUTE_ImpMasked$i --extract ${SNPSETS}${i}.txt --cow --recode --out Imputed$i #extract masked and imputed SNPs from a file
 	~/bin/plink --file Genotyped$i --merge Imputed$i.ped Imputed$i.map --merge-mode 7 --cow --recode --out Concordance$i 
 	grep "for a concordance rate" Concordance$i.log > Conc_num$i.txt

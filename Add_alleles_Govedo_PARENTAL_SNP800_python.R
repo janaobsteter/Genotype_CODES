@@ -4,9 +4,9 @@
 
 #################################################
 sifrant_SNP <- read.csv("~/Genotipi/Genotipi_CODES/Sifrant_SNP.csv", sep=",")
-seq <- read.csv(IDSeqFile, sep=",", header=T)
-Sample800_geno <- read.table(SNP800genoFile)
-Sample800_SNPs <- read.table(SNP800mapFile)
+seq <- read.csv("IDSeqFile", sep=",", header=T)
+Sample800_geno <- read.table("SNP800genoFile")
+Sample800_SNPs <- read.table("SNP800mapFile")
 
 
 rownames(Sample800_geno) <- Sample800_geno$V2
@@ -87,4 +87,4 @@ SNP800_sorted2$ZGP_VREDNOST <- gsub("0", "", SNP800_sorted2$ZGP_VREDNOST)
 
 
 
-write.table(SNP800_sorted2, Govedo800SNPFile, sep=",", row.names=F, quote=F, na="")
+write.table(SNP800_sorted2, "Govedo800SNPFile", sep=",", row.names=F, quote=F, na="")

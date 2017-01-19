@@ -9,7 +9,8 @@
 #setwd("/home/janao/Genotipi/MS_Imputation/MS_03062016/BeagleImputed10it")
 #setwd("/home/janao/Genotipi/MS_Imputation/MS_03062016/BeagleImputed100it")
 #setwd("/home/janao/Genotipi/MS_Imputation/MS_03062016/BeagleImputed1000it")
-setwd("~/Genotipi/MS_Imputation/MS_03062016/AddedRefImputation_10it")
+#setwd("~/Genotipi/MS_Imputation/MS_03062016/AddedRefImputation_10it")
+setwd("~/Genotipi/MS_Imputation/MS_05012017/10it")
 
 
 #read in MS file, each one with additional ID header
@@ -78,16 +79,16 @@ MS_alel <- read.table ("MS_imputed.csv", sep=",", header=T)
 
 
 MS_alel$ID <- rownames(MS_alel)
-remove1 <- which(MS_alel$ID=="SI24273440")
-remove2 <- which(MS_alel$ID=="SI14514119")
-MS_alel <- MS_alel[-c(remove1, remove2),]
+#remove1 <- which(MS_alel$ID=="SI24273440")
+#remove2 <- which(MS_alel$ID=="SI14514119")
+#MS_alel <- MS_alel[-c(remove1, remove2),]
 
 
 #####################################################
 #read in lab MSs
 #######################################################
-MS_alel <- read.table ("MS_imputed.csv", sep=",", header=T)
-MS_lab <- read.csv("/home/janao/Genotipi/MS_Imputation/MS_03062016/LabMS03062016.csv", sep=",", header=T)
+#MS_alel <- read.table ("MS_imputed.csv", sep=",", header=T)
+MS_lab <- read.csv("/home/janao/Genotipi/MS_Imputation/MS_05012017/LabMS05012017.csv", sep=",", header=T)
 Lab_and_imp <- intersect(MS_lab$ID, MS_alel$ID)
 
 
@@ -159,7 +160,7 @@ write.table(Check, "Concordance_Imputed_NewrefBase.csv", sep=",")
 #tabela za Andrejo
 ########################################
 #MSalel od prej - 25 stolpcev - ali preberi "MS_imputed.csv"
-MS_alel <- read.csv("MS_imputed.csv", sep=",")
+#MS_alel <- read.csv("MS_imputed.csv", sep=",")
 MS_Andreja <- data.frame(nrow=1, ncol=1)
 colnames(MS_Andreja) <- ("MS_len")
 
@@ -179,12 +180,13 @@ Ani_MS <- seq(from=1, to=(nrow(MS_alel)*24), by=24) #--> nastavi variable vsaka 
 
 
 
-MS_list <- read.csv("~/Genotipi/MS_names.csv", sep=",", header=F) #imena MS
+MS_list <- read.csv("~/Genotipi/MS_Imputation/MS_names.csv", sep=",", header=F) #imena MS
 head(MS_list)
 MS_col_all$MS_code <- gsub("_1", "", MS_col_all$MS_code) #zamenjej _1 pri alelih
+MS_sorted <- MS_col_all[order(MS_col_all$ID, MS_col_all$MS_code, MS_col_all$MS_len),]
 
-write.table(MS_col_all, "MS_col_all.csv", sep=" ", row.names=F) #--> pojdi v excell in sortiraj po ID, kodi in dolžini!!!
-MS_sorted <- read.table("MS_col_all.csv", sep=",", header=T)
+#write.table(MS_col_all, "MS_col_all.csv", sep=" ", row.names=F) #--> pojdi v excell in sortiraj po ID, kodi in dolžini!!!
+#MS_sorted <- read.table("MS_col_all.csv", sep=" ", header=T)
 MS_sorted$Code <- NA #stolpec za MS kodo
 
 
@@ -204,7 +206,7 @@ head(MS_sorted)
 MS_sorted <- MS_sorted[,c(1,4,2)]
 
 #dodaj sekvence živali
-seq <- read.csv("~/Genotipi/Rjave_seq_ID.csv", sep=",")
+seq <- read.csv("~/Genotipi/Genotipi_CODES/Rjave_seq_ID.csv", sep=",")
 colnames(seq) [1] <- "ID"
 nrow(MS_sorted)
 MS_sorted <- merge (MS_sorted, seq, by="ID")
@@ -216,6 +218,6 @@ head(MS_sorted)
 write.table(MS_sorted, "Imputed_MS_Andreja.csv", sep=" ", row.names=F, quote=F)
 
 
-IDs <- as.data.frame(MS_alel_68$ID)
+IDs <- as.data.frame(rownames(MS_alel_68))
 colnames(IDs) <- "ID"
 ID <- merge(IDs, seq, by="ID")
