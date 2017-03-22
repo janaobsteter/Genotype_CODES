@@ -52,3 +52,37 @@ SNPchimpRepo: repo with SNPchimp software (PEDDAROW for raw to ped in here)
 SNP_parental_verification.R: the original script to find the names of the 800 SNPs on all the chips and to check the intersects of each chip with 800 SNPs. This script is a base for Add_alleles_Govedo … script
 
 Workflow_Msimputation.sh: instruction file with all the required steps to perform MS imputation, from raw genotyped file on
+
+
+
+
+
+
+
+
+
+MakePDF_CredeTables.R
+R script to produce table of animals for genotipisation (F4F) within each herd (and replacement animals) and uses MakePDF_CredeTables.Rnw to make pdfs for each herd
+MakePDF_CredeTables.Rnw
+Sweave (Latex + R) latex file to produce tables for chosen and replacement animals for genotipisation (F4F) – february 2017
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

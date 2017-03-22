@@ -13,10 +13,17 @@ library(MasterBayes)
 
 rjKrave10 <- read.csv("~/Documents/F4F/OdbiraZivali/RjaveKrave_Telitve_RejeVecKot10RjKrav.csv")
 #rjKrave10 <- read.csv("~/Documents/F4F/OdbiraZivali/VseRjKrave_TudiManjKot10.csv")
+<<<<<<< HEAD
 rjKrave <- read.csv("~/Documents/F4F/OdbiraZivali/RjaveKrave_Telitve_RejeVse.csv") #to so vse krave, ki pridejo v poštev: oddajajo mlekarni, žive, v laktaciji
 length(intersect(rjPed$ZIV_ID_SEQ, rjKrave$ZIV_ID_SEQ))
 
 
+=======
+#rjKrave <- read.csv("~/Documents/F4F/OdbiraZivali/RjaveKrave_Telitve_RejeVse.csv") #to so vse krave, ki pridejo v poštev: oddajajo mlekarni, žive, v laktaciji
+length(intersect(rjPed$ZIV_ID_SEQ, rjKrave10$ZIV_ID_SEQ))
+
+"
+>>>>>>> b0caba055d2efff6945b429c5b306756fabb4179
 #poglej, kje se po SSI nahajajo krave v najvačjih čredah
 Nad20Crede <- VseCredeDATA$CREDA[which(VseCredeDATA$RJKRAVE > 20)]
 rjKrave20 <- rjKrave10[which(rjKrave10$CRE_SIFRA_CREDA %in% Nad20Crede),]
@@ -24,6 +31,7 @@ rjKrave20 <- rjKrave10[which(rjKrave10$CRE_SIFRA_CREDA %in% Nad20Crede),]
 VseKR <- qplot(rjKrave10$VREDNOST_12_PV, geom='histogram', bins=100)
 Nad20Kr <- qplot(rjKrave20$VREDNOST_12_PV, geom='histogram', bins=100)
 multiplot(VseKR, Nad20Kr)
+<<<<<<< HEAD
 
 #prune the pedigree only for cows you wish to calculate relatedness for
 CowsOrd <- MasterBayes::orderPed(rjPed3, time_born = rjPed4$DATUM)
@@ -31,6 +39,15 @@ prunedCows <- prunePed(CowsOrd, keep=rjKrave$ZIV_ID_SEQ, make.base=F)
   #prunedCowsBase <- prunePed(rjPed3, keep=rjKrave$ZIV_ID_SEQ, make.base=T)
 length(intersect(prunedCows$id, rjKrave$ZIV_ID_SEQ))
 colnames(prunedCows) <- c("id", "dam", "sire")
+=======
+"
+#prune the pedigree only for cows you wish to calculate relatedness for
+CowsOrd <- MasterBayes::orderPed(rjPed3, time_born = rjPed4$DATUM)
+prunedCows <- prunePed(CowsOrd, keep=rjKrave10$ZIV_ID_SEQ, make.base=F)
+#prunedCowsBase <- prunePed(rjPed3, keep=rjKrave$ZIV_ID_SEQ, make.base=T)
+colnames(prunedCows) <- c("id", "dam", "sire")
+length(intersect(prunedCows$id, rjKrave10$ZIV_ID_SEQ))
+>>>>>>> b0caba055d2efff6945b429c5b306756fabb4179
 prunedCows[,1:3] <- lapply(prunedCows[,1:3], as.numeric)
 
 
@@ -43,6 +60,10 @@ prunedCowsFixed <- pedantics::fixPedigree(Ped=prunedCows)
 #calculate relatedness
 #prunedCowsFixed <- MasterBayes::orderPed(prunedCowsFixed)
 #set pedigree object
+<<<<<<< HEAD
+=======
+library(pedigreemm)
+>>>>>>> b0caba055d2efff6945b429c5b306756fabb4179
 pedRjCows <- pedigreemm::pedigree(sire=as.numeric(as.character(prunedCowsFixed$sire)),
                      dam=as.numeric(as.character(prunedCowsFixed$dam)),
                      label=as.numeric(as.character((prunedCowsFixed$id))))
@@ -61,7 +82,11 @@ rownames(A) <- colnames(A) <- prunedCowsFixed$id
 ## --- Izbor ---
 
 #podatki = rjave krave, za katere nas zanim sorodstvo - 3386 živali
+<<<<<<< HEAD
 podatki <- rjKrave[which(rjKrave$ZIV_ID_SEQ %in% rjPed$ZIV_ID_SEQ),]
+=======
+podatki <- rjKrave10[which(rjKrave10$ZIV_ID_SEQ %in% rjPed$ZIV_ID_SEQ),]
+>>>>>>> b0caba055d2efff6945b429c5b306756fabb4179
 podatki <- podatki[which(podatki$ZIV_ID_SEQ %in% prunedCowsFixed$id),]
 ## Samo cistopasemske --> že prej samo rjave
 
@@ -72,7 +97,11 @@ podatki$R <- rowSums(A)
 
 
 #attach R to krave
+<<<<<<< HEAD
 R10 <- podatki[,c(1,12)]
+=======
+R10 <- unique(podatki[,c('ZIV_ID_SEQ', 'R')])
+>>>>>>> b0caba055d2efff6945b429c5b306756fabb4179
 rjKrave10R <- merge(rjKrave10, R10, by='ZIV_ID_SEQ', all.x=T)
 #rjKrave10RnoNA <- rjKrave10R[-which(is.na(rjKrave10R$VREDNOST_12_PV)),]
 #write.csv(rjKrave10R, "~/Documents/F4F/OdbiraZivali/RjaveKrave_Telitve_RejeVecKot10RjKrav_plusR.csv", row.names=F)
@@ -128,6 +157,7 @@ rjR <- qplot(rjKrave10R$R,  bins=100)
 multiplot(rjPV, rjR)
 
 #izloči krave, ki nimajo znanega oceta
+<<<<<<< HEAD
 rjKrave10R <- rjKrave10R[-which(is.na(rjKrave10R$OCE)),]
 rjKrave10R$together <- paste(rjKrave10R$CRE_SIFRA_CREDA, rjKrave10R$OCE, sep="")
 rjKrave10R <- rjKrave10R[order(rjKrave10R$together),]
@@ -140,10 +170,27 @@ halfSis <- rjKrave10R[which(rjKrave10R$together %in% duplSis),]
 uniqueKrave <- rjKrave10R[which(!(rjKrave10R$together %in% duplSis)),]
 nrow(uniqueKrave)
 
+=======
+brezOceta <- rjKrave10R[which(is.na(rjKrave10R$OCE)),]
+rjKrave10R <- rjKrave10R[-which(is.na(rjKrave10R$OCE)),]
+
+#izloči patHS v isti čredi
+rjKrave10R$together <- paste(rjKrave10R$CRE_SIFRA_CREDA, rjKrave10R$OCE, sep="")
+rjKrave10R <- rjKrave10R[order(rjKrave10R$together),]
+duplSis <- unique(rjKrave10R$together[(duplicated(rjKrave10R$together))])
+length(intersect(duplSis, rjKrave10R$together))
+halfSis <- rjKrave10R[which(rjKrave10R$together %in% duplSis),]
+
+uniqueKrave <- rjKrave10R[which(!(rjKrave10R$together %in% duplSis)),]
+nrow(uniqueKrave)
+
+#tukaj imaš sedaj 536 vrstic v polsestrah, ostat pa ti more 233 živali
+>>>>>>> b0caba055d2efff6945b429c5b306756fabb4179
 #zdj izberi sestre glede na manj sorodne
 halfSis <- halfSis[order(halfSis$together, halfSis$R),]
 leastR <- halfSis[!(duplicated(halfSis$together, fromFirst=T)),]
 seznamBpatHS <- halfSis[(duplicated(halfSis$together, fromFirst=T)),]
+<<<<<<< HEAD
 
 #to so vse rjaveKrave MC  brez polsester po očetu (aktivne krave v laktaciji)
 vseRjavebrezHS <- rbind(uniqueKrave, leastR)
@@ -154,10 +201,29 @@ nrow(vseRjavebrezHS)
 matere <- vseRjavebrezHS[,c(1,3)]
 colnames(matere) <- c("MATI", "CRE_SIFRA_CREDA")
 hcere <- vseRjavebrezHS[,c(1,3,6)]
+=======
+seznamApatHS <- leastR[,c('ZIV_ID_SEQ','together')]
+colnames(seznamApatHS)[1] <- 'IzbranaZival'
+nadomPatHS <- merge(seznamBpatHS, seznamApatHS, by='together', all.x=T)
+nadomPatHSPDF <- nadomPatHS[,c('CRE_SIFRA_CREDA', 'IzbranaZival', 'ID_ZIVALI', 'IME_ZIVAL', 'DAT_ROJSTVO'),]
+nadomPatHSPDF$REL <- 'PatHS'
+
+#to so vse rjaveKrave MC  brez polsester po očetu (aktivne krave v laktaciji)
+vseRjavebrezHS <- rbind(uniqueKrave, leastR)
+nrow(vseRjavebrezHS) #1247
+length(intersect(nadomPatHS$IzbranaZival, vseRjavebrezHS$ZIV_ID_SEQ)) #preveri, če so Izbrane živali v seznamu B tudi v novem seznam odbranih živali (#233)
+
+
+#poskusi drugače --> s tem v bistvu izločiš vse matere - hči in polsestre po mamini strani
+matere <- vseRjavebrezHS[,c('ZIV_ID_SEQ','CRE_SIFRA_CREDA')]
+colnames(matere) <- c("MATI", "CRE_SIFRA_CREDA")
+hcere <- vseRjavebrezHS[,c('ZIV_ID_SEQ','CRE_SIFRA_CREDA', 'MATI')]
+>>>>>>> b0caba055d2efff6945b429c5b306756fabb4179
 colnames(hcere) <- c("HCI", "CRE_SIFRA_CREDA", "MATI")
 mh <- merge(matere, hcere, by=c("MATI", "CRE_SIFRA_CREDA")) #identificiraj matere in hčere v isti čredi (tukaj tudi trojke)
 nrow(mh)
 mh <- mh[order(mh$CRE_SIFRA_CREDA),]
+<<<<<<< HEAD
 Rhcer <- vseRjavebrezHS[,c('ZIV_ID_SEQ', 'R')] #tukaj so koef. sorodnostni hčera
 colnames(Rhcer)[1] <- 'HCI'
 mhR <- merge(mh, Rhcer, by='HCI')#dodaj R-je
@@ -176,10 +242,57 @@ seznamBhcere <- vseRjavebrezHS[which(vseRjavebrezHS$ZIV_ID_SEQ %in% slabseHcere$
 #koliko teh je polsester po mami
 vseRjavebrezHS$togetherM <- paste(vseRjavebrezHS$CRE_SIFRA_CREDA, vseRjavebrezHS$MATI, sep="")
 duplMati <- vseRjavebrezHS$togetherM[(duplicated(vseRjavebrezHS$togetherM))]
+=======
+
+#izloči matere
+seznamBmatere <- vseRjavebrezHS[which(vseRjavebrezHS$ZIV_ID_SEQ %in% mhR$MATI),] #vse matere na seznam B
+vseRjavebrezHS <- vseRjavebrezHS[-which(vseRjavebrezHS$ZIV_ID_SEQ %in% mh$MATI),]
+
+Rhcer <- vseRjavebrezHS[,c('ZIV_ID_SEQ', 'R')] #tukaj so koef. sorodnostni hčera
+colnames(Rhcer)[1] <- 'HCI'
+mhR <- merge(mh, Rhcer, by='HCI', all.x=T)#dodaj R-je
+nrow(mhR)
+mhR$maticreda <- paste(mhR$CRE_SIFRA_CREDA,mhR$MATI,  sep="") #skupen čreda matere in id, da dobiš eno spremenljivko --> kje se ponovi
+boljseHcere <- mhR[!(duplicated(mhR$maticreda, fromFirst=T)),] # hčere z višjim koeficientom sorodstva
+slabseHcere <- mhR[which(!(mhR$HCI %in% boljseHcere$HCI)),]
+nrow(slabseHcere)
+
+#izloči slabše hčere
+vseRjavebrezHS <- vseRjavebrezHS[-(which(vseRjavebrezHS$ZIV_ID_SEQ %in% slabseHcere$HCI)),]
+
+slabseHcere <- slabseHcere[,c(1,3,5)]
+colnames(slabseHcere)[1] <- c('NadomHS3')
+boljseHcere <- boljseHcere[,c(1,5)]
+colnames(boljseHcere)[1] <- 'IzbranaZival'
+nadomMatHSTrojka <- merge(boljseHcere, slabseHcere, by='maticreda')
+nadomMatHSTrojka <- nadomMatHSTrojka[order(nadomMatHSTrojka$IzbranaZival),]
+
+
+#pripravi še seznam, kjer povežeš izločeno nater z izbrano živaljo
+mhR1 <- mhR[,c(1,2)]
+colnames(mhR1)[2] <- "ZIV_ID_SEQ"
+nadomMater <- merge(mhR1, rjKrave10R, by='ZIV_ID_SEQ')
+nadomMaterPDF <- nadomMater[,c('CRE_SIFRA_CREDA', 'HCI', 'ID_ZIVALI', 'IME_ZIVAL', 'DAT_ROJSTVO')] #tukaj so nadomestne živali matere - dodati moraš še podatke o materi: IME + DATUM ROJSTVA
+nadomMaterPDF$REL <- 'MATI'
+colnames(nadomMaterPDF)[2] <- 'IzbranaZival'
+
+nadomMatHSTrojka <- merge(boljseHcere, slabseHcere, by='maticreda')
+nadomMatHSTrojka <- nadomMatHSTrojka[order(nadomMatHSTrojka$IzbranaZival),]
+colnames(nadomMatHSTrojka)[3] <- 'ZIV_ID_SEQ'
+nadomMatHSTrojka <- merge(nadomMatHSTrojka, rjKrave10R, by=c('ZIV_ID_SEQ', 'CRE_SIFRA_CREDA'), all.x=T)
+nadomMatHSTrojkaPDF <- nadomMatHSTrojka[,c('CRE_SIFRA_CREDA', 'IzbranaZival', 'ID_ZIVALI', 'IME_ZIVAL', 'DAT_ROJSTVO'),] #tukaj so zdj nadomestne živali živali pod ID_ZIVALI
+nadomMatHSTrojkaPDF$REL <- 'MatHSTrojka'
+
+#koliko teh je polsester po mami
+vseRjavebrezHS$togetherM <- paste(vseRjavebrezHS$CRE_SIFRA_CREDA, vseRjavebrezHS$MATI, sep="")
+length(unique(vseRjavebrezHS$togetherM))
+duplMati <- vseRjavebrezHS$togetherM[duplicated(vseRjavebrezHS$togetherM)]
+>>>>>>> b0caba055d2efff6945b429c5b306756fabb4179
 vseRjaveMdupl <- vseRjavebrezHS[which(vseRjavebrezHS$togetherM %in% duplMati),] # to so vse maternal polsestre, polovico jih obrži
 vseRjaveMdupl <- vseRjaveMdupl[order(vseRjaveMdupl$togetherM, vseRjaveMdupl$R),]
 seznamBmatHS <- vseRjaveMdupl[duplicated(vseRjaveMdupl$togetherM, fromLast=T),] #157 maternal HS
 
+<<<<<<< HEAD
 #izloči iz seznama živali maternal HS in matere 
 vseRjave <- vseRjavebrezHS[-(which(vseRjavebrezHS$ZIV_ID_SEQ %in% seznamBmatere$ZIV_ID_SEQ)),] # izloči matere, PREIMENUJE TABELO!  vseRjave
 vseRjave <- vseRjave[-(which(vseRjave$ZIV_ID_SEQ %in% seznamBhcere$ZIV_ID_SEQ)),] # tu gre za primere HS, kjer sta obe hčeri kot tudi mati v isti čredi
@@ -195,6 +308,44 @@ vseRjave10 <- read.table("~/Documents/F4F/OdbiraZivali/RjaveKrave_928_15022017.c
 #tukaj pa zapiši tiste, kje štartaš z vsemi čredami,ne samo pod 10
 #write.table(vseRjave, "~/Documents/F4F/OdbiraZivali/RjaveKraveVse_1288_20022017.csv", row.names=F, quote=F) #TO SO ODBRANE ŽIVALI!!!
 vseRjave <- read.table("~/Documents/F4F/OdbiraZivali/RjaveKraveVse_1288_20022017.csv", header=T) #TO SO ODBRANE ŽIVALI v vseh čredah!!!
+=======
+seznamAmatHS <- vseRjaveMdupl[duplicated(vseRjaveMdupl$togetherM, fromFirst=T),c('ZIV_ID_SEQ','togetherM')] #157 maternal HS
+colnames(seznamAmatHS)[1] <- 'IzbranaZival'
+nadomMatHS <- merge(seznamAmatHS, seznamBmatHS, by='togetherM')
+nadomMatHSPDF <- nadomMatHS[,c('CRE_SIFRA_CREDA', 'IzbranaZival', 'ID_ZIVALI', 'IME_ZIVAL', 'DAT_ROJSTVO'),]
+nadomMatHSPDF$REL <- 'MatHS'
+
+#izloči iz seznama živali maternal HS in matere 
+vseRjavebrezHS <- vseRjavebrezHS[-which(vseRjavebrezHS$ZIV_ID_SEQ %in% seznamBmatHS$ZIV_ID_SEQ),] #943
+  
+#vseRjave <- vseRjavebrezHS[-(which(vseRjavebrezHS$ZIV_ID_SEQ %in% seznamBmatere$ZIV_ID_SEQ)),] # izloči matere, PREIMENUJE TABELO!  vseRjave
+#vseRjave <- vseRjave[-(which(vseRjave$ZIV_ID_SEQ %in% seznamBhcere$ZIV_ID_SEQ)),] # tu gre za primere HS, kjer sta obe hčeri kot tudi mati v isti čredi
+#vseRjave <- vseRjave[-(which(vseRjave$ZIV_ID_SEQ %in% seznamBmatHS$ZIV_ID_SEQ)),] # tu gre za primere HS, kjer sta obe hčeri kot tudi mati v isti čredi
+
+#izloči še potencialne že genotipizirane
+zenskeGen <- read.csv("~/Genotipi/ZenskeGen_15022017.csv")
+length(which(vseRjavebrezHS$ZIV_ID_SEQ %in% zenskeGen$ZIV_ID_SEQ)) #takšnih živali je 6
+vseRjave <- vseRjavebrezHS[-which(vseRjavebrezHS$ZIV_ID_SEQ %in% zenskeGen$ZIV_ID_SEQ),]
+
+
+#merge with animal names
+#plusNames <- read.csv('/home/jana/Documents/F4F/OdbiraZivali/RjaveKrave_Telitve_RejeVecKot10RjKrav.csv')
+#plusNames <- plusNames[,c(1,2)]
+#plusNames <- unique(plusNames)
+#vseRjave <- merge(plusNames, vseRjave, by="ZIV_ID_SEQ", all.y=T)
+
+#pusti samo stolpce za pdf sezname - št črede, id živali, ime živali, datum rojstva
+vseRjavePDF <- vseRjave[,c('CRE_SIFRA_CREDA', 'ID_ZIVALI', 'IME_ZIVAL', 'DAT_ROJSTVO')]
+  
+#write.table(vseRjave, "~/Documents/F4F/OdbiraZivali/RjaveKrave_928_15022017.csv", row.names=F, quote=F) #TO SO ODBRANE ŽIVALI!!!
+write.table(vseRjave, "~/Documents/F4F/OdbiraZivali/RjaveKrave_937_22022017.csv", row.names=F, quote=F) #TO SO ODBRANE ŽIVALI!!!
+write.csv(vseRjavePDF, "~/Documents/F4F/OdbiraZivali/RjaveKrave_937_22022017_PDF.csv", row.names=F, quote=F) #TO SO ODBRANE ŽIVALI!!!
+#vseRjave <- read.table("~/Documents/F4F/OdbiraZivali/RjaveKrave_928_15022017.csv", header=T) #TO SO ODBRANE ŽIVALI v čredah nad 10 - štart!!!
+vseRjave <- read.csv("~/Documents/F4F/OdbiraZivali/RjaveKrave_937_22022017_PDF.csv", header=T) #TO SO ODBRANE ŽIVALI v čredah nad 10 - štart!!!
+#tukaj pa zapiši tiste, kje štartaš z vsemi čredami,ne samo pod 10
+#write.table(vseRjave, "~/Documents/F4F/OdbiraZivali/RjaveKraveVse_1288_20022017.csv", row.names=F, quote=F) #TO SO ODBRANE ŽIVALI!!!
+#vseRjave <- read.table("~/Documents/F4F/OdbiraZivali/RjaveKraveVse_1288_20022017.csv", header=T) #TO SO ODBRANE ŽIVALI v vseh čredah!!!
+>>>>>>> b0caba055d2efff6945b429c5b306756fabb4179
 
 
 #pokritost po očetih
@@ -204,6 +355,7 @@ qplot(poOce$Freq, geom='histogram', bins=100)
 
 #ustvari še B seznam
 #matere
+<<<<<<< HEAD
 seznamBmatere$rel <- "MATI"
 seznamBhcere$rel <- "matSESTRA_trojka"
 seznamBmatHS$rel <- "matSESTRA"
@@ -213,6 +365,27 @@ seznamBpatHS$rel <- "patSESTRA"
 seznamB <- rbind(seznamBmatere, seznamBhcere, seznamBmatHS, seznamBpatHS)
 seznamB <- seznamB[order(seznamB$CRE_SIFRA_CREDA),]
 #write.table(seznamB, "~/Documents/F4F/seznamBVse_20022017.csv", row.names=F, quote=F)
+=======
+seznamB <- unique(rbind(nadomMaterPDF, nadomMatHSTrojkaPDF, nadomMatHSPDF, nadomPatHSPDF))
+seznamB <- seznamB[order(seznamB$CRE_SIFRA_CREDA, seznamB$IzbranaZival),]
+#dodaj ID izbrane živali
+idZivali <- rjKrave10[,c('ZIV_ID_SEQ','ID_ZIVALI')]
+colnames(idZivali) <- c('IzbranaZival', 'IzbranaZivalID')
+seznamB <- unique(merge(idZivali, seznamB, by='IzbranaZival', all.y=T))
+seznamB <- seznamB[,c(3,2,4:ncol(seznamB))]
+colnames(seznamB)[2:3] <- c('ID_IzbranaZival', 'ID_NadomestnaZival')
+
+#sedaj iz seznamaB izloči vrstice za tiste živali, ki so bile izločene kasneje, ampak so še vedno kot IZbrane na seznamuB
+kasnejeIzl <- intersect(seznamB$ID_IzbranaZival, seznamB$ID_NadomestnaZival)
+seznamB1 <- seznamB[-which(seznamB$ID_IzbranaZival %in% kasnejeIzl),]
+length(unique(seznamB1$ID_IzbranaZival)) #373 -- more se ujemat s spodnjo vrstico
+length(intersect(seznamB1$ID_IzbranaZival, vseRjave$ID_ZIVALI)) #373
+seznamB <- seznamB1 #498 vrstic
+
+#write.table(seznamB, "~/Documents/F4F/seznamBVse_20022017.csv", row.names=F, quote=F)
+write.csv(seznamB, "~/Documents/F4F/OdbiraZivali/seznamB_22022017.csv", row.names=F, quote=F)
+seznamB <- read.table("~/Documents/F4F/OdbiraZivali/seznamB_22022017.csv", header=T)
+>>>>>>> b0caba055d2efff6945b429c5b306756fabb4179
 
 
 #preveri, če je še vedno kaj polsester ali mati-hči parov
@@ -223,7 +396,11 @@ colnames(a) <- c('MATI', 'CREDA')
 b <- vseRjave[,c('ZIV_ID_SEQ', 'MATI', 'CRE_SIFRA_CREDA')]
 colnames(b) <- c('HCI', 'MATI', 'CREDA')
 c <- merge(a, b, by=c('MATI', 'CREDA')) #MORA BITI PRAZEN
+<<<<<<< HEAD
 
+=======
+nrow(c)
+>>>>>>> b0caba055d2efff6945b429c5b306756fabb4179
 
 #parametri odbranih živali
 selR <- qplot(vseRjave$R, geom='histogram', bins=100) #preveri R in PV teh krav
@@ -243,7 +420,11 @@ length(which(vseRjaveI$Index <= 0)) #159 jih ima indeks pod 0
 length(which(vseRjaveI$Index >= 0))
 
 #število po čredi
+<<<<<<< HEAD
 stPocredah10 <- as.data.frame(table(vseRjave10$CRE_SIFRA_CREDA)) #tabela število krav po čredah
+=======
+#stPocredah10 <- as.data.frame(table(vseRjave10$CRE_SIFRA_CREDA)) #tabela število krav po čredah
+>>>>>>> b0caba055d2efff6945b429c5b306756fabb4179
 stPocredah <- as.data.frame(table(vseRjave$CRE_SIFRA_CREDA)) #tabela število krav po čredah
 #write.csv(stPocredah, "~/Documents/F4F/OdbiraZivali/CredeInSteviloZivali.csv", quote=F, row.names=F)
 stPocredah <- stPocredah[order(-stPocredah$Freq),]
@@ -257,7 +438,11 @@ qplot(stPocredah$Freq, geom='histogram', bins=100)
 
 #po indeksu in število po čredi
 vseRjaveI <- vseRjaveI[order(-vseRjaveI$Index),]
+<<<<<<< HEAD
 stPocredah <- as.data.frame(table(vseRjaveI$CRE_SIFRA_CREDA)) #tabela število krav po čredah
+=======
+stPocredah <- as.data.frame(table(vseRjave$CRE_SIFRA_CREDA)) #tabela število krav po čredah
+>>>>>>> b0caba055d2efff6945b429c5b306756fabb4179
 stPocredah <- stPocredah[order(-stPocredah$Freq),]
 length(which(stPocredah$Freq >= 10))
 credeVecKot10 <- stPocredah[which(stPocredah$Freq >= 10),] #krave v čredah z več kot 10 kravami
@@ -274,10 +459,18 @@ izberiCrede <- function (st) {
     crede <- c(crede, as.character(credeVecKot10$Var1[row]))
     row <- row +1
   }
+<<<<<<< HEAD
   return(c(sum, crede))
 }
 
 izberiCrede(800)
+=======
+  print(sum)
+  return(crede)
+}
+
+izbraneCrede <- izberiCrede(300)
+>>>>>>> b0caba055d2efff6945b429c5b306756fabb4179
 vseRjaveICrede <- vseRjaveI[which(vseRjaveI$CRE_SIFRA_CREDA %in% credeVecKot10$Var1),]
 
 

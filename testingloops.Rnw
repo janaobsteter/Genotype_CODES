@@ -1,0 +1,66 @@
+\documentclass[10pt]{article}
+\usepackage[margin=1.15 in]{geometry}
+\usepackage{booktabs}
+\usepackage{color}
+
+
+<<loaddata, echo=FALSE, message=FALSE>>=
+credaTable <- vseRjavePDF[ vseRjavePDF$CRE_SIFRA_CREDA == as.numeric(creda),]
+seznamBCreda <- seznamB[seznamB$CRE_SIFRA_CREDA == as.numeric(creda),]
+@
+
+\begin{document}
+\includegraphics{KIS_logotip_SLO_vodoravni_barvni}
+\\
+\\
+
+<<setup, echo=FALSE >>=
+  opts_chunk$set(fig.path = paste("test", creda , sep=""))
+@
+
+Izbor zivali za genotipizacijo v credi \Sexpr{creda}
+
+<<PrimarniSeznam, results='asis', echo=FALSE>>=
+library(xtable)
+strCaption <- paste0("\\textbf{Primarne zivali} To je seznam primarnih zivali za genotipizacijo.",
+                     " Ce je katera izmed teh izlocena, se izbere nadomestno zival iz seznama B spodaj.")
+createdTable <- xtable(credaTable, digits=2, caption=strCaption)
+align(createdTable) <- "l|c|l|l|l|"    
+  
+print(createdTable, 
+      size="footnotesize", #Change size; useful for bigger tables
+      include.rownames=FALSE, #Don't print rownames
+      include.colnames=FALSE, #We create them ourselves
+      caption.placement="top", 
+      booktabs=TRUE,
+      align = "r|llrc",
+      hline.after = getOption("xtable.hline.after", c(-1:nrow(credaTable))),
+      latex.environments="flushleft",
+      add.to.row = list(pos = list(-1, 
+                                   nrow(credaTable)),
+                        command = c(paste("\\toprule \n","Sifra crede & ID Zivali & IME Zivali & DatumRojstva \\\\\n", 
+                        "\\midrule \n"),
+                        "\\bottomrule \n")))
+@
+
+\color{red}
+\hrule
+
+
+<<seznamB, results='asis', echo=FALSE>>=
+strCaption1 <- paste0("\\textbf{Nadomestne zivali} To je seznam nadomestnih  zivali za genotipizacijo,",
+                     " v primeru, da je katera iz primarnega seznama", " izlocena oz. misljena za izlocitev. V tabeli so dodana tudi sorodstva", " do zivali iz primarnega seznama (patHS = polsestra po ocetovi strani,", " matHS = polsestra po mamini strani, mati in matHS3 = polsestra po", " mamini strani, pri čemer je vec hcera kot tudi mati v isti credi).")
+print(xtable(seznamBCreda, digits=2, caption=strCaption1, label="SeznamB"), 
+      size="footnotesize", #Change size; useful for bigger tables
+      include.rownames=FALSE, #Don't print rownames
+      include.colnames=FALSE, #We create them ourselves
+      caption.placement="top", 
+      hline.after=NULL, #We don't need hline; we use booktabs
+      latex.environments="flushleft",
+      add.to.row = list(pos = list(-1, 
+                                   nrow(seznamBCreda)),
+                        command = c(paste("\\toprule \n",
+                                          "Creda &  Izbrana Zival &   ID Nadomestne Zivali & IME Nadomestne Zivali & Datum rojstva & Sorodstvo \\\\\n", "\\midrule \n"), "\\bottomrule \n")))
+@
+
+\end{document}

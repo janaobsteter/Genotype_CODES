@@ -1,0 +1,106 @@
+\documentclass[10pt]{article}
+\usepackage[margin=0.8 in]{geometry}
+\usepackage{booktabs}
+\usepackage{color}
+\usepackage{xcolor, colortbl}
+\definecolor{Gray}{gray}{0.85}
+\newcolumntype{a}{>{\columncolor{Gray}}c}
+\usepackage[utf8]{inputenc} 
+
+<<loaddata, echo=FALSE, message=FALSE>>=
+credaTable <- vseRjavePDF[ vseRjavePDF$CRE_SIFRA_CREDA == as.numeric(creda),]
+credaTable <- credaTable[order(credaTable$DAT_ROJSTVO, decreasing = TRUE),]
+credaTable$DAT_ROJSTVO <- format(credaTable$DAT_ROJSTVO, format='%d.%m.%Y')
+
+seznamBCreda <- seznamB[seznamB$CRE_SIFRA_CREDA == as.numeric(creda),]
+seznamBCreda <- seznamBCreda[order(seznamBCreda$ID_IzbranaZival, seznamBCreda$DAT_ROJSTVO, decreasing = TRUE),]
+seznamBCreda$DAT_ROJSTVO <- format(seznamBCreda$DAT_ROJSTVO, format='%d.%m.%Y')
+stPrim <- nrow(credaTable)
+stSek <- nrow(seznamBCreda)
+rejec <- rejci$Rejec[rejci$CREDA==creda]
+
+credaTable$Nadomestilo <- ifelse(credaTable$ID_ZIVALI %in% seznamBCreda$ID_IzbranaZival,"DA","NE")
+library(Cairo)
+@
+
+\begin{document}
+\includegraphics{KIS_logotip_SLO_vodoravni_barvni}
+\includegraphics[width=2cm,height=1.3cm]{logotip1}
+\\
+\\
+
+{\raggedleft\LARGE Izbor \v{z}ivali za genotipizacijo v \v{c}redi \textbf{\Sexpr{creda}}:} 
+\\
+\Large{\Sexpr{rejec}.}
+\\
+\\
+\large{\v{S}tevilo \textbf{izbranih}  \v{z}ivali v  \v{c}redi je \textbf\Sexpr{stPrim}.
+\\
+\v{S}tevilo \textbf{nadomestnih}  \v{z}ivali v  \v{c}redi je \textbf{\Sexpr{stSek}}.}
+\\
+\\
+{\raggedleft\Large{SEZNAM A}}
+\normalsize{
+<<PrimarniSeznam, results='asis', echo=FALSE>>=
+
+# define function that will color blank cells green and not blank cells red
+color_cells <- function(df, var){
+  out <- ifelse(df[, var]=="", 
+                      paste0("\\cellcolor[HTML]{2DB200}{", df[, var], "}"),
+                      paste0("\\cellcolor[HTML]{ACD0D3}{", df[, var], "}"))
+}
+
+# apply coloring function to each column you want
+credaTable$ID_ZIVALI <- color_cells(df = credaTable, var= "ID_ZIVALI")
+
+library(xtable)
+strCaption <- paste0("\\textbf{Primarne zivali} To je seznam primarnih živali za genotipizacijo.",
+                     " Če je katera izmed teh izločena, se izbere nadomestno žival iz seznama B SPODAJ.")
+xcredaTable <- xtable(credaTable, digits=2, caption=strCaption)
+align(xcredaTable) <- "l|c|l|l|l|c" 
+   
+  
+print(xcredaTable, 
+      size="normalsize", #Change size; useful for bigger tables
+      include.rownames=FALSE, #Don't print rownames
+      include.colnames=FALSE, #We create them ourselves
+      caption.placement="top", 
+      booktabs=TRUE,
+      sanitize.text.function = function(x) x,
+      hline.after = getOption("xtable.hline.after", c(-1:nrow(credaTable))),
+      latex.environments="flushleft",
+      add.to.row = list(pos = list(-1, 
+                                   nrow(credaTable)),
+                        command = c(paste("\\toprule \n","Sifra crede & ID Zivali & IME Zivali & DatumRojstva & Ima nadomestno zival \\\\\n", 
+                        "\\midrule \n"),
+                        "\\bottomrule \n")))
+                        
+@
+}
+\color{red}
+\hrule height 1.5pt
+\normalsize{
+
+<<seznamB, results='asis', echo=FALSE>>=
+
+seznamBCreda$ID_IzbranaZival <- color_cells(df = seznamBCreda, var= "ID_IzbranaZival")
+strCaption1 <- paste0("\\textbf{Nadomestne zivali} To je seznam nadomestnih  živali za genotipizacijo,",
+                     " v primeru, da je katera iz primarnega seznama", " izločena oz. mišljena za izločitev. V tabeli so dodana tudi sorodstva", " do zivali iz primarnega seznama (patHS = polsestra po očetovi strani,", " matHS = polsestra po mamini strani, mati in matHS3 = polsestra po", " mamini strani, pri čemer je več hcera kot tudi mati v isti credi).","\n")
+                     
+xBTable <- xtable(seznamBCreda, digits=2, caption=strCaption1)
+align(xBTable) <- "l|c|l|l|l|l|l"                       
+print(xBTable, 
+      size="normalsize", #Change size; useful for bigger tables
+      include.rownames=FALSE, #Don't print rownames
+      include.colnames=FALSE, #We create them ourselves
+      caption.placement="top", 
+       sanitize.text.function = function(x) x,
+      hline.after = getOption("xtable.hline.after", c(-1:nrow(seznamBCreda))),
+      latex.environments="flushleft",
+      add.to.row = list(pos = list(-1, 
+                                   nrow(seznamBCreda)),
+                        command = c(paste("\\toprule \n",
+                                          "Creda &  Izbrana Zival &   ID Nadomestne Zivali & IME Nadomestne Zivali & Datum rojstva & Sorodstvo \\\\\n", "\\midrule \n"), "\\bottomrule \n")))
+@
+}
+\end{document}
