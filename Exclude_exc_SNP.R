@@ -1,16 +1,18 @@
 #############################################################################3
 #10x CV for smaller chip --> larger chip
 ###############################################################################
-setwd("~/Genotipi/Genotipi1_12042016/PLINK_genotypeFiles/")
+setwd("~/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/")
 
 ############################################################################################################3
 #1)READ IN MAP FILES AND FIND THE SNPS COMMON TO ALL CHIPS
-GGP_map <- read.csv("GGP/OUTPUT/PLINK_MERGED.map", sep=" ", header=F)
-GGP3_map <- read.csv("GGPv03/OUTPUT/PLINK_MERGED.map", sep="\t", header=F)
-GP3_map <- read.csv("GP3v02/OUTPUT/PLINK_MERGED.map", sep="\t", header=F)
-GP4_map <- read.csv("GP4/OUTPUT/PLINK_MERGED.map", sep="\t", header=F)
+GP2_map <- read.csv("GGPv02/OUTPUT/PLINK_MERGED.map", sep=" ", header=F)
+GP3_map <- read.csv("GGPv03/OUTPUT/PLINK_MERGED.map", sep="\t", header=F)
+GP4_map <- read.csv("GGPv04/OUTPUT/PLINK_MERGED.map", sep="\t", header=F)
 HD_map <- read.csv("HD/OUTPUT/PLINK_MERGED.map", sep="\t", header=F)
-K50_map <- read.csv("50K/OUTPUT/PLINK_MERGED.map", sep="\t", header=F)
+HD2_map <- read.csv("HDv02/OUTPUT/PLINK_MERGED.map", sep="\t", header=F)
+K501_map <- read.csv("50Kv01/OUTPUT/PLINK_MERGED.map", sep="\t", header=F)
+K502_map <- read.csv("50Kv02/OUTPUT/PLINK_MERGED.map", sep="\t", header=F)
+
 
 ################maps from StepImputation
 GP3_Imp_map <- read.csv("/home/janao/Genotipi/Genotipi1_12042016/StepImputation/Step1/26K.map", sep="\t", header=F)
@@ -108,4 +110,13 @@ write.table(CVset7, "CVSNPset7.txt", sep="\n", quote=F, row.names=F, col.names=F
 write.table(CVset8, "CVSNPset8.txt", sep="\n", quote=F, row.names=F, col.names=F)
 write.table(CVset9, "CVSNPset9.txt", sep="\n", quote=F, row.names=F, col.names=F)
 write.table(CVset10, "CVSNPset10.txt", sep="\n", quote=F, row.names=F, col.names=F)
+
+
+
+##############################################3
+#list all SNPs in all tables
+
+AllSNPs <- rbind(GP2_map, GP3_map, GP4_map, HD_map, HD2_map, K501_map, K502_map)
+AllSNPs <- unique(AllSNPs)
+write.table(AllSNPs, "~/Genotipi/Genotipi_DATA/ALL_SNPs.map", row.names=F, quote=F, sep="\t", col.names=F)
 
