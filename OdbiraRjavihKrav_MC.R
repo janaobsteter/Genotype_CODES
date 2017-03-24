@@ -12,9 +12,15 @@ library(MasterBayes)
 
 
 rjKrave10 <- read.csv("~/Documents/F4F/OdbiraZivali/RjaveKrave_Telitve_RejeVecKot10RjKrav.csv")
+rjKrave10 <- read.csv("~/Documents/F4F/OdbiraZivali/RjaveKRave_MC_15032017.csv")
+#Tukaj maš nekaj podvojenih z različnimi PV
+rjKrave10 <- rjKrave10[!duplicated(rjKrave10$ZIV_ID_SEQ, fromFirst=T),]
 #rjKrave10 <- read.csv("~/Documents/F4F/OdbiraZivali/VseRjKrave_TudiManjKot10.csv")
 #rjKrave <- read.csv("~/Documents/F4F/OdbiraZivali/RjaveKrave_Telitve_RejeVse.csv") #to so vse krave, ki pridejo v poštev: oddajajo mlekarni, žive, v laktaciji
+length(unique(rjKrave10$ZIV_ID_SEQ))
+rjKrave10[which(rjKrave10$ZIV_ID_SEQ %in% rjKrave10$ZIV_ID_SEQ[duplicated(rjKrave10$ZIV_ID_SEQ)]),]
 length(intersect(rjPed$ZIV_ID_SEQ, rjKrave10$ZIV_ID_SEQ))
+length(which(rjKrave10$ZIV_ID_SEQ %in% rjPed$ZIV_ID_SEQ))
 
 "
 #poglej, kje se po SSI nahajajo krave v najvačjih čredah
@@ -81,42 +87,8 @@ rjKrave10R <- merge(rjKrave10, R10, by='ZIV_ID_SEQ', all.x=T)
 
 ## Porazdelitev vsote koef. sorod.
 library(ggplot2)
+library(doBy)
 qplot(podatki$R, geom='histogram', bins=100)
-
-"""
-#vse reje mlekarne Celeia
-#samoKrave, ne telice
-podatkiKrave <- podatki[which(podatki$ZIV_ID_SEQ %in% rjKrave10R$ZIV_ID_SEQ),]
-rejciR <- summaryBy(R ~ CRE_SIFRA_CREDA, FUN=descStat, data=podatkiKrave)
-qplot(rejciR$R.mean, geom='histogram', bins=100)
-
-#reje mlekarne Celeia z več kot 10 rjavimi kravami
-rejci10R <- summaryBy(R ~ CRE_SIFRA_CREDA, FUN=descStat, data=podatki10)
-qplot(rejci10R$R.mean, geom='histogram', bins=100)
-
-rejciUnder120 <- rejciR[which(rejciR$R.mean < 120),]
-rejci10Under120 <- rejci10R[which(rejci10R$CRE_SIFRA_CREDA %in% rejciUnder120$CRE_SIFRA_CREDA),]
-
-avgSSIRj <- read.csv("~/Documents/F4F/OdbiraZivali/VseCredeMC_avgSSI_RJAVE.csv")
-#merge R and SSI
-colnames(avgSSIRj)[1] <- "CRE_SIFRA_CREDA"
-credeData <- merge(rejciR, avgSSIRj, by="CRE_SIFRA_CREDA")
-
-
-#zdaj združi še z vsemi kravami
-zivaliData <- merge(rjKrave10R, credeData, by="CRE_SIFRA_CREDA", all.x=T)
-zivaliData$deltaSSI <- (abs(zivaliData$AVGSSI - zivaliData$VREDNOST_12_PV))/zivaliData$SSISD #the larger the better
-zivaliData$deltaR <- -((zivaliData$R - zivaliData$R.mean)/zivaliData$R.sd) #the smaller the better
-zivaliData$Index <- 0.5*zivaliData$deltaSSI + 0.5*zivaliData$deltaR
-
-zivaliData$CRE_SIFRA_CREDA <- as.factor(zivaliData$CRE_SIFRA_CREDA)
-qplot(zivaliData$Index, geom='histogram', fill=zivaliData$CRE_SIFRA_CREDA, bins=100)
-zivaliData <- zivaliData[-(which(is.na(zivaliData$Index))),]
-nrow(zivaliData[which(zivaliData$Index > 0.5),])
-
-
-#write.csv(zivaliData, "~/Documents/F4F/OdbiraZivali/RjaveKrave_Telitve_RejeVecKot10RjKrav_plusRnoNA.csv", row.names=F)
-"""
 
 
 
@@ -124,20 +96,24 @@ nrow(zivaliData[which(zivaliData$Index > 0.5),])
 ##################################
 #samo vrži vn polsestre od vseh rjavih krav
 require(Rmisc)
-rjPV <- qplot(rjKrave10R$VREDNOST_12_PV, bins=100)
-rjR <- qplot(rjKrave10R$R,  bins=100)
-multiplot(rjPV, rjR)
+#rjPV <- qplot(rjKrave10R$VREDNOST_12_PV, bins=100)
+#rjR <- qplot(rjKrave10R$R,  bins=100)
+#multiplot(rjPV, rjR)
 
 #izloči krave, ki nimajo znanega oceta
 brezOceta <- rjKrave10R[which(is.na(rjKrave10R$OCE)),]
+nrow(brezOceta)
 rjKrave10R <- rjKrave10R[-which(is.na(rjKrave10R$OCE)),]
+nrow(rjKrave10R)
 
 #izloči patHS v isti čredi
 rjKrave10R$together <- paste(rjKrave10R$CRE_SIFRA_CREDA, rjKrave10R$OCE, sep="")
 rjKrave10R <- rjKrave10R[order(rjKrave10R$together),]
 duplSis <- unique(rjKrave10R$together[(duplicated(rjKrave10R$together))])
+length(duplSis)
 length(intersect(duplSis, rjKrave10R$together))
 halfSis <- rjKrave10R[which(rjKrave10R$together %in% duplSis),]
+nrow(halfSis)
 
 uniqueKrave <- rjKrave10R[which(!(rjKrave10R$together %in% duplSis)),]
 nrow(uniqueKrave)
@@ -155,7 +131,7 @@ nadomPatHSPDF$REL <- 'PatHS'
 
 #to so vse rjaveKrave MC  brez polsester po očetu (aktivne krave v laktaciji)
 vseRjavebrezHS <- rbind(uniqueKrave, leastR)
-nrow(vseRjavebrezHS) #1247
+nrow(vseRjavebrezHS) #1247, 1313
 length(intersect(nadomPatHS$IzbranaZival, vseRjavebrezHS$ZIV_ID_SEQ)) #preveri, če so Izbrane živali v seznamu B tudi v novem seznam odbranih živali (#233)
 
 
@@ -171,6 +147,7 @@ mh <- mh[order(mh$CRE_SIFRA_CREDA),]
 #izloči matere
 seznamBmatere <- vseRjavebrezHS[which(vseRjavebrezHS$ZIV_ID_SEQ %in% mhR$MATI),] #vse matere na seznam B
 vseRjavebrezHS <- vseRjavebrezHS[-which(vseRjavebrezHS$ZIV_ID_SEQ %in% mh$MATI),]
+nrow(vseRjavebrezHS)
 
 Rhcer <- vseRjavebrezHS[,c('ZIV_ID_SEQ', 'R')] #tukaj so koef. sorodnostni hčera
 colnames(Rhcer)[1] <- 'HCI'
@@ -183,6 +160,7 @@ nrow(slabseHcere)
 
 #izloči slabše hčere
 vseRjavebrezHS <- vseRjavebrezHS[-(which(vseRjavebrezHS$ZIV_ID_SEQ %in% slabseHcere$HCI)),]
+nrow(vseRjavebrezHS)
 
 slabseHcere <- slabseHcere[,c(1,3,5)]
 colnames(slabseHcere)[1] <- c('NadomHS3')
@@ -211,7 +189,9 @@ nadomMatHSTrojkaPDF$REL <- 'MatHSTrojka'
 vseRjavebrezHS$togetherM <- paste(vseRjavebrezHS$CRE_SIFRA_CREDA, vseRjavebrezHS$MATI, sep="")
 length(unique(vseRjavebrezHS$togetherM))
 duplMati <- vseRjavebrezHS$togetherM[duplicated(vseRjavebrezHS$togetherM)]
+length(duplMati)
 vseRjaveMdupl <- vseRjavebrezHS[which(vseRjavebrezHS$togetherM %in% duplMati),] # to so vse maternal polsestre, polovico jih obrži
+nrow(vseRjaveMdupl)
 vseRjaveMdupl <- vseRjaveMdupl[order(vseRjaveMdupl$togetherM, vseRjaveMdupl$R),]
 seznamBmatHS <- vseRjaveMdupl[duplicated(vseRjaveMdupl$togetherM, fromLast=T),] #157 maternal HS
 
@@ -223,7 +203,8 @@ nadomMatHSPDF$REL <- 'MatHS'
 
 #izloči iz seznama živali maternal HS in matere 
 vseRjavebrezHS <- vseRjavebrezHS[-which(vseRjavebrezHS$ZIV_ID_SEQ %in% seznamBmatHS$ZIV_ID_SEQ),] #943
-  
+nrow(vseRjavebrezHS)  
+
 #vseRjave <- vseRjavebrezHS[-(which(vseRjavebrezHS$ZIV_ID_SEQ %in% seznamBmatere$ZIV_ID_SEQ)),] # izloči matere, PREIMENUJE TABELO!  vseRjave
 #vseRjave <- vseRjave[-(which(vseRjave$ZIV_ID_SEQ %in% seznamBhcere$ZIV_ID_SEQ)),] # tu gre za primere HS, kjer sta obe hčeri kot tudi mati v isti čredi
 #vseRjave <- vseRjave[-(which(vseRjave$ZIV_ID_SEQ %in% seznamBmatHS$ZIV_ID_SEQ)),] # tu gre za primere HS, kjer sta obe hčeri kot tudi mati v isti čredi
@@ -232,7 +213,7 @@ vseRjavebrezHS <- vseRjavebrezHS[-which(vseRjavebrezHS$ZIV_ID_SEQ %in% seznamBma
 zenskeGen <- read.csv("~/Genotipi/ZenskeGen_15022017.csv")
 length(which(vseRjavebrezHS$ZIV_ID_SEQ %in% zenskeGen$ZIV_ID_SEQ)) #takšnih živali je 6
 vseRjave <- vseRjavebrezHS[-which(vseRjavebrezHS$ZIV_ID_SEQ %in% zenskeGen$ZIV_ID_SEQ),]
-
+nrow(vseRjave)
 
 #merge with animal names
 #plusNames <- read.csv('/home/jana/Documents/F4F/OdbiraZivali/RjaveKrave_Telitve_RejeVecKot10RjKrav.csv')
@@ -240,23 +221,6 @@ vseRjave <- vseRjavebrezHS[-which(vseRjavebrezHS$ZIV_ID_SEQ %in% zenskeGen$ZIV_I
 #plusNames <- unique(plusNames)
 #vseRjave <- merge(plusNames, vseRjave, by="ZIV_ID_SEQ", all.y=T)
 
-#pusti samo stolpce za pdf sezname - št črede, id živali, ime živali, datum rojstva
-vseRjavePDF <- vseRjave[,c('CRE_SIFRA_CREDA', 'ID_ZIVALI', 'IME_ZIVAL', 'DAT_ROJSTVO')]
-  
-#write.table(vseRjave, "~/Documents/F4F/OdbiraZivali/RjaveKrave_928_15022017.csv", row.names=F, quote=F) #TO SO ODBRANE ŽIVALI!!!
-write.table(vseRjave, "~/Documents/F4F/OdbiraZivali/RjaveKrave_937_22022017.csv", row.names=F, quote=F) #TO SO ODBRANE ŽIVALI!!!
-write.csv(vseRjavePDF, "~/Documents/F4F/OdbiraZivali/RjaveKrave_937_22022017_PDF.csv", row.names=F, quote=F) #TO SO ODBRANE ŽIVALI!!!
-#vseRjave <- read.table("~/Documents/F4F/OdbiraZivali/RjaveKrave_928_15022017.csv", header=T) #TO SO ODBRANE ŽIVALI v čredah nad 10 - štart!!!
-vseRjave <- read.csv("~/Documents/F4F/OdbiraZivali/RjaveKrave_937_22022017_PDF.csv", header=T) #TO SO ODBRANE ŽIVALI v čredah nad 10 - štart!!!
-#tukaj pa zapiši tiste, kje štartaš z vsemi čredami,ne samo pod 10
-#write.table(vseRjave, "~/Documents/F4F/OdbiraZivali/RjaveKraveVse_1288_20022017.csv", row.names=F, quote=F) #TO SO ODBRANE ŽIVALI!!!
-#vseRjave <- read.table("~/Documents/F4F/OdbiraZivali/RjaveKraveVse_1288_20022017.csv", header=T) #TO SO ODBRANE ŽIVALI v vseh čredah!!!
-
-
-#pokritost po očetih
-poOce <- as.data.frame(table(vseRjave$OCE))
-poOce <- poOce[order(-poOce$Freq),]
-qplot(poOce$Freq, geom='histogram', bins=100)
 
 #ustvari še B seznam
 #matere
@@ -276,10 +240,40 @@ length(unique(seznamB1$ID_IzbranaZival)) #373 -- more se ujemat s spodnjo vrstic
 length(intersect(seznamB1$ID_IzbranaZival, vseRjave$ID_ZIVALI)) #373
 seznamB <- seznamB1 #498 vrstic
 
+
+
+#ZORAN KRamer izločil te črede
+izlCrede <- as.character(c(3989,30968,10135,31629,15727,2264,31656,3110,11610))#te reje je izločil Zoran Kramer
+vseRjave <- vseRjave[-which(vseRjave$CRE_SIFRA_CREDA %in% izlCrede),]
+nrow(vseRjave)
+seznamB <- seznamB[-which(seznamB$CRE_SIFRA_CREDA %in% izlCrede),]
+
+
+
+#pusti samo stolpce za pdf sezname - št črede, id živali, ime živali, datum rojstva
+vseRjavePDF <- vseRjave[,c('CRE_SIFRA_CREDA', 'ID_ZIVALI', 'IME_ZIVAL', 'DAT_ROJSTVO')]
+  
+#write.table(vseRjave, "~/Documents/F4F/OdbiraZivali/RjaveKrave_928_15022017.csv", row.names=F, quote=F) #TO SO ODBRANE ŽIVALI!!!
+write.csv(vseRjave, "~/Documents/F4F/OdbiraZivali/RjaveKrave_937_22022017.csv", row.names=F, quote=F) #TO SO ODBRANE ŽIVALI!!!
+write.csv(vseRjave, "~/Documents/F4F/OdbiraZivali/RjaveKrave_909_15032017.csv", row.names=F, quote=F) #TO SO ODBRANE ŽIVALI!!!
+#write.csv(vseRjavePDF, "~/Documents/F4F/OdbiraZivali/RjaveKrave_937_22022017_PDF.csv", row.names=F, quote=F) #TO SO ODBRANE ŽIVALI!!!
+write.csv(vseRjavePDF, "~/Documents/F4F/OdbiraZivali/RjaveKrave_909_15032017_PDF_zeIzloceneRejeZoran.csv", row.names=F, quote=F) #TO SO ODBRANE ŽIVALI!!!
+#vseRjave <- read.table("~/Documents/F4F/OdbiraZivali/RjaveKrave_928_15022017.csv", header=T) #TO SO ODBRANE ŽIVALI v čredah nad 10 - štart!!!
+vseRjave <- read.csv("~/Documents/F4F/OdbiraZivali/RjaveKrave_937_22022017_PDF.csv", header=T) #TO SO ODBRANE ŽIVALI v čredah nad 10 - štart!!!
+vseRjave <- read.csv("~/Documents/F4F/OdbiraZivali/RjaveKrave_937_22022017.csv", header=T) #TO SO ODBRANE ŽIVALI v čredah nad 10 - štart!!!
+vseRjave <- read.csv("~/Documents/F4F/OdbiraZivali/RjaveKrave_909_15032017.csv", header=T) #TO SO ODBRANE ŽIVALI v čredah nad 10 - štart!!!
+#tukaj pa zapiši tiste, kje štartaš z vsemi čredami,ne samo pod 10
+#write.table(vseRjave, "~/Documents/F4F/OdbiraZivali/RjaveKraveVse_1288_20022017.csv", row.names=F, quote=F) #TO SO ODBRANE ŽIVALI!!!
+#vseRjave <- read.table("~/Documents/F4F/OdbiraZivali/RjaveKraveVse_1288_20022017.csv", header=T) #TO SO ODBRANE ŽIVALI v vseh čredah!!!
 #write.table(seznamB, "~/Documents/F4F/seznamBVse_20022017.csv", row.names=F, quote=F)
 write.csv(seznamB, "~/Documents/F4F/OdbiraZivali/seznamB_22022017.csv", row.names=F, quote=F)
+write.csv(seznamB, "~/Documents/F4F/OdbiraZivali/seznamB_15032017.csv", row.names=F, quote=F)
 seznamB <- read.table("~/Documents/F4F/OdbiraZivali/seznamB_22022017.csv", header=T)
 
+reje <- as.data.frame(unique(vseRjave$CRE_SIFRA_CREDA))
+write.csv(reje, "~/Documents/F4F/RejeSifre_15032017.csv")
+################################################################################################################################################
+################################################################################################################################################
 
 #preveri, če je še vedno kaj polsester ali mati-hči parov
 sum(duplicated(vseRjave$together)) #očetovske polsestre
@@ -291,44 +285,72 @@ colnames(b) <- c('HCI', 'MATI', 'CREDA')
 c <- merge(a, b, by=c('MATI', 'CREDA')) #MORA BITI PRAZEN
 nrow(c)
 
-#parametri odbranih živali
-selR <- qplot(vseRjave$R, geom='histogram', bins=100) #preveri R in PV teh krav
-selPV <- qplot(vseRjave$VREDNOST_12_PV, geom='histogram', bins=100)
-allPV <- qplot(podatki$VREDNOST_12_PV, geom='histogram', bins=100)
-allR <- qplot(podatki$R, geom='histogram', bins=100)
 
-multiplot(allPV, selPV)
-multiplot(allR, selR)
+################################################################################################################################################
+################################################################################################################################################
 
-zivaliData <- zivaliData[order(zivaliData$Index),] # tu so podvojene zivali
-zivaliData <- zivaliData[!(duplicated(zivaliData$ZIV_ID_SEQ, fromFirst=T)),] #izberi tiste z višjim indeksom (od podvojenih vrstic)
-selIndex <- zivaliData[,c('ZIV_ID_SEQ', 'Index')] #dodaj indeks rjavim kravam, kjer možno
-vseRjaveI <- merge(vseRjave, selIndex, by='ZIV_ID_SEQ', all.x=T)
-qplot(vseRjaveI$Index, geom='histogram', bins=500)
-length(which(vseRjaveI$Index <= 0)) #159 jih ima indeks pod 0
-length(which(vseRjaveI$Index >= 0))
+avgSSIRj <- read.csv("~/Documents/F4F/OdbiraZivali/VseCredeMC_avgSSI_RJAVE.csv")
+avgSSIRj <- aggregate(vseRjave$VREDNOST_12_PV, by=c(list(vseRjave$CRE_SIFRA_CREDA)), FUN=function (x) (mean(x,na.rm=T)))
+avgSSIRj1 <- aggregate(vseRjave$VREDNOST_12_PV, by=c(list(vseRjave$CRE_SIFRA_CREDA)), FUN=function (x) (sd(x, na.rm=T)))
+avgSSIRj <- merge(avgSSIRj, avgSSIRj1, by='Group.1')
+colnames(avgSSIRj) <- c("CRE_SIFRA_CREDA", "meanSSI", "sdSSI")
+
+avgR <- aggregate(vseRjave$R, by=c(list(vseRjave$CRE_SIFRA_CREDA)), FUN=function (x) (mean(x,na.rm=T)))
+sdR <- aggregate(vseRjave$R, by=c(list(vseRjave$CRE_SIFRA_CREDA)), FUN=function (x) (sd(x,na.rm=T)))
+avgR <- merge(avgR, sdR,by='Group.1' )
+colnames(avgR) <- c("CRE_SIFRA_CREDA", "meanR", "sdR")
+avgData <- merge(avgSSIRj, avgR, by='CRE_SIFRA_CREDA')
+
+vseRjave <- merge(vseRjave, avgData, by='CRE_SIFRA_CREDA', all.x=T)
+vseRjave$deltaSSI <- (abs(vseRjave$meanSSI - vseRjave$VREDNOST_12_PV))/vseRjave$sdSSI #the larger the better
+vseRjave$deltaR <- -((vseRjave$R - vseRjave$meanR)/vseRjave$sdR) #the smaller the better
+vseRjave$Index <- 0.5*vseRjave$deltaSSI + 0.5*vseRjave$deltaR
+
+#ODBERI ŽIVALI!!!!
 
 #število po čredi
 #stPocredah10 <- as.data.frame(table(vseRjave10$CRE_SIFRA_CREDA)) #tabela število krav po čredah
 stPocredah <- as.data.frame(table(vseRjave$CRE_SIFRA_CREDA)) #tabela število krav po čredah
 #write.csv(stPocredah, "~/Documents/F4F/OdbiraZivali/CredeInSteviloZivali.csv", quote=F, row.names=F)
-stPocredah <- stPocredah[order(-stPocredah$Freq),]
-nrow(stPocredah10[which(stPocredah10$Freq >= 10),])
-nrow(stPocredah[which(stPocredah$Freq >= 10),])
-sum(stPocredah$Freq[which(stPocredah$Freq >= 8)])
-sum(stPocredah$Freq[which(stPocredah$Freq >= 10)])
-sum(stPocredah10$Freq[which(stPocredah10$Freq >= 10)])
+colnames(stPocredah) <- c('CRE_SIFRA_CREDA', 'ST')
+
+#zivaliData <- zivaliData[order(zivaliData$Index),] # tu so podvojene zivali
+#zivaliData <- zivaliData[!(duplicated(zivaliData$ZIV_ID_SEQ, fromFirst=T)),] #izberi tiste z višjim indeksom (od podvojenih vrstic)
+#length(intersect(zivaliData$ZIV_ID_SEQ, vseRjave$ZIV_ID_SEQ))
+#selIndex <- zivaliData[,c('ZIV_ID_SEQ', 'Index')] #dodaj indeks rjavim kravam, kjer možno
+#vseRjave <- merge(vseRjave, selIndex, by='ZIV_ID_SEQ', all.x=T)
+#qplot(vseRjave$Index, geom='histogram', bins=500)
+
+#TO SO PODATKI IZ IZBRANIH 821 ŽIVALI!!! in 78 ČRED!
+#vseRjaveIndex <- vseRjave[which(!(is.na(vseRjave$Index))),]
+
+#avgData
+rejciIndex <- aggregate(vseRjave$Index, by=list(vseRjave$CRE_SIFRA_CREDA), function(x) mean(x, na.rm=TRUE))
+colnames(rejciIndex) <- c("CRE_SIFRA_CREDA", "Index.mean")
+avgData <- merge(avgData, rejciIndex, by='CRE_SIFRA_CREDA')
+stPocredah <- merge(stPocredah, avgData, by="CRE_SIFRA_CREDA")
+
+nrow(stPocredah[which(stPocredah$ST >= 10),])
+sum(stPocredah$ST[which(stPocredah$ST >= 8)])
+sum(stPocredah$ST[which(stPocredah$ST >= 10)])
 qplot(stPocredah$Freq, geom='histogram', bins=100)
 
-
+write.csv(stPocredah, "~/Documents/F4F/OdbiraZivali/SteviloPoCredah_Koncen.csv", quote=F, row.names = F)
+write.csv(stPocredah, "~/Documents/F4F/OdbiraZivali/SteviloPoCredah_15032017.csv", quote=F, row.names = F)
 #po indeksu in število po čredi
-vseRjaveI <- vseRjaveI[order(-vseRjaveI$Index),]
-stPocredah <- as.data.frame(table(vseRjave$CRE_SIFRA_CREDA)) #tabela število krav po čredah
-stPocredah <- stPocredah[order(-stPocredah$Freq),]
-length(which(stPocredah$Freq >= 10))
-credeVecKot10 <- stPocredah[which(stPocredah$Freq >= 10),] #krave v čredah z več kot 10 kravami
-credeVecKot10 <- credeVecKot10[order(-credeVecKot10$Freq),] #order po številu živali
+#izberi samo črede z več kot 10 rjavimi kravami
+stPocredahVse <- stPocredah
+stPocredah <- stPocredah[stPocredah$ST >=10,]
+#stPocredah <- merge(stPocredah, rejciR, by="CRE_SIFRA_CREDA", all.x=T)
 
+stPocredah <- stPocredah[order(stPocredah$Index.mean, stPocredah$ST, decreasing=T),]
+
+
+#credeVecKot10 <- stPocredah[which(stPocredah$Freq >= 10),] #krave v čredah z več kot 10 kravami
+#credeVecKot10 <- credeVecKot10[order(-credeVecKot10$Freq),] #order po številu živali
+
+####################################################################################################
+####################################################################################################
 #funkcija za odbiro določenega števila živali izmed 1125 živali -v čredah z več kot 10 živalmi (brez polsester)
 #začne z največjimi čredami
 izberiCrede <- function (st) {
@@ -336,115 +358,170 @@ izberiCrede <- function (st) {
   crede <- c()
   row <- 1
   while (sum < st) {
-    sum <- sum + credeVecKot10$Freq[row]
-    crede <- c(crede, as.character(credeVecKot10$Var1[row]))
+    sum <- sum + stPocredah$ST[row]
+    crede <- c(crede, as.character(stPocredah$CRE_SIFRA_CREDA[row]))
     row <- row +1
   }
   print(sum)
   return(crede)
 }
 
-izbraneCrede <- izberiCrede(300)
-vseRjaveICrede <- vseRjaveI[which(vseRjaveI$CRE_SIFRA_CREDA %in% credeVecKot10$Var1),]
+
+###################################################
+###################################################
+#izbrane samo po velikost
+stPocredah <- stPocredah[order(stPocredah$ST, decreasing=T),]
+izbraneCrede <- izberiCrede(280)
+IzbraneVelikost <- vseRjave[which(vseRjave$CRE_SIFRA_CREDA %in% izbraneCrede),]
+mean(IzbraneVelikost$R)
+mean(IzbraneVelikost$Index, na.rm=T)
+mean(IzbraneVelikost$VREDNOST_12_PV, na.rm=T)
+sd(IzbraneVelikost$VREDNOST_12_PV, na.rm=T)
+std.error(IzbraneVelikost$VREDNOST_12_PV, na.rm=T)
 
 
-#dodatna odbira - izloči index pod 0 --> ostanejo index NA in nad 0
-Pod0 <- vseRjaveICrede$ZIV_ID_SEQ [(which(vseRjaveICrede$Index <=0))]
-Nad0 <- vseRjaveICrede[which(!(vseRjaveICrede$ZIV_ID_SEQ %in% Pod0)),]
-length(unique(Nad0$CRE_SIFRA_CREDA))
-NoveCrede <- as.data.frame(table(Nad0$CRE_SIFRA_CREDA) )
-NoveCrede10 <- NoveCrede[which(NoveCrede$Freq > 10),]
-sum(NoveCrede10$Freq)
-min(NoveCrede$Freq)
+#PLOT po živalih
+RvseRJ <- qplot(vseRjave$R, geom='histogram', bins=100)
+RizRJ <- qplot(IzbraneVelikost$R, geom='histogram', bins=100)
+multiplot(RvseRJ, RizRJ)
 
-######################################
-#od živali, ki imajo PV
-#živali z isto čredo in istim očetom
-two <- zivaliData[,c(1,7)]
-two$together <- paste(two$CRE_SIFRA_CREDA, two$OCE, sep="")
-two <- two[order(two$together),]
-zivaliData$together <- paste(zivaliData$CRE_SIFRA_CREDA, zivaliData$OCE, sep="")
-duplSis <- zivaliData$together[duplicated(zivaliData$together)]
-#polsestre v čredni
-halfSis <- zivaliData[which(zivaliData$together %in% duplSis),] #156 unique čreda-oče
-halfSis <- halfSis[order(halfSis$together),]
-
-#živali brez polsester v redči
-uniqueZivali <- zivaliData[which(!(zivaliData$together %in% duplSis)),]
-
-#chose the best halfSis
-halfSis <- halfSis[order(halfSis$CRE_SIFRA_CREDA, halfSis$OCE, halfSis$Index),]
-bestIndex <- halfSis[!(duplicated(halfSis$together, fromLast=T)),]
-
-zivaliDataBrezHS <- rbind(uniqueZivali, bestPV)
-sel <- qplot(zivaliDataBrezHS$Index, geom='histogram', bins=100) + xlab("932 krav")
-all <- qplot(zivaliDataBrezHS$Index, geom="histogram", bins=100) + xlab("Vse rjave krave")
-allPV <- qplot(zivaliDataBrezHS$VREDNOST_12_PV, geom="histogram", bins=100)+ xlim(c(80, 150))
-allR <- qplot(zivaliDataBrezHS$R, geom="histogram", bins=100)
-
-qplot(zivaliData$Index, geom="histogram", bins=100)
-StPoCredah <- as.data.frame(table(zivaliDataBrezHS$CRE_SIFRA_CREDA))
-StPoCredah <- StPoCredah[order(-StPoCredah$Freq),]
-sum(StPoCredah$Freq[which(StPoCredah$Freq >= 10)])
-zivaliBrezHDNad10 <- zivaliDataBrezHS[which(zivaliDataBrezHS$CRE_SIFRA_CREDA %in% StPoCredah$Var1[which(StPoCredah$Freq >= 10)]),]
-sel1 <- qplot(zivaliBrezHDNad10$Index, geom='histogram', bins=100) + xlab("555 krav")
-selPV1 <- qplot(zivaliBrezHDNad10$VREDNOST_12_PV, geom='histogram', bins=100) + xlim(c(80, 150))
-selR1 <- qplot(zivaliBrezHDNad10$R, geom='histogram', bins=100) 
-multiplot(sel1,sel, all)
-multiplot(sel1, all)
-multiplot(selPV1, allPV)
-multiplot(selR1, allR)
-
-###########################################################################################
-#to so vse živali v čredah, ki po vseh kriterijih še vedno imajo več kot 10 krav (črede od 555 krav)
-zivaliBrezHS <- podatki10[which(podatki10$CRE_SIFRA_CREDA %in% zivaliBrezHDNad10$CRE_SIFRA_CREDA),]
-qplot(zivaliBrezHS$R, geom = 'histogram')
-sum(StPoCredah$Freq[which(StPoCredah$Freq < 10)])
-
-Nad1.5 <- zivaliDataBrezHS[which(zivaliDataBrezHS$Index > 0.5),]
-STpoCredah <- as.data.frame(table(Nad1.5$CRE_SIFRA_CREDA))
-STpoCredah <- STpoCredah[order(-STpoCredah$Freq),]
+#PLOT po credah
+VCrede <- avgData[which(avgData$CRE_SIFRA_CREDA %in% izbraneCrede),]
+IzCrede <- qplot(VCrede$meanR, geom='histogram', bins=50) + xlim(c(45, 67))
+vseCrede <- qplot(avgData$meanR, geom='histogram', bins=100) + xlim(c(45,67))
+multiplot(IzCrede, vseCrede)
 
 
-#two <- zivaliDataUnique[,c(1,7)] #MUST BE 0
-#two$dupl <- duplicated(two) | duplicated(two, fromLast=T)
+#############################################################################################
+#izbrane po R-u in velikost
+#############################################################################################
+stPocredah <- stPocredah[order(stPocredah$meanR, -stPocredah$ST),]
 
-zivaliDataDupl <- zivaliData[two$dupl,]
-zivaliDataDupl <- zivaliDataDupl[order(zivaliDataDupl$CRE_SIFRA_CREDA),]
-
-Nad1.5 <- zivaliData[which(zivaliData$Index > 0.5),]
-STpoCredah <- as.data.frame(table(Nad1.5$CRE_SIFRA_CREDA))
-STpoCredah <- STpoCredah[order(-STpoCredah$Freq),]
-
-
-reje10 <- avgSSIRj[which(avgSSIRj$RJKRAVE>=10),]
-reje10Under120 <- reje10[which(reje10$CREDA %in% rejciUnder120$CRE_SIFRA_CREDA),]
-
+izbraneCrede <- izberiCrede(280)
+IzbraneR <- vseRjave[which(vseRjave$CRE_SIFRA_CREDA %in% izbraneCrede),]
+mean(IzbraneR$R)
+mean(IzbraneR$Index, na.rm=T)
+mean(IzbraneR$VREDNOST_12_PV, na.rm=T)
+sd(IzbraneR$VREDNOST_12_PV, na.rm=T)
+std.error(IzbraneR$VREDNOST_12_PV, na.rm=T)
 
 
-################################################################################
-############################################################################
- #zapiši tabelo za vsako čredi v pdf
+#PLOT po živalih
+RvseRJ <- qplot(vseRjave$R, geom='histogram', bins=100)
+RizRJ <- qplot(IzbraneR$R, geom='histogram', bins=100)
+multiplot(RvseRJ, RizRJ)
 
-library(gridExtra)
-pdf("VseZivali.pdf", height=11, width = 8.5)
-grid.table(vseRjave)
-dev.off()
+#PLOT po credah
+RCrede <- avgData[which(avgData$CRE_SIFRA_CREDA %in% izbraneCrede),]
+IzCrede <- qplot(RCrede$meanR, geom='histogram', bins=100) + xlim(c(45, 67))
+vseCrede <- qplot(avgData$meanR, geom='histogram', bins=100) + xlim(c(45,67))
+multiplot(IzCrede, vseCrede)
+
+
+#############################################################################################
+#izbrane po Index-u in velikost
+#############################################################################################
+stPocredah <- stPocredah[order(-stPocredah$Index.mean, -stPocredah$ST),]
+
+izbraneCrede <- izberiCrede(280)
+IzbraneI <- vseRjave[which(vseRjave$CRE_SIFRA_CREDA %in% izbraneCrede),]
+mean(IzbraneI$R)
+mean(IzbraneI$Index, na.rm=T)
+mean(IzbraneI$VREDNOST_12_PV, na.rm=T)
+sd(IzbraneI$VREDNOST_12_PV, na.rm=T)
+std.error(IzbraneI$VREDNOST_12_PV, na.rm=T)
+
+
+#PLOT po živalih
+IvseRJ <- qplot(vseRjave$R, geom='histogram', bins=100)
+IizRJ <- qplot(IzbraneI$R, geom='histogram', bins=100)
+multiplot(IvseRJ, IizRJ)
+
+#PLOT po credah
+ICrede <- avgData[which(avgData$CRE_SIFRA_CREDA %in% izbraneCrede),]
+IzCrede <- qplot(ICrede$meanR, geom='histogram', bins=100) + xlim(c(45, 67))
+vseCrede <- qplot(avgData$meanR, geom='histogram', bins=100) + xlim(c(45,67))
+multiplot(IzCrede, vseCrede)
+
+
+#############################################################################################
+#############################################################################################
+#pokritost po očetih
+poOce <- as.data.frame(table(vseRjave$OCE))
+poOce <- as.data.frame(table(IzbraneR$OCE))
+poOce <- poOce[order(-poOce$Freq),]
+qplot(poOce$Freq, geom='histogram', bins=100)
+
+"""
+vseRjaveICrede <- vseRjave[which(vseRjave$CRE_SIFRA_CREDA %in% izbraneCrede),]
+mean(vseRjaveICrede$R)
+mean(stPocredah$R.mean)
+mean(stPocredahVse$R.mean)
+ICrede <- stPocredah[which(stPocredah$CRE_SIFRA_CREDA %in% izbraneCrede),]
+RCrede <- rejciR[which(rejciR$CRE_SIFRA_CREDA %in% izbraneCrede),]
+IzCrede <- qplot(RCrede$R.mean, geom='histogram', bins=50) + xlim(c(45, 67))
+vseCrede <- qplot(stPocredahVse$R.mean, geom='histogram', bins=100) + xlim(c(45,67))
+multiplot(IzCrede, vseCrede)
+
+PVCrede <- avgSSIRj[which(avgSSIRj$CREDA %in% izbraneCrede),]
+IzCredePV <- qplot(PVCrede$AVGSSI, geom='histogram', bins=50) + xlim(c(80, 140))
+vseCredePV <- qplot(CredeSSI$AVGSSI, geom='histogram', bins=50)+ xlim(c(80, 140))
+
+multiplot(IzCredePV, vseCredePV)
 
 
 
-\documentclass{article}
-\usepackage{longtable}
-\begin{document}
+#PREVERI R-je in PV-je izbranih živali
+#vse reje mlekarne Celeia
+#samoKrave, ne telice
+podatkiKrave <- podatki[which(podatki$ZIV_ID_SEQ %in% vseRjave$ZIV_ID_SEQ),]
+rejciR <- summaryBy(R ~ CRE_SIFRA_CREDA, FUN=descStat, data=podatkiKrave)
+qplot(rejciR$R.mean, geom='histogram', bins=100)
 
-<<results='asis'>>=
-  library(xtable)
+#reje mlekarne Celeia z več kot 10 rjavimi kravami
+rejci10R <- summaryBy(R ~ CRE_SIFRA_CREDA, FUN=descStat, data=podatki10)
+qplot(rejci10R$R.mean, geom='histogram', bins=100)
 
-df = data.frame(matrix(rnorm(400), nrow=100))
-xt = xtable(df)
-print(xt, 
-      tabular.environment = "longtable",
-      floating = FALSE
-)
-@
-  \end{document}
+#rejciUnder120 <- rejciR[which(rejciR$R.mean < 120),]
+#rejci10Under120 <- rejci10R[which(rejci10R$CRE_SIFRA_CREDA %in% rejciUnder120$CRE_SIFRA_CREDA),]
+
+avgSSIRj <- read.csv("~/Documents/F4F/OdbiraZivali/VseCredeMC_avgSSI_RJAVE.csv")
+#merge R and SSI
+colnames(avgSSIRj)[1] <- "CRE_SIFRA_CREDA"
+credeData <- merge(rejciR, avgSSIRj, by="CRE_SIFRA_CREDA")
+
+
+
+###TO STORI; KO ŽE IMAŠ KONČNI SEZNAM vseRjave!!!!!!!!!!!!!!!!!
+#zdaj združi še z vsemi kravami
+zivaliData <- merge(rjKrave10R, credeData, by="CRE_SIFRA_CREDA", all.x=T)
+zivaliData$deltaSSI <- (abs(zivaliData$AVGSSI - zivaliData$VREDNOST_12_PV))/zivaliData$SSISD #the larger the better
+zivaliData$deltaR <- -((zivaliData$R - zivaliData$R.mean)/zivaliData$R.sd) #the smaller the better
+zivaliData$Index <- 0.5*zivaliData$deltaSSI + 0.5*zivaliData$deltaR
+
+zivaliData$CRE_SIFRA_CREDA <- as.factor(zivaliData$CRE_SIFRA_CREDA)
+qplot(zivaliData$Index, geom='histogram', fill=zivaliData$CRE_SIFRA_CREDA, bins=100)
+#zivaliData <- zivaliData[-(which(is.na(zivaliData$Index))),]
+nrow(zivaliData[which(zivaliData$Index > 0.5),])
+
+
+write.csv(zivaliData, "~/Documents/F4F/OdbiraZivali/RjaveKrave_Telitve_RejeVecKot10RjKrav_plusRnoNA.csv", row.names=F)
+
+
+
+zivaliData <- read.csv( "~/Documents/F4F/OdbiraZivali/RjaveKrave_Telitve_RejeVecKot10RjKrav_plusRnoNA.csv")
+
+
+
+
+#pokritost po očetih
+poOce <- as.data.frame(table(vseRjave$OCE))
+poOce <- poOce[order(-poOce$Freq),]
+qplot(poOce$Freq, geom='histogram', bins=100)
+
+
+
+
+"""
+
+

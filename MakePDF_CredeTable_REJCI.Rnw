@@ -11,6 +11,7 @@
 \addtolength{\topmargin}{-.3in}
 
 
+
 <<loaddata, echo=FALSE, message=FALSE>>=
 credaTable <- vseRjavePDF[ vseRjavePDF$CRE_SIFRA_CREDA == as.numeric(creda),]
 credaTable <- credaTable[order(credaTable$DAT_ROJSTVO, decreasing = TRUE),]
@@ -42,7 +43,7 @@ library(Cairo)
 \Large{\Sexpr{rejec}}
 \\
 \\
-\Large{\v{S}tevilo \textbf{izbranih}  \v{z}ivali v  \v{c}redi je \textbf\Sexpr{stPrim} (= maksimalno \v{s}tevilo vzorcev).
+\Large{\v{S}tevilo \textbf{izbranih}  \v{z}ivali v  \v{c}redi je \textbf\Sexpr{stPrim}.
 \\
 \v{S}tevilo \textbf{nadomestnih}  \v{z}ivali v  \v{c}redi je \textbf{\Sexpr{stSek}}.}
 \vspace{1cm}
@@ -93,7 +94,7 @@ floating=F,
 \captionsetup{labelformat=default}
 \vspace{0.1cm}
 \hrule height 1.5pt
-\vspace{5cm}
+\vspace{0.5cm}
 \captionsetup{labelformat=empty}
 <<seznamB, results='asis', echo=FALSE>>=
 
@@ -123,30 +124,5 @@ floating=F,
 @
 \captionsetup{labelformat=default}
 
-\begin{flushleft}
-\vspace{0.5cm}
-\v{S}ifra, ime in priimek kontrolorja:
-\vspace{0.5cm}
-\\
-$\rule{10cm}{0.15mm}$
-\\
-\vspace{1cm}
-Opombe: 
-\vspace{0.5cm}
-$\rule{15cm}{0.15mm}$
-\\
-$\rule{17cm}{0.15mm}$
-\\
-\vspace{1cm}
-Datum vzor\v{c}enja:
-\vspace{0.5cm}
-\\
-$\rule{7cm}{0.15mm}$
-\\
-\end{flushleft}
-\vspace{1cm}
 
-\begin{flushright}
-Podpis kontrolorja:
-\end{flushright}
 \end{document}
