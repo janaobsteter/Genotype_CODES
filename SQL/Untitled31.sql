@@ -1,0 +1,55 @@
+SELECT
+  ms.ZGP_ZIV_ID_SEQ,
+  ms.ZGP_VREDNOST,
+  sif.SGPL_NAZIV,
+  ziv.DRZ_ORIG_ZIVAL
+  || ziv.STEV_ORIG_ZIVAL
+FROM
+  GOVEDO.ZIVALI_GP ms,
+  GOVEDO.SIFRANT_GP_LASTNOSTI sif,
+  govedo.zivali ziv,
+  GOVEDO.SIFRANT_GP_SKUPINE sk
+WHERE
+  sif.SGPL_SIFRA       =ms.ZGP_SGPL_SIFRA
+AND ziv.ZIV_ID_SEQ     =ms.ZGP_ZIV_ID_SEQ
+AND sif.SGPL_SGPS_SIFRA=sk.SGPS_SIFRA
+AND sk.SGPS_SIFRA      =2;
+SELECT
+  *
+FROM
+  GOVEDO.ZIVALI;
+  
+  
+  
+  
+SELECT
+
+  ziv.ZIV_ID_SEQ,
+  ziv.ZIV_MATI_SEQ mati,
+  ziv.ZIV_OCE_SEQ oce,
+    ziv.DRZ_ORIG_ZIVAL
+  || ziv.STEV_ORIG_ZIVAL zival,
+  ziv.DRZ_STEV_ORIG_MATI || ziv.ZIV_STEV_ORIG_MATI matist,
+  ziv.DRZ_STEV_ORIG_OCE || ziv.ZIV_STEV_ORIG_OCE ocest,
+  ziv.DAT_ROJSTVO,
+  ziv.SIF_SPOL
+FROM
+  govedo.zivali ziv,
+  GOVEDO.ZIVALI_PASMA_SPADA pasma
+WHERE
+  pasma.ZIV_ID_SEQ   =ziv.ZIV_ID_SEQ
+AND pasma.PASMA_SPADA=1;
+
+
+  
+SELECT
+   ziv.DRZ_ORIG_ZIVAL || ziv.STEV_ORIG_ZIVAL id_ZIVALI,
+  ziv.ZIV_ID_SEQ,
+  ziv.DAT_ROJSTVO,
+  ziv.SIF_SPOL
+FROM
+  govedo.zivali ziv,
+  GOVEDO.ZIVALI_PASMA_SPADA pasma
+WHERE
+  pasma.ZIV_ID_SEQ   =ziv.ZIV_ID_SEQ
+AND pasma.PASMA_SPADA=1;

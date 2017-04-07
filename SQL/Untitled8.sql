@@ -1,0 +1,9 @@
+SELECT 
+  ziv.DRZ_ORIG_ZIVAL || 
+  ziv.STEV_ORIG_ZIVAL id_zivali,
+  ziv.DRZ_STEV_ORIG_MATI || ziv.ZIV_STEV_ORIG_MATI mati,
+  ziv.DRZ_STEV_ORIG_OCE || ziv.ZIV_OCE_SEQ oce,
+  pasma.IME_PASMA_SLO
+FROM GOVEDO.ZIVALI ziv, GOVEDO.SIFRANT_PASEM pasma
+where ziv.SP1_SIFRA_PASMA=1
+and pasma.SIFRA_PASMA=ziv.SP1_SIFRA_PASMA;
