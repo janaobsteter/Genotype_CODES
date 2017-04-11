@@ -37,7 +37,7 @@ GROUP BY
   
 select  ziv.DRZ_ORIG_ZIVAL, par.ZA_PASMO_BM, count(distinct ziv.ZIV_ID_SEQ) from govedo.zivali ziv, GOVEDO.PB_ZA_BM par where par.LETO=2016 and ziv.ZIV_ID_SEQ=par.PB_ZIV_ID_SEQ group by ziv.DRZ_ORIG_ZIVAL, par.ZA_PASMO_BM;
 
---število moških in ženskih telet rojenih op letih, povprečje 2000-2016
+--število moških in ženskih telet rojenih op letih, povprečje 2010-2016
 SELECT
   stleta.pasma,
   stleta.spol,
@@ -59,7 +59,7 @@ FROM
     and lok.VRSTA_KONTROLE='AP'
     and  pasma.ZIV_ID_SEQ=ziv.ZIV_ID_SEQ
     AND ziv.ZIV_ID_SEQ=tel.TEL_ZIV_ID_SEQ
-    AND extract(YEAR FROM tel.DAT_TELITEV) BETWEEN 2000 AND 2016
+    AND extract(YEAR FROM tel.DAT_TELITEV) BETWEEN 2010 AND 2016
     GROUP BY
       extract(YEAR FROM tel.DAT_TELITEV),
       ziv.SIF_SPOL,
@@ -152,7 +152,7 @@ select st.leto, st.pasma, st.stevilo, lakt.stevilo stevilo_lakt, round((lakt.ste
       GOVEDO.ZIVALI_PASMA_SPADA pasma
     WHERE
       pasma.ZIV_ID_SEQ=ziv.ZIV_ID_SEQ
-    AND extract(YEAR FROM ziv.DAT_ROJSTVO) BETWEEN 2000 AND 2016
+    AND extract(YEAR FROM ziv.DAT_ROJSTVO) BETWEEN 2010 AND 2016
     and ziv.SIF_SPOL=2
     GROUP BY
       extract(YEAR FROM ziv.DAT_ROJSTVO),
@@ -169,7 +169,7 @@ inner join
       GOVEDO.LAKTACIJE lak
     WHERE
       pasma.ZIV_ID_SEQ=ziv.ZIV_ID_SEQ
-    AND extract(YEAR FROM ziv.DAT_ROJSTVO) BETWEEN 2000 AND 2016
+    AND extract(YEAR FROM ziv.DAT_ROJSTVO) BETWEEN 2010 AND 2016
     and ziv.SIF_SPOL=2
     and ziv.ZIV_ID_SEQ=tel.TEL_ZIV_ID_SEQ
     and tel.TEL_ID_SEQ=lak.LAK_TEL_ID_SEQ
@@ -382,14 +382,50 @@ select * from govedo.zivali ziv where ziv.ZIV_ID_SEQ=420978 ;
 
 
 
-select oce.ocetje,count(distinct ziv.ZIV_ID_SEQ), pb.SIF_UPORABA_PB,extract(year from ziv.DAT_ROJSTVO)  from 
-(   select ziv.ZIV_OCE_SEQ  ocetje
-  from zivali ziv
-  where (extract(year from ziv.DAT_ROJSTVO)) in (2014,2015,2016)
-  and ziv.SP1_SIFRA_PASMA = 1
-  and ziv.ZIV_OCE_SEQ is not null
-) oce, govedo.zivali ziv, GOVEDO.PLEMENSKI_BIKI pb where oce.ocetje=ziv.ZIV_OCE_SEQ and ziv.ZIV_OCE_SEQ=pb.PB_ZIV_ID_SEQ group by extract(year from ziv.DAT_ROJSTVO), pb.SIF_UPORABA_PB, oce.ocetje;
+--vsi, ki so v tabli plemenski biki, so bili enkrat mladi - razen tisti, ki se začnejo z 8 (pripust) in 7 (uvoženo) - REPUBLISKA
+--republiska številka označena kot rodovniška v tabelah
+--sicer je sedaj rodovniška številka enaka identifikacijski številki (t.j. SI XXXXXXX - brez SI), včasih pa je bila rodovniška = republiška
+select count(distinct plemB.PB_ZIV_ID_SEQ),  (extract (year from ziv.dat_ROJSTVO))
+from GOVEDO.PLEMENSKI_BIKI plemB, govedo.zivali ziv
+where ziv.ZIV_ID_SEQ=plemB.PB_ZIV_ID_SEQ and ziv.SP1_SIFRA_PASMA=1 
+and (extract (year from ziv.dat_ROJSTVO)) between 2006 and 2016
+and plemB.STEV_RODOV_PB not like '7%'
+and plemB.STEV_RODOV_PB not like '8%'
+group by (extract( year from ziv.dat_ROJSTVO))
+;
 
-select * from zivali ziv where ziv.ZIV_ID_SEQ=420978;¸oce2014
+--koliko potomcev rojenih od mladih bikov - to je tri leta po rojstvu bika
+select distinct ziv.ZIV_ID_SEQ, oce_pb.ID_PB, oce_pb.ROJ_PB from govedo.zivali ziv, (select distinct plemB.PB_ZIV_ID_SEQ ID_PB,  (extract (year from ziv.dat_ROJSTVO)) ROJ_PB
+from GOVEDO.PLEMENSKI_BIKI plemB, govedo.zivali ziv
+where ziv.ZIV_ID_SEQ=plemB.PB_ZIV_ID_SEQ and ziv.SP1_SIFRA_PASMA=1 
+and (extract (year from ziv.dat_ROJSTVO)) between 2006 and 2016
+and plemB.STEV_RODOV_PB not like '7%'
+and plemB.STEV_RODOV_PB not like '8%'
+) oce_pb
+where oce_pb.ID_PB=ziv.ZIV_OCE_SEQ
+--and (extract(year from ziv.DAT_ROJSTVO)) between (oce_pb.ROJ_PB) and (oce_pb.ROJ_PB+3)
+--group by oce_pb.ID_PB, oce_pb.ROJ_PB
+;
 
 
+
+
+--število potomcev po biku šifri 2015
+select count(distinct ziv.ziv_id_seq),  pb.SIF_UPORABA_PB from zivali ziv, GOVEDO.PLEMENSKI_BIKI pb  
+where (extract(year from ziv.DAT_ROJSTVO))=2015 
+and ziv.ZIV_OCE_SEQ=pb.PB_ZIV_ID_SEQ 
+and ziv.SP1_SIFRA_PASMA=1
+group by pb.SIF_UPORABA_PB;
+
+--koliko je vseh potomcev
+select avg(count(distinct ziv.ziv_id_seq)) from zivali ziv where (extract(year from ziv.dat_rojstvo)) between 2014 and 2016 and ziv.SP1_SIFRA_PASMA=1 
+group by  (extract(year from ziv.dat_rojstvo));
+
+--še po spolu
+select count(distinct ziv.ziv_id_seq), ziv.SIF_SPOL, pb.SIF_UPORABA_PB from zivali ziv, GOVEDO.PLEMENSKI_BIKI pb  
+where (extract(year from ziv.DAT_ROJSTVO))=2015 
+and ziv.ZIV_OCE_SEQ=pb.PB_ZIV_ID_SEQ 
+and ziv.SP1_SIFRA_PASMA=1
+group by pb.SIF_UPORABA_PB, ziv.SIF_SPOL;
+
+--koliko
