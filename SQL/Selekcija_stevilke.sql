@@ -428,4 +428,47 @@ and ziv.ZIV_OCE_SEQ=pb.PB_ZIV_ID_SEQ
 and ziv.SP1_SIFRA_PASMA=1
 group by pb.SIF_UPORABA_PB, ziv.SIF_SPOL;
 
---koliko
+--koliko je trenutno krav
+select count( distinct ziv.ZIV_ID_SEQ) from zivali ziv, GOVEDO.LAKTACIJE lak, GOVEDO.TELITVE tel, GOVEDO.LOKACIJE_STEVILO_ZIVALI lok
+where ziv.ZIV_ID_SEQ=tel.TEL_ZIV_ID_SEQ
+and tel.TEL_ID_SEQ=lak.LAK_TEL_ID_SEQ
+and ziv.AKTIVNA=1
+and ziv.SP1_SIFRA_PASMA=1
+and ziv.CRE_SIFRA_CREDA=lok.LOKACIJA
+and lok.VRSTA_KONTROLE='AP';
+
+
+--koliko ženskih telic pride do krav
+select count(distinct ziv.ZIV_ID_SEQ),(extract(year from ziv.dat_rojstvo)) from zivali ziv, GOVEDO.LOKACIJE_STEVILO_ZIVALI lok, GOVEDO.TELITVE tel
+where
+ziv.ZIV_ID_SEQ=tel.TEL_ZIV_ID_SEQ
+--and tel.TEL_ID_SEQ=lak.LAK_TEL_ID_SEQ
+and ziv.SIF_SPOL=2
+and ziv.SP1_SIFRA_PASMA=1
+and (extract(year from ziv.dat_rojstvo)) between 2010 and 2016
+and ziv.CRE_SIFRA_CREDA=lok.LOKACIJA
+and lok.VRSTA_KONTROLE='AP'
+group by (extract(year from ziv.dat_rojstvo));
+
+--koliko ženskih telic pride do krav
+select ziv.ZIV_ID_SEQ,(extract(year from ziv.dat_rojstvo)) from zivali ziv, GOVEDO.LAKTACIJE lak, GOVEDO.TELITVE tel, GOVEDO.LOKACIJE_STEVILO_ZIVALI lok
+where ziv.ZIV_ID_SEQ=tel.TEL_ZIV_ID_SEQ
+and tel.TEL_ID_SEQ=lak.LAK_TEL_ID_SEQ
+and ziv.SP1_SIFRA_PASMA=1
+and ziv.CRE_SIFRA_CREDA=lok.LOKACIJA
+and lok.VRSTA_KONTROLE='AP';
+
+--koliko je gospodarskih križanj
+--koliko je vseh potomcev rjavih krav
+select count(distinct potomci.zivID ), POTOMCI.datR
+from zivali zivM, 
+(select distinct ziv.ziv_id_seq zivID, ziv.ZIV_MATI_SEQ,  (extract(year from ziv.dat_rojstvo)) datR
+from zivali ziv 
+where (extract(year from ziv.dat_rojstvo)) between 2010 and 2016 
+--and ziv.SP1_SIFRA_PASMA=1
+) potomci
+where potomci.ZIV_MATI_SEQ=zivM.ZIV_ID_SEQ
+and zivM.SP1_SIFRA_PASMA=1
+group by  POTOMCI.datR;
+
+select count(distinct ziv.ZIV_ID_SEQ), ziv.SIF_SPOL from zivali ziv where ziv.SP1_SIFRA_PASMA=1 and ziv.AKTIVNA=1 group by ziv.SIF_SPOL;

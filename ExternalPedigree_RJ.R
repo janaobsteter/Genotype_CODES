@@ -12,7 +12,6 @@ ped1$cat <- NA #kategorija
 #ŽENSKE
 ######################################################################################################################
 #1:18000 so ženske
-ped1$sex[1:18000] <- "F"
 #imamo 15% populacije starost = 0, 14.5% starost 1, 8% starost 2, potem pa 62.5% krav - starost 3, 4, 5, 6, 7 vsaka 1/5
 #izmed krav starost 3 leta vsako leto odberemo remont BM (najboljše)
 
@@ -167,6 +166,7 @@ table(ped1$gen, ped1$cat) #TUKAJ POGLEJ, če ti štimajo številke! Vsaka katego
   #males: odberi najboljših 8 bikov za mlade, ostali iz testa za pripust, izloči 27% in prenesi 73% bikov
 
 ped1 <- read.table("~/Documents/PhD/Simulaton/Pedigrees/Pedigree_10burnIn_Gen1.txt", header=T)
+ped1 <- read.table("~/Documents/PhD/Simulaton/Pedigrees/Pedigree_10burnIn_Gen1_6700.txt", header=T)
 ped1 <- ped1[,c(1,2,3,4,9)]
 nrow(ped1)
 ped1$EBV <- exact_corr(ped1$gvNormUnres1, r=0.8) #pridobi EBV iz TBV
