@@ -39,7 +39,7 @@ class pedigree:
         return set(self.ped['Generation'])
     
     def compute_age (self):
-        self.ped['age'] = max(self.ped['Generation']) - self.ped['Generation']
+        self.ped['age'] = max(self.gens()) - self.ped['Generation']
         
     def set_cat(self, start, stop, cat): #pregled po kategorijah
         self.ped.loc[range(start,(start + stop)), 'cat'] = cat
@@ -48,7 +48,8 @@ class pedigree:
     def set_cat_list(self, seznam, cat):
         self.ped.loc[seznam, 'cat'] = cat
 
-    
+    def lala(self):
+        print self.gens()
     
     def set_cat_gen(self, gen, cat):
         self.ped.loc[self.ped.Generation == gen, 'cat'] = cat
@@ -89,7 +90,17 @@ class pedigree:
     def age(self):
         return self.ped.age.value_counts()
 
+    def mother_blank(self):
+        return sum(self.ped.Mother == 0)
 
+    def father_blank(self):
+        return sum(self.ped.Father == 0)
+        
+    def mother_nr_blank(self):
+        return len(self.ped[(self.ped.cat=='nr') & (self.ped.Mother == 0)])
+
+    def father_nr_blank(self):
+        return len(self.ped[(self.ped.cat=='nr') & (self.ped.Father == 0)])
                
     def active(self):
         return self.ped.active.value_counts()
@@ -235,7 +246,11 @@ class pedigree:
     def set_mother(self,  MotherList):
         first_blank_row = min(self.ped[(self.ped['Mother'] == 0) & ((self.ped.cat=='nr')) ].index)
         self.ped.loc[(first_blank_row):(first_blank_row + len(MotherList)-1), 'Mother'] = MotherList
-        
+     
+    def set_father(self,  FatherList, mothercat, prevGenDict):
+        mother_cat_rows = list(self.ped[(self.ped.cat == 'nr') & (self.ped.Mother.isin(prevGenDict[mothercat])) ].index)
+        self.ped.loc[mother_cat_rows, 'Father'] = FatherList
+           
         
     def select_mother_random(self, cat, st):
         pot_Mother = list(self.ped.loc[(self.ped.cat==cat) & (self.ped.active==1), 'Indiv'])

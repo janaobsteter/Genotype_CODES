@@ -16,6 +16,7 @@ import random
 #perF = 0.9
 #perM = 0.1 # odstotki ženskih in moških živali v aktivni populaciji
 #odstotki kategorij znotraj spola
+kn = 11000
 stNB = 6700
 
 nrF = stNB * 0.5
@@ -47,6 +48,13 @@ pbUp = 5 #koliko let so povrpečno v uporabi biki v AI
 pripustUp = 1.4 # koliko let so v uporabi biki v pripustu
 genomUp = 1.3 #koliko let so povprečno v uporabi genomsko testirani biki
 
+
+
+
+##številke doz letno
+pripustDoz = 15
+pozitivnoTestDoz = 220
+mladiDoz = 250
 ##################################################################################################################3
 ##################################################################################################################3
 #od tu naprej samo delo s parametri = spremenvljivkami
@@ -84,8 +92,9 @@ sum([nrMn, bik12n, bik24n])
 #ti novorojeni so že prva generacija
 #na koncu potegni skupaj ID in kategorije ter to uporabi za določitev staršev#
 #tudi šele tam se ukvarjaj z [pb]
-reload(selection)
+
 import selection
+reload(selection)
 from selection import *
 ped = pedigree("~/Documents/PhD/Simulaton/Pedigrees/PedPython.txt")    
 
@@ -95,7 +104,7 @@ ped = pedigree("~/Documents/PhD/Simulaton/Pedigrees/PedPython.txt")
 
  #tretja odbira
  #TUKAJ NE MOREŠ ODBIRATI PO EBV DOKLER DA NIMAŠ ZGENERIRANIH! - zato random za vajo
-stevilo_krogov = 8
+stevilo_krogov = 3
 
 for krog in (range(0,stevilo_krogov)):
     if krog == 0:
@@ -142,85 +151,22 @@ for krog in (range(0,stevilo_krogov)):
 
         select_age_2_3(ped)
         
-        ped.add_new_gen_naive(stNB)  
-        
-        categories.clear()
-        categories = ped.save_cat()
-        sex = ped.save_sex()
-        active = ped.save_active()
-        age = ped.save_age() 
-
-#dodaj starše novorojenim
-#MATERE
-bmMother = ped.select_mother_random('bm', 100)
-
-ped.set_mother(bmMother) #
-
-mother = ped.select_mother_EBV_top('k', int(round(11000*0.7))) #tukaj odberi brez tistih, ki so za gospodarsko križanje
-motherOther = random.sample(mother, (stNB - len(bmMother)))
-
-ped.set_mother(motherOther) #TUKAJ SO DOLOČENE SEDAJ VSE MATERE!!!
-
-#OČETJE
-testirani = ped.catCurrent_indiv('pripust1') | ped.catCurrent_indiv('pripust2') | ped.catCurrent_indiv_age('pripust1')
-
-
-        """TOLE NI NAJBOLJŠE!        
-def selekcija_ena_gen(pedFile):
-    ped = pedigree(pedFile) 
-       
-    if max(ped.gens()) == 1:
-        print "PRVA SELEKCIJA"
-        ped.set_cat_gen(max(ped.gen), "nr") #to je samo na prvem loopu
-        categories = ped.save_cat()
-        ped = pedigree(pedFile)
-        ped.set_sex(0, nrFn, "F") #choose female new borns from generation before
-        #prva odbira
-        select_age_0_1(ped)
-        ped.add_new_gen_naive(stNB)
-            
-        categories.clear()
-        categories = ped.save_cat()
-        sex = ped.save_sex()
-
-        
-    elif max(ped.gens()) == 2:
-        print "DRUGA SELEKCIJA"
-        #druga odbira
-        ped.set_cat_gen(1, "")
-        ped.set_cat_gen(2, "")
-        ped.set_cat_old('izl', 'izl', categories)
-        
-        select_age_0_1(ped) 
-        select_age_1_2(ped)
-        
-        ped.add_new_gen_naive(stNB)  
-        
-        categories.clear()
-        categories = ped.save_cat()
-        sex = ped.save_sex()
-        active = ped.save_active()
-        age = ped.save_age() 
-    
-    elif max(ped.gens()) >= 3:
-        print "TRETJA SELEKCIJA"
-        for i in ped.gens():
-            ped.set_cat_gen(i, "")
-            
-        ped.set_cat_old('izl', 'izl', categories) 
-        
-        select_age_0_1(ped)
-        select_age_1_2(ped)
         ped.compute_age()
-        select_age_2_3(ped)
-        
         ped.add_new_gen_naive(stNB)  
         
         categories.clear()
         categories = ped.save_cat()
         sex = ped.save_sex()
         active = ped.save_active()
-        age = ped.save_age() """
+        age = ped.save_age() 
+        ped.compute_age() #drugače imaš negativne vrednosti!
+        
+        
+
+     
+
+
+
 ##############################################################################################3
 ##############################################################################################3
 ##############################################################################################3    
@@ -242,8 +188,6 @@ def select_age_0_1(ped): #tukaj odbereš iz novorojenih živali tel, ptel in mla
     
 
 def select_age_1_2(ped): # tukaj odbereš nič pri kravah - razen, če so že bikovske matere, pripust 2, bike24
-
-    currentGen = max(ped.gens())-1
     #FEMALES
     ped.izberi_poEBV_top("F", ptn, 'tel', 'pt', categories)
     ped.izloci_poEBV("F", (teln - ptn),'tel', categories) #terlice postanejo
@@ -305,30 +249,135 @@ def select_age_2_3(ped):
         ped.izberi_poEBV_top_age("M", (cak +1), int(mladin * 0.5), 'cak', 'pb', categories)
         ped.set_active_cat('cak', 2, categories) #tukaj moraš to nastaviti, zato ker fja izberi avtomatsko nastavi na active=1
         ped.izloci_poEBV_age("M",(cak+1), int(mladin * 0.5), 'cak', categories) #TUKAJ MORA BITI ŠE STAROST!!!!!!!!!!!
-    #plemenskim bikov po pbUp spremeni active
- 
- 
- """   
-def select_age_3_4(ped):
-    #FEMALES
-    ped.set_cat_old('k2', 'k3', categories)
+
+
+
+def doloci_matere(ped):
+    #MATERE
+    if 'bm' in ped.cat():
+        bmMother = ped.select_mother_random('bm', 90)
+        ped.set_mother(bmMother)
+    #
+    
+    if 'k' in ped.cat():#TUKAJ SO DOLOČENE SEDAJ VSE MATERE!!!
+        mother = ped.select_mother_EBV_top('k', int(round(11000*0.7))) #tukaj odberi brez tistih, ki so za gospodarsko križanje
+        if len(mother) >= (stNB - len(bmMother)): # če že imaš dovolj krav, določi matere vsem novorojenim oz. odbiraš matere, saj jih imaš preveč!
+            motherOther = random.sample(mother, (stNB - len(bmMother)))
+            ped.set_mother(motherOther) #TUKAJ SO DOLOČENE SEDAJ VSE MATERE!!!
+        elif len(mother) < (stNB - len(bmMother)): # če jih še ni dovolj, ne odbiraš mater, ampak uporabiš vse - gosp. križanmja
+            ped.set_mother(mother) 
+
+
+def doloci_ocete(ped):
+#OČETJE
+    mladiOce = ped.catCurrent_indiv('mladi')
+    pripustOce = ped.catCurrent_indiv('pripust1') + ped.catCurrent_indiv('pripust2') 
+    testiraniOce = list(chain.from_iterable([ped.catCurrent_indiv_age('pb', (1 + cak + x)) for x in range(1, pbUp+1)]))
+    bmMother = 90 if len(ped.catCurrent_indiv('bm')) >= 90 else len(ped.catCurrent_indiv('bm'))
+    elita = np.random.choice(range(-20,-1), bmMother, replace=True) #navidezna elita
+    pd.Series(elita).value_counts()#preveri zastopanost po bikih
+    
+    ocetje = pripustOce*pripustDoz + testiraniOce*pozitivnoTestDoz + mladiOce*mladiDoz
+    if len(ocetje) >= (stNB - potomciNPn*2)*2: #če imaš dovolj DOZ za vse NB
+        ocetjeNB = random.sample(ocetje, (stNB - potomciNPn*2)) #tukaj izbereš očete za vse krave  - razen BM!
+        ped.set_father(ocetjeNB, 'k', categories)
+    if len(ocetje) < (stNB - potomciNPn*2)*2:
+        ped.set_father(ocetje, 'k', categories)
+
+    #naštimaj očete elite --> BM
+    ped.set_father(elita, 'bm', categories)
+
+
+
+
+
+#####################################################################
+#tukaj je zdj funkcija, ki vse to dela!
+##################################################################### 
+
+     
+def selekcija_ena_gen(pedFile):
+    ped = pedigree(pedFile) 
+    
+    if max(ped.gen) == 1:
+        ped.set_cat_gen(max(ped.gen), "nr") #to je samo na prvem loopu
+        categories = ped.save_cat()
+        ped = pedigree(pedFile)
+        ped.set_sex(0, nrFn, "F") #choose female new borns from generation before
+        #prva odbira
+        select_age_0_1(ped)
+        
+        ped.add_new_gen_naive(stNB)
+        ped.compute_age()
+        
+        #dodaj matere
+        doloci_matere(ped)
+        #preveri - mora biti nič!!! - oz. če mater še ni dovolj, potem še ne!
+        ped.mother_nr_blank()
+        #dodaj očete
+        doloci_ocete(ped)
+        #preveri - mora biti nič!!! - oz. če mater še ni dovolj, potem še ne!
+        ped.mother_nr_blank()
+                
+        categories.clear() #sprazni slovar od prejšnjega leta
     
     
-    #MALES
-    ped.set_cat_old('mladi3', 'mladi4', categories)
- 
-def select_age_4_5(ped):
-    #FEMALES
-    #ped.set_cat_old('bm1', 'bm2', categories)
-    ped.set_cat_old('k3', 'k4', categories)
+    if max(ped.gen) == 2:
+        print "DRUGA SELEKCIJA"
+        #druga odbira
+        ped.set_cat_gen(1, "")
+        ped.set_cat_gen(2, "")
+        ped.set_cat_old('izl', 'izl', categories)
+        
+        select_age_0_1(ped) 
+        select_age_1_2(ped)
+        
+        ped.add_new_gen_naive(stNB)  
+        ped.compute_age()
+        
+        #dodaj matere
+        doloci_matere(ped)
+        #preveri - mora biti nič!!! - oz. če mater še ni dovolj, potem še ne!
+        ped.mother_nr_blank()
+        #dodaj očete
+        doloci_ocete(ped)
+        #preveri - mora biti nič!!! - oz. če mater še ni dovolj, potem še ne!
+        ped.mother_nr_blank()
+                
+        categories.clear() #sprazni slovar od prejšnjega leta
+        
+        #dodaj starše novorojenim - VEDNO PRVO MAME, KER JE FUNKCIJA ZA OČETE NAŠTIMANA, DA SE RAVNA PO MAMAH!
+        
     
-    #MALES
-    ped.set_cat_old('mladi4', 'mladi5', categories)
- 
-def select_age_5_6(ped):
-    ped.set_cat_old('k4', 'k5', categories)
-    #ped.set_cat_old('bm2', 'bm3', categories)
-  """    
+    
+    if max(ped.gen) >= 3:
+        print "TRETJA SELEKCIJA"
+        for i in ped.gens():
+            ped.set_cat_gen(i, "")
+            
+        ped.set_cat_old('izl', 'izl', categories) 
+        
+        select_age_0_1(ped)
+        select_age_1_2(ped)
+        ped.compute_age()
+        select_age_2_3(ped)
+        
+        ped.add_new_gen_naive(stNB)  
+        ped.compute_age()
+        
+        #dodaj matere
+        doloci_matere(ped)
+        #preveri - mora biti nič!!! - oz. če mater še ni dovolj, potem še ne!
+        ped.mother_nr_blank()
+        #dodaj očete
+        doloci_ocete(ped)
+        #preveri - mora biti nič!!! - oz. če mater še ni dovolj, potem še ne!
+        ped.mother_nr_blank()
+                
+        categories.clear() #sprazni slovar od prejšnjega leta
+    
+    return ped.save_cat(), ped.save_sex(), ped.save_active()
+
 
 
       
