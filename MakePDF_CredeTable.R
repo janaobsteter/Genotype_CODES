@@ -108,9 +108,9 @@ izberiCrede <- function (st) {
 }
 
 izbraneCrede <- izberiCrede(556)
-length(izbraneCrede)
-length(intersect(c(86,2475,9690,10253), vseRjavePDF$CRE_SIFRA_CREDA))
-izbraneCrede <- unique(c(izbraneCrede, c(86,2475,9690,10253)))
+length(izbraneCrede) #tukaj so izbrane kmetije glede na velikost 
+length(intersect(c(86,2475,9690,10253), vseRjavePDF$CRE_SIFRA_CREDA)) #LJ in NM kmetije
+izbraneCrede <- unique(c(izbraneCrede, c(86,2475,9690,10253))) #tukaj združi s štirimi NM in LJ kmetijami - 3NM in 1 LJ - te štiri MORAJO biti vključene ne glede na št krav(ampak 3 že tako ali tako po velikosti)
 length(izbraneCrede)
 length(intersect(vseRjavePDF$CRE_SIFRA_CREDA, izbraneCrede))
 
@@ -166,6 +166,7 @@ colnames(izbraniRejci)[2] <- "CRE_SIFRA_CREDA"
 izbraniRejci <- merge(izbraniRejci, stPocredah, by="CRE_SIFRA_CREDA")
 colnames(izbraniRejci)[2] <- "SteviloZivali"
 write.table(izbraniRejci[,c(2,3)], "~/Documents/F4F/OdbiraZivali/IzbraneReje_15032017.csv", quote=F, row.names=F, sep="\t")
+write.table(izbraniRejci, "~/Documents/F4F/OdbiraZivali/IzbraneReje_inStZivali_15032017.csv", quote=F, row.names=F, sep="\t")
 
 
 
