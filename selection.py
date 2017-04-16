@@ -39,7 +39,7 @@ class pedigree:
         return set(self.ped['Generation'])
     
     def compute_age (self):
-        self.ped['age'] = max(self.ped['Generation']) - self.ped['Generation']
+        self.ped['age'] = self.ped.Generation.apply(lambda x: x - max(self.ped.gens() - ))
         
     def set_cat(self, start, stop, cat): #pregled po kategorijah
         self.ped.loc[range(start,(start + stop)), 'cat'] = cat
