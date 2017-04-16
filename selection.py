@@ -40,6 +40,7 @@ class pedigree:
     
     def compute_age (self):
         self.ped['age'] = self.ped.Generation.apply(lambda x: x - max(self.ped.gens() - ))
+
         
     def set_cat(self, start, stop, cat): #pregled po kategorijah
         self.ped.loc[range(start,(start + stop)), 'cat'] = cat
@@ -48,7 +49,8 @@ class pedigree:
     def set_cat_list(self, seznam, cat):
         self.ped.loc[seznam, 'cat'] = cat
 
-    
+    def lala(self):
+        print self.gens()
     
     def set_cat_gen(self, gen, cat):
         self.ped.loc[self.ped.Generation == gen, 'cat'] = cat
@@ -61,11 +63,17 @@ class pedigree:
 
     def set_cat_age_old(self, age,  oldcat, cat, prevGenDict):
         self.ped.loc[(self.ped['age'] ==age) & (self.ped.Indiv.isin(prevGenDict[oldcat])), 'cat'] = cat
-            
+   
+    def set_cat_sex_old(self, sex,  oldcat, cat, prevGenDict):
+        self.ped.loc[(self.ped['sex'] ==sex) & (self.ped.Indiv.isin(prevGenDict[oldcat])), 'cat'] = cat
+   
+    def set_cat_mother_catCurrent(self, mothercat,  cat):
+        self.ped.loc[(self.ped.Mother.isin(self.catCurrent_indiv(mothercat))),  'cat'] = cat   
+        
     def set_sex(self, start, stop,sex): #pregled po kategorijah
         self.ped.loc[range(start, stop), 'sex'] = sex
     
-    def set_sex_list(self, seznam,sex): #pregled po kategorijah
+    def set_sex_list(self, seznam,sex): 
         self.ped.loc[seznam, 'sex'] = sex    
                 
     def set_active(self, start, stop,active): #pregled po kategorijah
@@ -89,7 +97,17 @@ class pedigree:
     def age(self):
         return self.ped.age.value_counts()
 
+    def mother_blank(self):
+        return sum(self.ped.Mother == 0)
 
+    def father_blank(self):
+        return sum(self.ped.Father == 0)
+        
+    def mother_nr_blank(self):
+        return len(self.ped[(self.ped.cat=='nr') & (self.ped.Mother == 0)])
+
+    def father_nr_blank(self):
+        return len(self.ped[(self.ped.cat=='nr') & (self.ped.Father == 0)])
                
     def active(self):
         return self.ped.active.value_counts()
@@ -124,7 +142,7 @@ class pedigree:
     def izloci_poEBV(self, sex, stIzl, oldcat, prevGenDict):
         izlRow = list(self.ped.loc[(self.ped.sex==sex) & (self.ped.Indiv.isin(prevGenDict[oldcat])), 'EBV'].sort_values(ascending=True)[:stIzl].index) #katere izločiš
         if len(izlRow) < stIzl:
-            print("Too little animals to choose from.")
+            print("Too little animals to choose from. <{} {}>".format("izloci po EBV", oldcat))
         else:
             self.set_cat_list(izlRow, "izl")
             self.set_active_list(izlRow, 2)
@@ -132,7 +150,7 @@ class pedigree:
     def izloci_poEBV_age(self, sex,age, stIzl, oldcat, prevGenDict):
         izlRow = list(self.ped.loc[(self.ped.age==age)&(self.ped.sex==sex) & (self.ped.Indiv.isin(prevGenDict[oldcat])), 'EBV'].sort_values(ascending=True)[:stIzl].index) #katere izločiš
         if len(izlRow) < stIzl:
-            print("Too little animals to choose from.")
+            print("Too little animals to choose from. <{} {}>".format("izloci po EBV_age", oldcat))
         else:
             self.set_cat_list(izlRow, "izl")
             self.set_active_list(izlRow, 2)
@@ -140,24 +158,31 @@ class pedigree:
     def izberi_poEBV_top(self, sex, st, oldcat, cat, prevGenDict):
         selRow = list(self.ped.loc[(self.ped.sex==sex)  & (self.ped.Indiv.isin(prevGenDict[oldcat])) , 'EBV'].sort_values(ascending=False)[:st].index) #katere izbereš
         if len(selRow) < st:
-            print("Too little animals to choose from.")
+            print("Too little animals to choose from. <{} {} > {}>".format("izberi po EBV", oldcat, cat))
         else:
             self.set_cat_list(selRow, cat)
             self.set_active_list(selRow, 1)
-
+ 
+    def izberi_poEBV_top_catCurrent(self, sex, st, cat, newcat): #to je bolj kot ne samo za prvi krog, ko nimaš slovarja od prejšnje generacije
+        selRow = list(self.ped.loc[(self.ped.sex==sex)  & (self.ped.cat == cat) , 'EBV'].sort_values(ascending=False)[:st].index) #katere izbereš
+        if len(selRow) < st:
+            print("Too little animals to choose from. <{} {} > {}>".format("izberi po EBV_catCurrent", cat, newcat))
+        else:
+            self.set_cat_list(selRow, newcat)
+            self.set_active_list(selRow, 1)
 
     def izberi_poEBV_top_age(self, sex, age, st, oldcat, cat, prevGenDict):
         selRow = list(self.ped.loc[(self.ped.age==age) & (self.ped.sex==sex)  & (self.ped.Indiv.isin(prevGenDict[oldcat])) , 'EBV'].sort_values(ascending=False)[:st].index) #katere izbereš
         if len(selRow) < st:
-            print("Too little animals to choose from.")
+            print("Too little animals to choose from. <{} {} > {}>".format("izberi po EBV_topAge", oldcat, cat))
         else:
             self.set_cat_list(selRow, cat)
             self.set_active_list(selRow, 1)
     
-    def ind_poEBV_top(self, sex, st, cat):
-        selRow = list(self.ped.loc[(self.ped.sex==sex)  & (self.ped.Indiv.isin(prevGenDict[oldcat])) , 'EBV'].sort_values(ascending=False)[:st].index) #katere izbereš
+    def ind_poEBV_top(self, sex, st, cat, prevGenDict):
+        selRow = list(self.ped.loc[(self.ped.sex==sex)  & (self.ped.Indiv.isin(prevGenDict[cat])) , 'EBV'].sort_values(ascending=False)[:st].index) #katere izbereš
         if len(selRow) < st:
-            print("Too little animals to choose from.")
+            print("Too little animals to choose from. <{} {}>".format("Indiv po EBV_top", cat))
         else:
             self.set_cat_list(selRow, cat)
             self.set_active_list(selRow, 1)
@@ -165,7 +190,7 @@ class pedigree:
     def izberi_poEBV_OdDo(self, sex, start, stop,  oldcat,cat, prevGenDict):
         selRow = list(self.ped.loc[(self.ped.sex==sex) &  (self.ped.Indiv.isin(prevGenDict[oldcat])) , 'EBV'].sort_values(ascending=False)[start:stop].index) #katere izbereš
         if len(selRow) < (stop - start):
-            print("Too little animals to choose from.")
+            print("Too little animals to choose from. <{} {} > {}>".format("izberi po EBV_OdDo", oldcat, cat))
         else:
             self.set_cat_list(selRow, cat)
             self.set_active_list(selRow, 1)
@@ -173,7 +198,7 @@ class pedigree:
     def izberi_random(self,  sex, st, oldcat, cat, prevGenDict):
         freeRow = list(self.ped.loc[(self.ped.sex==sex) & (self.ped.Indiv.isin(prevGenDict[oldcat])) & (self.ped.cat == "")].index) #rows with no assigned category
         if len(freeRow) < st:
-            print("Too little animals to choose from")
+            print("Too little animals to choose from. <{} {} > {}>".format("izberi random", oldcat, cat))
         else:
             choice = list(np.random.choice(freeRow, st, replace=False))
             self.set_cat_list(choice, cat)
@@ -182,7 +207,7 @@ class pedigree:
     def izloci_random(self,  sex, st, oldcat, prevGenDict):
         freeRow = list(self.ped.loc[(self.ped.sex==sex) & (self.ped.Indiv.isin(prevGenDict[oldcat])) & (self.ped.cat == "")].index ) #rows with no assigned category
         if len(freeRow) < st:
-            print("Too little animals to choose from")
+            print("Too little animals to choose from. <{} {}>".format("izloči random", oldcat))
         else:
             choice = list(np.random.choice(freeRow, st, replace=False))
             self.set_cat_list(choice, 'izl')
@@ -221,9 +246,9 @@ class pedigree:
             age[i] = list(self.ped.loc[self.ped.age==i, 'Indiv'])
         return age
          
-    def add_new_gen_naive(self, stNR):
+    def add_new_gen_naive(self, stNR, potomciNPn):
         nr = pd.DataFrame({'Indiv': range((max(self.ped.Indiv)+1), (max(self.ped.Indiv) + 1 + stNR)), \
-        'cat': ['nr']*(stNR), 'sex': ['F', 'M'] * int(stNR / 2), \
+        'cat': ['nr']*(stNR - potomciNPn) + ['potomciNP']*potomciNPn, 'sex': ['F', 'M'] * int(stNR / 2), \
         'Generation' : [(max(self.ped.Generation) + 1)]*stNR, \
         'EBV' : list(np.random.uniform(0.004, 1.5, stNR)), \
         'Mother' : [0]*stNR,
@@ -235,7 +260,18 @@ class pedigree:
     def set_mother(self,  MotherList):
         first_blank_row = min(self.ped[(self.ped['Mother'] == 0) & ((self.ped.cat=='nr')) ].index)
         self.ped.loc[(first_blank_row):(first_blank_row + len(MotherList)-1), 'Mother'] = MotherList
-        
+    
+    def set_mother_catPotomca(self,  MotherList, cat_potomca):
+        freeRow = list(self.ped[(self.ped['Mother'] == 0) & (self.ped.cat==cat_potomca) ].index)[0:len(MotherList)]
+        self.ped.loc[freeRow, 'Mother'] = MotherList
+     
+    def set_father(self,  FatherList, mothercat, prevGenDict):
+        mother_cat_rows = list(self.ped[(self.ped.cat == 'nr') & (self.ped.Mother.isin(self.catCurrent_indiv(mothercat))) ].index)[0:len(FatherList)]
+        self.ped.loc[mother_cat_rows, 'Father'] = FatherList
+    
+    def set_father_catPotomca(self,  FatherList, cat_potomca):
+        freeRow = list(self.ped[(self.ped['Father'] == 0) & (self.ped.cat==cat_potomca) ].index)[0:len(FatherList)]
+        self.ped.loc[freeRow, 'Father'] = FatherList       
         
     def select_mother_random(self, cat, st):
         pot_Mother = list(self.ped.loc[(self.ped.cat==cat) & (self.ped.active==1), 'Indiv'])
@@ -245,4 +281,5 @@ class pedigree:
         selRow = list(self.ped.loc[(self.ped.cat==cat) , 'EBV'].sort_values(ascending=False)[:st].index) #katere izbereš
         return list(self.ped.loc[selRow, 'Indiv'])
         
-
+    def write_ped(self, path):
+        self.ped.to_csv(path, columns = ['Indiv', 'Father', 'Mother'], quoting=None, index=False, header=False)
