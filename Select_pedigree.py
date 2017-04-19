@@ -17,34 +17,38 @@ from itertools import chain
 #perF = 0.9
 #perM = 0.1 # odstotki ženskih in moških živali v aktivni populaciji
 #odstotki kategorij znotraj spola
-kn = 11000
 stNB = 6700
 
 nrF = stNB * 0.5
-tel = 0.966
+telF = 0.966
 pt = 0.85 #koliko jih pride do telic
-kraveRemont = 0.25
+#kraveRemont = 0.25 # ali pa število laktacij
+#TUKAJ ŠE; KOLIKO JIH PREŽIVI PRVO LAKTACIJO!
 bm = 0.0127 #TO JE OD KRAV!!!
 #sum([nrF, ptel, tel, pt24, t24, k])
 
 
-nrM = 0.55
-mladi = 0.17777778 #TO JE ZNOTRAJ POTOMCEV NAČRTNIH PARJENJ
-bik12 = 0.40
-pripust = 0.0135 #TO JE ZNOTRAJ BIKOV 12!!!!
-#cakajoci = 0.018 #to je znotraj bikov12!!!!!
-bik24 = 0.05
-potomciNP = 0.0134 #%OD NOVOROJENIH
+nrM = stNB * 0.5
+potomciNP = 0.0135 #%OD NOVOROJENIH
+
 vhlevljeni = 0.6 #TO JE ODSTOTEK OD POTOMCEV NAČRNIH PARJENJ
+
+mladi = 0.30 #TO JE ZNOTRAJ POTOMCEV NAČRTNIH PARJENJ
+pripust = 0.70 # to je znotraj vhlevljenih
+#pripust = 0.0135 #TO JE ZNOTRAJ BIKOV 12!!!!
+telM = 0.73 #KOLIKO BIKOV postane moška teleta
+
+#cakajoci = 0.018 #to je znotraj bikov12!!!!!
+bik12 = 0.12 #koliko bikov do 12 mesecev preživi še do 2. leta
 
 
 pb = 0.5 #KOLIKO OD MLADIH POSTANE TESTIRANIH
-nrM + bik12 +  bik24 
+#nrM + bik12 +  bik24 
 
 #2)števila let v uporabi
-kraveUp = 4 #povprečno koliko let so krave v populaciji (koliko laktacij)
+kraveUp = 4 #povprečno koliko let so krave v populaciji (koliko laktacij) = remont krav
 bmUp = 3 # koliko let so v uporabi BM - REMONT!
-cak = 4 #koliko časa so mladi biki v testu oz. koliko časa so čakajoči
+cak = 3 #koliko časa so mladi biki v testu oz. koliko časa so čakajoči
 pbUp = 5 #koliko let so povrpečno v uporabi biki v AI
 pripustUp = 1.4 # koliko let so v uporabi biki v pripustu
 genomUp = 1.3 #koliko let so povprečno v uporabi genomsko testirani biki
@@ -73,19 +77,21 @@ bmn = int(round(ptn * kraveUp *bm)) #to je od vseh krav
 #sum([nrFn, pteln, teln, pt24n, t24n, kn])
 
 nM = 0.5
-nrMn = int(round(stNB * nM))
-bik12n = int(round(bik12 * nrMn))
-bik24n = int(round(bik24 * nrMn))
+nrMn = int(round(stNB * 0.5 * (1 - potomciNP))) 
+telMn = int(round(telM * nrMn))
+bik24n = int(round(bik24 * telMn))
 potomciNPn = int(round(potomciNP * nrMn))
-mladin = int(round(mladi * potomciNPn)) ###Mladi: mladin = int(nrM * nM * mladi)
 vhlevljenin  = int(round(potomciNPn * vhlevljeni))
+
+mladin = int(round(mladi * vhlevljenin)) ###Mladi: mladin = int(nrM * nM * mladi)
+
 #cakajocin = int(cakajoci* nM)
 pripustTn = int(round((vhlevljenin - mladin)*pripustUp))
 pripust1n = vhlevljenin - mladin
 pripust2n = pripustTn - pripust1n
 pbn = int(pb * mladin)
 #sum([nrMn, bik12n, bik24n, cakajocin, pripustn, pbn, mladin])
-sum([nrMn, bik12n, bik24n])
+#sum([nrMn, bik12n, bik24n])
 ##########################################################
 #ženske
 #odberi novorojene
