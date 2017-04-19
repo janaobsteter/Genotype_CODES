@@ -1,4 +1,4 @@
-#script for producing PDFs for each table
+0000000000000000000#script for producing PDFs for each table
 #F4F projekt - odbria živali za genotipizacijo
 #vsaka čreda posebna tabela
 #primarni seznam - izbrane živali in seznam B - seznam nadomestnih živali v primeru, da je ena iz primarnega seznama izločena

@@ -52,7 +52,7 @@ cak = 3 #koliko časa so mladi biki v testu oz. koliko časa so čakajoči
 pbUp = 5 #koliko let so povrpečno v uporabi biki v AI
 pripustUp = 1.4 # koliko let so v uporabi biki v pripustu
 genomUp = 1.3 #koliko let so povprečno v uporabi genomsko testirani biki
-
+bmOdbira = 2
 
 
 
@@ -69,8 +69,8 @@ mladiDoz = 250
 #ženske
 nrFn = int(stNB * 0.5)
 
-teln = int(tel * nrFn)
-ptn = int(pt* teln)
+telFn = int(telF * nrFn)
+ptn = int(pt* telFn)
 bmn = int(round(ptn * kraveUp *bm)) #to je od vseh krav
 #kn = int(k * nF)
 #bmn = int(bm * k * nF)
@@ -79,7 +79,7 @@ bmn = int(round(ptn * kraveUp *bm)) #to je od vseh krav
 nM = 0.5
 nrMn = int(round(stNB * 0.5 * (1 - potomciNP))) 
 telMn = int(round(telM * nrMn))
-bik24n = int(round(bik24 * telMn))
+bik12n = int(round(bik12 * telMn))
 potomciNPn = int(round(potomciNP * nrMn))
 vhlevljenin  = int(round(potomciNPn * vhlevljeni))
 
@@ -103,80 +103,7 @@ pbn = int(pb * mladin)
 import selection
 reload(selection)
 from selection import *
-ped = pedigree("~/Documents/PhD/Simulaton/Pedigrees/PedPython.txt")    
 
-###################################
-#loop za vajo
-#################################
-
- #tretja odbira
- #TUKAJ NE MOREŠ ODBIRATI PO EBV DOKLER DA NIMAŠ ZGENERIRANIH! - zato random za vajo
-stevilo_krogov = 50
-
-for krog in (range(0,stevilo_krogov)):
-    if krog == 0:
-        ped.set_cat_gen(max(ped.gen), "nr") #to je samo na prvem loopu
-        ped.set_sex_list([x for x in range(0,ped.rows()) if x%2==0], "F")
-        ped.set_sex_list([x for x in range(0,ped.rows()) if x%2!=0], "M")
-        ped.izberi_poEBV_top_catCurrent("F", int(potomciNPn/2), 'nr', 'potomciNP')
-        ped.izberi_poEBV_top_catCurrent("M", int(potomciNPn/2), 'nr', 'potomciNP')
-        categories = ped.save_cat()
-        ped = pedigree("~/Documents/PhD/Simulaton/Pedigrees/PedPython.txt")
-        ped.set_sex_list([x for x in range(0,ped.rows()) if x%2==0], "F")
-        ped.set_sex_list([x for x in range(0,ped.rows()) if x%2!=0], "M")
-        #prva odbira
-        ped.compute_age()        
-        select_age_0_1(ped)
-        ped.add_new_gen_naive(stNB, stpotomciNPn)
-            
-        categories.clear()
-        categories = ped.save_cat()
-        sex = ped.save_sex()
-    
-    if krog == 1:
-        #SETSEX!!!
-        #druga odbira
-        ped.set_cat_gen(1, "")
-        ped.set_cat_gen(2, "")
-        ped.set_cat_old('izl', 'izl', categories)
-        
-        ped.compute_age()        
-        select_age_0_1(ped) 
-        select_age_1_2(ped)
-        
-        ped.add_new_gen_naive(stNB, stpotomciNPn)  
-        
-        categories.clear()
-        categories = ped.save_cat()
-        sex = ped.save_sex()
-        active = ped.save_active()
-        age = ped.save_age() 
-    
-    if krog >= 2:
-        for i in ped.gens():
-            ped.set_cat_gen(i, "")
-            
-        ped.set_cat_old('izl', 'izl', categories) 
-
-        ped.compute_age()        
-        select_age_0_1(ped)
-        select_age_1_2(ped)
-
-        select_age_2_3(ped)
-
-        ped.add_new_gen_naive(stNB, stpotomciNPn) 
-        ped.compute_age() 
-        doloci_matere(ped)
-        doloci_ocete(ped)
-        #ped.set_cat_mother_catCurrent('bm', 'potomciNP') #TO DAJ V FUNKCIJO!
-        
-        categories.clear()
-        categories = ped.save_cat()
-        sex = ped.save_sex()
-        active = ped.save_active()
-        age = ped.save_age() 
-        ped.compute_age() #drugače imaš negativne vrednosti!
-        
 
 
      
@@ -190,31 +117,31 @@ for krog in (range(0,stevilo_krogov)):
 #VEDNO NAJPREJ IZLOČI /ODBERI PO PV!!! - funckije za odbiro na random imajo pogoj, da je kateogrija prosta
 def select_age_0_1(ped): #tukaj odbereš iz novorojenih živali tel, ptel in mlade bike, pripust1
     #FEMALES
-    ped.set_cat_sex_old("F", "potomciNP", "tel", categories)
-    izlF = nrFn - teln#koliko jih izločiš
+    ped.set_cat_sex_old("F", "potomciNP", "telF", categories)
+    izlF = nrFn - telFn#koliko jih izločiš
     ped.izloci_poEBV("F", izlF, "nr", categories) #tukaj jih izloči, funkcija v modulu
 
-    ped.izberi_poEBV_top("F", (nrFn - izlF), "nr", "tel", categories) #izberi telice, ki jih osemeniš --> krave
+    ped.izberi_poEBV_top("F", (nrFn - izlF), "nr", "telF", categories) #izberi telice, ki jih osemeniš --> krave
     
     
     #MALES
     ped.izberi_poEBV_top( "M", vhlevljenin, "potomciNP", "vhlevljeni", categories) #odberi mlade TO SAMO NA ZAČETKU; POTEM POTOMCI BM IN ELITE!
-    ped.izloci_poEBV("M", int((len(categories['potomciNP'])/2) - vhlevljenin), 'potomciNP', categories)
-    ped.izberi_random( "M", bik12n, "nr", "bik12", categories)
-    ped.izloci_random( "M", int(nrMn - bik12n - (len(categories['potomciNP'])/2)),"nr", categories)
+    ped.izloci_poEBV("M", int(potomciNPn - vhlevljenin), 'potomciNP', categories)
+    ped.izberi_random("M", telMn, "nr", "telM", categories)
+    ped.izloci_random("M", int(nrMn - telMn), "nr", categories)
     
 
 def select_age_1_2(ped): # tukaj odbereš nič pri kravah - razen, če so že bikovske matere, pripust 2, bike24
     #FEMALES
-    ped.izberi_poEBV_top("F", ptn, 'tel', 'pt', categories)
-    ped.izloci_poEBV("F", (len(categories['tel']) - ptn),'tel', categories) #terlice postanejo
+    ped.izberi_poEBV_top("F", ptn, 'telF', 'pt', categories)
+    ped.izloci_poEBV("F", (len(categories['telF']) - ptn), 'telF', categories) #terlice postanejo
    
     
     #MALES
     ped.izberi_poEBV_top( "M", mladin, "vhlevljeni", "mladi", categories) #odberi mlade
-    ped.izberi_poEBV_OdDo( "M", mladin, (mladin + (vhlevljenin - mladin)), "vhlevljeni", "pripust1", categories) #odberi v pripustu
-    ped.izberi_random( "M", bik24n, 'bik12', 'bik24', categories)
-    ped.izloci_random( "M", (len(categories['bik12']) - bik24n), 'bik12', categories)
+    ped.izberi_poEBV_OdDo( "M", mladin, vhlevljenin, "vhlevljeni", "pripust1", categories) #odberi v pripustu
+    ped.izberi_random( "M", bik12n, 'telM', 'bik12', categories)
+    ped.izloci_random( "M", (len(categories['telM']) - bik12n), 'telM', categories)
 
 
 
@@ -233,14 +160,15 @@ def select_age_2_3(ped):
               
     #če imaš že dovolj stare krave, potem odberi BM
     #BM se odbira po drugi laktaciji - to je starost 3 - 4 (starost v pedigreju = 3, ker imaš tudi 0)
-    if ('k' in categories.keys()) and (3 in ped.age()):
-        ped.izberi_poEBV_top_age("F",3, int(bmn /bmUp), 'k', 'bm', categories) #izberi bikovske matere
+    if ('k' in categories.keys()) and ((1 + bmOdbira) in ped.age()):
+        ped.izberi_poEBV_top_age("F",3, int(bmn /bmUp), 'k', 'pBM', categories) #izberi bikovske matere
     #in izloči najastarejše BM, če jih imaš
-    if ('bm' in categories.keys()) and ((bmUp+3) in ped.age()):
-        ped.izloci_age_cat((bmUp+3), 'bm', categories)
+    if ('bm' in categories.keys()):
+        ped.izloci_cat('bm', categories)
     #ostale BM prestavi naprej
-    ped.set_cat_age_old(4, 'bm', 'bm', categories)
-    ped.set_cat_age_old(5, 'bm', 'bm', categories)
+    for i in range((1 + bmOdbira + 1), (1 + bmOdbira + bmUp)): #1 leto prva osemenitev, bm odbrane po 2. laktaciji, +1 da začneš prestavljat
+        ped.set_cat_age_old(i, 'pBM', 'pBM', categories)
+    ped.set_cat_age_old((1 + bmOdbira + bmUp), 'pBM', 'bm', categories) #spremeni kategorijo iz plemenskih BM v bm v zadnji laktaciji
     
     #MALES
     #mladi biki postanejo čakajoči (~1 leto, da se osemeni krave s semenom oz. malo po 2. letu)
@@ -250,8 +178,8 @@ def select_age_2_3(ped):
     #čakajočim bikov podaljšaj status (do starosti 5 let)
     #hkrati jim tudi nastavi status izl
     #ped.set_cat_age_old(2, 'cak', 'cak', categories)
-    ped.set_cat_age_old(3, 'cak', 'cak', categories)
-    ped.set_cat_age_old(4, 'cak', 'cak', categories)
+    for i in range((2 + 1), (2 + cak)): #1 leto, ko začnejo semenit in so mladi biki, 3 so čakajoči, +1 da začneš prestavlajt
+        ped.set_cat_age_old(i, 'cak', 'cak', categories)
     
     #povprečna doba v pripustu - glede na to odberi bike, ki preživijo še eno leto
     if 'pripust1' in categories.keys():
@@ -260,29 +188,29 @@ def select_age_2_3(ped):
 
     #plemenske bike prestavljaj naprej
     ped.set_cat_old('pb', 'pb', categories)
-    ped.izloci_cat('bik24', categories)
+    ped.izloci_cat('bik12', categories)
     ped.izloci_cat('pripust2', categories)
-    if ('cak' in categories.keys()) and ((cak+1) in ped.age()):
-        ped.izberi_poEBV_top_age("M", (cak +1), int(mladin * 0.5), 'cak', 'pb', categories)
+    if ('cak' in categories.keys()) and ((cak+2) in ped.age()): #+2 - eno leto so teleta, eno leto mladi biki
+        ped.izberi_poEBV_top_age("M", (cak +2), int(mladin * 0.5), 'cak', 'pb', categories)
         ped.set_active_cat('cak', 2, categories) #tukaj moraš to nastaviti, zato ker fja izberi avtomatsko nastavi na active=1
-        ped.izloci_poEBV_age("M",(cak+1), int(mladin * 0.5), 'cak', categories) #TUKAJ MORA BITI ŠE STAROST!!!!!!!!!!!
+        ped.izloci_poEBV_age("M",(cak+2), int(mladin * 0.5), 'cak', categories) #TUKAJ MORA BITI ŠE STAROST!!!!!!!!!!!
 
 
 
 def doloci_matere(ped):
     #MATERE
-    sTbmMother = 90 if len(ped.catCurrent_indiv('bm')) >= 90 else len(ped.catCurrent_indiv('bm'))
+    sTbmMother = 90 if len(ped.catCurrent_indiv('pBM')) >= 90 else len(ped.catCurrent_indiv('pBM'))
     if sTbmMother != 0:
-        bmMother = ped.select_mother_random('bm', sTbmMother)
+        bmMother = ped.select_mother_random('pBM', sTbmMother)
         ped.set_mother_catPotomca(bmMother, 'potomciNP')
     #
     
     if 'k' in ped.cat():#TUKAJ SO DOLOČENE SEDAJ VSE MATERE!!!
         mother = ped.select_mother_EBV_top('k', int(round(11000*0.7))) #tukaj odberi brez tistih, ki so za gospodarsko križanje
         if len(mother) >= (stNB - sTbmMother): # če že imaš dovolj krav, določi matere vsem novorojenim oz. odbiraš matere, saj jih imaš preveč!
-            motherOther = random.sample(mother, (stNB - len(bmMother)))
+            motherOther = random.sample(mother, (stNB - sTbmMother))
             ped.set_mother_catPotomca(motherOther, 'nr') #TUKAJ SO DOLOČENE SEDAJ VSE MATERE!!!
-        elif len(mother) < (stNB - sTbmMother): # če jih še ni dovolj, ne odbiraš mater, ampak uporabiš vse - gosp. križanmja
+        elif len(mother) < (stNB - sTbmMother): # če jih še ni dovolj, ne odbiraš mater, ampak uporabiš vse MINUS gosp. križanmja
             ped.set_mother_catPotomca(mother, 'nr') 
 
 
@@ -291,7 +219,7 @@ def doloci_ocete(ped):
     mladiOce = ped.catCurrent_indiv('mladi')
     pripustOce = ped.catCurrent_indiv('pripust1') + ped.catCurrent_indiv('pripust2') 
     testiraniOce = list(chain.from_iterable([ped.catCurrent_indiv_age('pb', (1 + cak + x)) for x in range(1, pbUp+1)]))
-    bmMother = 90 if len(ped.catCurrent_indiv('bm')) >= 90 else len(ped.catCurrent_indiv('bm'))
+    bmMother = 90 if len(ped.catCurrent_indiv('pBM')) >= 90 else len(ped.catCurrent_indiv('pBM'))
     elita = np.random.choice(range(-20,-1), bmMother, replace=True) #navidezna elita
     pd.Series(elita).value_counts()#preveri zastopanost po bikih
     
@@ -321,21 +249,23 @@ def selekcija_ena_gen(pedFile):
     ped = pedigree(pedFile) 
     
     if max(ped.gen) == 1:
-        ped.set_cat_gen(max(ped.gen), "nr") #to je samo na prvem loopu
-        ped.set_sex_list([x for x in range(0,ped.rows()) if x%2==0], "F")
-        ped.set_sex_list([x for x in range(0,ped.rows()) if x%2!=0], "M")
-        ped.izberi_poEBV_top_catCurrent("F", int(potomciNPn/2), 'nr', 'potomciNP')
-        ped.izberi_poEBV_top_catCurrent("M", int(potomciNPn/2), 'nr', 'potomciNP')
-        
+        ped.set_cat_gen(max(ped.gen), "nr")  # to je samo na prvem loopu
+        ped.set_sex_list([x for x in range(0, ped.rows()) if x % 2 == 0], "F")
+        ped.set_sex_list([x for x in range(0, ped.rows()) if x % 2 != 0], "M")
+        ped.izberi_poEBV_top_catCurrent("F", int(potomciNPn), 'nr', 'potomciNP')
+        ped.izberi_poEBV_top_catCurrent("M", int(potomciNPn), 'nr', 'potomciNP')
+       
         global categories #to moraš dat global samo v prvenm loopu, drugje dobiš return
         categories = ped.save_cat()
+        global sex
+        sex = ped.save_sex()
+        
         ped = pedigree(pedFile)
-        ped.set_sex_list([x for x in range(0,ped.rows()) if x%2==0], "F")
-        ped.set_sex_list([x for x in range(0,ped.rows()) if x%2!=0], "M")
-        #prva odbira
-        ped.compute_age()        
+        
+        ped.set_sex_prevGen(sex)# prva odbira
+        ped.compute_age()
         select_age_0_1(ped)
-        ped.add_new_gen_naive(stNB, stpotomciNPn)
+        ped.add_new_gen_naive(stNB, potomciNPn*2)
         
         ped.compute_age()
         #dodaj matere
@@ -345,23 +275,25 @@ def selekcija_ena_gen(pedFile):
         #dodaj očete
         doloci_ocete(ped)
         #preveri - mora biti nič!!! - oz. če mater še ni dovolj, potem še ne!
-        ped.mother_nr_blank()
-                
-        categories.clear() #sprazni slovar od prejšnjega leta
+        ped.mother_nr_blank()   
     
-    
+        categories.clear()
+        
+        
     if max(ped.gen) == 2:
-        print "DRUGA SELEKCIJA"
-        #druga odbira
+        # SETSEX!!!
+        ped.set_sex_prevGen(sex)     
+                                
+        # druga odbira
         ped.set_cat_gen(1, "")
         ped.set_cat_gen(2, "")
         ped.set_cat_old('izl', 'izl', categories)
-        
+
         ped.compute_age()
-        select_age_0_1(ped) 
+        select_age_0_1(ped)
         select_age_1_2(ped)
-        
-        ped.add_new_gen_naive(stNB, stpotomciNPn)  
+
+        ped.add_new_gen_naive(stNB, potomciNPn*2)
         ped.compute_age()
         
         #dodaj matere
@@ -375,23 +307,24 @@ def selekcija_ena_gen(pedFile):
                 
         categories.clear() #sprazni slovar od prejšnjega leta
         
-        #dodaj starše novorojenim - VEDNO PRVO MAME, KER JE FUNKCIJA ZA OČETE NAŠTIMANA, DA SE RAVNA PO MAMAH!
-        
+#dodaj starše novorojenim - VEDNO PRVO MAME, KER JE FUNKCIJA ZA OČETE NAŠTIMANA, DA SE RAVNA PO MAMAH!
     
     
     if max(ped.gen) >= 3:
-        print "TRETJA SELEKCIJA"
+        ped.set_sex_prevGen(sex)
+        
         for i in ped.gens():
             ped.set_cat_gen(i, "")
-            
-        ped.set_cat_old('izl', 'izl', categories) 
-        
-        ped.compute_age()        
+
+        ped.set_cat_old('izl', 'izl', categories)
+
+        ped.compute_age()
         select_age_0_1(ped)
         select_age_1_2(ped)
+
         select_age_2_3(ped)
-        
-        ped.add_new_gen_naive(stNB)  
+
+        ped.add_new_gen_naive(stNB, potomciNPn*2)  
         ped.compute_age()
         
         #dodaj matere
@@ -404,9 +337,144 @@ def selekcija_ena_gen(pedFile):
         ped.mother_nr_blank()
                 
         categories.clear() #sprazni slovar od prejšnjega leta
-    
+
     return ped.save_cat(), ped.save_sex(), ped.save_active()
 
 
+#######################################################
+#TO JE, ČE ŠTARTAŠ S POLNO AKTIVNO POPULACIJO IN DOLOČIŠ KATEGORIJE
+#######################################################
+def nastave_cat(PedFile):
+    ped = pedigree(PedFile)
+    ped.compute_age()
+    
+    
+    #MALES FIRST
+    #age 0
+    #določi vhlevljene
+    ped.izberi_poEBV_top_age_naive(0, vhlevljenin, 'vhlevljeni')
+    #določi moška teleta pod 12
+    ped.izberi_random_age_naive(0, telMn, 'telM')
+    
+    #age1
+    #določi mlade
+    ped.izberi_poEBV_top_age_naive(1, mladin, 'mladi')
+    #določi pripust - 1. leto
+    ped.izberi_poEBV_OdDo_age_naive(1, mladin, vhlevljenin, 'pripust1')
+    #določi bike nad 12 m
+    ped.izberi_random_age_naive(1, bik12n, 'bik12')
+    
+    
+    #age2
+    ped.izberi_poEBV_top_age_naive(2, mladin, 'cak')
+    ped.izberi_poEBV_OdDo_age_naive(1, mladin, (mladin + pripust2n), 'pripust2')
+    
+    #age3,4
+    for i in [3,4]:
+        ped.izberi_poEBV_top_age_naive(i, mladin, 'cak')
+    
+    #age 5 - 10: pb
+    for i in range((2 + cak), (2 + cak + pbUp)):
+        ped.izberi_poEBV_top_age_naive(i, 4, 'pb')
+    
+    
+    #FEMALES
+    #age 0
+    #določi ženska teleta pod 12
+    ped.izberi_poEBV_top_age_naive(0, telFn, 'telF')
+    
+    #age1
+    #določi plemenske telice
+    ped.izberi_poEBV_top_age_naive(1, ptn, 'pt')
+    
+    #age2
+    for i in range(2, (1 + bmOdbira)):
+        ped.izberi_poEBV_top_age_naive(i, ptn, 'k')
+    
+    #age3,4,5
+    #odberi plemenske bm najprej
+    for i in range((1 + bmOdbira), (1 + bmOdbira + bmUp)):
+        ped.izberi_poEBV_top_age_naive(i, int(bmn / bmUp), 'pBM')
+        ped.izberi_poEBV_top_age_naive(i, (ptn - int(bmn / bmUp)), 'k')
+    
+    #age 6
+    #izberi odslužene bm
+    ped.izberi_poEBV_top_age_naive((1 + bmOdbira + bmUp), int(bmn / bmUp), 'bm')
+    
+    
+    #ostali so izločeni
+    #določi spol ženskim živalim
+    ped.set_sex_list(ped.row_cat('telF'), "F")
+    ped.set_sex_list(ped.row_cat('pt'), "F")
+    ped.set_sex_list(ped.row_cat('k'), "F")
+    ped.set_sex_list(ped.row_cat('pBM'), "F")
+    ped.set_sex_list(ped.row_cat('bm'), "F")
+    
+    
+    #določi spol moškim živalim
+    ped.set_sex_list(ped.row_cat('vhlevljeni'), "M")
+    ped.set_sex_list(ped.row_cat('telM'), "M")
+    ped.set_sex_list(ped.row_cat('bik12'), "M")
+    ped.set_sex_list(ped.row_cat('mladi'), "M")
+    ped.set_sex_list(ped.row_cat('cak'), "M")
+    ped.set_sex_list(ped.row_cat('pb'), "M")
+    ped.set_sex_list(ped.row_cat('pripust1'), "M")
+    ped.set_sex_list(ped.row_cat('pripust2'), "M")
+    
+    #določi še izločene
+    ped.set_cat_list(ped.row_cat(""), 'izl')
+    
+    ped.add_new_gen_naive(stNB, potomciNPn*2)
+    
+    ped.compute_age()
+    #dodaj matere
+    doloci_matere(ped)
+    #preveri - mora biti nič!!! - oz. če mater še ni dovolj, potem še ne!
+    ped.mother_nr_blank()
+    #dodaj očete
+    doloci_ocete(ped)
+    #preveri - mora biti nič!!! - oz. če mater še ni dovolj, potem še ne!
+    ped.mother_nr_blank()   
+    
+    categories.clear()
+    categories = ped.save_cat()
+    sex = ped.save_sex()
+    active = ped.save_active()
+    
+    ped.write_ped("/home/jana/bin/AlphaSim1.05Linux/Pedigree_Gen1_StartWithTotal.txt")
 
-      
+###########################################################################
+########################################################################
+
+#ped = pedigree("~/Documents/PhD/Simulaton/Pedigrees/PedPython.txt")
+
+#TUKAJ PA JE SEDAJ PROGRAM
+#Najprej določi, ali štartaš od začetka in počasi polniš populacijo ali štartaš z polnim pedigrejem 
+OPTION = raw_input("1 - Polnjenje populacije; 2 - Start z polnim pedigrejem ")
+#PedFile = raw_input("Vnesi pot do pedigreja")
+StKrogov = input("Vnesi stevilo krogov oz. generacij")
+AlphaSimPed = raw_input("Vnesi pot do output AlphaSim pedigrejev im ime file")
+
+if OPTION == 1:
+    for krog in StKrogov:
+        #PRERAČUNAŠ EBV v Ru in ZAPIŠEŠ PEDIGRE
+        selekcija_ena_gen(PedFile) #to ti določi kategorije in starše
+        #TUKAJ POTEM POPRAVIŠ AlphaSimSpec
+        #POŽENEŠ ALPHASIM
+        
+
+    
+if OPTION == 2:
+    for krog in StKrogov:
+        if krog ==1:
+            #PRERAČUNAŠ EBV v Ru in ZAPIŠEŠ PEDIGRE
+            nastavi_cat(PedFile)
+            selekcija_ena_gen(AlphaSimPed)
+            #TUKAJ POTEM POPRAVIŠ AlphaSimSpec
+            #POŽENEŠ ALPHASIM
+        else:
+            #PRERAČUNAŠ EBV v Ru in ZAPIŠEŠ PEDIGRE
+            selekcija_ena_gen(PedFile) #to ti določi kategorije in starše
+            #TUKAJ POTEM POPRAVIŠ AlphaSimSpec
+            #POŽENEŠ ALPHASIM
+        

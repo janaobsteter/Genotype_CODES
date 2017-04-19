@@ -39,7 +39,7 @@ class pedigree:
         return set(self.ped['Generation'])
     
     def compute_age (self):
-        self.ped['age'] = self.ped.Generation.apply(lambda x: x - max(self.ped.gens() - ))
+        self.ped['age'] = max(self.gens()) - self.ped.Generation 
 
         
     def set_cat(self, start, stop, cat): #pregled po kategorijah
@@ -75,7 +75,12 @@ class pedigree:
     
     def set_sex_list(self, seznam,sex): 
         self.ped.loc[seznam, 'sex'] = sex    
-                
+
+    def set_sex_prevGen(self, prevGenDict): 
+        self.ped.loc[self.ped.Indiv.isin(prevGenDict['F']), 'sex'] = "F"
+        self.ped.loc[self.ped.Indiv.isin(prevGenDict['M']), 'sex'] = "M"  
+        
+                                                
     def set_active(self, start, stop,active): #pregled po kategorijah
         self.ped.loc[range(start,(start + stop)), 'active'] = active 
     
@@ -138,6 +143,10 @@ class pedigree:
         
     def row_oldest_gen(self):
         return list(self.ped.ix[self.ped.Generation == min(self.ped.Generation)].index)
+  
+    def row_cat(self, cat):
+        return list(self.ped.ix[self.ped.cat == cat].index)
+        
         
     def izloci_poEBV(self, sex, stIzl, oldcat, prevGenDict):
         izlRow = list(self.ped.loc[(self.ped.sex==sex) & (self.ped.Indiv.isin(prevGenDict[oldcat])), 'EBV'].sort_values(ascending=True)[:stIzl].index) #katere izločiš
@@ -170,6 +179,15 @@ class pedigree:
         else:
             self.set_cat_list(selRow, newcat)
             self.set_active_list(selRow, 1)
+            
+            
+    def izberi_poEBV_top_age_naive(self, age, st, newcat): #to je bolj kot ne samo za prvi krog, ko nimaš slovarja od prejšnje generacije
+        selRow = list(self.ped.loc[(self.ped.age==age) & (self.ped.cat == ""), 'EBV'].sort_values(ascending=False)[:st].index) #katere izbereš
+        if len(selRow) < st:
+            print("Too little animals to choose from. <{} {} > {}>".format("izberi po EBV_catCurrent", newcat))
+        else:
+            self.set_cat_list(selRow, newcat)
+            self.set_active_list(selRow, 1)
 
     def izberi_poEBV_top_age(self, sex, age, st, oldcat, cat, prevGenDict):
         selRow = list(self.ped.loc[(self.ped.age==age) & (self.ped.sex==sex)  & (self.ped.Indiv.isin(prevGenDict[oldcat])) , 'EBV'].sort_values(ascending=False)[:st].index) #katere izbereš
@@ -194,7 +212,16 @@ class pedigree:
         else:
             self.set_cat_list(selRow, cat)
             self.set_active_list(selRow, 1)
-        
+    
+    def izberi_poEBV_OdDo_age_naive(self, age, start, stop,  cat):
+        selRow = list(self.ped.loc[(self.ped.age==age) & (self.ped.cat == ""), 'EBV'].sort_values(ascending=False)[start:stop].index) #katere izbereš
+        if len(selRow) < (stop - start):
+            print("Too little animals to choose from. <{} {} > {}>".format("izberi po EBV_OdDo", cat))
+        else:
+            self.set_cat_list(selRow, cat)
+            self.set_active_list(selRow, 1)    
+            
+                    
     def izberi_random(self,  sex, st, oldcat, cat, prevGenDict):
         freeRow = list(self.ped.loc[(self.ped.sex==sex) & (self.ped.Indiv.isin(prevGenDict[oldcat])) & (self.ped.cat == "")].index) #rows with no assigned category
         if len(freeRow) < st:
@@ -203,7 +230,17 @@ class pedigree:
             choice = list(np.random.choice(freeRow, st, replace=False))
             self.set_cat_list(choice, cat)
             self.set_active_list(choice, 1)
-     
+    
+    def izberi_random_age_naive(self,  age, st, cat):
+        freeRow = list(self.ped.loc[(self.ped.age==age)  & (self.ped.cat == "")].index) #rows with no assigned category
+        if len(freeRow) < st:
+            print("Too little animals to choose from. <{} {} > {}>".format("izberi random", cat))
+        else:
+            choice = list(np.random.choice(freeRow, st, replace=False))
+            self.set_cat_list(choice, cat)
+            self.set_active_list(choice, 1) 
+      
+        
     def izloci_random(self,  sex, st, oldcat, prevGenDict):
         freeRow = list(self.ped.loc[(self.ped.sex==sex) & (self.ped.Indiv.isin(prevGenDict[oldcat])) & (self.ped.cat == "")].index ) #rows with no assigned category
         if len(freeRow) < st:
