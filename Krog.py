@@ -6,7 +6,7 @@ ped = pedigree("~/Documents/PhD/Simulaton/Pedigrees/PedPython.txt")
 #TO JE, ČE ŠTARTAŠ IZ NULE - TOREJ POČASI POLNIŠ POPULACIJO!
 #################################
 
-stevilo_krogov = 20
+stevilo_krogov = 10
 
 for krog in (range(0, stevilo_krogov)):
     if krog == 0:

@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 from __future__ import division
+import os
+import sys
+import shutil
 from collections import defaultdict
 import pandas as pd
 import numpy as np
 from collections import defaultdict
 import random
 from itertools import chain
+from subprocess import call
 #reload(selection)
 #from selection import *
 # -*- coding: utf-8 -*-
@@ -220,9 +224,12 @@ def doloci_ocete(ped):
     pripustOce = ped.catCurrent_indiv('pripust1') + ped.catCurrent_indiv('pripust2') 
     testiraniOce = list(chain.from_iterable([ped.catCurrent_indiv_age('pb', (1 + cak + x)) for x in range(1, pbUp+1)]))
     bmMother = 90 if len(ped.catCurrent_indiv('pBM')) >= 90 else len(ped.catCurrent_indiv('pBM'))
-    elita = np.random.choice(range(-20,-1), bmMother, replace=True) #navidezna elita
-    pd.Series(elita).value_counts()#preveri zastopanost po bikih
-    
+    if 'pb' in ped.cat():
+        elita = np.random.choice(ped.catCurrent_indiv('pb'), bmMother, replace=True) #navidezna elita
+#        pd.Series(elita).value_counts()#preveri zastopanost po bikih
+        #naštimaj očete elite --> BM
+        ped.set_father_catPotomca(elita, 'potomciNP')    
+
     ocetje = pripustOce*pripustDoz + testiraniOce*pozitivnoTestDoz + mladiOce*mladiDoz
     if len(ocetje) >= (stNB - potomciNPn*2): #če imaš dovolj DOZ za vse NB
         ocetjeNB = random.sample(ocetje, (stNB - potomciNPn*2)) #tukaj izbereš očete za vse krave  - razen BM!
@@ -230,8 +237,7 @@ def doloci_ocete(ped):
     if len(ocetje) < (stNB - potomciNPn*2):
         ped.set_father_catPotomca(ocetje, 'nr')
 
-    #naštimaj očete elite --> BM
-    ped.set_father_catPotomca(elita, 'potomciNP')
+
 
 
 
@@ -337,6 +343,7 @@ def selekcija_ena_gen(pedFile):
         ped.mother_nr_blank()
                 
         categories.clear() #sprazni slovar od prejšnjega leta
+        ped.write_ped("/home/jana/bin/AlphaSim1.05Linux/ExternalPedigree_NextGen.txt")
 
     return ped.save_cat(), ped.save_sex(), ped.save_active()
 
@@ -344,7 +351,7 @@ def selekcija_ena_gen(pedFile):
 #######################################################
 #TO JE, ČE ŠTARTAŠ S POLNO AKTIVNO POPULACIJO IN DOLOČIŠ KATEGORIJE
 #######################################################
-def nastave_cat(PedFile):
+def nastavi_cat(PedFile):
     ped = pedigree(PedFile)
     ped.compute_age()
     
@@ -436,12 +443,9 @@ def nastave_cat(PedFile):
     #preveri - mora biti nič!!! - oz. če mater še ni dovolj, potem še ne!
     ped.mother_nr_blank()   
     
-    categories.clear()
-    categories = ped.save_cat()
-    sex = ped.save_sex()
-    active = ped.save_active()
+    ped.write_ped("/home/jana/bin/AlphaSim1.05Linux/ExternalPedigree_NextGen.txt")
     
-    ped.write_ped("/home/jana/bin/AlphaSim1.05Linux/Pedigree_Gen1_StartWithTotal.txt")
+    return categories, sex, active
 
 ###########################################################################
 ########################################################################
@@ -452,29 +456,61 @@ def nastave_cat(PedFile):
 #Najprej določi, ali štartaš od začetka in počasi polniš populacijo ali štartaš z polnim pedigrejem 
 OPTION = raw_input("1 - Polnjenje populacije; 2 - Start z polnim pedigrejem ")
 #PedFile = raw_input("Vnesi pot do pedigreja")
-StKrogov = input("Vnesi stevilo krogov oz. generacij")
+StBurnInGen = input("Vnesi stevilo burn in generacij")
+StSelGen = input("Vnesi stevilo krogov oz. generacij")
+AlphaSimDir = '/home/jana/bin/AlphaSim1.05Linux'
 AlphaSimPed = raw_input("Vnesi pot do output AlphaSim pedigrejev im ime file")
+AlphaSimPed = "/home/jana/Documents/PhD/Simulaton/Pedigrees/Pedigree_10burnIn_10gen.txt"
 
 if OPTION == 1:
     for krog in StKrogov:
         #PRERAČUNAŠ EBV v Ru in ZAPIŠEŠ PEDIGRE
-        selekcija_ena_gen(PedFile) #to ti določi kategorije in starše
+        shutil.copy ("Rcorr_PedEBV.R", "Rcorr_PedEBV_ThisGen.R")
+        os.system('sed -i "s|AlphaSimPed|' + AlphaSimPed + '|g" Rcorr_PedEBV_ThisGen.R')
+        call('Rscript Rcorr_PedEBV_ThisGen.R', shell=True)
+        selekcija_ena_gen('GenPed_EBV.txt') #to ti določi kategorije in starše
+        #prestavi se v AlphaSim Dir
+        os.chdir(AlphaSimDir)
         #TUKAJ POTEM POPRAVIŠ AlphaSimSpec
-        #POŽENEŠ ALPHASIM
-        
+        #tukaj poženeš prvič po burn inu
+        os.system('sed -i "s|StartStopGeneration                               ,1,' + str(StBurnInGen) + '|StartStopGeneration                               ,' + str(StBurnInGen+1) + ',' + str(StBurnInGen+1) + '|g" Rcorr_PedEBV_ThisGen.R')
+        os.system('sed -i "s|Internal|ExternalPedigree_NextGen.txt|g" AlphaSimSpec.txt')
+        #POŽENEŠ ALPHASIM        
+        os.system('./AlphaSim1.05')
 
     
 if OPTION == 2:
     for krog in StKrogov:
         if krog ==1:
+            os.chdir('/home/jana/Genotipi/Genotipi_CODES/')
             #PRERAČUNAŠ EBV v Ru in ZAPIŠEŠ PEDIGRE
-            nastavi_cat(PedFile)
-            selekcija_ena_gen(AlphaSimPed)
+            shutil.copy ("Rcorr_PedEBV.R", "Rcorr_PedEBV_ThisGen.R")
+            os.system('sed -i "s|AlphaSimPed|' + AlphaSimPed + '|g" Rcorr_PedEBV_ThisGen.R')
+            call('Rscript Rcorr_PedEBV_ThisGen.R', shell=True)
+            #tukaj nastvaiš začetne kategorije
+            global categories, sex, active
+            categories, sex, active = nastavi_cat('GenPed_EBV.txt')
+            #prestavi se v AlphaSim Dir
+            os.chdir(AlphaSimDir)
             #TUKAJ POTEM POPRAVIŠ AlphaSimSpec
-            #POŽENEŠ ALPHASIM
+            #PRVIČ PO BURN IN-U
+            os.system('sed -i "s|StartStopGeneration                               ,1,' + str(StBurnInGen) + '|StartStopGeneration                               ,' + str(StBurnInGen+krog) + ',' + str(StBurnInGen+krog) + '|g" AlphaSimSpec.txt')
+            os.system('sed -i "s|PedigreeStatus                                    ,Internal|PedigreeStatus                                    ,ExternalPedigree_NextGen.txt|g" AlphaSimSpec.txt')
+
+            #POŽENEŠ ALPHASIM        
+            os.system('./AlphaSim1.05')
+                
+
         else:
             #PRERAČUNAŠ EBV v Ru in ZAPIŠEŠ PEDIGRE
-            selekcija_ena_gen(PedFile) #to ti določi kategorije in starše
+            shutil.copy ("Rcorr_PedEBV.R", "Rcorr_PedEBV_ThisGen.R")
+            os.system('sed -i "s|AlphaSimPed|' + AlphaSimPed + '|g" Rcorr_PedEBV_ThisGen.R')
+            call('Rscript Rcorr_PedEBV_ThisGen.R', shell=True)
+            #tukaj nastvaiš začetne kategorije
+            global categories, sex, active
+            categories, sex, active = selekcija_ena_gen(PedFile) #to ti določi kategorije in starše
             #TUKAJ POTEM POPRAVIŠ AlphaSimSpec
+            os.system('sed -i "s|StartStopGeneration                               ,' + str(StBurnInGen+krog-1) + ',' + str(StBurnInGen+krog-1) + '|StartStopGeneration                               ,' + str(StBurnInGen+krog) + ',' + str(StBurnInGen+krog) + '|g" AlphaSimSpec.txt')
+
             #POŽENEŠ ALPHASIM
-        
+            os.system('./AlphaSim1.05')
