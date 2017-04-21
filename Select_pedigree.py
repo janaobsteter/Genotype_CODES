@@ -119,7 +119,7 @@ from selection import *
 ##############################################################################################3    
     
 #VEDNO NAJPREJ IZLOČI /ODBERI PO PV!!! - funckije za odbiro na random imajo pogoj, da je kateogrija prosta
-def select_age_0_1(ped): #tukaj odbereš iz novorojenih živali tel, ptel in mlade bike, pripust1
+def select_age_0_1(ped, categories): #tukaj odbereš iz novorojenih živali tel, ptel in mlade bike, pripust1
     #FEMALES
     ped.set_cat_sex_old("F", "potomciNP", "telF", categories)
     izlF = nrFn - telFn#koliko jih izločiš
@@ -135,7 +135,7 @@ def select_age_0_1(ped): #tukaj odbereš iz novorojenih živali tel, ptel in mla
     ped.izloci_random("M", int(nrMn - telMn), "nr", categories)
     
 
-def select_age_1_2(ped): # tukaj odbereš nič pri kravah - razen, če so že bikovske matere, pripust 2, bike24
+def select_age_1_2(ped, categories): # tukaj odbereš nič pri kravah - razen, če so že bikovske matere, pripust 2, bike24
     #FEMALES
     ped.izberi_poEBV_top("F", ptn, 'telF', 'pt', categories)
     ped.izloci_poEBV("F", (len(categories['telF']) - ptn), 'telF', categories) #terlice postanejo
@@ -150,7 +150,7 @@ def select_age_1_2(ped): # tukaj odbereš nič pri kravah - razen, če so že bi
 
 
 #tukaj lahk daš vse v eno funkcijo - variabilno - koliko let krave, koliko let v testu
-def select_age_2_3(ped):
+def select_age_2_3(ped, categories):
     #FEMALES
     #najprej dodaj nove krave
     ped.set_cat_old('pt', 'k', categories) #osemenjene telice postanejo krave - predpostavimo, da vse
@@ -222,7 +222,7 @@ def doloci_ocete(ped):
 #OČETJE
     mladiOce = ped.catCurrent_indiv('mladi')
     pripustOce = ped.catCurrent_indiv('pripust1') + ped.catCurrent_indiv('pripust2') 
-    testiraniOce = list(chain.from_iterable([ped.catCurrent_indiv_age('pb', (1 + cak + x)) for x in range(1, pbUp+1)]))
+    testiraniOce = list(chain.from_iterable([ped.catCurrent_indiv_age('pb', (2 + cak + x)) for x in range(1, pbUp+1)])) # v času, ko določaš potomce, so že eno leto starjši!!!
     bmMother = 90 if len(ped.catCurrent_indiv('pBM')) >= 90 else len(ped.catCurrent_indiv('pBM'))
     if 'pb' in ped.cat():
         elita = np.random.choice(ped.catCurrent_indiv('pb'), bmMother, replace=True) #navidezna elita
@@ -251,7 +251,7 @@ def doloci_ocete(ped):
 #prvi pogoj if max gen = 1 je za primer, ko štartaš s praznim naivnim pedigrejem brez staršev - mam in očetov ni v pedigreju
 #drugi pogoj,ko dodaš generacijo novorojenih in pelješ prejšnjo generacijo naprej
 #tretji krog so združene vse selekcijske odločitve po tem - počasi dobiš bm in pb, če jih ni, se pač ti starši ne določajo
-def selekcija_ena_gen(pedFile):
+def selekcija_ena_gen(pedFile, categories = None, sex = None, active = None):
     ped = pedigree(pedFile) 
     
     if max(ped.gen) == 1:
@@ -261,16 +261,16 @@ def selekcija_ena_gen(pedFile):
         ped.izberi_poEBV_top_catCurrent("F", int(potomciNPn), 'nr', 'potomciNP')
         ped.izberi_poEBV_top_catCurrent("M", int(potomciNPn), 'nr', 'potomciNP')
        
-        global categories #to moraš dat global samo v prvenm loopu, drugje dobiš return
+        #global categories #to moraš dat global samo v prvenm loopu, drugje dobiš return
         categories = ped.save_cat()
-        global sex
+        #global sex
         sex = ped.save_sex()
         
         ped = pedigree(pedFile)
         
         ped.set_sex_prevGen(sex)# prva odbira
         ped.compute_age()
-        select_age_0_1(ped)
+        select_age_0_1(ped, categories)
         ped.add_new_gen_naive(stNB, potomciNPn*2)
         
         ped.compute_age()
@@ -296,8 +296,8 @@ def selekcija_ena_gen(pedFile):
         ped.set_cat_old('izl', 'izl', categories)
 
         ped.compute_age()
-        select_age_0_1(ped)
-        select_age_1_2(ped)
+        select_age_0_1(ped, categories)
+        select_age_1_2(ped, categories)
 
         ped.add_new_gen_naive(stNB, potomciNPn*2)
         ped.compute_age()
@@ -325,10 +325,10 @@ def selekcija_ena_gen(pedFile):
         ped.set_cat_old('izl', 'izl', categories)
 
         ped.compute_age()
-        select_age_0_1(ped)
-        select_age_1_2(ped)
+        select_age_0_1(ped, categories)
+        select_age_1_2(ped, categories)
 
-        select_age_2_3(ped)
+        select_age_2_3(ped, categories)
 
         ped.add_new_gen_naive(stNB, potomciNPn*2)  
         ped.compute_age()
@@ -345,7 +345,7 @@ def selekcija_ena_gen(pedFile):
         categories.clear() #sprazni slovar od prejšnjega leta
         ped.write_ped("/home/jana/bin/AlphaSim1.05Linux/ExternalPedigree_NextGen.txt")
 
-    return ped.save_cat(), ped.save_sex(), ped.save_active()
+    return ped, ped.save_cat(), ped.save_sex(), ped.save_active()
 
 
 #######################################################
@@ -445,7 +445,7 @@ def nastavi_cat(PedFile):
     
     ped.write_ped("/home/jana/bin/AlphaSim1.05Linux/ExternalPedigree_NextGen.txt")
     
-    return categories, sex, active
+    return ped, ped.save_cat(), ped.save_sex(), ped.save_active()
 
 ###########################################################################
 ########################################################################
@@ -461,7 +461,9 @@ StSelGen = input("Vnesi stevilo krogov oz. generacij")
 AlphaSimDir = '/home/jana/bin/AlphaSim1.05Linux'
 AlphaSimPed = raw_input("Vnesi pot do output AlphaSim pedigrejev im ime file")
 AlphaSimPed = "/home/jana/Documents/PhD/Simulaton/Pedigrees/Pedigree_10burnIn_10gen.txt"
+AlphaSimPed = '/home/jana/bin/AlphaSim1.05Linux/SimulatedData/PedigreeAndGeneticValues.txt'
 
+"""
 if OPTION == 1:
     for krog in StKrogov:
         #PRERAČUNAŠ EBV v Ru in ZAPIŠEŠ PEDIGRE
@@ -477,7 +479,7 @@ if OPTION == 1:
         os.system('sed -i "s|Internal|ExternalPedigree_NextGen.txt|g" AlphaSimSpec.txt')
         #POŽENEŠ ALPHASIM        
         os.system('./AlphaSim1.05')
-
+"""
     
 if OPTION == 2:
     for krog in StKrogov:
@@ -488,8 +490,8 @@ if OPTION == 2:
             os.system('sed -i "s|AlphaSimPed|' + AlphaSimPed + '|g" Rcorr_PedEBV_ThisGen.R')
             call('Rscript Rcorr_PedEBV_ThisGen.R', shell=True)
             #tukaj nastvaiš začetne kategorije
-            global categories, sex, active
-            categories, sex, active = nastavi_cat('GenPed_EBV.txt')
+            #global ped, categories, sex, active
+            ped, categories, sex, active = nastavi_cat('GenPed_EBV.txt')
             #prestavi se v AlphaSim Dir
             os.chdir(AlphaSimDir)
             #TUKAJ POTEM POPRAVIŠ AlphaSimSpec
@@ -507,8 +509,8 @@ if OPTION == 2:
             os.system('sed -i "s|AlphaSimPed|' + AlphaSimPed + '|g" Rcorr_PedEBV_ThisGen.R')
             call('Rscript Rcorr_PedEBV_ThisGen.R', shell=True)
             #tukaj nastvaiš začetne kategorije
-            global categories, sex, active
-            categories, sex, active = selekcija_ena_gen(PedFile) #to ti določi kategorije in starše
+            global ped, categories, sex, active
+            ped, categories, sex, active = selekcija_ena_gen(PedFile) #to ti določi kategorije in starše
             #TUKAJ POTEM POPRAVIŠ AlphaSimSpec
             os.system('sed -i "s|StartStopGeneration                               ,' + str(StBurnInGen+krog-1) + ',' + str(StBurnInGen+krog-1) + '|StartStopGeneration                               ,' + str(StBurnInGen+krog) + ',' + str(StBurnInGen+krog) + '|g" AlphaSimSpec.txt')
 

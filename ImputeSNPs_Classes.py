@@ -53,22 +53,22 @@ action = raw_input("Do you want to extract SNPs for parental verification  [Y/N]
 if action == 'Y':
     PVSNPs = input("How many SNPs would you like to use for parental verification? ")
 #create directory path to hold current temp genotype files within Genotipi_DATA and breed directory
-tempDir = "/home/janao/Genotipi/Genotipi_DATA/"+pasma+"_TEMP/Genotipi_"+str(date)+"/"
+tempDir = "/home/jana/Genotipi/Genotipi_DATA/"+pasma+"_TEMP/Genotipi_"+str(date)+"/"
 #PEDDAROW directory
-peddarow="/home/janao/Genotipi/Genotipi_CODES/SNPchimpRepo/source_codes/PEDDA_ROW"
+peddarow="/home/jana/Genotipi/Genotipi_CODES/SNPchimpRepo/source_codes/PEDDA_ROW"
 #Zip latest
-#Zip_lat="/run/user/1000/gvfs/smb-share:server=kis-h2.si,share=kisdfs/ZIV/vol1/ZIV/VSI/JanaO/"+pasma+"/ZipGenoFiles/"
-Zip_lat="/home/janao/Genotipi/TEST/"
+#Zip_lat="/run/user/1000/gvfs/smb-share:server=kis-h2.si,share=kisdfs/ZIV/vol1/ZIV/VSI/jana/"+pasma+"/ZipGenoFiles/"
+Zip_lat="/home/jana/Genotipi/TEST/"
 #Genotipi_latest directory
-Gen_lat = "/home/janao/Genotipi/Genotipi_DATA/Genotipi_latest/"+pasma+"/"
+Gen_lat = "/home/jana/Genotipi/Genotipi_DATA/Genotipi_latest/"+pasma+"/"
 #File with a list of 800 SNPs for parentage verification
-SNP800="/home/janao/Genotipi/ParentalVerification_SNPSNP/Names_800SNPs.txt"
+SNP800="/home/jana/Genotipi/ParentalVerification_SNPSNP/Names_800SNPs.txt"
 #path to Zanardi
-ZanDir="/home/janao/Genotipi/Genotipi_CODES/Zanardi"
+ZanDir="/home/jana/Genotipi/Genotipi_CODES/Zanardi"
 #file with IDs and seq for the animals
-RJ_IDSeq="/home/janao/Genotipi/Genotipi_CODES/Rjave_seq_ID.csv"
+RJ_IDSeq="/home/jana/Genotipi/Genotipi_CODES/Rjave_seq_ID.csv"
 #SNP coding
-SNPSifrant="/home/janao/Genotipi/ParentalVerification_SNPSNP/Sifrant_SNP.csv"
+SNPSifrant="/home/jana/Genotipi/ParentalVerification_SNPSNP/Sifrant_SNP.csv"
 
 ##########################################################################################################
 ##########################################################################################################
@@ -114,7 +114,7 @@ if not os.path.exists(tempDir):
 os.chdir(tempDir)
 
 #extract downloaded files into created temp directory#
-shutil.move("/home/janao/Downloads/"+zip_file, tempDir)
+shutil.move("/home/jana/Downloads/"+zip_file, tempDir)
 
     
 #assign the downloaded zip file to genZipClass from GenFiles module
@@ -312,7 +312,7 @@ if merge_ask == 'Y':
         if not os.path.exists(Gen_lat+str(i)):
             os.makedirs(Gen_lat+str(i))
         os.chdir(Gen_lat+str(i))
-        shutil.copy("/home/janao/Genotipi/Genotipi_CODES/PARAMFILE.txt", Gen_lat+i)
+        shutil.copy("/home/jana/Genotipi/Genotipi_CODES/PARAMFILE.txt", Gen_lat+i)
         pedToMerge = ",".join(PedFiles[i]).strip("'")
         mapToMerge = ",".join(MapFiles[i]).strip("'")
         if not os.path.isfile(Gen_lat+i+'/PLINK_MERGED.ped'):

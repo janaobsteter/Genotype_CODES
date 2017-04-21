@@ -24,13 +24,13 @@ TraitSNPs = {
 'KappaCasein': ['GNSC319','GNSC319_3','GNSC319_B1','GNSC355','GNSC355_3','GNSC355_B1','KappaCasein12951_1','KappaCasein12951_2','KappaCasein12951_3'],
 'Citrulinemia':[]}
 
-Parental800=open("/home/janao/Genotipi/ParentalVerification_SNPSNP/Names_800SNPs.txt").read().strip("\n").split("\n")
+Parental800=open("/home/jana/Genotipi/ParentalVerification_SNPSNP/Names_800SNPs.txt").read().strip("\n").split("\n")
 
 
 
 """
 To je samo za ustvarit Sifrant SNPov,potem, ko ga imaš, ga skopiraj v datoteko
-SNPSifrant="/home/janao/Genotipi/ParentalVerification_SNPSNP/Sifrant_SNP.csv"
+SNPSifrant="/home/jana/Genotipi/ParentalVerification_SNPSNP/Sifrant_SNP.csv"
 
 SNPSifrant_Dict = defaultdict(set)
 with open(SNPSifrant, 'rb') as SNP_Sifrant:

@@ -11,7 +11,7 @@ rcorr <- function(x, r){
 
 
 
-ped <- read.table("/home/jana/Documents/PhD/Simulaton/Pedigrees/Pedigree_10burnIn_10gen.txt", header=T)
+ped <- read.table("/home/jana/bin/AlphaSim1.05Linux/SimulatedData/PedigreeAndGeneticValues.txt", header=T)
 ped <- ped[,c(1,2,3,4,9)]
 ped$EBV <- rcorr(ped$gvNormUnres1, r=0.9) #pridobi EBV iz TBV
 cor(ped$gvNormUnres1, ped$EBV)

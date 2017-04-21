@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 ped = pedigree("~/Documents/PhD/Simulaton/Pedigrees/PedPython.txt")
-
+AlphaSimPed = "~/Documents/PhD/Simulaton/Pedigrees/Pedigree_10burnIn_10gen.txt"
 ###################################
 # loop za vajo
 #TO JE, ČE ŠTARTAŠ IZ NULE - TOREJ POČASI POLNIŠ POPULACIJO!
@@ -21,7 +21,7 @@ for krog in (range(0, stevilo_krogov)):
         ped.set_sex_list([x for x in range(0, ped.rows()) if x % 2 != 0], "M")
         # prva odbira
         ped.compute_age()
-        select_age_0_1(ped)
+        select_age_0_1(ped, categories)
         ped.add_new_gen_naive(stNB, potomciNPn*2)
 
         categories.clear()
@@ -36,8 +36,8 @@ for krog in (range(0, stevilo_krogov)):
         ped.set_cat_old('izl', 'izl', categories)
 
         ped.compute_age()
-        select_age_0_1(ped)
-        select_age_1_2(ped)
+        select_age_0_1(ped, categories)
+        select_age_1_2(ped, categories)
 
         ped.add_new_gen_naive(stNB, potomciNPn*2)
 
@@ -54,10 +54,10 @@ for krog in (range(0, stevilo_krogov)):
         ped.set_cat_old('izl', 'izl', categories)
 
         ped.compute_age()
-        select_age_0_1(ped)
-        select_age_1_2(ped)
+        select_age_0_1(ped, categories)
+        select_age_1_2(ped, categories)
 
-        select_age_2_3(ped)
+        select_age_2_3(ped, categories)
 
         ped.add_new_gen_naive(stNB, potomciNPn*2)
         ped.compute_age()
