@@ -920,15 +920,15 @@ class genZipPackage:
         if any(ime.endswith("/") for ime in self.infiles):
             return "Zip file contains multiple genotype packages, subdirectories will be created at file extraction"
             
-    def zipSubDir(self): #zips the 6 files and removes the directory
+    def zipSubDir(self, rmOriginalZip): #zips the 6 files and removes the directory
         if self.checkSubDir():
             self.subDirNames=filter(lambda x: x.endswith("/"), self.infiles)
             self.unzip()
             for i in self.subDirNames:
                 shutil.make_archive(i, "zip",os.getcwd()+'/'+i)
                 shutil.rmtree(os.getcwd()+'/'+i)
-            self.rmOriginalZip=raw_input('Remove original zip? [Y/N] ')
-            if self.rmOriginalZip=='Y':
+            
+            if rmOriginalZip=='Y':
                 os.remove(self.zipname)
                 
                                      

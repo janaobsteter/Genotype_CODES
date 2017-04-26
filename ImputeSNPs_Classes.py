@@ -52,6 +52,8 @@ merge_ask=raw_input("Do you want to merge newly downloaded genotypes to the Late
 action = raw_input("Do you want to extract SNPs for parental verification  [Y/N] ")
 if action == 'Y':
     PVSNPs = input("How many SNPs would you like to use for parental verification? ")
+#ask whether you want to remove original zip
+rmOriginalZip=raw_input('Remove original zip? [Y/N] ')
 #create directory path to hold current temp genotype files within Genotipi_DATA and breed directory
 tempDir = "/home/jana/Genotipi/Genotipi_DATA/"+pasma+"_TEMP/Genotipi_"+str(date)+"/"
 #PEDDAROW directory
@@ -61,15 +63,17 @@ peddarow="/home/jana/Genotipi/Genotipi_CODES/SNPchimpRepo/source_codes/PEDDA_ROW
 Zip_lat="/home/jana/Genotipi/TEST/"
 #Genotipi_latest directory
 Gen_lat = "/home/jana/Genotipi/Genotipi_DATA/Genotipi_latest/"+pasma+"/"
-#File with a list of 800 SNPs for parentage verification
-SNP800="/home/jana/Genotipi/ParentalVerification_SNPSNP/Names_800SNPs.txt"
 #path to Zanardi
 ZanDir="/home/jana/Genotipi/Genotipi_CODES/Zanardi"
+
+#File with a list of 800 SNPs for parentage verification
+SNP800="/home/jana/Genotipi/ParentalVerification_SNPSNP/Names_800SNPs.txt"
 #file with IDs and seq for the animals
 RJ_IDSeq="/home/jana/Genotipi/Genotipi_CODES/Rjave_seq_ID.csv"
 #SNP coding
 SNPSifrant="/home/jana/Genotipi/ParentalVerification_SNPSNP/Sifrant_SNP.csv"
 
+#########################################################################################################
 ##########################################################################################################
 ##########################################################################################################
 #create dictionaries
@@ -122,7 +126,7 @@ zipFolder=GenFiles.genZipPackage(tempDir+zip_file)
 
 #check whether there are any subdirectories within zip - if there are, zip the content into a new zip file and remove the directory
 if zipFolder.checkSubDir():
-    zipFolder.zipSubDir()
+    zipFolder.zipSubDir(rmOriginalZip)
     
 zipPackages = (filter(lambda x: x.endswith('.zip'), os.listdir(tempDir)))
 

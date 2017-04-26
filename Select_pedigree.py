@@ -117,7 +117,11 @@ from selection import *
 ##############################################################################################3
 ##############################################################################################3
 ##############################################################################################3    
-    
+
+
+
+
+
 #VEDNO NAJPREJ IZLOČI /ODBERI PO PV!!! - funckije za odbiro na random imajo pogoj, da je kateogrija prosta
 def select_age_0_1(ped, categories): #tukaj odbereš iz novorojenih živali tel, ptel in mlade bike, pripust1
     #FEMALES
@@ -288,7 +292,8 @@ def selekcija_ena_gen(pedFile, categories = None, sex = None, active = None):
         
     if max(ped.gen) == 2:
         # SETSEX!!!
-        ped.set_sex_prevGen(sex)     
+        ped.set_sex_prevGen(sex)    
+        ped.set_active_prevGen(active) 
                                 
         # druga odbira
         ped.set_cat_gen(1, "")
@@ -318,6 +323,8 @@ def selekcija_ena_gen(pedFile, categories = None, sex = None, active = None):
     
     if max(ped.gen) >= 3:
         ped.set_sex_prevGen(sex)
+        ped.set_active_prevGen(active)
+        
         
         for i in ped.gens():
             ped.set_cat_gen(i, "")
@@ -343,7 +350,7 @@ def selekcija_ena_gen(pedFile, categories = None, sex = None, active = None):
         ped.mother_nr_blank()
                 
         categories.clear() #sprazni slovar od prejšnjega leta
-        ped.write_ped("/home/jana/bin/AlphaSim1.05Linux/ExternalPedigree_NextGen.txt")
+        ped.write_ped("/home/jana/bin/AlphaSim1.05Linux/ExternalPedigree.txt")
 
     return ped, ped.save_cat(), ped.save_sex(), ped.save_active()
 
@@ -381,7 +388,8 @@ def nastavi_cat(PedFile):
         ped.izberi_poEBV_top_age_naive(i, mladin, 'cak')
     
     #age 5 - 10: pb
-    for i in range((2 + cak), (2 + cak + pbUp)):
+    pbAge = range((2 + cak), (2 + cak + pbUp)) if (2 + cak + pbUp) <= max(ped.gens()) else range((2 + cak), max(ped.gens()))
+    for i in pbAge:
         ped.izberi_poEBV_top_age_naive(i, 4, 'pb')
     
     
@@ -443,7 +451,7 @@ def nastavi_cat(PedFile):
     #preveri - mora biti nič!!! - oz. če mater še ni dovolj, potem še ne!
     ped.mother_nr_blank()   
     
-    ped.write_ped("/home/jana/bin/AlphaSim1.05Linux/ExternalPedigree_NextGen.txt")
+    ped.write_ped("/home/jana/bin/AlphaSim1.05Linux/ExternalPedigree.txt")
     
     return ped, ped.save_cat(), ped.save_sex(), ped.save_active()
 
@@ -456,8 +464,8 @@ def nastavi_cat(PedFile):
 #Najprej določi, ali štartaš od začetka in počasi polniš populacijo ali štartaš z polnim pedigrejem 
 OPTION = raw_input("1 - Polnjenje populacije; 2 - Start z polnim pedigrejem ")
 #PedFile = raw_input("Vnesi pot do pedigreja")
-StBurnInGen = input("Vnesi stevilo burn in generacij")
-StSelGen = input("Vnesi stevilo krogov oz. generacij")
+StBurnInGen = input("Vnesi stevilo burn in generacij: ")
+StSelGen = input("Vnesi stevilo krogov oz. generacij: ")
 AlphaSimDir = '/home/jana/bin/AlphaSim1.05Linux'
 AlphaSimPed = raw_input("Vnesi pot do output AlphaSim pedigrejev im ime file")
 AlphaSimPed = "/home/jana/Documents/PhD/Simulaton/Pedigrees/Pedigree_10burnIn_10gen.txt"
@@ -480,39 +488,183 @@ if OPTION == 1:
         #POŽENEŠ ALPHASIM        
         os.system('./AlphaSim1.05')
 """
-    
+
+ 
 if OPTION == 2:
-    for krog in StKrogov:
-        if krog ==1:
-            os.chdir('/home/jana/Genotipi/Genotipi_CODES/')
-            #PRERAČUNAŠ EBV v Ru in ZAPIŠEŠ PEDIGRE
-            shutil.copy ("Rcorr_PedEBV.R", "Rcorr_PedEBV_ThisGen.R")
-            os.system('sed -i "s|AlphaSimPed|' + AlphaSimPed + '|g" Rcorr_PedEBV_ThisGen.R')
-            call('Rscript Rcorr_PedEBV_ThisGen.R', shell=True)
-            #tukaj nastvaiš začetne kategorije
-            #global ped, categories, sex, active
-            ped, categories, sex, active = nastavi_cat('GenPed_EBV.txt')
-            #prestavi se v AlphaSim Dir
-            os.chdir(AlphaSimDir)
-            #TUKAJ POTEM POPRAVIŠ AlphaSimSpec
-            #PRVIČ PO BURN IN-U
-            os.system('sed -i "s|StartStopGeneration                               ,1,' + str(StBurnInGen) + '|StartStopGeneration                               ,' + str(StBurnInGen+krog) + ',' + str(StBurnInGen+krog) + '|g" AlphaSimSpec.txt')
-            os.system('sed -i "s|PedigreeStatus                                    ,Internal|PedigreeStatus                                    ,ExternalPedigree_NextGen.txt|g" AlphaSimSpec.txt')
+    BurnInYN = raw_input("Do you already have a burn in population? [Y/N] ")
+    if BurnInYN == 'N':  
+        for roundNo in range(StSelGen+1):
+            if roundNo == 0: #do burn in
+                #prestavi se v AlphaSim Dir
+                os.chdir(AlphaSimDir)
+                shutil.copy('/home/jana/Genotipi/Genotipi_CODES/AlphaSimSpec.txt', AlphaSimDir)
+                os.system('sed -i "s|PedigreeType|Internal|g" AlphaSimSpec.txt') 
+                os.system('sed -i "s|EnterBurnInGenerationNumber|' + str(StBurnInGen) + '|g" AlphaSimSpec.txt') 
+                os.system('sed -i "s|EnterSelectionGenerationNumber|' + str(StSelGen) + '|g" AlphaSimSpec.txt') 
+                os.system('sed -i "s|EnterNumberOfSires|' + str(NumberOfSires) + '|g" AlphaSimSpec.txt') 
+                os.system('sed -i "s|EnterNumberOfDams|' + str(NumberOfDams) + '|g" AlphaSimSpec.txt') 
+                os.system('sed -i "s|TurnOnGenFlex|On|g" AlphaSimSpec.txt') 
+                os.system('sed -i "s|StartFlexGen,StopFlexGen|1,' + str(StBurnInGen + 1) + '|g" AlphaSimSpec.txt') 
+                os.system('sed -i "s|TurnOnSelFlex|On|g" AlphaSimSpec.txt') 
+                os.system('sed -i "s|TheImportedGenerationPed|' +  str(StBurnInGen + 1) + '|g" AlphaSimSpec.txt') 
+                os.system('sed -i "s|TBVComputation|1|g" AlphaSimSpec.txt') 
+                os.system('sed -i "s|EnterIndividualInPopulation|' +str(stNB)+ '|g" AlphaSimSpec.txt') 
+                #POŽENEŠ ALPHASIM        
+                os.system('./AlphaSim1.05')
+    
+    
+            elif roundNo == 1:
+                os.chdir('/home/jana/Genotipi/Genotipi_CODES/')
+                #PRERAČUNAŠ EBV v Ru in ZAPIŠEŠ PEDIGRE
+                shutil.copy ("Rcorr_PedEBV.R", "Rcorr_PedEBV_ThisGen.R")
+                os.system('sed -i "s|AlphaSimPed|' + AlphaSimPed + '|g" Rcorr_PedEBV_ThisGen.R')
+                call('Rscript Rcorr_PedEBV_ThisGen.R', shell=True)
+                #tukaj nastvaiš začetne kategorije
+                global ped, categories, sex, active
+                ped, categories, sex, active = nastavi_cat('GenPed_EBV.txt')
+                #prestavi se v AlphaSim Dir
+                os.chdir(AlphaSimDir)
+                #kopiraj pedigre v selection folder
+                shutil.copy('ExternalPedigree.txt', AlphaSimDir + '/Selection/SelectionFolder' + str(roundNo) + '/')
+                #TUKAJ POTEM POPRAVIŠ AlphaSimSpec
+                #PRVIČ PO BURN IN-U
+                shutil.copy('/home/jana/Genotipi/Genotipi_CODES/AlphaSimSpec.txt', AlphaSimDir)
+                os.system('sed -i "s|PedigreeType|ExternalPedigree.txt|g" AlphaSimSpec.txt') 
+                os.system('sed -i "s|EnterBurnInGenerationNumber|' + str(StBurnInGen) + '|g" AlphaSimSpec.txt') 
+                os.system('sed -i "s|EnterSelectionGenerationNumber|' + str(StSelGen) + '|g" AlphaSimSpec.txt') 
+                os.system('sed -i "s|EnterNumberOfSires|0|g" AlphaSimSpec.txt') 
+                os.system('sed -i "s|EnterNumberOfDams|0|g" AlphaSimSpec.txt') 
+                os.system('sed -i "s|TurnOnGenFlex|On|g" AlphaSimSpec.txt') 
+                os.system('sed -i "s|StartFlexGen,StopFlexGen|' +str(StBurnInGen + roundNo)+ ','+ str(StBurnInGen + roundNo) + '|g" AlphaSimSpec.txt') 
+                os.system('sed -i "s|TurnOnSelFlex|On|g" AlphaSimSpec.txt') 
+                os.system('sed -i "s|TheImportedGenerationPed|' +  str(StBurnInGen + roundNo) + '|g" AlphaSimSpec.txt') 
+                os.system('sed -i "s|TBVComputation|2|g" AlphaSimSpec.txt') 
+                os.system('sed -i "s|EnterIndividualInPopulation|' +str(stNB)+ '|g" AlphaSimSpec.txt') 
 
-            #POŽENEŠ ALPHASIM        
-            os.system('./AlphaSim1.05')
+                #POŽENEŠ ALPHASIM        
+                os.system('./AlphaSim1.05')
+                    
+    
+            elif roundNo > 1:
+                os.chdir('/home/jana/Genotipi/Genotipi_CODES/')
+                #PRERAČUNAŠ EBV v Ru in ZAPIŠEŠ PEDIGRE
+                shutil.copy ("Rcorr_PedEBV.R", "Rcorr_PedEBV_ThisGen.R")
+                os.system('sed -i "s|AlphaSimPed|' + AlphaSimPed + '|g" Rcorr_PedEBV_ThisGen.R')
+                call('Rscript Rcorr_PedEBV_ThisGen.R', shell=True)
+                #tukaj nastvaiš začetne kategorije
+                global ped, categories, sex, active
+                ped, categories, sex, active = selekcija_ena_gen('GenPed_EBV.txt')
+                #prestavi se v AlphaSim Dir
+                os.chdir(AlphaSimDir)
+                #kopiraj pedigre v selection folder
+                shutil.copy('ExternalPedigree.txt', AlphaSimDir + '/Selection/SelectionFolder' + str(roundNo) + '/')
+                #TUKAJ POTEM POPRAVIŠ AlphaSimSpec
+                #PRVIČ PO BURN IN-U
+                shutil.copy('/home/jana/Genotipi/Genotipi_CODES/AlphaSimSpec.txt', AlphaSimDir)
+                os.system('sed -i "s|PedigreeType|ExternalPedigree.txt|g" AlphaSimSpec.txt') 
+                os.system('sed -i "s|EnterBurnInGenerationNumber|' + str(StBurnInGen) + '|g" AlphaSimSpec.txt') 
+                os.system('sed -i "s|EnterSelectionGenerationNumber|' + str(StSelGen) + '|g" AlphaSimSpec.txt') 
+                os.system('sed -i "s|EnterNumberOfSires|0|g" AlphaSimSpec.txt') 
+                os.system('sed -i "s|EnterNumberOfDams|0|g" AlphaSimSpec.txt') 
+                os.system('sed -i "s|TurnOnGenFlex|On|g" AlphaSimSpec.txt') 
+                os.system('sed -i "s|StartFlexGen,StopFlexGen|' +str(StBurnInGen + roundNo)+ ','+ str(StBurnInGen + roundNo) + '|g" AlphaSimSpec.txt') 
+                os.system('sed -i "s|TurnOnSelFlex|On|g" AlphaSimSpec.txt') 
+                os.system('sed -i "s|TheImportedGenerationPed|' +  str(StBurnInGen + roundNo) + '|g" AlphaSimSpec.txt') 
+                os.system('sed -i "s|TBVComputation|2|g" AlphaSimSpec.txt') 
+                os.system('sed -i "s|EnterIndividualInPopulation|' +str(stNB)+ '|g" AlphaSimSpec.txt') 
+
+                #POŽENEŠ ALPHASIM        
+                os.system('./AlphaSim1.05')
                 
+                
+        if BurnInYN == 'Y':  
+            for roundNo in range(6, (StSelGen+1)):
+                if roundNo == 1:
+                    os.chdir('/home/jana/Genotipi/Genotipi_CODES/')
+                    #PRERAČUNAŠ EBV v Ru in ZAPIŠEŠ PEDIGRE
+                    shutil.copy ("Rcorr_PedEBV.R", "Rcorr_PedEBV_ThisGen.R")
+                    os.system('sed -i "s|AlphaSimPed|' + AlphaSimPed + '|g" Rcorr_PedEBV_ThisGen.R')
+                    call('Rscript Rcorr_PedEBV_ThisGen.R', shell=True)
+                    #tukaj nastvaiš začetne kategorije
+                    global ped, categories, sex, active
+                    ped, categories, sex, active = nastavi_cat('GenPed_EBV.txt')
 
-        else:
-            #PRERAČUNAŠ EBV v Ru in ZAPIŠEŠ PEDIGRE
-            shutil.copy ("Rcorr_PedEBV.R", "Rcorr_PedEBV_ThisGen.R")
-            os.system('sed -i "s|AlphaSimPed|' + AlphaSimPed + '|g" Rcorr_PedEBV_ThisGen.R')
-            call('Rscript Rcorr_PedEBV_ThisGen.R', shell=True)
-            #tukaj nastvaiš začetne kategorije
-            global ped, categories, sex, active
-            ped, categories, sex, active = selekcija_ena_gen(PedFile) #to ti določi kategorije in starše
-            #TUKAJ POTEM POPRAVIŠ AlphaSimSpec
-            os.system('sed -i "s|StartStopGeneration                               ,' + str(StBurnInGen+krog-1) + ',' + str(StBurnInGen+krog-1) + '|StartStopGeneration                               ,' + str(StBurnInGen+krog) + ',' + str(StBurnInGen+krog) + '|g" AlphaSimSpec.txt')
+                    #prestavi se v AlphaSim Dir
+                    os.chdir(AlphaSimDir)
+                    #kopiraj pedigre v selection folder
+                    shutil.copy('ExternalPedigree.txt', AlphaSimDir + '/Selection/SelectionFolder' + str(roundNo) + '/')
+                    #TUKAJ POTEM POPRAVIŠ AlphaSimSpec
+                    #PRVIČ PO BURN IN-U
+                    shutil.copy('/home/jana/Genotipi/Genotipi_CODES/AlphaSimSpec.txt', AlphaSimDir)
+                    os.system('sed -i "s|PedigreeType|ExternalPedigree.txt|g" AlphaSimSpec.txt') 
+                    os.system('sed -i "s|EnterBurnInGenerationNumber|' + str(StBurnInGen) + '|g" AlphaSimSpec.txt') 
+                    os.system('sed -i "s|EnterSelectionGenerationNumber|' + str(StSelGen) + '|g" AlphaSimSpec.txt') 
+                    os.system('sed -i "s|EnterNumberOfSires|0|g" AlphaSimSpec.txt') 
+                    os.system('sed -i "s|EnterNumberOfDams|0|g" AlphaSimSpec.txt') 
+                    os.system('sed -i "s|TurnOnGenFlex|On|g" AlphaSimSpec.txt') 
+                    os.system('sed -i "s|StartFlexGen,StopFlexGen|' +str(StBurnInGen + roundNo)+ ','+ str(StBurnInGen + roundNo) + '|g" AlphaSimSpec.txt') 
+                    os.system('sed -i "s|TurnOnSelFlex|On|g" AlphaSimSpec.txt') 
+                    os.system('sed -i "s|TheImportedGenerationPed|' +  str(StBurnInGen + roundNo) + '|g" AlphaSimSpec.txt') 
+                    os.system('sed -i "s|TBVComputation|2|g" AlphaSimSpec.txt') 
+                    os.system('sed -i "s|EnterIndividualInPopulation|' +str(stNB)+ '|g" AlphaSimSpec.txt') 
+    
+                
+    
+                    #POŽENEŠ ALPHASIM        
+                    os.system('./AlphaSim1.05')
+                        
+        
+                elif roundNo > 1:
+                    os.chdir('/home/jana/Genotipi/Genotipi_CODES/')
+                    #PRERAČUNAŠ EBV v Ru in ZAPIŠEŠ PEDIGRE
+                    shutil.copy ("Rcorr_PedEBV.R", "Rcorr_PedEBV_ThisGen.R")
+                    os.system('sed -i "s|AlphaSimPed|' + AlphaSimPed + '|g" Rcorr_PedEBV_ThisGen.R')
+                    call('Rscript Rcorr_PedEBV_ThisGen.R', shell=True)
+                    #global ped, categories, sex, active
+                    ped, categories, sex, active = selekcija_ena_gen('GenPed_EBV.txt', categories=categories, sex=sex, active=active)
+                    #prestavi se v AlphaSim Dir
+                    os.chdir(AlphaSimDir)
+                    #kopiraj pedigre v selection folder
+                    os.system('mkdir ' +  AlphaSimDir + '/Selection/SelectionFolder' + str(roundNo))
+                    shutil.copy('ExternalPedigree.txt', AlphaSimDir + '/Selection/SelectionFolder' + str(roundNo) + '/')
+                    #TUKAJ POTEM POPRAVIŠ AlphaSimSpec
+                    #PRVIČ PO BURN IN-U
+                    shutil.copy('/home/jana/Genotipi/Genotipi_CODES/AlphaSimSpec.txt', AlphaSimDir)
+                    os.system('sed -i "s|PedigreeType|ExternalPedigree.txt|g" AlphaSimSpec.txt') 
+                    os.system('sed -i "s|EnterBurnInGenerationNumber|' + str(StBurnInGen) + '|g" AlphaSimSpec.txt') 
+                    os.system('sed -i "s|EnterSelectionGenerationNumber|' + str(StSelGen) + '|g" AlphaSimSpec.txt') 
+                    os.system('sed -i "s|EnterNumberOfSires|0|g" AlphaSimSpec.txt') 
+                    os.system('sed -i "s|EnterNumberOfDams|0|g" AlphaSimSpec.txt') 
+                    os.system('sed -i "s|TurnOnGenFlex|On|g" AlphaSimSpec.txt') 
+                    os.system('sed -i "s|StartFlexGen,StopFlexGen|' +str(StBurnInGen + roundNo)+ ','+ str(StBurnInGen + roundNo) + '|g" AlphaSimSpec.txt') 
+                    os.system('sed -i "s|TurnOnSelFlex|On|g" AlphaSimSpec.txt') 
+                    os.system('sed -i "s|TheImportedGenerationPed|' +  str(StBurnInGen + roundNo) + '|g" AlphaSimSpec.txt') 
+                    os.system('sed -i "s|TBVComputation|2|g" AlphaSimSpec.txt') 
+                    os.system('sed -i "s|EnterIndividualInPopulation|' +str(stNB)+ '|g" AlphaSimSpec.txt') 
+    
+                    #POŽENEŠ ALPHASIM        
+                    os.system('./AlphaSim1.05')
 
-            #POŽENEŠ ALPHASIM
-            os.system('./AlphaSim1.05')
+
+
+
+
+###################################################################################################
+###################################################################################################
+###################################################################################################
+###################################################################################################
+#plot the results
+#class TBVGenTable (SelectionTbvTest.txt)
+
+TBVmeans.clear()
+TBVmeans = defaultdict(list)
+for roundNo in range(1,rounds+1):
+    TBVt = TBVGenTable(AlphaSimDir + '/Selection/SelectionFolder' + str(roundNo) + '/SelectionTbvTest.txt')
+    TBVmeans[roundNo] = TBVt.TBVmean
+    
+
+plt.plot(TBVmeans.keys(), TBVmeans.values())
+plt.xticks(TBVmeans.keys())
+plt.xlabel('Selected Generation')
+plt.ylabel('Mean Generation TBV')
+plt.show()
