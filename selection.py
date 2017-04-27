@@ -12,6 +12,7 @@ from subprocess import call
 
 class pedigree:
     def __init__(self, pedfile):
+        self.name = pedfile
         self.ped = pd.read_csv(pedfile)
         self.gen = set(self.ped.Generation)
         self.ngen = len(set(self.ped.Generation))
@@ -444,6 +445,14 @@ class pedigree:
         if len(ocetje) < (stNB - potomciNPn*2):
             self.set_father_catPotomca(ocetje, 'nr')
 
+    def computeEBV(self, cor):
+        # precacunas EBV v Ru in zapises PEDIGRE
+        shutil.copy("'/home/jana/Genotipi/Genotipi_CODES/Rcorr_PedEBV.R", "Rcorr_PedEBV_ThisGen.R")
+        os.system('sed -i "s|AlphaSimPed|' + self.name + '|g" Rcorr_PedEBV_ThisGen.R')
+        os.system('sed -i "s|setCor|' + str(cor) + '|g" Rcorr_PedEBV_ThisGen.R')
+        call('Rscript Rcorr_PedEBV_ThisGen.R', shell=True)
+
+
     
 def selekcija_ena_gen(pedFile, categories = None, sex = None, active = None, stNB=None, nrFn =None, \
 nrMn=None, telFn=None, telMn=None, potomciNPn=None, vhlevljenin=None, ptn=None, mladin=None, bik12n=None, \
@@ -476,7 +485,7 @@ pozitivnoTestDoz=None, pbUp=None):
         #preveri - mora biti nič!!! - oz. če mater še ni dovolj, potem še ne!
         ped.mother_nr_blank()
         #dodaj očete
-        ped.doloci_ocete(stNB, potomciNPn, cak, pripustDoz, mladiDoz, pozitivnoTestDoz)
+        ped.doloci_ocete(stNB, potomciNPn, cak, pripustDoz, mladiDoz, pbUp, pozitivnoTestDoz)
         #preveri - mora biti nič!!! - oz. če mater še ni dovolj, potem še ne!
         ped.mother_nr_blank()   
     
@@ -504,7 +513,7 @@ pozitivnoTestDoz=None, pbUp=None):
         #preveri - mora biti nič!!! - oz. če mater še ni dovolj, potem še ne!
         ped.mother_nr_blank()
         #dodaj očete
-        ped.doloci_ocete(stNB, potomciNPn, cak, pripustDoz, mladiDoz, pozitivnoTestDoz)
+        ped.doloci_ocete(stNB, potomciNPn, cak, pripustDoz, mladiDoz, pbUp, pozitivnoTestDoz)
         #preveri - mora biti nič!!! - oz. če mater še ni dovolj, potem še ne!
         ped.mother_nr_blank()
                 
@@ -535,7 +544,7 @@ pozitivnoTestDoz=None, pbUp=None):
         #preveri - mora biti nič!!! - oz. če mater še ni dovolj, potem še ne!
         ped.mother_nr_blank()
         #dodaj očete
-        ped.doloci_ocete(stNB, potomciNPn, cak, pripustDoz, mladiDoz, pozitivnoTestDoz)
+        ped.doloci_ocete(stNB, potomciNPn, cak, pripustDoz, mladiDoz, pbUp, pozitivnoTestDoz)
         #preveri - mora biti nič!!! - oz. če mater še ni dovolj, potem še ne!
         ped.mother_nr_blank()
                 
@@ -547,7 +556,7 @@ pozitivnoTestDoz=None, pbUp=None):
 
 
 
-def nastavi_cat (PedFile, categories = None, sex = None, active = None, stNB=None, nrFn =None, \
+def nastavi_cat (PedFile, stNB=None, nrFn =None, \
 nrMn=None, telFn=None, telMn=None, potomciNPn=None, vhlevljenin=None, ptn=None, bmn=None, mladin=None, bik12n=None, \
 pripust1n=None, pripust2n=None,cak=None, kraveUp=None, bmOdbira=None, bmUp=None, pripustDoz=None, \
 mladiDoz=None, pozitivnoTestDoz=None, pbUp=None):
@@ -639,7 +648,7 @@ mladiDoz=None, pozitivnoTestDoz=None, pbUp=None):
     #preveri - mora biti nič!!! - oz. če mater še ni dovolj, potem še ne!
     ped.mother_nr_blank()
     #dodaj očete
-    ped.doloci_ocete(stNB, potomciNPn, cak, pripustDoz, mladiDoz, pozitivnoTestDoz)
+    ped.doloci_ocete(stNB, potomciNPn, cak, pripustDoz, pbUp, mladiDoz, pozitivnoTestDoz)
  
     
     ped.write_ped("/home/jana/bin/AlphaSim1.05Linux/ExternalPedigree.txt")
@@ -654,6 +663,51 @@ class TBVGenTable:
         self.TBVvar = np.var(self.TBVtable.TBV)
         self.TBVse = stats.sem(self.TBVtable.TBV)
     
-        
-        
+ 
+class AlphaSimSpec :
+    def __init__(self):
+        self.SpecFile = '/home/jana/Genotype_CODES/AlphaSimSpec.txt'
+
+    def setPedType(self,pedType):
+        os.system('sed -i "s|PedigreeType|'+pedType+'|g" ' + self.SpecFile)
+
+    def setBurnInGen(self,StBurnInGen):
+        os.system('sed -i "s|EnterBurnInGenerationNumber|' + str(StBurnInGen) + '|g" ' + self.SpecFile)
+
+    def setSelGen(self, StSelGen):
+        os.system('sed -i "s|EnterSelectionGenerationNumber|' + str(StSelGen) + '|g" ' + self.SpecFile)
+    
+    def setNoSires(self, NumberOfSires):
+        os.system('sed -i "s|EnterNumberOfSires|' + str(NumberOfSires) + '|g" ' + self.SpecFile)
+
+    def setNoDams(self, NumberOfDams):
+        os.system('sed -i "s|EnterNumberOfDams|' + str(NumberOfDams) + '|g" ' + self.SpecFile)
+
+    def turnOnGenFlex(self):
+        os.system('sed -i "s|TurnOnGenFlex|On|g" ' + self.SpecFile)
+
+    def turnOffGenFlex(self):
+        os.system('sed -i "s|TurnOnGenFlex|Off|g" ' + self.SpecFile)
+
+    def turnOnSelFlex(self):
+        os.system('sed -i "s|TurnOnSelFlex|On|g" ' + self.SpecFile)
+
+    def turnOffSelFlex(self):
+        os.system('sed -i "s|TurnOnSelFlex|Off|g" ' + self.SpecFile)
+
+    def setExtPedForGen(self, gen):
+        os.system('sed -i "s|TheImportedGenerationPed|' + str(gen) + '|g" ' + self.SpecFile)
+
+    def setTBVComp(self, option):
+        os.system('sed -i "s|TBVComputation|'+str(option)+'|g" ' + self.SpecFile)
+
+
+
+    def setFlexGenToFrom(self, To, From):
+        os.system('sed -i "s|StartFlexGen,StopFlexGen|' + str(To) + ',' + str(From) + '|g" ' + self.SpecFile)
+
+    
+    def setNB(self, stNB):
+        os.system('sed -i "s|EnterIndividualInPopulation|' + str(stNB) + '|g" ' + self.SpecFile)
+
         

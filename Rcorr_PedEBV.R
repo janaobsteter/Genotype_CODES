@@ -13,7 +13,7 @@ rcorr <- function(x, r){
 
 ped <- read.table("AlphaSimPed", header=T)
 ped <- ped[,c(1,2,3,4,9)]
-ped$EBV <- rcorr(ped$gvNormUnres1, r=0.9) #pridobi EBV iz TBV
+ped$EBV <- rcorr(ped$gvNormUnres1, r=setCor) #pridobi EBV iz TBV
 cor(ped$gvNormUnres1, ped$EBV)
 write.csv(ped, "GenPed_EBV.txt", quote=F, row.names=F)
 
