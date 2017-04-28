@@ -9,6 +9,7 @@ import sys
 import shutil
 from itertools import chain
 from subprocess import call
+import math
 
 class pedigree:
     def __init__(self, pedfile):
@@ -443,7 +444,213 @@ class pedigree:
             self.set_father_catPotomca(ocetjeNB, 'nr')
         if len(ocetje) < (stNB - potomciNPn*2):
             self.set_father_catPotomca(ocetje, 'nr')
+            
+    
 
+    def save_cat_DF(self):
+        categoriesDF = pd.DataFrame.from_dict(self.save_cat(), orient = 'index').transpose()
+        categoriesDF.to_csv('Categories_gen' + str(max(self.gens())) + 'DF.csv', index=None)  
+    
+    
+    def save_sex_DF(self):
+        categoriesDF = pd.DataFrame.from_dict(self.save_sex(), orient = 'index').transpose()
+        categoriesDF.to_csv('Sex_gen' + str(max(self.gens())) + 'DF.csv', index=None)  
+    
+    def save_active_DF(self):
+        categoriesDF = pd.DataFrame.from_dict(self.save_active(), orient = 'index').transpose()
+        categoriesDF.to_csv('Active_gen' + str(max(self.gens())) + 'DF.csv', index=None)  
+    
+    
+    
+        
+            
+    def create_categoriesDict(catDFEx):    
+        categories = defaultdict(list)
+        catDF = pd.read_csv(catDFEx)
+        for cat in catDF.columns:
+            values = [int(i) for i in catDF[cat] if not math.isnan(i)]
+            categories[cat] = values
+        return categories
+    
+        
+            
+    def create_sexDict(sexDFEx):    
+        sexDict = defaultdict(list)
+        sexDF = pd.read_csv(sexDFEx)
+        for sex in sexDF.columns:
+            values = [int(i) for i in sexDF[sex] if not math.isnan(i)]
+            sexDict[sex] = values
+        return sexDict
+                
+    
+    
+    def create_activeDict(activeDFEx):    
+        activeDict = defaultdict(list)
+        activeDF = pd.read_csv(activeDFEx)
+        for active in activeDF.columns:
+            values = [int(i) for i in activeDF[active] if not math.isnan(i)]
+            activeDict[active] = values
+        return activeDict               
+                        
+def selekcija_total(pedFile, **kwargs):
+    ped = pedigree(pedFile)
+    
+    #tukaj potem pridobi kategorije - če imaš samo eno burn-in, štartaš iz nule
+    if max(ped.gen) == 1:
+        ped.set_cat_gen(max(ped.gen), "nr")  # to je samo na prvem loopu
+        ped.set_sex_list([x for x in range(0, ped.rows()) if x % 2 == 0], "F")
+        ped.set_sex_list([x for x in range(0, ped.rows()) if x % 2 != 0], "M")
+        ped.izberi_poEBV_top_catCurrent("F", int(potomciNPn), 'nr', 'potomciNP')
+        ped.izberi_poEBV_top_catCurrent("M", int(potomciNPn), 'nr', 'potomciNP')
+       
+        #global categories #to moraš dat global samo v prvenm loopu, drugje dobiš return
+        categories = ped.save_cat()
+        #global sex
+        sex = ped.save_sex()
+        active = ped.save_active()
+        ped = pedigree(pedFile) 
+ 
+    elif max(ped.gens()) > 1:
+        categories = create_categoriesDict('Categories_gen' + str(max(self.gens())) + 'DF.csv')  
+        sex = create_sexDict('Sex_gen' + str(max(self.gens())) + 'DF.csv')  
+        active = create_activeDict('Active_gen' + str(max(self.gens())) + 'DF.csv')  
+       
+    ped.set_sex_prevGen(sex)  # add sex information for individuals from prevGen
+    ped.set_active_prevGen(active)  # add sex information for individuals from prevGen
+
+    #remove category information from the ped itself
+    for i in ped.gens():
+        ped.set_cat_gen(i, "")
+
+    #transfer culled (izlocene) category from prevGen
+    ped.set_cat_old('izl', 'izl', categories)
+
+    #compute age of the animals in the current selection year
+    ped.compute_age()
+    
+    #################################################
+    # FEMALES
+    #################################################
+    # age 0 - here you have newborn females (NB & potomkeNP) --> nekaj jih izloči, druge gredo naprej do ženskih telet
+    ped.set_cat_sex_old("F", "potomciNP", "telF", categories) #potomke načrtnih parjenj gredo v telice
+    izlF = nrFn - telFn  # number of culles NB females
+    ped.izberi_poEBV_top("F", (nrFn - izlF), "nr", "telF", categories)  # izberi NB ženske, ki preživijo in postanejo telice
+    ped.izloci_poEBV("F", izlF, "nr", categories)  # cull females (lowest on EBV) tukaj jih izloči, funkcija v modulu
+
+    # age 1 - pri enem letu osemeni določeno število telic (% določen zgoraj), druge izloči
+    if 'telF' in categories.keys():
+        ped.izberi_poEBV_top("F", ptn, 'telF', 'pt', categories) #plemenske telice
+        ped.izloci_poEBV("F", (len(categories['telF']) - ptn), 'telF', categories)  #preostale izloči
+
+    # age > 2 - tukaj odbiraš in izločaš krave, odbiraš in izločaš BM
+    # najprej dodaj nove krave, če jih že imaš v populaciji
+    if ('pt' in categories.keys()): #če imaš v pedigreju plemenske telice
+        ped.set_cat_old('pt', 'k', categories)  # osemenjene telice postanejo krave - predpostavimo, da vse
+    # krave po 1., 2., 3. laktaciji prestavi naprej v krave - OZIROMA PODALJŠAJ STATUS!
+    for i in range(2 + 1, (2 + kraveUp)):  # 2 + 1 - pri dveh letih prva laktacija, prestavljati začneš leto po tem
+        ped.set_cat_age_old(i, 'k', 'k', categories)
+    # potem izloči najstarejše krave - po 4. laktaciji
+    if ('k' in categories.keys()) and ((kraveUp + 2) in ped.age()):  # izloči koliko laktacij + 2 leti
+        ped.izloci_age_cat((kraveUp + 2), 'k', categories)
+
+
+    # če imaš že dovolj stare krave, potem odberi BM
+    # BM se odbira po drugi laktaciji - to je starost 3 - 4 (starost v pedigreju = 3, ker imaš tudi 0)
+    if ('k' in categories.keys()) and ((1 + bmOdbira) in ped.age()):
+        ped.izberi_poEBV_top_age("F", bmOdbira+1, int(bmn / bmUp), 'k', 'pBM', categories)  # izberi BM, ki jih osemeniš (plemenske BM = pBM) iz krav po 2. laktaciji
+    # in izloči najastarejše BM, če jih imaš
+    if ('bm' in categories.keys()):
+        ped.izloci_cat('bm', categories)
+    # ostale BM prestavi naprej - BM po 1. do izločitvene laktacije
+    if 'pBM' in categories.keys():
+        for i in range((1 + bmOdbira + 1), (
+                1 + bmOdbira + bmUp)):  # 1 leto prva osemenitev, bm odbrane po 2. laktaciji, +1 da začneš prestavljat
+            ped.set_cat_age_old(i, 'pBM', 'pBM', categories)
+        # spremeni kategorijo iz plemenskih BM v bm v zadnji laktaciji 
+        ped.set_cat_age_old((1 + bmOdbira + bmUp), 'pBM', 'bm',
+                            categories)  
+
+    #################################################################
+    # MALES
+    #################################################################
+    # age 0: štartaš z NB in potomci NP --> odbereš vhlevljene iz potomcev NP in moška teleta in NB
+    ped.izberi_poEBV_top("M", vhlevljenin, "potomciNP", "vhlevljeni",
+                         categories)  # vhlevi najboljše potomceNP
+    ped.izloci_poEBV("M", int(potomciNPn - vhlevljenin), 'potomciNP', categories) #druge potomceNP izloči
+    ped.izberi_random("M", telMn, "nr", "telM", categories) #izberi moška teleta, ki preživijo (random)
+    ped.izloci_random("M", int(nrMn - telMn), "nr", categories) #druga teleta izloči
+
+    # age1: tukaj odbereš mlade iz vhlevljenih bikov in bike, ki preživijo do drugega leta
+    if 'vhlevljeni' in categories.keys():
+        ped.izberi_poEBV_top("M", mladin, "vhlevljeni", "mladi", categories)  # odberi mlade
+        ped.izberi_poEBV_OdDo("M", mladin, vhlevljenin, "vhlevljeni", "pripust1", categories)  # preostali vhlevljeni gredo v pripust
+    if 'telM' in categories.keys():
+        ped.izberi_random("M", bik12n, 'telM', 'bik12', categories) #random odberi bike, ki preživijo do 2. leta
+        ped.izloci_random("M", (len(categories['telM']) - bik12n), 'telM', categories) #izloči preostale
+
+    # age > 2: tukaj mladi biki postanejo cakajoci in cakajo v testu
+    #po koncanem testu odberes pozitivno testirane PB
+    # mladi biki postanejo čakajoči (~1 leto, da se osemeni krave s semenom oz. malo po 2. letu)
+    if 'mladi' in categories.keys():
+        ped.set_cat_old('mladi', 'cak', categories) #mlade prestavi v cakajoce in jih izloci iz populacije
+        ped.set_active_cat('mladi', 2, categories)
+
+    if 'bik12' in categories.keys(): #izloci bike nad 2. leti
+        ped.izloci_cat('bik12', categories)
+    
+    # povprečna doba v pripustu - glede na to odberi bike, ki preživijo še eno leto
+    if 'pripust1' in categories.keys():
+        ped.izberi_random("M", pripust2n, 'pripust1', 'pripust2', categories) #prestavi v 2. leto pripusta (ne vse - % glede na leta v UP)
+        ped.izloci_random("M", (pripust1n - pripust2n), 'pripust1', categories) #preostale iz pripusta izloci
+
+    if 'pripust2' in categories.keys(): #izloci po 2. letu v pripustu
+        ped.izloci_cat('pripust2', categories)
+
+    # čakajočim bikov podaljšaj status (do starosti 5 let oz. kolikor let v testu)
+    # hkrati jim tudi nastavi status izl
+    # ped.set_cat_age_old(2, 'cak', 'cak', categories)
+    if 'cak' in categories.keys():
+        for i in range((2 + 1), (2 + cak)):  # 1 leto, ko začnejo semenit in so mladi biki, 3 so čakajoči, +1 da začneš prestavlajt
+            ped.set_cat_age_old(i, 'cak', 'cak', categories)
+
+
+
+    # če že imaš bike dovolj dolgo v testu, odberi pozitivno testirane bike
+    if ('cak' in categories.keys()) and ((cak + 2) in ped.age()):  # +2 - eno leto so teleta, eno leto mladi biki
+        ped.izberi_poEBV_top_age("M", (cak + 2), int(mladin * 0.5), 'cak', 'pb', categories)
+        ped.set_active_cat('cak', 2,
+                           categories)  # tukaj moraš to nastaviti, zato ker fja izberi avtomatsko nastavi na active=1
+        ped.izloci_poEBV_age("M", (cak + 2), int(mladin * 0.5), 'cak',
+                             categories)  # TUKAJ MORA BITI ŠE STAROST!!!!!!!!!!!
+
+    # plemenske bike prestavljaj naprej
+    if 'pb' in categories.keys():
+        ped.set_cat_old('pb', 'pb', categories)
+    
+    #########################################################
+    #add new generation
+    #########################################################
+    #tukaj potem dodaj eno generacijo novorojenih    
+    ped.add_new_gen_naive(stNBn, potomciNPn*2)
+    #določi starost glede na te novorojene
+    ped.compute_age()
+    #dodaj matere
+    ped.doloci_matere(stNBn, ptn, kraveUp)
+    #preveri - mora biti nič!!! - oz. če mater še ni dovolj, potem še ne!
+    ped.mother_nr_blank()
+    #dodaj očete
+    ped.doloci_ocete(stNBn, potomciNPn, cak, pripustDoz, pbUp, mladiDoz, pozitivnoTestDoz)
+
+    #preveri - mora biti nič!!! - oz. če mater še ni dovolj, potem še ne!
+    ped.mother_nr_blank()   
+
+    categories.clear()
+    ped.save_cat_DF()
+    ped.save_sex_DF()
+    ped.save_active_DF()
+    ped.write_ped("/home/jana/bin/AlphaSim1.05Linux/ExternalPedigree.txt")
+    
+    return ped, ped.save_cat(), ped.save_sex(), ped.save_active()
     
 def selekcija_ena_gen(pedFile, categories = None, sex = None, active = None, stNB=None, nrFn =None, \
 nrMn=None, telFn=None, telMn=None, potomciNPn=None, vhlevljenin=None, ptn=None, mladin=None, bik12n=None, \
@@ -476,7 +683,6 @@ pozitivnoTestDoz=None, pbUp=None):
         #preveri - mora biti nič!!! - oz. če mater še ni dovolj, potem še ne!
         ped.mother_nr_blank()
         #dodaj očete
-        ped.doloci_ocete(stNB, potomciNPn, cak, pripustDoz, mladiDoz, pozitivnoTestDoz)
         #preveri - mora biti nič!!! - oz. če mater še ni dovolj, potem še ne!
         ped.mother_nr_blank()   
     
@@ -540,17 +746,15 @@ pozitivnoTestDoz=None, pbUp=None):
         ped.mother_nr_blank()
                 
         categories.clear() #sprazni slovar od prejšnjega leta
-        ped.write_ped("/home/jana/bin/AlphaSim1.05Linux/ExternalPedigree.txt")
+    
+    ped.write_ped("/home/jana/bin/AlphaSim1.05Linux/ExternalPedigree.txt")
 
     return ped, ped.save_cat(), ped.save_sex(), ped.save_active()
 
 
 
 
-def nastavi_cat (PedFile, categories = None, sex = None, active = None, stNB=None, nrFn =None, \
-nrMn=None, telFn=None, telMn=None, potomciNPn=None, vhlevljenin=None, ptn=None, bmn=None, mladin=None, bik12n=None, \
-pripust1n=None, pripust2n=None,cak=None, kraveUp=None, bmOdbira=None, bmUp=None, pripustDoz=None, \
-mladiDoz=None, pozitivnoTestDoz=None, pbUp=None):
+def nastavi_cat (PedFile, *args):
     ped = pedigree(PedFile)
     ped.compute_age()
     
@@ -639,7 +843,7 @@ mladiDoz=None, pozitivnoTestDoz=None, pbUp=None):
     #preveri - mora biti nič!!! - oz. če mater še ni dovolj, potem še ne!
     ped.mother_nr_blank()
     #dodaj očete
-    ped.doloci_ocete(stNB, potomciNPn, cak, pripustDoz, mladiDoz, pozitivnoTestDoz)
+    ped.doloci_ocete(stNB, potomciNPn, cak, pripustDoz, pbUp, mladiDoz, pozitivnoTestDoz)
  
     
     ped.write_ped("/home/jana/bin/AlphaSim1.05Linux/ExternalPedigree.txt")
@@ -656,4 +860,6 @@ class TBVGenTable:
     
         
         
-        
+class test:
+    def __init__(self):
+        print 123     

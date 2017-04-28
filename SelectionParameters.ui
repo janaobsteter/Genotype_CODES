@@ -329,7 +329,7 @@
     </property>
     <layout class="QFormLayout" name="formLayout_3">
      <item row="0" column="0">
-      <widget class="QCheckBox" name="BurnInYN">
+      <widget class="QCheckBox" name="BurnInYNE">
        <property name="text">
         <string>Perform burn-in</string>
        </property>
@@ -387,16 +387,6 @@
      <string>DoMagic</string>
     </property>
    </widget>
-   <widget class="QLineEdit" name="AlphaSimDir">
-    <property name="geometry">
-     <rect>
-      <x>530</x>
-      <y>680</y>
-      <width>113</width>
-      <height>27</height>
-     </rect>
-    </property>
-   </widget>
    <widget class="QLineEdit" name="NoSires">
     <property name="geometry">
      <rect>
@@ -417,6 +407,29 @@
      </rect>
     </property>
    </widget>
+   <widget class="QPushButton" name="AlphaSimDir">
+    <property name="geometry">
+     <rect>
+      <x>470</x>
+      <y>690</y>
+      <width>99</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>PushButton</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="AlphaSimDirShow">
+    <property name="geometry">
+     <rect>
+      <x>580</x>
+      <y>690</y>
+      <width>113</width>
+      <height>27</height>
+     </rect>
+    </property>
+   </widget>
    <zorder>groupBox</zorder>
    <zorder>groupBox_2</zorder>
    <zorder>groupBox_3</zorder>
@@ -433,9 +446,10 @@
    <zorder>groupBox_4</zorder>
    <zorder>DoMagic</zorder>
    <zorder>DoMagic</zorder>
-   <zorder>AlphaSimDir</zorder>
    <zorder>NoSires</zorder>
    <zorder>NoDams</zorder>
+   <zorder>AlphaSimDir</zorder>
+   <zorder>AlphaSimDirShow</zorder>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
