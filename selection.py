@@ -505,6 +505,7 @@ class pedigree:
 #FUNKCIJE     
 ###################################################################
 def selekcija_total(pedFile, **kwargs):
+    print kwargs
     ped = pedigree(pedFile)
     
     #tukaj potem pridobi kategorije - če imaš samo eno burn-in, štartaš iz nule
@@ -512,8 +513,8 @@ def selekcija_total(pedFile, **kwargs):
         ped.set_cat_gen(max(ped.gen), "nr")  # to je samo na prvem loopu
         ped.set_sex_list([x for x in range(0, ped.rows()) if x % 2 == 0], "F")
         ped.set_sex_list([x for x in range(0, ped.rows()) if x % 2 != 0], "M")
-        ped.izberi_poEBV_top_catCurrent("F", int(potomciNPn), 'nr', 'potomciNP')
-        ped.izberi_poEBV_top_catCurrent("M", int(potomciNPn), 'nr', 'potomciNP')
+        ped.izberi_poEBV_top_catCurrent("F", int(kwargs.get('potomciNPn')), 'nr', 'potomciNP')
+        ped.izberi_poEBV_top_catCurrent("M", int(kwargs.get('potomciNPn')), 'nr', 'potomciNP')
        
         #global categories #to moraš dat global samo v prvenm loopu, drugje dobiš return
         categories = ped.save_cat()
@@ -523,9 +524,9 @@ def selekcija_total(pedFile, **kwargs):
         ped = pedigree(pedFile) 
  
     elif max(ped.gens()) > 1:
-        categories = create_categoriesDict('Categories_gen' + str(max(self.gens())) + 'DF.csv')  
-        sex = create_sexDict('Sex_gen' + str(max(self.gens())) + 'DF.csv')  
-        active = create_activeDict('Active_gen' + str(max(self.gens())) + 'DF.csv')  
+        categories = create_categoriesDict('Categories_gen' + str(max(ped.gens())) + 'DF.csv')  
+        sex = create_sexDict('Sex_gen' + str(max(ped.gens())) + 'DF.csv')  
+        active = create_activeDict('Active_gen' + str(max(ped.gens())) + 'DF.csv')  
        
     ped.set_sex_prevGen(sex)  # add sex information for individuals from prevGen
     ped.set_active_prevGen(active)  # add sex information for individuals from prevGen
@@ -545,7 +546,7 @@ def selekcija_total(pedFile, **kwargs):
     #################################################
     # age 0 - here you have newborn females (NB & potomkeNP) --> nekaj jih izloči, druge gredo naprej do ženskih telet
     ped.set_cat_sex_old("F", "potomciNP", "telF", categories) #potomke načrtnih parjenj gredo v telice
-    izlF = nrFn - telFn  # number of culles NB females
+    izlF = kwargs.get('nrFn') - kwargs.get('telFn')  # number of culles NB females
     ped.izberi_poEBV_top("F", (nrFn - izlF), "nr", "telF", categories)  # izberi NB ženske, ki preživijo in postanejo telice
     ped.izloci_poEBV("F", izlF, "nr", categories)  # cull females (lowest on EBV) tukaj jih izloči, funkcija v modulu
 

@@ -114,7 +114,7 @@ from selection import *
 
 # združi celo selekcijo v eno funkcijo
 
-def selekcija_total(pedFile,):
+def selekcija_total(pedFile, **kwargs):
     ped = pedigree(pedFile)
     
     #tukaj potem pridobi kategorije - če imaš samo eno burn-in, štartaš iz nule
@@ -253,15 +253,15 @@ def selekcija_total(pedFile,):
     #add new generation
     #########################################################
     #tukaj potem dodaj eno generacijo novorojenih    
-    ped.add_new_gen_naive(stNB, potomciNPn*2)
+    ped.add_new_gen_naive(stNBn, potomciNPn*2)
     #določi starost glede na te novorojene
     ped.compute_age()
     #dodaj matere
-    ped.doloci_matere(stNB, ptn, kraveUp)
+    ped.doloci_matere(stNBn, ptn, kraveUp)
     #preveri - mora biti nič!!! - oz. če mater še ni dovolj, potem še ne!
     ped.mother_nr_blank()
     #dodaj očete
-    ped.doloci_ocete(stNB, potomciNPn, cak, pripustDoz, pbUp, mladiDoz, pozitivnoTestDoz)
+    ped.doloci_ocete(stNBn, potomciNPn, cak, pripustDoz, pbUp, mladiDoz, pozitivnoTestDoz)
 
     #preveri - mora biti nič!!! - oz. če mater še ni dovolj, potem še ne!
     ped.mother_nr_blank()   
