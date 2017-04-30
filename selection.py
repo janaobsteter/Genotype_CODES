@@ -524,9 +524,9 @@ def selekcija_total(pedFile, **kwargs):
         ped = pedigree(pedFile) 
  
     elif max(ped.gens()) > 1:
-        categories = create_categoriesDict('Categories_gen' + str(max(ped.gens())) + 'DF.csv')  
-        sex = create_sexDict('Sex_gen' + str(max(ped.gens())) + 'DF.csv')  
-        active = create_activeDict('Active_gen' + str(max(ped.gens())) + 'DF.csv')  
+        categories = ped.create_categoriesDict('Categories_gen' + str(max(ped.gens())) + 'DF.csv')  
+        sex = ped.create_sexDict('Sex_gen' + str(max(ped.gens())) + 'DF.csv')  
+        active = ped.create_activeDict('Active_gen' + str(max(ped.gens())) + 'DF.csv')  
        
     ped.set_sex_prevGen(sex)  # add sex information for individuals from prevGen
     ped.set_active_prevGen(active)  # add sex information for individuals from prevGen
@@ -547,59 +547,59 @@ def selekcija_total(pedFile, **kwargs):
     # age 0 - here you have newborn females (NB & potomkeNP) --> nekaj jih izloči, druge gredo naprej do ženskih telet
     ped.set_cat_sex_old("F", "potomciNP", "telF", categories) #potomke načrtnih parjenj gredo v telice
     izlF = kwargs.get('nrFn') - kwargs.get('telFn')  # number of culles NB females
-    ped.izberi_poEBV_top("F", (nrFn - izlF), "nr", "telF", categories)  # izberi NB ženske, ki preživijo in postanejo telice
-    ped.izloci_poEBV("F", izlF, "nr", categories)  # cull females (lowest on EBV) tukaj jih izloči, funkcija v modulu
+    ped.izberi_poEBV_top("F", (kwargs.get('nrFn') - izlF), "nr", "telF", categories)  # izberi NB ženske, ki preživijo in postanejo telice
+    ped.izloci_poEBV("F", kwargs.get('izlF'), "nr", categories)  # cull females (lowest on EBV) tukaj jih izloči, funkcija v modulu
 
     # age 1 - pri enem letu osemeni določeno število telic (% določen zgoraj), druge izloči
     if 'telF' in categories.keys():
-        ped.izberi_poEBV_top("F", ptn, 'telF', 'pt', categories) #plemenske telice
-        ped.izloci_poEBV("F", (len(categories['telF']) - ptn), 'telF', categories)  #preostale izloči
+        ped.izberi_poEBV_top("F", kwargs.get('ptn'), 'telF', 'pt', categories) #plemenske telice
+        ped.izloci_poEBV("F", (len(categories['telF']) - kwargs.get('ptn')), 'telF', categories)  #preostale izloči
 
     # age > 2 - tukaj odbiraš in izločaš krave, odbiraš in izločaš BM
     # najprej dodaj nove krave, če jih že imaš v populaciji
     if ('pt' in categories.keys()): #če imaš v pedigreju plemenske telice
         ped.set_cat_old('pt', 'k', categories)  # osemenjene telice postanejo krave - predpostavimo, da vse
     # krave po 1., 2., 3. laktaciji prestavi naprej v krave - OZIROMA PODALJŠAJ STATUS!
-    for i in range(2 + 1, (2 + kraveUp)):  # 2 + 1 - pri dveh letih prva laktacija, prestavljati začneš leto po tem
+    for i in range(2 + 1, (2 + kwargs.get('kraveUp'))):  # 2 + 1 - pri dveh letih prva laktacija, prestavljati začneš leto po tem
         ped.set_cat_age_old(i, 'k', 'k', categories)
     # potem izloči najstarejše krave - po 4. laktaciji
-    if ('k' in categories.keys()) and ((kraveUp + 2) in ped.age()):  # izloči koliko laktacij + 2 leti
-        ped.izloci_age_cat((kraveUp + 2), 'k', categories)
+    if ('k' in categories.keys()) and ((kwargs.get('kraveUp') + 2) in ped.age()):  # izloči koliko laktacij + 2 leti
+        ped.izloci_age_cat((kwargs.get('kraveUp') + 2), 'k', categories)
 
 
     # če imaš že dovolj stare krave, potem odberi BM
     # BM se odbira po drugi laktaciji - to je starost 3 - 4 (starost v pedigreju = 3, ker imaš tudi 0)
-    if ('k' in categories.keys()) and ((1 + bmOdbira) in ped.age()):
-        ped.izberi_poEBV_top_age("F", bmOdbira+1, int(bmn / bmUp), 'k', 'pBM', categories)  # izberi BM, ki jih osemeniš (plemenske BM = pBM) iz krav po 2. laktaciji
+    if ('k' in categories.keys()) and ((1 + kwargs.get('bmOdbira')) in ped.age()):
+        ped.izberi_poEBV_top_age("F", kwargs.get('bmOdbira')+1, int(kwargs.get('bmn') / kwargs.get('bmUp')), 'k', 'pBM', categories)  # izberi BM, ki jih osemeniš (plemenske BM = pBM) iz krav po 2. laktaciji
     # in izloči najastarejše BM, če jih imaš
     if ('bm' in categories.keys()):
         ped.izloci_cat('bm', categories)
     # ostale BM prestavi naprej - BM po 1. do izločitvene laktacije
     if 'pBM' in categories.keys():
-        for i in range((1 + bmOdbira + 1), (
-                1 + bmOdbira + bmUp)):  # 1 leto prva osemenitev, bm odbrane po 2. laktaciji, +1 da začneš prestavljat
+        for i in range((1 + kwargs.get('bmOdbira') + 1), (
+                1 + kwargs.get('bmOdbira') + kwargs.get('bmUp'))):  # 1 leto prva osemenitev, bm odbrane po 2. laktaciji, +1 da začneš prestavljat
             ped.set_cat_age_old(i, 'pBM', 'pBM', categories)
         # spremeni kategorijo iz plemenskih BM v bm v zadnji laktaciji 
-        ped.set_cat_age_old((1 + bmOdbira + bmUp), 'pBM', 'bm',
+        ped.set_cat_age_old((1 + kwargs.get('bmOdbira') + kwargs.get('bmUp')), 'pBM', 'bm',
                             categories)  
 
     #################################################################
     # MALES
     #################################################################
     # age 0: štartaš z NB in potomci NP --> odbereš vhlevljene iz potomcev NP in moška teleta in NB
-    ped.izberi_poEBV_top("M", vhlevljenin, "potomciNP", "vhlevljeni",
+    ped.izberi_poEBV_top("M", kwargs.get('vhlevljenin'), "potomciNP", "vhlevljeni",
                          categories)  # vhlevi najboljše potomceNP
-    ped.izloci_poEBV("M", int(potomciNPn - vhlevljenin), 'potomciNP', categories) #druge potomceNP izloči
-    ped.izberi_random("M", telMn, "nr", "telM", categories) #izberi moška teleta, ki preživijo (random)
-    ped.izloci_random("M", int(nrMn - telMn), "nr", categories) #druga teleta izloči
+    ped.izloci_poEBV("M", int(kwargs.get('potomciNPn') - kwargs.get('vhlevljenin')), 'potomciNP', categories) #druge potomceNP izloči
+    ped.izberi_random("M", kwargs.get('telMn'), "nr", "telM", categories) #izberi moška teleta, ki preživijo (random)
+    ped.izloci_random("M", int(kwargs.get('nrMn') - kwargs.get('potomciNPn')-kwargs.get('telMn')), "nr", categories) #druga teleta izloči
 
     # age1: tukaj odbereš mlade iz vhlevljenih bikov in bike, ki preživijo do drugega leta
     if 'vhlevljeni' in categories.keys():
-        ped.izberi_poEBV_top("M", mladin, "vhlevljeni", "mladi", categories)  # odberi mlade
-        ped.izberi_poEBV_OdDo("M", mladin, vhlevljenin, "vhlevljeni", "pripust1", categories)  # preostali vhlevljeni gredo v pripust
+        ped.izberi_poEBV_top("M", kwargs.get('mladin'), "vhlevljeni", "mladi", categories)  # odberi mlade
+        ped.izberi_poEBV_OdDo("M", kwargs.get('mladin'), kwargs.get('vhlevljenin'), "vhlevljeni", "pripust1", categories)  # preostali vhlevljeni gredo v pripust
     if 'telM' in categories.keys():
-        ped.izberi_random("M", bik12n, 'telM', 'bik12', categories) #random odberi bike, ki preživijo do 2. leta
-        ped.izloci_random("M", (len(categories['telM']) - bik12n), 'telM', categories) #izloči preostale
+        ped.izberi_random("M", kwargs.get('bik12n'), 'telM', 'bik12', categories) #random odberi bike, ki preživijo do 2. leta
+        ped.izloci_random("M", (len(categories['telM']) - kwargs.get('bik12n')), 'telM', categories) #izloči preostale
 
     # age > 2: tukaj mladi biki postanejo cakajoci in cakajo v testu
     #po koncanem testu odberes pozitivno testirane PB
@@ -613,8 +613,8 @@ def selekcija_total(pedFile, **kwargs):
     
     # povprečna doba v pripustu - glede na to odberi bike, ki preživijo še eno leto
     if 'pripust1' in categories.keys():
-        ped.izberi_random("M", pripust2n, 'pripust1', 'pripust2', categories) #prestavi v 2. leto pripusta (ne vse - % glede na leta v UP)
-        ped.izloci_random("M", (pripust1n - pripust2n), 'pripust1', categories) #preostale iz pripusta izloci
+        ped.izberi_random("M", kwargs.get('pripust2n'), 'pripust1', 'pripust2', categories) #prestavi v 2. leto pripusta (ne vse - % glede na leta v UP)
+        ped.izloci_random("M", (kwargs.get('pripust1n') - kwargs.get('pripust2n')), 'pripust1', categories) #preostale iz pripusta izloci
 
     if 'pripust2' in categories.keys(): #izloci po 2. letu v pripustu
         ped.izloci_cat('pripust2', categories)
@@ -623,17 +623,17 @@ def selekcija_total(pedFile, **kwargs):
     # hkrati jim tudi nastavi status izl
     # ped.set_cat_age_old(2, 'cak', 'cak', categories)
     if 'cak' in categories.keys():
-        for i in range((2 + 1), (2 + cak)):  # 1 leto, ko začnejo semenit in so mladi biki, 3 so čakajoči, +1 da začneš prestavlajt
+        for i in range((2 + 1), (2 + kwargs.get('cak'))):  # 1 leto, ko začnejo semenit in so mladi biki, 3 so čakajoči, +1 da začneš prestavlajt
             ped.set_cat_age_old(i, 'cak', 'cak', categories)
 
 
 
     # če že imaš bike dovolj dolgo v testu, odberi pozitivno testirane bike
-    if ('cak' in categories.keys()) and ((cak + 2) in ped.age()):  # +2 - eno leto so teleta, eno leto mladi biki
-        ped.izberi_poEBV_top_age("M", (cak + 2), int(mladin * 0.5), 'cak', 'pb', categories)
+    if ('cak' in categories.keys()) and ((kwargs.get('cak') + 2) in ped.age()):  # +2 - eno leto so teleta, eno leto mladi biki
+        ped.izberi_poEBV_top_age("M", (kwargs.get('cak') + 2), int(kwargs.get('mladin') * 0.5), 'cak', 'pb', categories)
         ped.set_active_cat('cak', 2,
                            categories)  # tukaj moraš to nastaviti, zato ker fja izberi avtomatsko nastavi na active=1
-        ped.izloci_poEBV_age("M", (cak + 2), int(mladin * 0.5), 'cak',
+        ped.izloci_poEBV_age("M", (kwargs.get('cak') + 2), int(kwargs.get('mladin') * 0.5), 'cak',
                              categories)  # TUKAJ MORA BITI ŠE STAROST!!!!!!!!!!!
 
     # plemenske bike prestavljaj naprej
@@ -644,15 +644,15 @@ def selekcija_total(pedFile, **kwargs):
     #add new generation
     #########################################################
     #tukaj potem dodaj eno generacijo novorojenih    
-    ped.add_new_gen_naive(stNBn, potomciNPn*2)
+    ped.add_new_gen_naive(kwargs.get('stNBn'), kwargs.get('potomciNPn')*2)
     #določi starost glede na te novorojene
     ped.compute_age()
     #dodaj matere
-    ped.doloci_matere(stNBn, ptn, kraveUp)
+    ped.doloci_matere(kwargs.get('stNBn'), kwargs.get('ptn'), kwargs.get('kraveUp'))
     #preveri - mora biti nič!!! - oz. če mater še ni dovolj, potem še ne!
     ped.mother_nr_blank()
     #dodaj očete
-    ped.doloci_ocete(stNBn, potomciNPn, cak, pripustDoz, pbUp, mladiDoz, pozitivnoTestDoz)
+    ped.doloci_ocete(kwargs.get('stNBn'), kwargs.get('potomciNPn'), kwargs.get('cak'), kwargs.get('pripustDoz'), kwargs.get('pbUp'), kwargs.get('mladiDoz'), kwargs.get('pozitivnoTestDoz'))
 
     #preveri - mora biti nič!!! - oz. če mater še ni dovolj, potem še ne!
     ped.mother_nr_blank()   
@@ -661,7 +661,7 @@ def selekcija_total(pedFile, **kwargs):
     ped.save_cat_DF()
     ped.save_sex_DF()
     ped.save_active_DF()
-    ped.write_ped("/home/jana/bin/AlphaSim1.05Linux/ExternalPedigree.txt")
+    ped.write_ped("/home/jana/bin/AlphaSim1.07Linux/ExternalPedigree.txt")
     
     return ped, ped.save_cat(), ped.save_sex(), ped.save_active()
 
@@ -778,29 +778,29 @@ def nastavi_cat (PedFile, **kwargs):
     #MALES FIRST
     #age 0
     #določi vhlevljene
-    ped.izberi_poEBV_top_age_naive(0, vhlevljenin, 'vhlevljeni')
+    ped.izberi_poEBV_top_age_naive(0, kwargs.get('vhlevljenin'), 'vhlevljeni')
     #določi moška teleta pod 12
-    ped.izberi_random_age_naive(0, telMn, 'telM')
+    ped.izberi_random_age_naive(0, kwargs.get('telMn'), 'telM')
     
     #age1
     #določi mlade
-    ped.izberi_poEBV_top_age_naive(1, mladin, 'mladi')
+    ped.izberi_poEBV_top_age_naive(1, kwargs.get('mladin'), 'mladi')
     #določi pripust - 1. leto
-    ped.izberi_poEBV_OdDo_age_naive(1, mladin, vhlevljenin, 'pripust1')
+    ped.izberi_poEBV_OdDo_age_naive(1, kwargs.get('mladin'), kwargs.get('vhlevljenin'), 'pripust1')
     #določi bike nad 12 m
-    ped.izberi_random_age_naive(1, bik12n, 'bik12')
+    ped.izberi_random_age_naive(1, kwargs.get('bik12n'), 'bik12')
     
     
     #age2
-    ped.izberi_poEBV_top_age_naive(2, mladin, 'cak')
-    ped.izberi_poEBV_OdDo_age_naive(1, mladin, (mladin + pripust2n), 'pripust2')
+    ped.izberi_poEBV_top_age_naive(2, kwargs.get('mladin'), 'cak')
+    ped.izberi_poEBV_OdDo_age_naive(1, kwargs.get('mladin'), (kwargs.get('mladin') + kwargs.get('pripust2n')), 'pripust2')
     
     #age3,4
     for i in [3,4]:
-        ped.izberi_poEBV_top_age_naive(i, mladin, 'cak')
+        ped.izberi_poEBV_top_age_naive(i, kwargs.get('mladin'), 'cak')
     
     #age 5 - 10: pb
-    pbAge = range((2 + cak), (2 + cak + pbUp)) if (2 + cak + pbUp) <= max(ped.gens()) else range((2 + cak), max(ped.gens()))
+    pbAge = range((2 + kwargs.get('cak')), (2 + kwargs.get('cak')+ kwargs.get('pbUp'))) if (2 + kwargs.get('cak')+ kwargs.get('pbUp')) <= max(ped.gens()) else range((2 + kwargs.get('cak')), max(ped.gens()))
     for i in pbAge:
         ped.izberi_poEBV_top_age_naive(i, 4, 'pb')
     
@@ -808,25 +808,25 @@ def nastavi_cat (PedFile, **kwargs):
     #FEMALES
     #age 0
     #določi ženska teleta pod 12
-    ped.izberi_poEBV_top_age_naive(0, telFn, 'telF')
+    ped.izberi_poEBV_top_age_naive(0, kwargs.get('telFn'), 'telF')
     
     #age1
     #določi plemenske telice
-    ped.izberi_poEBV_top_age_naive(1, ptn, 'pt')
+    ped.izberi_poEBV_top_age_naive(1, kwargs.get('ptn'), 'pt')
     
     #age2
-    for i in range(2, (1 + bmOdbira)):
-        ped.izberi_poEBV_top_age_naive(i, ptn, 'k')
+    for i in range(2, (1 + kwargs.get('bmOdbira'))):
+        ped.izberi_poEBV_top_age_naive(i, kwargs.get('ptn'), 'k')
     
     #age3,4,5
     #odberi plemenske bm najprej
-    for i in range((1 + bmOdbira), (1 + bmOdbira + bmUp)):
-        ped.izberi_poEBV_top_age_naive(i, int(bmn / bmUp), 'pBM')
-        ped.izberi_poEBV_top_age_naive(i, (ptn - int(bmn / bmUp)), 'k')
+    for i in range((1 + kwargs.get('bmOdbira')), (1 + kwargs.get('bmOdbira')+ kwargs.get('bmUp'))):
+        ped.izberi_poEBV_top_age_naive(i, int(kwargs.get('bmn') / kwargs.get('bmUp')), 'pBM')
+        ped.izberi_poEBV_top_age_naive(i, (kwargs.get('ptn') - int(kwargs.get('bmn') / kwargs.get('bmUp'))), 'k')
     
     #age 6
     #izberi odslužene bm
-    ped.izberi_poEBV_top_age_naive((1 + bmOdbira + bmUp), int(bmn / bmUp), 'bm')
+    ped.izberi_poEBV_top_age_naive((1 + kwargs.get('bmOdbira') + kwargs.get('bmUp')), int(kwargs.get('bmn') / kwargs.get('bmUp')), 'bm')
     
     
     #ostali so izločeni
@@ -851,20 +851,20 @@ def nastavi_cat (PedFile, **kwargs):
     #določi še izločene
     ped.set_cat_list(ped.row_cat(""), 'izl')
     
-    ped.add_new_gen_naive(stNB, potomciNPn*2)
+    ped.add_new_gen_naive(kwargs.get('stNBn'), kwargs.get('potomciNPn')*2)
     
     ped.compute_age()
     #dodaj matere
-    ped.doloci_matere(stNB, ptn, kraveUp)
+    ped.doloci_matere(kwargs.get('stNBn'), kwargs.get('ptn'), kwargs.get('kraveUp'))
     #preveri - mora biti nič!!! - oz. če mater še ni dovolj, potem še ne!
     ped.mother_nr_blank()
     #dodaj očete
-    ped.doloci_ocete(stNB, potomciNPn, cak, pripustDoz, pbUp, mladiDoz, pozitivnoTestDoz)
+    ped.doloci_ocete(kwargs.get('stNBn'), kwargs.get('potomciNPn'), kwargs.get('cak'), kwargs.get('pripustDoz'), kwargs.get('pbUp'), kwargs.get('mladiDoz'), kwargs.get('pozitivnoTestDoz'))
  
     ped.save_cat_DF()
     ped.save_sex_DF()
     ped.save_active_DF()
-    ped.write_ped("/home/jana/bin/AlphaSim1.05Linux/ExternalPedigree.txt")
+    ped.write_ped("/home/jana/bin/AlphaSim1.07Linux/ExternalPedigree.txt")
     
     return ped, ped.save_cat(), ped.save_sex(), ped.save_active()
 

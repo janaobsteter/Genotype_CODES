@@ -8,9 +8,11 @@ import selection
 from selection import selekcija_ena_gen, nastavi_cat, selekcija_total
 from collections import defaultdict
 import shutil
+import pandas as  pd
+import numpy as np
 
 #nalozi GUI za selekcijo
-qtCreatorFile = '/home/jana/Genotipi/Genotipi_CODES/SelectionParameters.ui' # Enter file here.
+qtCreatorFile = '/home/jana/Genotype_CODES/SelectionParameters.ui' # Enter file here.
 Ui_MainWindow, QtBaseClass = uic.loadUiType(qtCreatorFile)
 
 #SelParam je class za okno
@@ -31,26 +33,13 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
     #funkcija, ki ustvari dict in vseh vnešenih parametrov okna SelParam
     #ta dict potem daš funkciji, ki dela selekcijo oz. nastavlja kategorije
     def setSelParam(self):
-        self.setParamDict = defaultdict()
+        setParamDict = defaultdict()
         setParamDict['stNBn'] = int(self.NoNB.text())
-        setParamDict['nrFn'] = int(self.stNBn) * 0.5
-        setParamDict['telFn'] = int(self.telF.text()) * self.nrFn
-        setParamDict['ptn'] = int(self.pt.text()) * self.telFn
-        setParamDict['bmn'] = int(self.bm.text()) * self.ptn * self.kraveUp
-
-        setParamDict['nrMn'] = int(self.stNBn) * 0.5
-        setParamDict['potomciNPn'] = int(self.potomciNP.text()) * self.nrMn
-        setParamDict['vhlevljenin'] = int(self.vhlevljeni.text()) * self.potomciNPn
-        setParamDict['mladin'] = int(self.mladi.text()) * self.vhlevljenin
-        setParamDict['pbn'] = int(self.pb.text()) * self.mladin
-        setParamDict['pripust1n'] = int(self.pripust1.text()) * self.vhlevljenin
-        setParamDict['pripust2n'] = int(round(self.pripust1n * (self.pripustUp - 1)))
-
         setParamDict['kraveUp'] = int(self.kraveUpE.text())
         setParamDict['bmOdbira'] = int(self.bmOdbiraE.text())
         setParamDict['bmUp'] = int(self.bmUpE.text())
         setParamDict['cak'] = int(self.cakE.text())
-        setParamDict['pripustUp'] = int(self.pripustUpE.text())
+        setParamDict['pripustUp'] = (self.pripustUpE.text())
         setParamDict['pbUp'] = int(self.pbUpE.text())
 
         setParamDict['pripustDoz'] = int(self.pripustDozE.text())
@@ -60,8 +49,24 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
         setParamDict['StBurnInGen'] = int(self.StBurnInGenE.text())
         setParamDict['StSelGen'] = int(self.SelToGen.text())
         setParamDict['NumberOfSires'] = int(self.NoSires.text())
-        setParamDict['NumberOfDams'] = int(self.NoDams.tex())
-        setParamDict['AlphaSimDir'] = self.choose_dir()
+        setParamDict['NumberOfDams'] = int(self.NoDams.text())
+        setParamDict['AlphaSimDir'] = choose_dir()
+
+        setParamDict['nrFn'] = int(setParamDict['stNBn'] * 0.5)
+        setParamDict['telFn'] = int(self.telF.text() * setParamDict['nrFn'])
+        setParamDict['ptn'] = int(self.pt.text() * setParamDict['telFn'])
+        setParamDict['bmn'] = int(self.bm.text() * setParamDict['ptn'] * setParamDict['kraveUp'])
+
+        setParamDict['nrMn'] = int(setParamDict['stNBn'] * 0.5)
+        setParamDict['potomciNPn'] = int(self.potomciNP.text() * setParamDict['nrMn'])
+        setParamDict['vhlevljenin'] = int(self.vhlevljeni.text() * setParamDict['potomciNPn'])
+        setParamDict['bik12n'] = int(self.bik12.text() * setParamDict['nrMn'])
+        setParamDict['mladin'] = int(self.mladi.text() * setParamDict['vhlevljenin'])
+        setParamDict['pbn'] = int(self.pb.text() * setParamDict['mladin'])
+        setParamDict['pripust1n'] = int(self.pripust1.text() * setParamDict['vhlevljenin'])
+        setParamDict['pripust2n'] = int(self.round(pripust1n * (setParamDict['pripustUp'] - 1)))
+        selParamDF = pd.DataFrame.from_dict(setParamDict, orient='index')
+        selParamDF.to_csv('/home/jana/SelectionParamTEST.csv')
         return setParamDict
 
     #funkcija selekcija
@@ -102,7 +107,9 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
         #za VSAK KROG selekcije
 	#1) vzami AlphaSim sproduciran PedigreeAndGeneticValues
 	#2) preračunaj TBV --> EBV, doloci zeljeno korelacijo
-	#3) 
+	#3) nastavi kategorije (nastavi kategorije glede na EBV) ali izvedi selekcijo (določi kategorije glede na prejšenje leto)
+        #obe določita starše novim živalim - torej dodata novo generacijo plus starše
+        #obe ustvarita external pedigree za naslednjo generacijo
 
         for roundNo in range(self.StartSelGen, (self.StopSelGen + 1)): #za vsak krog selekcije
             # precacunas EBV v Ru in zapises PEDIGRE --> naredi ti GenPed_EBV.txt v cwd
@@ -124,7 +131,7 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
             # prestavi se v AlphaSim Dir
             os.chdir(self.AlphaSimDir)
             #kopiraj pedigre v selection folder
-            shutil.copy('ExternalPedigree.txt',self.AlphaSimDir + '/Selection/SelectionFolder' + str(roundNo) + '/')
+            shutil.copy('ExternalPedigree.txt', self.AlphaSimDir + '/Selection/SelectionFolder' + str(roundNo) + '/')
             # TUKAJ POTEM popravis AlphaSimSpec
             # PRVIc PO BURN IN-U
             shutil.copy(AlphaSimSpec.genSpecFile, self.AlphaSimDir) #skopiraj generično ALphaSimSpec datoteko v AlphaSimDir
@@ -149,6 +156,5 @@ if __name__ == "__main__":
     window = SelParam()
     window.show()
     sys.exit(app.exec_())
-
-    selParam = window.setSelParam()
+    window.DoMagic.clicked.connect(self.setSelParam())
 
