@@ -17,8 +17,8 @@
    <widget class="QGroupBox" name="groupBox">
     <property name="geometry">
      <rect>
-      <x>30</x>
-      <y>50</y>
+      <x>10</x>
+      <y>0</y>
       <width>362</width>
       <height>462</height>
      </rect>
@@ -136,8 +136,8 @@
    <widget class="QGroupBox" name="groupBox_2">
     <property name="geometry">
      <rect>
-      <x>490</x>
-      <y>60</y>
+      <x>470</x>
+      <y>10</y>
       <width>366</width>
       <height>228</height>
      </rect>
@@ -214,8 +214,8 @@
    <widget class="QGroupBox" name="groupBox_3">
     <property name="geometry">
      <rect>
-      <x>490</x>
-      <y>320</y>
+      <x>470</x>
+      <y>270</y>
       <width>365</width>
       <height>152</height>
      </rect>
@@ -259,8 +259,8 @@
    <widget class="QLineEdit" name="telM">
     <property name="geometry">
      <rect>
-      <x>240</x>
-      <y>540</y>
+      <x>220</x>
+      <y>490</y>
       <width>146</width>
       <height>27</height>
      </rect>
@@ -269,8 +269,8 @@
    <widget class="QLabel" name="label_12">
     <property name="geometry">
      <rect>
-      <x>50</x>
-      <y>540</y>
+      <x>30</x>
+      <y>490</y>
       <width>184</width>
       <height>27</height>
      </rect>
@@ -282,8 +282,8 @@
    <widget class="QLabel" name="label_13">
     <property name="geometry">
      <rect>
-      <x>50</x>
-      <y>573</y>
+      <x>30</x>
+      <y>523</y>
       <width>184</width>
       <height>27</height>
      </rect>
@@ -295,8 +295,8 @@
    <widget class="QLineEdit" name="bik12">
     <property name="geometry">
      <rect>
-      <x>240</x>
-      <y>573</y>
+      <x>220</x>
+      <y>523</y>
       <width>146</width>
       <height>27</height>
      </rect>
@@ -305,8 +305,8 @@
    <widget class="QLabel" name="label_14">
     <property name="geometry">
      <rect>
-      <x>50</x>
-      <y>517</y>
+      <x>30</x>
+      <y>467</y>
       <width>336</width>
       <height>17</height>
      </rect>
@@ -318,8 +318,8 @@
    <widget class="QGroupBox" name="groupBox_4">
     <property name="geometry">
      <rect>
-      <x>530</x>
-      <y>470</y>
+      <x>510</x>
+      <y>420</y>
       <width>311</width>
       <height>221</height>
      </rect>
@@ -390,8 +390,8 @@
    <widget class="QPushButton" name="DoMagic">
     <property name="geometry">
      <rect>
-      <x>770</x>
-      <y>700</y>
+      <x>750</x>
+      <y>650</y>
       <width>99</width>
       <height>27</height>
      </rect>
@@ -403,8 +403,8 @@
    <widget class="QLineEdit" name="NoSires">
     <property name="geometry">
      <rect>
-      <x>800</x>
-      <y>480</y>
+      <x>780</x>
+      <y>430</y>
       <width>41</width>
       <height>27</height>
      </rect>
@@ -413,8 +413,8 @@
    <widget class="QLineEdit" name="NoDams">
     <property name="geometry">
      <rect>
-      <x>800</x>
-      <y>510</y>
+      <x>780</x>
+      <y>460</y>
       <width>41</width>
       <height>27</height>
      </rect>
@@ -423,8 +423,8 @@
    <widget class="QPushButton" name="AlphaSimDir">
     <property name="geometry">
      <rect>
-      <x>470</x>
-      <y>690</y>
+      <x>450</x>
+      <y>640</y>
       <width>99</width>
       <height>27</height>
      </rect>
@@ -436,33 +436,53 @@
    <widget class="QLineEdit" name="AlphaSimDirShow">
     <property name="geometry">
      <rect>
-      <x>580</x>
-      <y>690</y>
+      <x>560</x>
+      <y>640</y>
       <width>113</width>
       <height>27</height>
      </rect>
     </property>
    </widget>
-   <zorder>groupBox</zorder>
-   <zorder>groupBox_2</zorder>
-   <zorder>groupBox_3</zorder>
-   <zorder>telM</zorder>
-   <zorder>label_12</zorder>
-   <zorder>label_13</zorder>
-   <zorder>bik12</zorder>
-   <zorder>label_14</zorder>
-   <zorder>telM</zorder>
-   <zorder>label_12</zorder>
-   <zorder>label_13</zorder>
-   <zorder>bik12</zorder>
-   <zorder>label_14</zorder>
-   <zorder>groupBox_4</zorder>
-   <zorder>DoMagic</zorder>
-   <zorder>DoMagic</zorder>
-   <zorder>NoSires</zorder>
-   <zorder>NoDams</zorder>
-   <zorder>AlphaSimDir</zorder>
-   <zorder>AlphaSimDirShow</zorder>
+   <widget class="QLineEdit" name="message">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>570</y>
+      <width>171</width>
+      <height>41</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="outputWritten">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>610</y>
+      <width>171</width>
+      <height>41</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="le">
+    <property name="geometry">
+     <rect>
+      <x>230</x>
+      <y>570</y>
+      <width>113</width>
+      <height>22</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QTextEdit" name="te">
+    <property name="geometry">
+     <rect>
+      <x>230</x>
+      <y>610</y>
+      <width>104</width>
+      <height>70</height>
+     </rect>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -470,7 +490,7 @@
      <x>0</x>
      <y>0</y>
      <width>896</width>
-     <height>25</height>
+     <height>19</height>
     </rect>
    </property>
   </widget>

@@ -878,9 +878,9 @@ class TBVGenTable:
     
 
  
-class AlphaSimSpec :
+class AlphaSimSpec:
     def __init__(self):
-        self.SpecFile = '/home/jana/bin/AlphaSim1.05Linux/AlphaSimSpec.txt'
+        self.SpecFile = '/home/jana/bin/AlphaSim1.07Linux/AlphaSimSpec.txt'
         self.genSpecFile = '/home/jana/Genotype_CODES/AlphaSimSpec.txt'
 
     def setPedType(self,pedType):

@@ -3,17 +3,21 @@ from __future__ import division
 import sys
 import os
 from PyQt4 import QtGui, QtCore, uic
+from PyQt4.QtCore import *
+from PyQt4.QtGui import *
 import math
 import selection
+from selection import *
 from selection import selekcija_ena_gen, nastavi_cat, selekcija_total
 from collections import defaultdict
 import shutil
-import pandas as  pd
+import pandas as pd
 import numpy as np
 
 #nalozi GUI za selekcijo
 qtCreatorFile = '/home/jana/Genotype_CODES/SelectionParameters.ui' # Enter file here.
 Ui_MainWindow, QtBaseClass = uic.loadUiType(qtCreatorFile)
+
 
 #SelParam je class za okno
 class SelParam(QtGui.QMainWindow, Ui_MainWindow):
@@ -22,7 +26,14 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
         Ui_MainWindow.__init__(self)
         self.setupUi(self)
         self.AlphaSimDir.clicked.connect(self.choose_dir)
-        #self.DoMagic.clicked.connect(self.selekcija())
+        self.DoMagic.clicked.connect(self.selekcija)
+        self.SpecFile = AlphaSimSpec()  # AlphaSimSpec je class iz selection, ki omogoča nastavljanje parametrov AlphaSimSpec fila
+        self.setParamDict = defaultdict()
+        self.ped =
+        # self.DoMagic.clicked.connect(self.setSelParam)
+        #self.DoMagic.clicked.connect(self.setText)
+
+
 
     #poveži tipko za AlphaSimDir z QFileDialog (posploši za vse take tipke!)
     def choose_dir(self):
@@ -33,73 +44,78 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
     #funkcija, ki ustvari dict in vseh vnešenih parametrov okna SelParam
     #ta dict potem daš funkciji, ki dela selekcijo oz. nastavlja kategorije
     def setSelParam(self):
-        setParamDict = defaultdict()
-        setParamDict['stNBn'] = int(self.NoNB.text())
-        setParamDict['kraveUp'] = int(self.kraveUpE.text())
-        setParamDict['bmOdbira'] = int(self.bmOdbiraE.text())
-        setParamDict['bmUp'] = int(self.bmUpE.text())
-        setParamDict['cak'] = int(self.cakE.text())
-        setParamDict['pripustUp'] = (self.pripustUpE.text())
-        setParamDict['pbUp'] = int(self.pbUpE.text())
+        self.setParamDict['stNBn'] = int(self.NoNB.text()) if not self.NoNB.text().isEmpty() else 0
+        self.setParamDict['kraveUp'] = int(self.kraveUpE.text()) if not self.kraveUpE.text().isEmpty() else 0
+        self.setParamDict['bmOdbira'] = int(self.bmOdbiraE.text()) if not self.bmOdbiraE.text().isEmpty() else 0
+        self.setParamDict['bmUp'] = int(self.bmUpE.text()) if not self.bmUpE.text().isEmpty() else 0
+        self.setParamDict['cak'] = int(self.cakE.text()) if not self.cakE.text().isEmpty() else 0
+        self.setParamDict['pripustUp'] = (self.pripustUpE.text()) if not self.pripustUpE.text().isEmpty() else 0
+        self.setParamDict['pbUp'] = int(self.pbUpE.text()) if not self.pbUpE.text().isEmpty() else 0
 
-        setParamDict['pripustDoz'] = int(self.pripustDozE.text())
-        setParamDict['mladiDoz'] = int(self.mladiDozE.text())
-        setParamDict['pozitivnoTestDoz'] = int(self.pozitivnoTestDozE.text())
-        setParamDict['BurnInYN'] = self.BurnInYNE.isChecked()
-        setParamDict['StBurnInGen'] = int(self.StBurnInGenE.text())
-        setParamDict['StSelGen'] = int(self.SelToGen.text())
-        setParamDict['NumberOfSires'] = int(self.NoSires.text())
-        setParamDict['NumberOfDams'] = int(self.NoDams.text())
-        setParamDict['AlphaSimDir'] = choose_dir()
+        self.setParamDict['pripustDoz'] = int(self.pripustDozE.text()) if not self.pripustDozE.text().isEmpty() else 0
+        self.setParamDict['mladiDoz'] = int(self.mladiDozE.text()) if not self.mladiDozE.text().isEmpty() else 0
+        self.setParamDict['pozitivnoTestDoz'] = int(
+            self.pozitivnoTestDozE.text()) if not self.pozitivnoTestDozE.text().isEmpty() else 0
+        self.setParamDict['BurnInYN'] = self.BurnInYNE.isChecked()
+        self.setParamDict['StBurnInGen'] = int(self.StBurnInGenE.text()) if not self.StBurnInGenE.text().isEmpty() else 0
+        self.setParamDict['StSelGen'] = int(self.SelToGen.text()) if not self.SelToGen.text().isEmpty() else 0
+        self.setParamDict['NumberOfSires'] = int(self.NoSires.text()) if not self.NoSires.text().isEmpty() else 0
+        self.setParamDict['NumberOfDams'] = int(self.NoDams.text()) if not self.NoDams.text().isEmpty() else 0
+        # self.setParamDict['AlphaSimDir'] = choose_dir()
 
-        setParamDict['nrFn'] = int(setParamDict['stNBn'] * 0.5)
-        setParamDict['telFn'] = int(self.telF.text() * setParamDict['nrFn'])
-        setParamDict['ptn'] = int(self.pt.text() * setParamDict['telFn'])
-        setParamDict['bmn'] = int(self.bm.text() * setParamDict['ptn'] * setParamDict['kraveUp'])
+        self.setParamDict['nrFn'] = int(self.setParamDict['stNBn'] * 0.5)
+        self.setParamDict['telFn'] = int(self.telF.text() * self.setParamDict['nrFn']) if not self.telF.text().isEmpty() else 0
+        self.setParamDict['ptn'] = int(self.pt.text() * self.setParamDict['telFn']) if not self.pt.text().isEmpty() else 0
+        self.setParamDict['bmn'] = int(
+            self.bm.text() * self.setParamDict['ptn'] * self.setParamDict['kraveUp']) if not self.bm.text().isEmpty() else 0
 
-        setParamDict['nrMn'] = int(setParamDict['stNBn'] * 0.5)
-        setParamDict['potomciNPn'] = int(self.potomciNP.text() * setParamDict['nrMn'])
-        setParamDict['vhlevljenin'] = int(self.vhlevljeni.text() * setParamDict['potomciNPn'])
-        setParamDict['bik12n'] = int(self.bik12.text() * setParamDict['nrMn'])
-        setParamDict['mladin'] = int(self.mladi.text() * setParamDict['vhlevljenin'])
-        setParamDict['pbn'] = int(self.pb.text() * setParamDict['mladin'])
-        setParamDict['pripust1n'] = int(self.pripust1.text() * setParamDict['vhlevljenin'])
-        setParamDict['pripust2n'] = int(self.round(pripust1n * (setParamDict['pripustUp'] - 1)))
-        selParamDF = pd.DataFrame.from_dict(setParamDict, orient='index')
-        selParamDF.to_csv('/home/jana/SelectionParamTEST.csv')
-        return setParamDict
+        self.setParamDict['nrMn'] = int(self.setParamDict['stNBn'] * 0.5)
+        self.setParamDict['potomciNPn'] = int(
+            self.potomciNP.text() * self.setParamDict['nrMn']) if not self.potomciNP.text().isEmpty() else 0
+        self.setParamDict['vhlevljenin'] = int(
+            self.vhlevljeni.text() * self.setParamDict['potomciNPn']) if not self.vhlevljeni.text().isEmpty() else 0
+        self.setParamDict['bik12n'] = int(self.bik12.text() * self.setParamDict['nrMn']) if not self.bik12.text().isEmpty() else 0
+        self.setParamDict['mladin'] = int(
+            self.mladi.text() * self.setParamDict['vhlevljenin']) if not self.mladi.text().isEmpty() else 0
+        self.setParamDict['pbn'] = int(self.pb.text() * self.setParamDict['mladin']) if not self.pb.text().isEmpty() else 0
+        self.setParamDict['pripust1n'] = int(
+            self.pripust1.text() * self.setParamDict['vhlevljenin']) if not self.pripust1.text().isEmpty() else 0
+        self.setParamDict['pripust2n'] = int(round(self.setParamDict['pripust1n'] * (self.setParamDict['pripustUp'] - 1)))
+        pd.DataFrame.from_dict(self.setParamDict, orient='index').to_csv('/home/jana/SelectionParamTEST.csv')
+        return self.setParamDict
 
     #funkcija selekcija
     def selekcija(self):
         self.BurnInYN = self.BurnInYNE.isChecked() #ali izvedeš tudi BurnIn
-        self.StBurnInGen = int(self.StBurnInGenE.text()) #
+        self.StNB = int(self.NoNB.text())
+        self.StBurnInGen = int(self.StBurnInGenE.text())
         self.StSelGen = int(self.NoSelGen.text())
         self.StartSelGen = int(self.SelFromGen.text())
         self.StopSelGen = int(self.SelToGen.text())
         self.NumberOfSires = int(self.NoSires.text())#number of sires in the population
-        self.NumberOfDams = int(self.NoDams.tex())
-        self.AlphaSimDir = self.AlphaSimDirShow.text()
-        self.AlphaSimPed = str(self.AlphaSimDir) + '/SimulatedData/PedigreeAndGeneticValues.txt'        	
-
+        self.NumberOfDams = int(self.NoDams.text())
+        self.AlphaSimDir = str(self.AlphaSimDirShow.text())
+        self.AlphaSimPed = str(self.AlphaSimDir) + '/SimulatedData/PedigreeAndGeneticValues.txt'
+        # self.ped = self.AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValue.txt'
+        self.ped = '/home/jana/Genotpes_CODES/Pedigree_AfterBurnIt.txt'
 ##############################################################################
 #burnin        #ce NAJ se izvede tudi burn in - ce ga se nimas
 ##############################################################################
         if self.BurnInYN:
             # prestavi se v AlphaSim Dir
             os.chdir(self.AlphaSimDir)
-            shutil.copy(AlphaSimSpec.genSpecFile, self.AlphaSimDir) #skopiraj generično ALphaSimSpec datoteko v AlphaSimDir
-            SpecFile = AlphaSimSpec() #AlphaSimSpec je class iz selection, ki omogoča nastavljanje parametrov AlphaSimSpec fila
-            SpecFile.setPedType("Internal") #pedigree je za burn in internal
-            SpecFile.setNB(self.stNBn) #stevilo novorojenih
-            SpecFile.setBurnInGen(self.StBurnInGen) #stevilo burnINGen
-            SpecFile.setSelGen(self.NoSelGen) #st selection gen
-            SpecFile.setNoSires(self.NumberOfSires)
-            SpecFile.setNoDams(self.NumberOfDams)
-            SpecFile.turnOnGenFlex()
-            SpecFile.setFlexGenToFrom(1, (self.StBurnInGen + 1)) #pozeni od generacije 1 do burnin+1
-            SpecFile.turnOnSelFlex()
-            SpecFile.setExtPedForGen(self.StBurnInGen + 1) #za katero generacijo uvozi external pedigre  - ena po burn in
-            SpecFile.setTBVComp(1) #skomputiraj TBV
+            shutil.copy(self.SpecFile.genSpecFile, self.AlphaSimDir) #skopiraj generično ALphaSimSpec datoteko v AlphaSimDir
+            self.SpecFile.setPedType("Internal") #pedigree je za burn in internal
+            self.SpecFile.setNB(self.StNB) #stevilo novorojenih
+            self.SpecFile.setBurnInGen(self.StBurnInGen) #stevilo burnINGen
+            self.SpecFile.setSelGen(self.StSelGen) #st selection gen
+            self.SpecFile.setNoSires(self.NumberOfSires)
+            self.SpecFile.setNoDams(self.NumberOfDams)
+            self.SpecFile.turnOnGenFlex()
+            self.SpecFile.setFlexGenToFrom(1, (self.StBurnInGen + 1)) #pozeni od generacije 1 do burnin+1
+            self.SpecFile.turnOnSelFlex()
+            self.SpecFile.setExtPedForGen(self.StBurnInGen + 1) #za katero generacijo uvozi external pedigre  - ena po burn in
+            self.SpecFile.setTBVComp(1) #skomputiraj TBV
             # pozenes ALPHASIM
             os.system('./AlphaSim1.05')
 ##############################################################################
@@ -121,7 +137,7 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
             #selekcija_total zapise kategorije, sex in active za vsako generacijo
             #nastavi_cat in selekcija_total ti zapišeta ExternalPedigree.txt
             if roundNo == 1: #če je to prvi krog - nimaš še kategorij od prej
-                nastavi_cat('GenPed_EBV.txt',**self.setSelParam())
+                nastavi_cat('GenPed_EBV.txt', **self.setSelParam())
     
             elif roundNo > 1:
                 #izvedi selekcijo, doloci kategorije zivali, dodaj novo generacijo in dodeli starse
@@ -135,20 +151,23 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
             # TUKAJ POTEM popravis AlphaSimSpec
             # PRVIc PO BURN IN-U
             shutil.copy(AlphaSimSpec.genSpecFile, self.AlphaSimDir) #skopiraj generično ALphaSimSpec datoteko v AlphaSimDir
-            SpecFile = AlphaSimSpec() #AlphaSimSpec je class iz selection, ki omogoča nastavljanje parametrov AlphaSimSpec fila
-            SpecFile.setPedType("ExternalPedigree.txt")
-            SpecFile.setBurnInGen(self.StBurnInGen)
-            SpecFile.setSelGen(self.StSelGen)
-            SpecFile.setNoSires(0)
-            SpecFile.setNoDams(0)
-            SpecFile.turnOnGenFlex()
-            SpecFile.setFlexGenToFrom((self.StBurnInGen + roundNo), (self.StBurnInGen + roundNo))
-            SpecFile.turnOnSelFlex()
-            SpecFile.setExtPedForGen(self.StBurnInGen + roundNo)
-            SpecFile.setTBVComp(2)
-            SpecFile.setNB(self.stNBn)
+            self.SpecFile = AlphaSimSpec() #AlphaSimSpec je class iz selection, ki omogoča nastavljanje parametrov AlphaSimSpec fila
+            self.SpecFile.setPedType("ExternalPedigree.txt")
+            self.SpecFile.setBurnInGen(self.StBurnInGen)
+            self.SpecFile.setSelGen(self.StSelGen)
+            self.SpecFile.setNoSires(0)
+            self.SpecFile.setNoDams(0)
+            self.SpecFile.turnOnGenFlex()
+            self.SpecFile.setFlexGenToFrom((self.StBurnInGen + roundNo), (self.StBurnInGen + roundNo))
+            self.SpecFile.turnOnSelFlex()
+            self.SpecFile.setExtPedForGen(self.StBurnInGen + roundNo)
+            self.SpecFile.setTBVComp(2)
+            self.SpecFile.setNB(self.stNBn)
             #pozenes ALPHASIM
-            os.system('./AlphaSim1.05')
+            #os.system('./AlphaSim1.05')
+
+    def setText(self):
+        self.message.setText('Button Clicked')
 
 
 if __name__ == "__main__":
@@ -156,5 +175,5 @@ if __name__ == "__main__":
     window = SelParam()
     window.show()
     sys.exit(app.exec_())
-    window.DoMagic.clicked.connect(self.setSelParam())
+
 
