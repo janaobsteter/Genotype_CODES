@@ -10,6 +10,7 @@ import shutil
 from itertools import chain
 from subprocess import call
 import math
+from scipy import stats
 
 class pedigree:
     def __init__(self, pedfile):
@@ -322,7 +323,7 @@ class pedigree:
         self.ped.loc[freeRow, 'Father'] = FatherList       
         
     def select_mother_random(self, cat, st):
-        pot_Mother = list(self.ped.loc[(self.ped.cat==cat) & (self.ped.active==1), 'Indiv'])
+        pot_Mother = list(self.ped.loc[(self.ped.cat==cat) , 'Indiv'])
         return list(random.sample(pot_Mother, st))
         
     def select_mother_EBV_top(self, cat, st): #tukaj je trenutna categorija, saj jih doloačs koec generacije
@@ -332,6 +333,10 @@ class pedigree:
     def write_ped(self, path):
         pedNB = self.ped[self.ped.Generation == max(self.gens())]
         pedNB.to_csv(path, columns = ['Indiv', 'Father', 'Mother'], quoting=None, index=False, header=False)
+ 
+           
+    def write_pedTotal(self, path):
+        self.ped.to_csv(path, quoting=None, index=False, header=True)
         
     def select_age_0_1(self, categories, nrFn, nrMn, telFn, vhlevljenin, potomciNPn, telMn ): #tukaj odbereš iz novorojenih živali tel, ptel in mlade bike, pripust1
     #FEMALES
@@ -409,11 +414,15 @@ class pedigree:
             self.izberi_poEBV_top_age("M", (cak +2), int(mladin * 0.5), 'cak', 'pb', categories)
             self.set_active_cat('cak', 2, categories) #tukaj moraš to nastaviti, zato ker fja izberi avtomatsko nastavi na active=1
             self.izloci_poEBV_age("M",(cak+2), int(mladin * 0.5), 'cak', categories) #TUKAJ MORA BITI ŠE STAROST!!!!!!!!!!!
-    
+
+
 
     def doloci_matere(self, stNB, ptn, kraveUp):
         #MATERE
         sTbmMother = 90 if len(self.catCurrent_indiv('pBM')) >= 90 else len(self.catCurrent_indiv('pBM'))
+        print sTbmMother
+        print self.cat()
+        print self.active()
         if sTbmMother != 0:
             bmMother = self.select_mother_random('pBM', sTbmMother)
             self.set_mother_catPotomca(bmMother, 'potomciNP')
@@ -432,6 +441,7 @@ class pedigree:
         mladiOce = self.catCurrent_indiv('mladi')
         pripustOce = self.catCurrent_indiv('pripust1') + self.catCurrent_indiv('pripust2') 
         testiraniOce = list(chain.from_iterable([self.catCurrent_indiv_age('pb', (2 + cak + x)) for x in range(1, pbUp+1)])) # v času, ko določaš potomce, so že eno leto starjši!!!
+        gentestiraniOce = list(chain.from_iterable([self.catCurrent_indiv_age('gpb', x) for x in range(1, pbUp+1)])) # v času, ko določaš potomce, so že eno leto starjši!!!
         bmMother = 90 if len(self.catCurrent_indiv('pBM')) >= 90 else len(self.catCurrent_indiv('pBM'))
         if 'pb' in self.cat():
             elita = np.random.choice(self.catCurrent_indiv('pb'), bmMother, replace=True) #navidezna elita
@@ -439,7 +449,7 @@ class pedigree:
             #naštimaj očete elite --> BM
             self.set_father_catPotomca(elita, 'potomciNP')    
     
-        ocetje = pripustOce*pripustDoz + testiraniOce*pozitivnoTestDoz + mladiOce*mladiDoz
+        ocetje = pripustOce*pripustDoz + testiraniOce*pozitivnoTestDoz + mladiOce*mladiDoz + gentestiraniOce*pozitivnoTestDoz
         if len(ocetje) >= (stNB - potomciNPn*2): #če imaš dovolj DOZ za vse NB
             ocetjeNB = random.sample(ocetje, (stNB - potomciNPn*2)) #tukaj izbereš očete za vse krave  - razen BM!
             self.set_father_catPotomca(ocetjeNB, 'nr')
@@ -454,18 +464,18 @@ class pedigree:
     
     
     def save_sex_DF(self):
-        categoriesDF = pd.DataFrame.from_dict(self.save_sex(), orient = 'index').transpose()
-        categoriesDF.to_csv('Sex_gen' + str(max(self.gens())) + 'DF.csv', index=None)  
+        sexDF = pd.DataFrame.from_dict(self.save_sex(), orient = 'index').transpose()
+        sexDF.to_csv('Sex_gen' + str(max(self.gens())) + 'DF.csv', index=None)
     
     def save_active_DF(self):
-        categoriesDF = pd.DataFrame.from_dict(self.save_active(), orient = 'index').transpose()
-        categoriesDF.to_csv('Active_gen' + str(max(self.gens())) + 'DF.csv', index=None)  
+        activeDF = pd.DataFrame.from_dict(self.save_active(), orient = 'index').transpose()
+        activeDF.to_csv('Active_gen' + str(max(self.gens())) + 'DF.csv', index=None)
     
     
     
         
             
-    def create_categoriesDict(catDFEx):    
+    def create_categoriesDict(self, catDFEx):
         categories = defaultdict(list)
         catDF = pd.read_csv(catDFEx)
         for cat in catDF.columns:
@@ -475,7 +485,7 @@ class pedigree:
     
         
             
-    def create_sexDict(sexDFEx):    
+    def create_sexDict(self, sexDFEx):
         sexDict = defaultdict(list)
         sexDF = pd.read_csv(sexDFEx)
         for sex in sexDF.columns:
@@ -485,7 +495,7 @@ class pedigree:
                 
     
     
-    def create_activeDict(activeDFEx):    
+    def create_activeDict(self, activeDFEx):
         activeDict = defaultdict(list)
         activeDF = pd.read_csv(activeDFEx)
         for active in activeDF.columns:
@@ -493,9 +503,15 @@ class pedigree:
             activeDict[active] = values
         return activeDict 
 
+class OrigPed():
+    def __init__(self, AlphaSimDir):
+        self.name = AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues.txt'
+        self.pdPed = pd.read_table(self.name, sep='\s+')
+
+
     def computeEBV(self, cor):
         # precacunas EBV v Ru in zapises PEDIGRE
-        shutil.copy("'/home/jana/Genotipi/Genotipi_CODES/Rcorr_PedEBV.R", "Rcorr_PedEBV_ThisGen.R")
+        shutil.copy("/home/jana/Genotipi/Genotipi_CODES/Rcorr_PedEBV.R", "Rcorr_PedEBV_ThisGen.R")
         os.system('sed -i "s|AlphaSimPed|' + self.name + '|g" Rcorr_PedEBV_ThisGen.R')
         os.system('sed -i "s|setCor|' + str(cor) + '|g" Rcorr_PedEBV_ThisGen.R')
         call('Rscript Rcorr_PedEBV_ThisGen.R', shell=True)              
@@ -546,9 +562,9 @@ def selekcija_total(pedFile, **kwargs):
     #################################################
     # age 0 - here you have newborn females (NB & potomkeNP) --> nekaj jih izloči, druge gredo naprej do ženskih telet
     ped.set_cat_sex_old("F", "potomciNP", "telF", categories) #potomke načrtnih parjenj gredo v telice
-    izlF = kwargs.get('nrFn') - kwargs.get('telFn')  # number of culles NB females
-    ped.izberi_poEBV_top("F", (kwargs.get('nrFn') - izlF), "nr", "telF", categories)  # izberi NB ženske, ki preživijo in postanejo telice
-    ped.izloci_poEBV("F", kwargs.get('izlF'), "nr", categories)  # cull females (lowest on EBV) tukaj jih izloči, funkcija v modulu
+    izlF = int(kwargs.get('nrFn')) - int(kwargs.get('telFn'))  # number of culles NB females
+    ped.izberi_poEBV_top("F", kwargs.get('telFn'), "nr", "telF", categories)  # izberi NB ženske, ki preživijo in postanejo telice
+    ped.izloci_poEBV("F", izlF, "nr", categories)  # cull females (lowest on EBV) tukaj jih izloči, funkcija v modulu
 
     # age 1 - pri enem letu osemeni določeno število telic (% določen zgoraj), druge izloči
     if 'telF' in categories.keys():
@@ -639,7 +655,9 @@ def selekcija_total(pedFile, **kwargs):
     # plemenske bike prestavljaj naprej
     if 'pb' in categories.keys():
         ped.set_cat_old('pb', 'pb', categories)
-    
+
+
+    print ped.cat()
     #########################################################
     #add new generation
     #########################################################
@@ -661,7 +679,7 @@ def selekcija_total(pedFile, **kwargs):
     ped.save_cat_DF()
     ped.save_sex_DF()
     ped.save_active_DF()
-    ped.write_ped("/home/jana/bin/AlphaSim1.07Linux/ExternalPedigree.txt")
+    ped.write_ped("/home/jana/bin/AlphaSim1.05Linux/ExternalPedigree.txt")
     
     return ped, ped.save_cat(), ped.save_sex(), ped.save_active()
 
@@ -849,8 +867,10 @@ def nastavi_cat (PedFile, **kwargs):
     ped.set_sex_list(ped.row_cat('pripust2'), "M")
     
     #določi še izločene
+    ped.set_sex_list(ped.row_cat(""), "I")
+    ped.set_active_list(ped.row_cat(""), 2)
     ped.set_cat_list(ped.row_cat(""), 'izl')
-    
+
     ped.add_new_gen_naive(kwargs.get('stNBn'), kwargs.get('potomciNPn')*2)
     
     ped.compute_age()
@@ -864,11 +884,11 @@ def nastavi_cat (PedFile, **kwargs):
     ped.save_cat_DF()
     ped.save_sex_DF()
     ped.save_active_DF()
-    ped.write_ped("/home/jana/bin/AlphaSim1.07Linux/ExternalPedigree.txt")
+    ped.write_ped("/home/jana/bin/AlphaSim1.05Linux/ExternalPedigree.txt")
     
     return ped, ped.save_cat(), ped.save_sex(), ped.save_active()
 
-class TBVGenTable:
+class TBVGenTable: #to je tabela za grafiranje genetskih trendov čez populacije
     def __init__(self, TBVTable):
         self.TBVtable = pd.read_table(TBVTable, header=None, sep='\s+', names=['Indiv', 'TBV'])
         self.TBVmean = np.mean(self.TBVtable.TBV)
@@ -880,8 +900,8 @@ class TBVGenTable:
  
 class AlphaSimSpec:
     def __init__(self):
-        self.SpecFile = '/home/jana/bin/AlphaSim1.07Linux/AlphaSimSpec.txt'
-        self.genSpecFile = '/home/jana/Genotype_CODES/AlphaSimSpec.txt'
+        self.SpecFile = '/home/jana/bin/AlphaSim1.05Linux/AlphaSimSpec.txt'
+        self.genSpecFile = '/home/jana/Genotipi/Genotipi_CODES/AlphaSimSpec.txt'
 
     def setPedType(self,pedType):
         os.system('sed -i "s|PedigreeType|'+pedType+'|g" ' + self.SpecFile)

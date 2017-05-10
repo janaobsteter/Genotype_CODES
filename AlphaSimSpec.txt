@@ -33,7 +33,7 @@ MergeFiles                                        ,none
 ###############################################################
 BOX 5 - CHROMOSOMES
 UserMaCSHaplotypesYesNo                           ,no
-PopulationHistoryMaCS                             ,InternalCattle
+PopulationHistoryMaCS                             ,InternalTest
 EffectivePopulationSizeBaseMaCs                   ,Internal,0
 MutationRateMaCS                                  ,Internal,0
 ChromosomeLengthBasesMaCS                         ,External,100E+6
@@ -113,7 +113,7 @@ NumberOfTraits                                    ,1
 IndexWeights                                      ,1.0
 TraitHeritability                                 ,0.33
 UseNarrowSenseHeritabilityYesNo                   ,Yes
-TraitGeneticVariance                              ,1.0
+TraitGeneticVariance                              ,8.2
 ###############################################################
 BOX 13 - TRAIT CORRELATIONS
 Genetic Correlation Matrix

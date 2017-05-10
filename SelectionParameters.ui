@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>896</width>
+    <width>1022</width>
     <height>787</height>
    </rect>
   </property>
@@ -17,59 +17,22 @@
    <widget class="QGroupBox" name="groupBox">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>0</y>
+      <x>20</x>
+      <y>10</y>
       <width>362</width>
-      <height>462</height>
+      <height>501</height>
      </rect>
     </property>
     <property name="title">
      <string>Selection Parameters</string>
     </property>
     <layout class="QGridLayout" name="gridLayout">
-     <item row="4" column="0">
-      <widget class="QLabel" name="label_5">
+     <item row="0" column="0">
+      <widget class="QLabel" name="label">
        <property name="text">
-        <string>% dams (of cows)</string>
+        <string>No Newborns</string>
        </property>
       </widget>
-     </item>
-     <item row="6" column="2" colspan="2">
-      <widget class="QLineEdit" name="potomciNP"/>
-     </item>
-     <item row="5" column="0" colspan="4">
-      <widget class="QLabel" name="label_6">
-       <property name="text">
-        <string>MALES - selected population</string>
-       </property>
-      </widget>
-     </item>
-     <item row="9" column="2" colspan="2">
-      <widget class="QLineEdit" name="pb"/>
-     </item>
-     <item row="10" column="0" colspan="2">
-      <widget class="QLabel" name="label_10">
-       <property name="text">
-        <string>% pripust (od vhlevljenih)</string>
-       </property>
-      </widget>
-     </item>
-     <item row="6" column="0" colspan="2">
-      <widget class="QLabel" name="label_7">
-       <property name="text">
-        <string>% načrtnih parjenj (od NB)</string>
-       </property>
-      </widget>
-     </item>
-     <item row="9" column="0" colspan="2">
-      <widget class="QLabel" name="label_11">
-       <property name="text">
-        <string>% pozTest (od mladih)</string>
-       </property>
-      </widget>
-     </item>
-     <item row="7" column="2" colspan="2">
-      <widget class="QLineEdit" name="vhlevljeni"/>
      </item>
      <item row="1" column="0">
       <widget class="QLabel" name="label_2">
@@ -81,38 +44,75 @@
      <item row="0" column="1" colspan="3">
       <widget class="QLineEdit" name="NoNB"/>
      </item>
-     <item row="8" column="2" colspan="2">
+     <item row="19" column="2" colspan="2">
+      <widget class="QLineEdit" name="pb"/>
+     </item>
+     <item row="19" column="0" colspan="2">
+      <widget class="QLabel" name="label_11">
+       <property name="text">
+        <string>% pozTest (od mladih/genTest )</string>
+       </property>
+      </widget>
+     </item>
+     <item row="20" column="2">
+      <widget class="QLineEdit" name="pripust1"/>
+     </item>
+     <item row="8" column="2">
+      <widget class="QLineEdit" name="potomciNP"/>
+     </item>
+     <item row="16" column="2">
       <widget class="QLineEdit" name="mladi"/>
      </item>
+     <item row="20" column="0" colspan="2">
+      <widget class="QLabel" name="label_10">
+       <property name="text">
+        <string>% pripust (od vhlevljenih/genTest)</string>
+       </property>
+      </widget>
+     </item>
+     <item row="9" column="0">
+      <widget class="QCheckBox" name="EBV_YN">
+       <property name="text">
+        <string>Classical test</string>
+       </property>
+      </widget>
+     </item>
      <item row="8" column="0" colspan="2">
+      <widget class="QLabel" name="label_7">
+       <property name="text">
+        <string>% načrtnih parjenj (od NB)</string>
+       </property>
+      </widget>
+     </item>
+     <item row="16" column="0" colspan="2">
       <widget class="QLabel" name="label_9">
        <property name="text">
         <string>% mladi (od vhlevljenih)</string>
        </property>
       </widget>
      </item>
-     <item row="7" column="0">
+     <item row="15" column="0" colspan="2">
       <widget class="QLabel" name="label_8">
        <property name="text">
         <string>% vhlevljeni (od NP)</string>
        </property>
       </widget>
      </item>
-     <item row="4" column="2" colspan="2">
-      <widget class="QLineEdit" name="bm"/>
-     </item>
-     <item row="3" column="2" colspan="2">
-      <widget class="QLineEdit" name="pt"/>
-     </item>
-     <item row="2" column="2" colspan="2">
-      <widget class="QLineEdit" name="telF"/>
-     </item>
-     <item row="0" column="0">
-      <widget class="QLabel" name="label">
+     <item row="6" column="0" colspan="4">
+      <widget class="QLabel" name="label_6">
        <property name="text">
-        <string>No Newborns</string>
+        <string>MALES - selected population</string>
        </property>
       </widget>
+     </item>
+     <item row="4" column="2">
+      <widget class="QLineEdit" name="bm"/>
+     </item>
+     <item row="15" column="2">
+      <widget class="QLineEdit" name="vhlevljeni"/>
+     </item>
+     <item row="2" column="2">
+      <widget class="QLineEdit" name="telF"/>
      </item>
      <item row="3" column="0">
       <widget class="QLabel" name="label_4">
@@ -128,15 +128,29 @@
        </property>
       </widget>
      </item>
-     <item row="10" column="2" colspan="2">
-      <widget class="QLineEdit" name="pripust1"/>
+     <item row="3" column="2">
+      <widget class="QLineEdit" name="pt"/>
+     </item>
+     <item row="4" column="0">
+      <widget class="QLabel" name="label_5">
+       <property name="text">
+        <string>% dams (of cows)</string>
+       </property>
+      </widget>
+     </item>
+     <item row="9" column="1" colspan="2">
+      <widget class="QCheckBox" name="gEBV_YN">
+       <property name="text">
+        <string>Genomic testing</string>
+       </property>
+      </widget>
      </item>
     </layout>
    </widget>
    <widget class="QGroupBox" name="groupBox_2">
     <property name="geometry">
      <rect>
-      <x>470</x>
+      <x>590</x>
       <y>10</y>
       <width>366</width>
       <height>228</height>
@@ -182,7 +196,7 @@
      <item row="3" column="0">
       <widget class="QLabel" name="label_16">
        <property name="text">
-        <string>Bulls in test</string>
+        <string>Years in test (bulls)</string>
        </property>
       </widget>
      </item>
@@ -214,7 +228,7 @@
    <widget class="QGroupBox" name="groupBox_3">
     <property name="geometry">
      <rect>
-      <x>470</x>
+      <x>600</x>
       <y>270</y>
       <width>365</width>
       <height>152</height>
@@ -259,8 +273,8 @@
    <widget class="QLineEdit" name="telM">
     <property name="geometry">
      <rect>
-      <x>220</x>
-      <y>490</y>
+      <x>230</x>
+      <y>560</y>
       <width>146</width>
       <height>27</height>
      </rect>
@@ -270,7 +284,7 @@
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>490</y>
+      <y>560</y>
       <width>184</width>
       <height>27</height>
      </rect>
@@ -283,7 +297,7 @@
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>523</y>
+      <y>590</y>
       <width>184</width>
       <height>27</height>
      </rect>
@@ -295,103 +309,208 @@
    <widget class="QLineEdit" name="bik12">
     <property name="geometry">
      <rect>
-      <x>220</x>
-      <y>523</y>
+      <x>230</x>
+      <y>590</y>
       <width>146</width>
       <height>27</height>
      </rect>
     </property>
    </widget>
-   <widget class="QLabel" name="label_14">
-    <property name="geometry">
-     <rect>
-      <x>30</x>
-      <y>467</y>
-      <width>336</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>MALES - nonselected population</string>
-    </property>
-   </widget>
    <widget class="QGroupBox" name="groupBox_4">
     <property name="geometry">
      <rect>
-      <x>510</x>
+      <x>550</x>
       <y>420</y>
-      <width>311</width>
-      <height>221</height>
+      <width>451</width>
+      <height>251</height>
      </rect>
     </property>
     <property name="title">
      <string>AlphaSim</string>
     </property>
-    <layout class="QFormLayout" name="formLayout_3">
-     <property name="fieldGrowthPolicy">
-      <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+    <widget class="QCheckBox" name="BurnInYNE">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>30</y>
+       <width>139</width>
+       <height>17</height>
+      </rect>
      </property>
-     <item row="0" column="0">
-      <widget class="QCheckBox" name="BurnInYNE">
-       <property name="text">
-        <string>Perform burn-in</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="1">
-      <widget class="QLineEdit" name="StBurnInGenE"/>
-     </item>
-     <item row="1" column="0">
-      <widget class="QCheckBox" name="checkBox">
-       <property name="text">
-        <string>Plot Genetic Gain</string>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="1">
-      <widget class="QLineEdit" name="NoSelGen"/>
-     </item>
-     <item row="4" column="1">
-      <widget class="QLabel" name="label_30">
-       <property name="text">
-        <string>from generation           </string>
-       </property>
-      </widget>
-     </item>
-     <item row="5" column="0">
-      <widget class="QLabel" name="label_29">
-       <property name="text">
-        <string>Perform selection:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="5" column="1">
-      <widget class="QLineEdit" name="SelFromGen"/>
-     </item>
-     <item row="6" column="1">
-      <widget class="QLabel" name="label_31">
-       <property name="text">
-        <string>to generation</string>
-       </property>
-      </widget>
-     </item>
-     <item row="8" column="1">
-      <widget class="QLineEdit" name="SelToGen"/>
-     </item>
-     <item row="2" column="0">
-      <widget class="QLabel" name="label_33">
-       <property name="text">
-        <string>No Selected Generation</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
+     <property name="text">
+      <string>Perform burn-in</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="StBurnInGenE">
+     <property name="geometry">
+      <rect>
+       <x>190</x>
+       <y>97</y>
+       <width>61</width>
+       <height>31</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="checkBox">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>60</y>
+       <width>148</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Plot Genetic Gain</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="NoSelGen">
+     <property name="geometry">
+      <rect>
+       <x>190</x>
+       <y>140</y>
+       <width>71</width>
+       <height>31</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_30">
+     <property name="geometry">
+      <rect>
+       <x>50</x>
+       <y>210</y>
+       <width>131</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>from generation           </string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="SelFromGen">
+     <property name="geometry">
+      <rect>
+       <x>180</x>
+       <y>210</y>
+       <width>61</width>
+       <height>31</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_31">
+     <property name="geometry">
+      <rect>
+       <x>270</x>
+       <y>220</y>
+       <width>94</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>to generation</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="SelToGen">
+     <property name="geometry">
+      <rect>
+       <x>370</x>
+       <y>210</y>
+       <width>71</width>
+       <height>31</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_29">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>180</y>
+       <width>126</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Perform selection:</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_33">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>150</y>
+       <width>171</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>No Selected Generation</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_34">
+     <property name="geometry">
+      <rect>
+       <x>60</x>
+       <y>100</y>
+       <width>111</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>No BurnInGen</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="NoSires">
+     <property name="geometry">
+      <rect>
+       <x>260</x>
+       <y>20</y>
+       <width>41</width>
+       <height>27</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="NoDams">
+     <property name="geometry">
+      <rect>
+       <x>370</x>
+       <y>20</y>
+       <width>41</width>
+       <height>27</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_35">
+     <property name="geometry">
+      <rect>
+       <x>310</x>
+       <y>30</y>
+       <width>71</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>NoDams</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_36">
+     <property name="geometry">
+      <rect>
+       <x>190</x>
+       <y>30</y>
+       <width>71</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>NoSires</string>
+     </property>
+    </widget>
    </widget>
    <widget class="QPushButton" name="DoMagic">
     <property name="geometry">
      <rect>
-      <x>750</x>
-      <y>650</y>
+      <x>880</x>
+      <y>690</y>
       <width>99</width>
       <height>27</height>
      </rect>
@@ -400,97 +519,125 @@
      <string>DoMagic</string>
     </property>
    </widget>
-   <widget class="QLineEdit" name="NoSires">
-    <property name="geometry">
-     <rect>
-      <x>780</x>
-      <y>430</y>
-      <width>41</width>
-      <height>27</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="NoDams">
-    <property name="geometry">
-     <rect>
-      <x>780</x>
-      <y>460</y>
-      <width>41</width>
-      <height>27</height>
-     </rect>
-    </property>
-   </widget>
    <widget class="QPushButton" name="AlphaSimDir">
     <property name="geometry">
      <rect>
-      <x>450</x>
-      <y>640</y>
+      <x>570</x>
+      <y>690</y>
       <width>99</width>
       <height>27</height>
      </rect>
     </property>
     <property name="text">
-     <string>PushButton</string>
+     <string>AlphaSim</string>
     </property>
    </widget>
    <widget class="QLineEdit" name="AlphaSimDirShow">
     <property name="geometry">
      <rect>
-      <x>560</x>
-      <y>640</y>
+      <x>690</x>
+      <y>690</y>
       <width>113</width>
       <height>27</height>
      </rect>
     </property>
    </widget>
-   <widget class="QLineEdit" name="message">
+   <widget class="QGroupBox" name="groupBox_5">
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>570</y>
-      <width>171</width>
-      <height>41</height>
+      <y>630</y>
+      <width>301</width>
+      <height>131</height>
      </rect>
     </property>
+    <property name="title">
+     <string>EBV</string>
+    </property>
+    <widget class="QLineEdit" name="accEBV">
+     <property name="geometry">
+      <rect>
+       <x>130</x>
+       <y>30</y>
+       <width>113</width>
+       <height>27</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_21">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>30</y>
+       <width>181</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Accuracy of EBV</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="accgEBV">
+     <property name="geometry">
+      <rect>
+       <x>130</x>
+       <y>70</y>
+       <width>113</width>
+       <height>27</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_25">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>70</y>
+       <width>181</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Accuracy of gEBV</string>
+     </property>
+    </widget>
    </widget>
-   <widget class="QLineEdit" name="outputWritten">
+   <widget class="QLabel" name="label_14">
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>610</y>
-      <width>171</width>
-      <height>41</height>
+      <y>530</y>
+      <width>330</width>
+      <height>21</height>
      </rect>
     </property>
-   </widget>
-   <widget class="QLineEdit" name="le">
-    <property name="geometry">
-     <rect>
-      <x>230</x>
-      <y>570</y>
-      <width>113</width>
-      <height>22</height>
-     </rect>
+    <property name="text">
+     <string>MALES - nonselected population</string>
     </property>
    </widget>
-   <widget class="QTextEdit" name="te">
-    <property name="geometry">
-     <rect>
-      <x>230</x>
-      <y>610</y>
-      <width>104</width>
-      <height>70</height>
-     </rect>
-    </property>
-   </widget>
+   <zorder>groupBox</zorder>
+   <zorder>groupBox_2</zorder>
+   <zorder>groupBox_3</zorder>
+   <zorder>telM</zorder>
+   <zorder>label_12</zorder>
+   <zorder>label_13</zorder>
+   <zorder>bik12</zorder>
+   <zorder>groupBox_4</zorder>
+   <zorder>DoMagic</zorder>
+   <zorder>AlphaSimDir</zorder>
+   <zorder>AlphaSimDirShow</zorder>
+   <zorder>groupBox_5</zorder>
+   <zorder>label_14</zorder>
+   <zorder>telF</zorder>
+   <zorder>pt</zorder>
+   <zorder>gEBV_YN</zorder>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>896</width>
-     <height>19</height>
+     <width>1022</width>
+     <height>25</height>
     </rect>
    </property>
   </widget>
