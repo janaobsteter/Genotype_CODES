@@ -30,14 +30,19 @@ genPed['Mother'] = 0
 genPed['EBV'] = np.random.uniform(low=0.004, high=1.5, size = 67000)
 genPed.to_csv('/home/jana/Genotipi/Genotipi_CODES/GenericPed_67000.txt', index=None)
 
-import selection7
-reload(selection7)
-from selection7 import *
+import selectio8n
+reload(selectio8n)
+from selectio8n import *
 Ped = pedigree('/home/jana/Genotipi/Genotipi_CODES/GenericPed_67000.txt')
 
 #
 
+IndCat = pd.DataFrame()
 ped, c, s, a = nastavi_cat('/home/jana/Genotipi/Genotipi_CODES/GenericPed_67000.txt', **baba) #nastavi kategorije 
-krogov = 5
-for krog in krogov: #ponavljaj kolikor krogov selekcije hočeš
+krogov = 6
+IndCat['Indiv'] = ped.ped.Indiv
+IndCat['catBurnIN'] = ped.ped.cat
+
+for krog in range(krogov): #ponavljaj kolikor krogov selekcije hočeš
     ped, c, s, a = selekcija_total("/home/jana/PedTotal.txt", **baba)
+    IndCat[str('cat' + str(krog))] = ped.ped.cat
