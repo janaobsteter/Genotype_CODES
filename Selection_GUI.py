@@ -29,7 +29,7 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
         self.DoMagic.clicked.connect(self.selekcija)
         self.SpecFile = AlphaSimSpec()  # AlphaSimSpec je class iz selection, ki omogoča nastavljanje parametrov AlphaSimSpec fila
         self.setParamDict = defaultdict()
-        self.ped =
+
         # self.DoMagic.clicked.connect(self.setSelParam)
         #self.DoMagic.clicked.connect(self.setText)
 
@@ -77,7 +77,7 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
         self.setParamDict['bik12n'] = int(self.bik12.text() * self.setParamDict['nrMn']) if not self.bik12.text().isEmpty() else 0
         self.setParamDict['mladin'] = int(
             self.mladi.text() * self.setParamDict['vhlevljenin']) if not self.mladi.text().isEmpty() else 0
-        self.setParamDict['pbn'] = int(self.pb.text() * self.setParamDict['mladin']) if not self.pb.text().isEmpty() else 0
+        self.setParamDict['pbn'] = int(self.pb.text() * self.s8etParamDict['mladin']) if not self.pb.text().isEmpty() else 0
         self.setParamDict['pripust1n'] = int(
             self.pripust1.text() * self.setParamDict['vhlevljenin']) if not self.pripust1.text().isEmpty() else 0
         self.setParamDict['pripust2n'] = int(round(self.setParamDict['pripust1n'] * (self.setParamDict['pripustUp'] - 1)))
