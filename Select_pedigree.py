@@ -660,6 +660,7 @@ if OPTION == 2:
 TBVmeans.clear()
 TBVmeans = defaultdict(list)
 for roundNo in range(1,rounds+1):
+    from scipy import stats
     TBVt = TBVGenTable(AlphaSimDir + '/Selection/SelectionFolder' + str(roundNo) + '/SelectionTbvTest.txt')
     TBVmeans[roundNo] = TBVt.TBVmean
     

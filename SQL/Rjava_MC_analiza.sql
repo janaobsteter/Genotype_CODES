@@ -32,14 +32,15 @@ FROM
   and mc.RM_SIF_LOKACIJA=stat.CRE_SIFRA_CREDA
   and stat.SIF_STATUS_CREDA=5
   AND mc.RM_REJEC_ODDAJA_MLEKO=1
-  and lok.DATUM_POROCILA='31.01.2017'
-  and lok.RJAR not in 0;
+  and lok.DATUM_POROCILA='30.04.2017'
+  and lok.RJAR not in 0
+;
   
 
 --rejci, ki oddajajo mleko in so v AT kontroli in število rjavih živali v laktaciji --> SSI rjavih živali
 
-drop table Reje_MC ;
-create table Reje_MC as
+drop table Reje_MC_11052017 ;
+create table Reje_MC_11052017 as;
 SELECT DISTINCT
   zivali_mc.creda,
   lok.RJAR RjKrave,
@@ -75,8 +76,8 @@ and zivali_mc.ziv_id_seq=pv.PV_ZIV_ID_SEQ(+)
   and (extract(month from pv.DAT_OCENA_PV)=11) 
  and pv.SIFRA_LAST(+)=79
   and lok.RJAR not in 0
-  and lok.RJar >= 10 --več kot 10 rjavih krav
-  and lok.DATUM_POROCILA='28.02.2017'
+  --and lok.RJar >= 10 --več kot 10 rjavih krav
+  and lok.DATUM_POROCILA='30.04.2017'
   group by zivali_mc.creda, lok.RJAR;
   
   
@@ -86,7 +87,7 @@ SELECT ziv.ZIV_ID_SEQ, ziv.IME_ZIVAL,ziv.SIF_BREJA ,ziv.CRE_SIFRA_CREDA,ziv.DRZ_
 ziv.DAT_ROJSTVO, ziv.ZIV_MATI_SEQ mati, ziv.ZIV_OCE_SEQ oce, ziv.DRZ_STEV_ORIG_MATI || ziv.ZIV_STEV_ORIG_MATI matiID, ziv.DRZ_STEV_ORIG_OCE || ziv.ZIV_STEV_ORIG_OCE oceID
 ,max(tel.ZAP_TELITEV) StTel, max(tel.DAT_TELITEV) ZadnjaTel, pv.VREDNOST_12_PV
 FROM
-REJE_MC reje, GOVEDO.ZIVALI ziv,
+Reje_MC_11052017 reje, GOVEDO.ZIVALI ziv,
 GOVEDO.ZIVALI_PASMA_SPADA pasma,
 GOVEDO.TELITVE tel, GOVEDO.LAKTACIJE lak,
 ARHIV.PLEMENSKE_VREDNOSTI pv
@@ -247,3 +248,61 @@ SELECT DISTINCT
 FROm
   F4F_REJE crede
 ;
+
+
+--NAKNADNO IZBRANE REJE, 11.5.2017
+--rejci, ki oddajajo mleko in so v AT kontroli in imajo rjave krave
+
+CREATE Table reje_11052017 as
+SELECT DISTINCT
+  mc.RM_SIF_LOKACIJA creda,
+  lok.*
+FROM
+  GOVEDO.REJCI_MLEKARNA mc,
+  GOVEDO.LOKACIJE_STEVILO_ZIVALI lok,
+  GOVEDO.STATUSI_ZIVALI_CREDA stat
+  WHERE
+  lok.LOKACIJA              =mc.RM_SIF_LOKACIJA
+  and mc.RM_SIF_LOKACIJA=stat.CRE_SIFRA_CREDA
+  and stat.SIF_STATUS_CREDA=5
+  AND mc.RM_REJEC_ODDAJA_MLEKO=1
+  and lok.DATUM_POROCILA='30.04.2017'
+  and lok.RJAR not in 0
+  and lok.LOKACIJA in (15575,2992,13087,3497,6149,5825,9624,7871,8976,4725,6670,8946,4257,7128,9621);
+  
+  --rejci, ki oddajajo mleko in so v AT kontroli (in imajo več kot 10 rajvih krav) --> živali - ali so v laktaciji ali ne
+SELECT ziv.ZIV_ID_SEQ, ziv.IME_ZIVAL,ziv.SIF_BREJA ,ziv.CRE_SIFRA_CREDA,ziv.DRZ_ORIG_ZIVAL || ziv.STEV_ORIG_ZIVAL ID_zivali, 
+ziv.DAT_ROJSTVO, ziv.ZIV_MATI_SEQ mati, ziv.ZIV_OCE_SEQ oce, ziv.DRZ_STEV_ORIG_MATI || ziv.ZIV_STEV_ORIG_MATI matiID, ziv.DRZ_STEV_ORIG_OCE || ziv.ZIV_STEV_ORIG_OCE oceID
+,max(tel.ZAP_TELITEV) StTel, max(tel.DAT_TELITEV) ZadnjaTel, pv.VREDNOST_12_PV
+FROM
+Reje_11052017 reje, GOVEDO.ZIVALI ziv,
+GOVEDO.ZIVALI_PASMA_SPADA pasma,
+GOVEDO.TELITVE tel, GOVEDO.LAKTACIJE lak,
+ARHIV.PLEMENSKE_VREDNOSTI pv
+  WHERE
+  ziv.ZIV_ID_SEQ=pv.PV_ZIV_ID_SEQ(+)
+  and pv.SIFRA_LAST(+)=79
+  and ziv.ZIV_ID_SEQ=tel.TEL_ZIV_ID_SEQ 
+  and tel.TEL_ID_SEQ=lak.LAK_TEL_ID_SEQ and
+  ziv.CRE_SIFRA_CREDA=reje.CREDA
+  and pasma.ZIV_ID_SEQ=ziv.ZIV_ID_SEQ
+  and ziv.SIF_SPOL=2
+  and ziv.AKTIVNA=1
+  and pasma.PASMA_SPADA=1
+ -- and ziv.CRE_SIFRA_CREDA=32343
+ --group by ziv.CRE_SIFRA_CREDA
+--group by ziv.ZIV_ID_SEQ
+group by ziv.ZIV_ID_SEQ, ziv.DRZ_ORIG_ZIVAL,ziv.STEV_ORIG_ZIVAL, ziv.DAT_ROJSTVO, ziv.ZIV_MATI_SEQ, ziv.ZIV_OCE_SEQ,
+ ziv.DRZ_STEV_ORIG_MATI, ziv.ZIV_STEV_ORIG_MATI , ziv.DRZ_STEV_ORIG_OCE , ziv.ZIV_STEV_ORIG_OCE, ziv.sif_breja, ziv.CRE_SIFRA_CREDA, pv.VREDNOST_12_PV, ziv.IME_ZIVAL
+;
+
+--že genotipizirane živali
+select ziv.DRZ_ORIG_ZIVAL || ziv.STEV_ORIG_ZIVAL from GENOTIPIZIRANE_ZIVALI gen, zivali ziv where ziv.ZIV_ID_SEQ=gen.ZIV_ID_SEQ;
+
+--dodatno izbrane živali 11.5.2017
+select distinct dod.CRE_SIFRA_CREDA, crede.KONTROLOR from DODATNA_ODBIRA_F4F dod, GOVEDO.CRE_OPISI crede where crede.CRE_SIFRA_LOK=dod.CRE_SIFRA_CREDA;
+
+
+govedo_splosne_procedure.preberi_naslov_kont_1vrsta (ZGPT_KONTROLOR, NULL, 1, NULL, NULL) ime_kontrolor,
+ govedo_splosne_procedure.preberi_naslov_kont_1vrsta ('3013', NULL, NULL, 1, NULL) ulica_kontrolorja,
+ govedo_splosne_procedure.preberi_naslov_kont_1vrsta (ZGPT_KONTROLOR, NULL, NULL, NULL, 1) mesto_kontrolorja,

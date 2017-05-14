@@ -1,8 +1,8 @@
-0000000000000000000#script for producing PDFs for each table
+#script for producing PDFs for each table
 #F4F projekt - odbria živali za genotipizacijo
 #vsaka čreda posebna tabela
 #primarni seznam - izbrane živali in seznam B - seznam nadomestnih živali v primeru, da je ena iz primarnega seznama izločena
-setwd('/home/jana/Documents/F4F/OdbiraZivali/PripravaPDF')
+setwd('/home/jana/Documents/F4F/OdbiraZivali/DodatnaOdbira_11052017/')
 library(Hmisc)
 library(knitr)
 
@@ -14,6 +14,8 @@ colnames(rejci)[1] <- "Rejec"
 #seznamA
 #vseRjavePDF <- read.csv("~/Documents/F4F/OdbiraZivali/RjaveKrave_937_22022017_PDF.csv",header=T) 
 vseRjavePDF <- read.csv("~/Documents/F4F/OdbiraZivali/RjaveKrave_909_15032017_PDF_zeIzloceneRejeZoran.csv",header=T) 
+#nakdadno odbrane, da se pokoristijo sredstva -11.5.2017
+vseRjavePDF <- read.csv("~/Documents/F4F/OdbiraZivali/RjaveKrave_145_Dodatne_11052017_PDF.csv",header=T) 
 nrow(vseRjavePDF)
 
 #IZLOČI ŠE NEMŠKE KRAVE!!!
@@ -31,6 +33,7 @@ nrow(vseRjavePDF)
 
 #ŠE ENRKAT PREVERI; ČE JE KATERA ŽE GENOTIPIZRANA - azurno stanje
 genRJ <- read.csv("~/Genotipi/Rjave_Gen_23032017.csv")
+genRJ <- read.csv("~/Genotipi/Rjave_Gen_10052017.csv")
 zeGen <- which(vseRjavePDF$ID_ZIVALI %in% genRJ$GEN.GEN_DRZ..GEN.GEN_ORIG_STEV)
 if (length(zeGen) != 0) {
   vseRjavePDF <- vseRjavePDF[-zeGen,]
@@ -38,7 +41,7 @@ if (length(zeGen) != 0) {
 nrow(vseRjavePDF)
 
 #seznamB
-seznamB <- read.csv("~/Documents/F4F/OdbiraZivali/seznamB_15032017.csv", header=T)
+seznamB <- read.csv("~/Documents/F4F/OdbiraZivali/seznamB_62_Dodatne_11052017.csv", header=T)
 seznamB$REL <- as.character(seznamB$REL)
 seznamB$REL[seznamB$REL=="MatHSTrojka"] <- "MatiPS"
 seznamB$REL[seznamB$REL=="MatHS"] <- "MatiPS"
@@ -62,6 +65,7 @@ which(substr(seznamB$ID_NadomestnaZival, start=0, stop=2)!="SI")
 #stPocredah10 <- as.data.frame(table(vseRjave10$CRE_SIFRA_CREDA)) #tabela število krav po čredah
 stPocredah <- as.data.frame(table(vseRjavePDF$CRE_SIFRA_CREDA)) #tabela število krav po čredah
 write.csv(stPocredah, "~/Documents/F4F/OdbiraZivali/StPoCredah.csv")
+write.csv(stPocredah, "~/Documents/F4F/OdbiraZivali/StPoCredah_Dodatne.csv")
 #write.csv(stPocredah, "~/Documents/F4F/OdbiraZivali/CredeInSteviloZivali.csv", quote=F, row.names=F)
 colnames(stPocredah) <- c('CRE_SIFRA_CREDA', 'ST')
 
@@ -89,6 +93,8 @@ qplot(stPocredah$meanSSI, geom='histogram', bins=100)
 qplot(stPocredah$Index.mean.x, geom='histogram', bins=100)
 
 
+#NAKDADNO IZBRANE ČREDE - DA SE DOPOLNI OBLJUBLJENO ŠTEVILO ŽIVALI: 11.5.2017
+
 
 
 
@@ -109,6 +115,8 @@ izberiCrede <- function (st) {
 
 izbraneCrede <- izberiCrede(556)
 length(izbraneCrede) #tukaj so izbrane kmetije glede na velikost 
+#DODATNE ŽIVALI 11.5.2017
+izbraneCrede <- c(2992, 3497, 4725,5825,9624,13087,8946)
 length(intersect(c(86,2475,9690,10253), vseRjavePDF$CRE_SIFRA_CREDA)) #LJ in NM kmetije
 izbraneCrede <- unique(c(izbraneCrede, c(86,2475,9690,10253))) #tukaj združi s štirimi NM in LJ kmetijami - 3NM in 1 LJ - te štiri MORAJO biti vključene ne glede na št krav(ampak 3 že tako ali tako po velikosti)
 length(izbraneCrede)
@@ -123,14 +131,14 @@ nrow(seznamBIzb)
 
 
 #SEZNAMI ZA KONTOLORJE
-setwd("~/Documents/F4F/OdbiraZivali/PripravaPDF/")
+setwd("~/Documents/F4F/OdbiraZivali/DodatnaOdbira_11052017/")
 ## knitr loop
-for (creda in "10862"){ #unique(vseRjavePDF$CRE_SIFRA_CREDA)
+for (creda in izbraneCrede){ #unique(vseRjavePDF$CRE_SIFRA_CREDA)
   knit2pdf("~/Genotipi/Genotipi_CODES/MakePDF_CredeTable.Rnw", output=paste0('PDF_', creda, '.tex'))
 }
 
 #SEZNAMI ZA REJCE
-setwd("~/Documents/F4F/OdbiraZivali/PripravaPDF/")
+setwd("~/Documents/F4F/OdbiraZivali/DodatnaOdbira_11052017/")
 ## knitr loop
 for (creda in izbraneCrede){ #unique(vseRjavePDF$CRE_SIFRA_CREDA)
   knit2pdf("~/Genotipi/Genotipi_CODES/MakePDF_CredeTable_REJCI.Rnw", output=paste0('PDF_Rejci_', creda, '.tex'))
@@ -139,9 +147,10 @@ for (creda in izbraneCrede){ #unique(vseRjavePDF$CRE_SIFRA_CREDA)
 
 #sekvence za Andrejo
 #seznamA
-vseRjaveSeq <- vseRjave[,c(1,5)]
-vseRjavePDFIzb <- merge(vseRjaveSeq, vseRjavePDFIzb, by="ID_ZIVALI", all.y=T)
+vseRJSeq <- rjKrave10[c(1,5)]
+vseRjavePDFIzb <- merge(vseRJSeq, vseRjavePDFIzb, by="ID_ZIVALI", all.y=T)
 vseRjaveIzb <- data.frame(ZIV_ID_SEQ=vseRjavePDFIzb[,2], SEZNAM="A")
+vseRjaveIzb <- data.frame(ZIV_ID_SEQ=vseRjavePDFIzb[,c(2,3)], SEZNAM="A")
 nrow(vseRjavePDFIzb)
 
 #seznamB
@@ -149,11 +158,14 @@ vseRJSeq <- rjKrave10[c(1,5)]
 colnames(seznamBIzb)[3] <- "ID_ZIVALI"
 seznamBIzb <- merge(vseRJSeq, seznamBIzb, by="ID_ZIVALI", all.y=T)
 seznamBIzb <- data.frame(ZIV_ID_SEQ=seznamBIzb[,2], SEZNAM="B")
+seznamBIzb <- data.frame(ZIV_ID_SEQ=seznamBIzb[,c(2,3)], SEZNAM="B")
 nrow(seznamBIzb)
 
 celSeznam <- rbind(vseRjaveIzb, seznamBIzb)
+colnames(celSeznam)
 nrow(celSeznam)
 write.csv(celSeznam, "~/Documents/F4F/OdbiraZivali/CelSeznamAplusB_15032017.csv", quote=F, row.names=F)
+write.csv(celSeznam, "~/Documents/F4F/OdbiraZivali/DodatnaOdbira_11052017/CelSeznamAplusB_Dodaten_11052017.csv", quote=F, row.names=F)
 
 
 
@@ -167,6 +179,7 @@ izbraniRejci <- merge(izbraniRejci, stPocredah, by="CRE_SIFRA_CREDA")
 colnames(izbraniRejci)[2] <- "SteviloZivali"
 write.table(izbraniRejci[,c(2,3)], "~/Documents/F4F/OdbiraZivali/IzbraneReje_15032017.csv", quote=F, row.names=F, sep="\t")
 write.table(izbraniRejci, "~/Documents/F4F/OdbiraZivali/IzbraneReje_inStZivali_15032017.csv", quote=F, row.names=F, sep="\t")
+write.table(izbraniRejci, "~/Documents/F4F/OdbiraZivali/IzbraneReje_inStZivali_DodatnaIzbira_11052017.csv", quote=F, row.names=F, sep="\t")
 
 
 

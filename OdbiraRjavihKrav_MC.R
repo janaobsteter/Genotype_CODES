@@ -13,6 +13,7 @@ library(MasterBayes)
 
 rjKrave10 <- read.csv("~/Documents/F4F/OdbiraZivali/RjaveKrave_Telitve_RejeVecKot10RjKrav.csv")
 rjKrave10 <- read.csv("~/Documents/F4F/OdbiraZivali/RjaveKRave_MC_15032017.csv")
+rjKrave10 <- read.csv("~/Documents/F4F/OdbiraZivali/DodatnaOdbira_11052017/NaknadnaOdbira_25kmetij.csv")
 #Tukaj maš nekaj podvojenih z različnimi PV
 rjKrave10 <- rjKrave10[!duplicated(rjKrave10$ZIV_ID_SEQ, fromFirst=T),]
 #rjKrave10 <- read.csv("~/Documents/F4F/OdbiraZivali/VseRjKrave_TudiManjKot10.csv")
@@ -211,8 +212,13 @@ nrow(vseRjavebrezHS)
 
 #izloči še potencialne že genotipizirane
 zenskeGen <- read.csv("~/Genotipi/ZenskeGen_15022017.csv")
-length(which(vseRjavebrezHS$ZIV_ID_SEQ %in% zenskeGen$ZIV_ID_SEQ)) #takšnih živali je 6
+if ((length(which(vseRjavebrezHS$ZIV_ID_SEQ %in% zenskeGen$ZIV_ID_SEQ))) != 0) { #takšnih živali je 6
 vseRjave <- vseRjavebrezHS[-which(vseRjavebrezHS$ZIV_ID_SEQ %in% zenskeGen$ZIV_ID_SEQ),]
+}
+
+if ((length(which(vseRjavebrezHS$ZIV_ID_SEQ %in% zenskeGen$ZIV_ID_SEQ))) == 0) { #takšnih živali je 6
+  vseRjave <- vseRjavebrezHS
+}
 nrow(vseRjave)
 
 #merge with animal names
@@ -256,8 +262,10 @@ vseRjavePDF <- vseRjave[,c('CRE_SIFRA_CREDA', 'ID_ZIVALI', 'IME_ZIVAL', 'DAT_ROJ
 #write.table(vseRjave, "~/Documents/F4F/OdbiraZivali/RjaveKrave_928_15022017.csv", row.names=F, quote=F) #TO SO ODBRANE ŽIVALI!!!
 write.csv(vseRjave, "~/Documents/F4F/OdbiraZivali/RjaveKrave_937_22022017.csv", row.names=F, quote=F) #TO SO ODBRANE ŽIVALI!!!
 write.csv(vseRjave, "~/Documents/F4F/OdbiraZivali/RjaveKrave_909_15032017.csv", row.names=F, quote=F) #TO SO ODBRANE ŽIVALI!!!
+write.csv(vseRjave, "~/Documents/F4F/OdbiraZivali/RjaveKrave_145_Dodatne_11052017.csv", row.names=F, quote=F) #TO SO ODBRANE ŽIVALI!!!
 #write.csv(vseRjavePDF, "~/Documents/F4F/OdbiraZivali/RjaveKrave_937_22022017_PDF.csv", row.names=F, quote=F) #TO SO ODBRANE ŽIVALI!!!
 write.csv(vseRjavePDF, "~/Documents/F4F/OdbiraZivali/RjaveKrave_909_15032017_PDF_zeIzloceneRejeZoran.csv", row.names=F, quote=F) #TO SO ODBRANE ŽIVALI!!!
+write.csv(vseRjavePDF, "~/Documents/F4F/OdbiraZivali/RjaveKrave_145_Dodatne_11052017_PDF.csv", row.names=F, quote=F) #TO SO ODBRANE ŽIVALI!!!
 #vseRjave <- read.table("~/Documents/F4F/OdbiraZivali/RjaveKrave_928_15022017.csv", header=T) #TO SO ODBRANE ŽIVALI v čredah nad 10 - štart!!!
 vseRjave <- read.csv("~/Documents/F4F/OdbiraZivali/RjaveKrave_937_22022017_PDF.csv", header=T) #TO SO ODBRANE ŽIVALI v čredah nad 10 - štart!!!
 vseRjave <- read.csv("~/Documents/F4F/OdbiraZivali/RjaveKrave_937_22022017.csv", header=T) #TO SO ODBRANE ŽIVALI v čredah nad 10 - štart!!!
@@ -268,10 +276,12 @@ vseRjave <- read.csv("~/Documents/F4F/OdbiraZivali/RjaveKrave_909_15032017.csv",
 #write.table(seznamB, "~/Documents/F4F/seznamBVse_20022017.csv", row.names=F, quote=F)
 write.csv(seznamB, "~/Documents/F4F/OdbiraZivali/seznamB_22022017.csv", row.names=F, quote=F)
 write.csv(seznamB, "~/Documents/F4F/OdbiraZivali/seznamB_15032017.csv", row.names=F, quote=F)
+write.csv(seznamB, "~/Documents/F4F/OdbiraZivali/seznamB_62_Dodatne_11052017.csv", row.names=F, quote=F)
 seznamB <- read.table("~/Documents/F4F/OdbiraZivali/seznamB_22022017.csv", header=T)
 
 reje <- as.data.frame(unique(vseRjave$CRE_SIFRA_CREDA))
 write.csv(reje, "~/Documents/F4F/RejeSifre_15032017.csv")
+write.csv(reje, "~/Documents/F4F/RejeSifre_Dodatne_11052017.csv.csv")
 ################################################################################################################################################
 ################################################################################################################################################
 
@@ -337,6 +347,7 @@ qplot(stPocredah$Freq, geom='histogram', bins=100)
 
 write.csv(stPocredah, "~/Documents/F4F/OdbiraZivali/SteviloPoCredah_Koncen.csv", quote=F, row.names = F)
 write.csv(stPocredah, "~/Documents/F4F/OdbiraZivali/SteviloPoCredah_15032017.csv", quote=F, row.names = F)
+write.csv(stPocredah, "~/Documents/F4F/OdbiraZivali/SteviloPoCredah_Dodatne_11052017.csv", quote=F, row.names = F)
 #po indeksu in število po čredi
 #izberi samo črede z več kot 10 rjavimi kravami
 stPocredahVse <- stPocredah

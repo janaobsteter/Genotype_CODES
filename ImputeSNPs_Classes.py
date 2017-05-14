@@ -291,6 +291,9 @@ for sampleID in ped800.samples:
 
 
 IndSNPsDF = pd.DataFrame(IndSNPs)
+IndSNPsDF[1].replace(to_replace='0', value='', inplace=True)
+IndSNPsDF.to_csv(path_or_buf = tempDir+str(date)+'GovedoParSNPs.csv', sep=",", index=False )
+
 
 
 
