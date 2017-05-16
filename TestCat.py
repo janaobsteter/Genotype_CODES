@@ -21,25 +21,33 @@ for i in range(len(sel)):
 baba['BurnInYN'] = False
 baba['EBV'] = False
 baba['gEBV'] = True
+baba['EBV'] = True
+baba['gEBV'] = False
 
 genPed = pd.DataFrame(columns=['Generation', 'Indiv', 'Father', 'Mother', 'EBV'])
-genPed['Generation'] = list(chain.from_iterable([[i] * 6700 for i in range(10)]))
-genPed['Indiv'] = range(1,67001)
+genPed['Generation'] = list(chain.from_iterable([[i] * 100 for i in range(10)]))
+genPed['Indiv'] = range(1,1001)
 genPed['Father'] = 0
 genPed['Mother'] = 0
-genPed['EBV'] = np.random.uniform(low=0.004, high=1.5, size = 67000)
+genPed['EBV'] = np.random.uniform(low=0.004, high=1.5, size = 1000)
 genPed.to_csv('/home/jana/Genotipi/Genotipi_CODES/GenericPed_67000.txt', index=None)
+
+genPed.to_csv('/home/jana/Genotipi/Genotipi_CODES/GenericPed_1000.txt', index=None)
 
 import selectio8n
 reload(selectio8n)
 from selectio8n import *
 Ped = pedigree('/home/jana/Genotipi/Genotipi_CODES/GenericPed_67000.txt')
+Ped = pedigree('/home/jana/Genotipi/Genotipi_CODES/GenericPed_1000.txt')
+
 
 #
 
 IndCat = pd.DataFrame()
 ped, c, s, a = nastavi_cat('/home/jana/Genotipi/Genotipi_CODES/GenericPed_67000.txt', **baba) #nastavi kategorije 
-krogov = 6
+krogov = 2
+ped, c, s, a = nastavi_cat('/home/jana/Genotipi/Genotipi_CODES/GenericPed_1000.txt', **baba) #nastavi kategorije 
+
 IndCat['Indiv'] = ped.ped.Indiv
 IndCat['catBurnIN'] = ped.ped.cat
 

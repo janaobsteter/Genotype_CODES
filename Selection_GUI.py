@@ -19,6 +19,7 @@ qtCreatorFile = '/home/jana/Genotipi/Genotipi_CODES/SelectionParameters.ui' # En
 Ui_MainWindow, QtBaseClass = uic.loadUiType(qtCreatorFile)
 
 
+
 #SelParam je class za okno
 class SelParam(QtGui.QMainWindow, Ui_MainWindow):
     def __init__(self):
@@ -26,7 +27,7 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
         Ui_MainWindow.__init__(self)
         self.setupUi(self)
         self.AlphaSimDir.clicked.connect(self.choose_dir)
-        #self.DoMagic.clicked.connect(self.selekcija)
+        self.DoMagic.clicked.connect(self.selekcija)
         self.DoMagic.clicked.connect(self.setSelParam)
         self.SpecFile = AlphaSimSpec()
         # AlphaSimSpec je class iz selection, ki omogoča nastavljanje parametrov AlphaSimSpec fila
@@ -88,13 +89,17 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
         self.setParamDict['NumberOfDams'] = int(self.NoDams.text()) if not self.NoDams.text().isEmpty() else 0
         # self.setParamDict['AlphaSimDir'] = choose_dir()
 
-        self.setParamDict['nrFn'] = int(self.setParamDict['stNBn'] * 0.5)
+        self.setParamDict['nrMn'] = int(self.setParamDict['stNBn'] * 0.5)
+        self.setParamDict['potomciNPn'] = int(
+            float(self.potomciNP.text()) * self.setParamDict['nrMn']) if not self.potomciNP.text().isEmpty() else 0
+
+        self.setParamDict['nrFn'] = int(self.setParamDict['stNBn'] * 0.5) - self.setParamDict['potomciNPn']
         self.setParamDict['telFn'] = int(float(self.telF.text()) * self.setParamDict['nrFn']) if not self.telF.text().isEmpty() else 0
         self.setParamDict['ptn'] = int(float(self.pt.text()) * self.setParamDict['telFn']) if not self.pt.text().isEmpty() else 0
         self.setParamDict['bmn'] = int(
             float(self.bm.text()) * self.setParamDict['ptn'] * self.setParamDict['kraveUp']) if not self.bm.text().isEmpty() else 0
 
-        self.setParamDict['nrMn'] = int(self.setParamDict['stNBn'] * 0.5)
+
         self.setParamDict['telMn'] = int(float(self.telM.text()) * self.setParamDict['nrMn']) if not self.telF.text().isEmpty() else 0
         self.setParamDict['potomciNPn'] = int(
             float(self.potomciNP.text()) * self.setParamDict['nrMn']) if not self.potomciNP.text().isEmpty() else 0
@@ -133,7 +138,8 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
         self.AlphaSimPed = str(self.AlphaSimDir).strip('/.') + '/SimulatedData/PedigreeAndGeneticValues.txt'
         self.accuracyEBV = float(self.accEBV.text())
 
-##############################################################################
+
+        ##############################################################################
 #burnin        #ce NAJ se izvede tudi burn in - ce ga se nimas
 ##############################################################################
         if self.BurnInYN:
@@ -169,6 +175,7 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
             GenPedEBV = OrigPed(self.AlphaSimDir)
             GenPedEBV.computeEBV(self.accuracyEBV)
 
+
             #USTVARI EXTERNAL PEDIGREE
             #doloci kategorije zivalim v pedigreju - če je to prvi krog, nastavi kategorije,
             #ce pa je to eden od naslednjih krogov, pa preberi kategorije iz prejsnje generacije
@@ -181,12 +188,14 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
     
             elif roundNo > 1:
                 #izvedi selekcijo, doloci kategorije zivali, dodaj novo generacijo in dodeli starse
-                #pedigre se zapise v AlphaSimDir/ExternalPedigree.txt
+                #pedigre se zapise v AlphaSimDir/SelectionFolder/ExternalPedigree.txt
                 selekcija_total('GenPed_EBV.txt', **self.setSelParam())
     
 
             #kopiraj pedigre v selection folder
-            shutil.copy('ExternalPedigree.txt', self.AlphaSimDir + '/Selection/SelectionFolder' + str(roundNo) + '/')
+            if not os.path.exists(self.AlphaSimDir + '/Selection/SelectionFolder' + str(roundNo) + '/'):
+                os.makedirs(self.AlphaSimDir + '/Selection/SelectionFolder' + str(roundNo) + '/')
+            shutil.copy(self.AlphaSimDir + 'ExternalPedigree.txt', self.AlphaSimDir + '/Selection/SelectionFolder' + str(roundNo) + '/')
             # TUKAJ POTEM popravis AlphaSimSpec
             # PRVIc PO BURN IN-U
             shutil.copy(self.SpecFile.genSpecFile, self.AlphaSimDir) #skopiraj generično ALphaSimSpec datoteko v AlphaSimDir
@@ -207,8 +216,7 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
 
     def setText(self):
         self.message.setText('Button Clicked')
-
-
+"""
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
     window = SelParam()
@@ -240,5 +248,39 @@ if __name__ == "__main__":
     window.SelToGen.setText('2')
     window.AlphaSimDirShow.setText('/home/jana/bin/AlphaSim1.05Linux/')
     sys.exit(app.exec_())
+"""
 
 
+if __name__ == "__main__":
+    app = QtGui.QApplication(sys.argv)
+    window = SelParam()
+    window.show()
+    window.NoNB.setText('100')
+    window.telF.setText('0.96')
+    window.pt.setText('0.9')
+    window.bm.setText('0.1')
+    window.potomciNP.setText('0.12')
+    window.vhlevljeni.setText('0.667')
+    window.mladi.setText('0.5')
+    window.pb.setText('0.5')
+    window.pripust1.setText('0.5')
+    window.telM.setText('0.68')
+    window.bik12.setText('0.333')
+    window.accEBV.setText('0.8')
+    window.kraveUpE.setText('4')
+    window.bmOdbiraE.setText('2')
+    window.bmUpE.setText('3')
+    window.cakE.setText('3')
+    window.pripustUpE.setText('1.5')
+    window.pbUpE.setText('5')
+    window.mladiDozE.setText('250')
+    window.pripustDozE.setText('27')
+    window.pozitivnoTestDozE.setText('220')
+    window.StBurnInGenE.setText('10')
+    window.NoSelGen.setText('20')
+    window.NoDams.setText('40')
+    window.NoSires.setText('1')
+    window.SelFromGen.setText('1')
+    window.SelToGen.setText('5')
+    window.AlphaSimDirShow.setText('/home/jana/bin/AlphaSim1.05Linux/')
+    sys.exit(app.exec_())
