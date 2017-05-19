@@ -8,14 +8,17 @@ from PyQt4.QtGui import *
 import math
 import selection
 from selection import *
-from selection import selekcija_ena_gen, nastavi_cat, selekcija_total
+from selection import nastavi_cat, selekcija_total
 from collections import defaultdict
 import shutil
 import pandas as pd
 import numpy as np
 
+
+
 #nalozi GUI za selekcijo
-qtCreatorFile = '/home/jana/Genotipi/Genotipi_CODES/SelectionParameters.ui' # Enter file here.
+#qtCreatorFile = '/home/jana/Genotipi/Genotipi_CODES/SelectionParameters.ui' # Enter file here.
+qtCreatorFile = '/home/jana/Genotype_CODES/SelectionParameters.ui' # Enter file here.
 Ui_MainWindow, QtBaseClass = uic.loadUiType(qtCreatorFile)
 
 
@@ -101,19 +104,6 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
         self.setParamDict['nrMn'] = int(self.setParamDict['stNBn'] * 0.5)
         self.setParamDict['telMn'] = int(float(self.telM.text()) * self.setParamDict['nrMn']) if not self.telF.text().isEmpty() else 0
         self.setParamDict['potomciNPn'] = int(
-<<<<<<< HEAD
-            self.potomciNP.text() * self.setParamDict['nrMn']) if not self.potomciNP.text().isEmpty() else 0
-        self.setParamDict['vhlevljenin'] = int(
-            self.vhlevljeni.text() * self.setParamDict['potomciNPn']) if not self.vhlevljeni.text().isEmpty() else 0
-        self.setParamDict['bik12n'] = int(self.bik12.text() * self.setParamDict['nrMn']) if not self.bik12.text().isEmpty() else 0
-        self.setParamDict['mladin'] = int(
-            self.mladi.text() * self.setParamDict['vhlevljenin']) if not self.mladi.text().isEmpty() else 0
-        self.setParamDict['pbn'] = int(self.pb.text() * self.s8etParamDict['mladin']) if not self.pb.text().isEmpty() else 0
-        self.setParamDict['pripust1n'] = int(
-            self.pripust1.text() * self.setParamDict['vhlevljenin']) if not self.pripust1.text().isEmpty() else 0
-        self.setParamDict['pripust2n'] = int(round(self.setParamDict['pripust1n'] * (self.setParamDict['pripustUp'] - 1)))
-        pd.DataFrame.from_dict(self.setParamDict, orient='index').to_csv('/home/jana/SelectionParamTEST.csv')
-=======
             float(self.potomciNP.text()) * self.setParamDict['nrMn']) if not self.potomciNP.text().isEmpty() else 0
 
         if self.EBV_YN.isChecked():
@@ -134,7 +124,6 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
         self.setParamDict['pripust2n'] = int(
             round(self.setParamDict['pripust1n'] * (float(self.setParamDict['pripustUp']) - 1)))
         pd.DataFrame.from_dict(self.setParamDict, orient='index').to_csv('/home/jana/SelectionParamTEST.csv', header=False)
->>>>>>> bed4955836a1e72b5559dc4732b2a6e6e025e6ba
         return self.setParamDict
 
     #funkcija selekcija
