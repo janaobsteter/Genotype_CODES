@@ -446,8 +446,8 @@ class pedigree:
             self.set_mother_catPotomca(bmMother, 'potomciNP')
         #
         
-        if 'k1' in self.cat():#TUKAJ SO DOLOČENE SEDAJ VSE MATERE!!!
-            mother = [self.select_mother_EBV_top('k'+str(i), int(round(ptn*kraveUp*0.9))) for i in range(1, kwargs.get('kraveUp')+1)] #tukaj odberi brez tistih, ki so za gospodarsko križanje
+        if 'k' in self.cat():#TUKAJ SO DOLOČENE SEDAJ VSE MATERE!!!
+            mother = self.select_mother_EBV_top('k', int(round(ptn*kraveUp*0.7))) #tukaj odberi brez tistih, ki so za gospodarsko križanje
             if len(mother) >= (stNB - sTbmMother): # če že imaš dovolj krav, določi matere vsem novorojenim oz. odbiraš matere, saj jih imaš preveč!
                 motherOther = random.sample(mother, (stNB - sTbmMother))
                 self.set_mother_catPotomca(motherOther, 'nr') #TUKAJ SO DOLOČENE SEDAJ VSE MATERE!!!
