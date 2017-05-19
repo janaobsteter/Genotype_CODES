@@ -1,5 +1,10 @@
+import os
+import pandas as pd
+
+
 
 def IndCat(ind):
+    os.chdir('/home/jana/bin/AlphaSim1.05Linux/')
     indcat = []
     Cat = sorted([ i for i in os.listdir('/home/jana/bin/AlphaSim1.05Linux/') if i.startswith('Cat')])
     for i in Cat:
