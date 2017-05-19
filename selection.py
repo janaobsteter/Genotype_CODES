@@ -446,8 +446,8 @@ class pedigree:
             self.set_mother_catPotomca(bmMother, 'potomciNP')
         #
         
-        if 'k' in self.cat():#TUKAJ SO DOLOČENE SEDAJ VSE MATERE!!!
-            mother = self.select_mother_EBV_top('k', int(round(ptn*kraveUp*0.7))) #tukaj odberi brez tistih, ki so za gospodarsko križanje
+        if 'k1' in self.cat():#TUKAJ SO DOLOČENE SEDAJ VSE MATERE!!!
+            mother = [self.select_mother_EBV_top('k'+str(i), int(round(ptn*kraveUp*0.9))) for i in range(1, kwargs.get('kraveUp')+1)] #tukaj odberi brez tistih, ki so za gospodarsko križanje
             if len(mother) >= (stNB - sTbmMother): # če že imaš dovolj krav, določi matere vsem novorojenim oz. odbiraš matere, saj jih imaš preveč!
                 motherOther = random.sample(mother, (stNB - sTbmMother))
                 self.set_mother_catPotomca(motherOther, 'nr') #TUKAJ SO DOLOČENE SEDAJ VSE MATERE!!!
@@ -526,7 +526,15 @@ class OrigPed():
         self.name = AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues.txt'
         self.pdPed = pd.read_table(self.name, sep='\s+')
 
-
+    def addCat(self):
+        self.pdPed.Indiv = [float(i) for i in self.pdPed.Indiv]
+        catDF = pd.read_csv(max(sorted([ i for i in os.listdir('/home/jana/bin/AlphaSim1.05Linux/') if i.startswith('Cat')])))
+        self.pdPed['cat'] = [''] * len(self.pdPed)
+        for cat in catDF.columns:
+            self.pdPed.loc[self.pdPed.Indiv.isin(catDF[cat]), 'cat'] = cat
+        self.pdPed.Indiv = [int(i) for i in self.pdPed.Indiv]
+        self.pdPed.to_csv(self.name.strip('.txt') + '_cat.txt', index=None)        
+        
     def computeEBV(self, cor):
         # precacunas EBV v Ru in zapises PEDIGRE
         shutil.copy("/home/jana/Genotipi/Genotipi_CODES/Rcorr_PedEBV.R", "Rcorr_PedEBV_ThisGen.R")
@@ -592,17 +600,20 @@ def selekcija_total(pedFile, **kwargs):
     # age > 2 - tukaj odbiraš in izločaš krave, odbiraš in izločaš BM
     # najprej dodaj nove krave, če jih že imaš v populaciji
     if ('pt' in categories.keys()): #če imaš v pedigreju plemenske telice
-        ped.set_cat_old('pt', 'k', categories)  # osemenjene telice postanejo krave - predpostavimo, da vse
+        ped.set_cat_old('pt', 'k1', categories)  # osemenjene telice postanejo krave - predpostavimo, da vse
         ped.set_active_cat('pt', 1, categories)
-        ped.set_active_cat('k', 1, categories)
+        ped.set_active_cat('k1', 1, categories)
 
-    # krave po 1., 2., 3. laktaciji prestavi naprej v krave - OZIROMA PODALJŠAJ STATUS!
-    for i in range(2 + 1, (2 + kwargs.get('kraveUp'))):  # 2 + 1 - pri dveh letih prva laktacija, prestavljati začneš leto po tem
-        ped.set_cat_age_old(i, 'k', 'k', categories)
-        ped.set_active_cat('k', 1, categories)
-    # potem izloči najstarejše krave - po 4. laktaciji
+
+
     if ('k' in categories.keys()) and ((kwargs.get('kraveUp') + 2) in ped.age()):  # izloči koliko laktacij + 2 leti
-        ped.izloci_age_cat((kwargs.get('kraveUp') + 2), 'k', categories)
+            # krave po 1., 2., 3. laktaciji prestavi naprej v krave - OZIROMA PODALJŠAJ STATUS!
+        for i in range(2 + 1, (2 + kwargs.get('kraveUp'))):  # 2 + 1 - pri dveh letih prva laktacija, prestavljati začneš leto po tem
+            ped.izberi_random('F', (len(categories[('k' + str(i-2))]) - kwargs.get('MinusDamLact')), ('k' + str(i-2)), ('k' + str(i-1)), categories)
+            ped.set_active_cat('k', 1, categories)
+            ped.izloci_random('F', kwargs.get('MinusDamLact'), ('k' + str(i-2)))
+        # potem izloči najstarejše krave - po 4. laktaciji   
+        ped.izloci_age_cat(('k' + str(kwargs.get('kraveUp'))), 'k', categories)
 
 
     # če imaš že dovolj stare krave, potem odberi BM

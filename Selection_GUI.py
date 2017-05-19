@@ -27,7 +27,7 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
         Ui_MainWindow.__init__(self)
         self.setupUi(self)
         self.AlphaSimDir.clicked.connect(self.choose_dir)
-        self.DoMagic.clicked.connect(self.selekcija)
+        #self.DoMagic.clicked.connect(self.selekcija)
         self.DoMagic.clicked.connect(self.setSelParam)
         self.SpecFile = AlphaSimSpec()
         # AlphaSimSpec je class iz selection, ki omogoča nastavljanje parametrov AlphaSimSpec fila
@@ -87,6 +87,7 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
         self.setParamDict['StSelGen'] = int(self.SelToGen.text()) if not self.SelToGen.text().isEmpty() else 0
         self.setParamDict['NumberOfSires'] = int(self.NoSires.text()) if not self.NoSires.text().isEmpty() else 0
         self.setParamDict['NumberOfDams'] = int(self.NoDams.text()) if not self.NoDams.text().isEmpty() else 0
+
         # self.setParamDict['AlphaSimDir'] = choose_dir()
 
         self.setParamDict['nrMn'] = int(self.setParamDict['stNBn'] * 0.5)
@@ -98,7 +99,7 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
         self.setParamDict['ptn'] = int(float(self.pt.text()) * self.setParamDict['telFn']) if not self.pt.text().isEmpty() else 0
         self.setParamDict['bmn'] = int(
             float(self.bm.text()) * self.setParamDict['ptn'] * self.setParamDict['kraveUp']) if not self.bm.text().isEmpty() else 0
-
+        self.setParamDict['MinusDamLact'] = int((1 - float(self.cowsLactLact.text())) * self.setParamDict['ptn']) if not self.cowsLactLact.text().isEmpty() else 0
 
         self.setParamDict['telMn'] = int(float(self.telM.text()) * self.setParamDict['nrMn']) if not self.telF.text().isEmpty() else 0
         self.setParamDict['potomciNPn'] = int(
@@ -216,7 +217,7 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
 
     def setText(self):
         self.message.setText('Button Clicked')
-"""
+
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
     window = SelParam()
@@ -225,6 +226,7 @@ if __name__ == "__main__":
     window.telF.setText('0.966')
     window.pt.setText('0.85')
     window.bm.setText('0.0127')
+    window.cowsLactLact.setText('0.8')
     window.potomciNP.setText('0.0135')
     window.vhlevljeni.setText('0.6')
     window.mladi.setText('0.3')
@@ -284,3 +286,5 @@ if __name__ == "__main__":
     window.SelToGen.setText('5')
     window.AlphaSimDirShow.setText('/home/jana/bin/AlphaSim1.05Linux/')
     sys.exit(app.exec_())
+
+"""

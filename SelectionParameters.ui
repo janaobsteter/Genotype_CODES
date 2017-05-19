@@ -145,6 +145,16 @@
        </property>
       </widget>
      </item>
+     <item row="5" column="2">
+      <widget class="QLineEdit" name="cowsLactLact"/>
+     </item>
+     <item row="5" column="0">
+      <widget class="QLabel" name="label_22">
+       <property name="text">
+        <string>% cows lact&gt;lact</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </widget>
    <widget class="QGroupBox" name="groupBox_2">
@@ -614,22 +624,6 @@
      <string>MALES - nonselected population</string>
     </property>
    </widget>
-   <zorder>groupBox</zorder>
-   <zorder>groupBox_2</zorder>
-   <zorder>groupBox_3</zorder>
-   <zorder>telM</zorder>
-   <zorder>label_12</zorder>
-   <zorder>label_13</zorder>
-   <zorder>bik12</zorder>
-   <zorder>groupBox_4</zorder>
-   <zorder>DoMagic</zorder>
-   <zorder>AlphaSimDir</zorder>
-   <zorder>AlphaSimDirShow</zorder>
-   <zorder>groupBox_5</zorder>
-   <zorder>label_14</zorder>
-   <zorder>telF</zorder>
-   <zorder>pt</zorder>
-   <zorder>gEBV_YN</zorder>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
