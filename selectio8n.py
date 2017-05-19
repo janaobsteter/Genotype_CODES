@@ -342,20 +342,6 @@ class pedigree:
     def write_pedTotal(self, path):
         self.ped.to_csv(path, quoting=None, index=False, header=True)
         
-                
-    def UpdateIndCat(self, Dir):
-        if not os.path.isfile(Dir + '/IndCat.csv'):
-            self.IndCat = pd.DataFrame()
-            self.IndCat['Indiv'] = self.ped.Indiv
-            self.IndCat['cat0'] = self.ped.cat    
-        else:
-            self.OldIndCat = pd.read_csv(Dir + '/IndCat.csv')
-            self.NewIndCat = pd.DataFrame()
-            self.NewIndCat['Indiv'] = self.ped.Indiv
-            self.NewIndCat['cat' + str(max(self.gens()))] = self.ped.cat           
-            self.IndCat = pd.merge(self.OldIndCat, self.NewIndCat, on='Indiv', how='outer')
-        self.IndCat.to_csv(Dir + '/IndCat.csv', index=None)
-        
     def select_age_0_1(self, categories, nrFn, nrMn, telFn, vhlevljenin, potomciNPn, telMn ): #tukaj odbereš iz novorojenih živali tel, ptel in mlade bike, pripust1
     #FEMALES
         self.set_cat_sex_old("F", "potomciNP", "telF", categories)
@@ -435,9 +421,9 @@ class pedigree:
 
 
 
-    def doloci_matere(self, stNB, potomciNPn, ptn, kraveUp):
+    def doloci_matere(self, stNB, ptn, kraveUp):
         #MATERE
-        sTbmMother = (potomciNPn*2) if len(self.catCurrent_indiv('pBM')) >= (potomciNPn*2) else len(self.catCurrent_indiv('pBM'))
+        sTbmMother = 12 if len(self.catCurrent_indiv('pBM')) >= 12 else len(self.catCurrent_indiv('pBM'))
         print sTbmMother
         print self.cat()
         print self.active()
@@ -460,9 +446,9 @@ class pedigree:
         pripustOce = self.catCurrent_indiv('pripust1') + self.catCurrent_indiv('pripust2') 
         testiraniOce = list(chain.from_iterable([self.catCurrent_indiv_age('pb', (2 + cak + x)) for x in range(1, pbUp+1)])) # v času, ko določaš potomce, so že eno leto starjši!!!
         gentestiraniOce = list(chain.from_iterable([self.catCurrent_indiv_age('gpb', x) for x in range(1, pbUp+1)])) # v času, ko določaš potomce, so že eno leto starjši!!!
-        bmMother = (potomciNPn*2) if len(self.catCurrent_indiv('pBM')) >= (potomciNPn*2) else len(self.catCurrent_indiv('pBM'))
+        bmMother = 12 if len(self.catCurrent_indiv('pBM')) >= 12 else len(self.catCurrent_indiv('pBM'))
         if 'pb' in self.cat():
-            elita = np.random.choice(testiraniOce, bmMother, replace=True) #navidezna elita
+            elita = np.random.choice(self.catCurrent_indiv('pb'), bmMother, replace=True) #navidezna elita
     #        pd.Series(elita).value_counts()#preveri zastopanost po bikih
             #naštimaj očete elite --> BM
             self.set_father_catPotomca(elita, 'potomciNP')    
@@ -535,7 +521,7 @@ class OrigPed():
         call('Rscript Rcorr_PedEBV_ThisGen.R', shell=True)              
                    
 
-################################################################
+#################################################################
 #FUNKCIJE     
 ###################################################################
 def selekcija_total(pedFile, **kwargs):
@@ -674,7 +660,7 @@ def selekcija_total(pedFile, **kwargs):
             ped.izberi_poEBV_top_age("M", (kwargs.get('cak') + 2), kwargs.get('pbn'), 'cak', 'pb', categories)
             ped.set_active_cat('cak', 2,
                             categories)  # tukaj moraš to nastaviti, zato ker fja izberi avtomatsko nastavi na active=1, vsi cakajoci so izloceni
-            ped.izloci_poEBV_age("M", (kwargs.get('cak') + 2), (kwargs.get('mladin') - kwargs.get('pbn')), 'cak', categories)  # TUKAJ MORA BITI ŠE STAROST!!!!!!!!!!!
+            ped.izloci_poEBV_age("M", (kwargs.get('cak') + 2), kwargs.get('pbn'), 'cak', categories)  # TUKAJ MORA BITI ŠE STAROST!!!!!!!!!!!
     
     #genomski test: potomciNP = genomsko testiranje -> pozitivno testirani 
     if kwargs.get('gEBV'): #v prvem letu so vsi potomciNP v genomskem testiranju oz. pridobivanju gEBV
@@ -714,23 +700,21 @@ def selekcija_total(pedFile, **kwargs):
     #določi starost glede na te novorojene
     ped.compute_age()
     #dodaj matere
-    ped.doloci_matere(kwargs.get('stNBn'), kwargs.get('potomciNPn'), kwargs.get('ptn'), kwargs.get('kraveUp'))
+    ped.doloci_matere(kwargs.get('stNBn'), kwargs.get('ptn'), kwargs.get('kraveUp'))
     #preveri - mora biti nič!!! - oz. če mater še ni dovolj, potem še ne!
     ped.mother_nr_blank()
-    #dodaj očete    
-    ped.doloci_ocete(kwargs.get('stNBn'), kwargs.get('potomciNPn'), kwargs.get('cak'), kwargs.get('pbUp'), kwargs.get('pripustDoz'), kwargs.get('mladiDoz'), kwargs.get('pozitivnoTestDoz'))
+    #dodaj očete
+    ped.doloci_ocete(kwargs.get('stNBn'), kwargs.get('potomciNPn'), kwargs.get('cak'), kwargs.get('pripustDoz'), kwargs.get('pbUp'), kwargs.get('mladiDoz'), kwargs.get('pozitivnoTestDoz'))
 
     #preveri - mora biti nič!!! - oz. če mater še ni dovolj, potem še ne!
     ped.mother_nr_blank()   
- 
-    #ped.UpdateIndCat('/home/jana/')
+
     categories.clear()
     ped.save_cat_DF()
     ped.save_sex_DF()
     ped.save_active_DF()
-    ped.write_ped("/home/jana/bin/AlphaSim1.05Linux/ExternalPedigree.txt")
-    ped.write_pedTotal("/home/jana/bin/AlphaSim1.05Linux/ExternalPedigreeTotal.txt")
-
+    ped.write_pedTotal('/home/jana/PedTotal.txt')#("/home/jana/bin/AlphaSim1.05Linux/ExternalPedigree.txt")
+    
     return ped, ped.save_cat(), ped.save_sex(), ped.save_active()
 
  #################
@@ -876,7 +860,7 @@ def nastavi_cat (PedFile, **kwargs):
         #age 5 - 10: pb
         pbAge = range((2 + kwargs.get('cak')), (2 + kwargs.get('cak')+ kwargs.get('pbUp'))) if (2 + kwargs.get('cak')+ kwargs.get('pbUp')) <= max(ped.gens()) else range((2 + kwargs.get('cak')), max(ped.gens()))
         for i in pbAge:
-            ped.izberi_poEBV_top_age_naive('M',i, kwargs.get('pbn'), 'pb')
+            ped.izberi_poEBV_top_age_naive('M',i, 4, 'pb')
     
     if kwargs.get('gEBV'):
         ped.izberi_poEBV_top_age_naive('M',0, kwargs.get('potomciNPn'), 'genTest')   
@@ -926,18 +910,16 @@ def nastavi_cat (PedFile, **kwargs):
     
     ped.compute_age()
     #dodaj matere    
-    ped.doloci_matere(kwargs.get('stNBn'), kwargs.get('potomciNPn'), kwargs.get('ptn'), kwargs.get('kraveUp'))
+    ped.doloci_matere(kwargs.get('stNBn'), kwargs.get('ptn'), kwargs.get('kraveUp'))
     #preveri - mora biti nič!!! - oz. če mater še ni dovolj, potem še ne!
     ped.mother_nr_blank()
     #dodaj očete
-    ped.doloci_ocete(kwargs.get('stNBn'), kwargs.get('potomciNPn'), kwargs.get('cak'), kwargs.get('pbUp'),kwargs.get('pripustDoz'),  kwargs.get('mladiDoz'), kwargs.get('pozitivnoTestDoz'))
+    ped.doloci_ocete(kwargs.get('stNBn'), kwargs.get('potomciNPn'), kwargs.get('cak'), kwargs.get('pripustDoz'), kwargs.get('pbUp'), kwargs.get('mladiDoz'), kwargs.get('pozitivnoTestDoz'))
  
-  
-    #ped.UpdateIndCat('/home/jana/')
     ped.save_cat_DF()
     ped.save_sex_DF()
     ped.save_active_DF()
-    ped.write_ped("/home/jana/bin/AlphaSim1.05Linux/ExternalPedigree.txt")
+    ped.write_pedTotal('/home/jana/PedTotal.txt')#("/home/jana/bin/AlphaSim1.05Linux/ExternalPedigree.txt")
     
     return ped, ped.save_cat(), ped.save_sex(), ped.save_active()
 
