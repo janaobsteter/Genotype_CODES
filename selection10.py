@@ -246,6 +246,15 @@ class pedigree:
             choice = list(np.random.choice(freeRow, st, replace=False))
             self.set_cat_list(choice, cat)
             self.set_active_list(choice, 1)
+
+    def izberi_random_age(self,  sex, age, st, oldcat, cat, prevGenDict):
+        freeRow = list(self.ped.loc[(self.ped.age==age) &(self.ped.sex==sex) & (self.ped.Indiv.isin(prevGenDict[oldcat])) & (self.ped.cat == "")].index) #rows with no assigned category
+        if len(freeRow) < st:
+            print("Too little animals to choose from. <{} {} > {}>".format("izberi random", oldcat, cat))
+        else:
+            choice = list(np.random.choice(freeRow, st, replace=False))
+            self.set_cat_list(choice, cat)
+            self.set_active_list(choice, 1)
     
     def izberi_random_age_naive(self,  sex, age, st, cat):
         freeRow = list(self.ped.loc[(self.ped.sex==sex) & (self.ped.age==age)  & (self.ped.cat == "")].index) #rows with no assigned category
@@ -265,6 +274,15 @@ class pedigree:
             choice = list(np.random.choice(freeRow, st, replace=False))
             self.set_cat_list(choice, 'izl')
             self.set_active_list(choice, 2)   
+
+    def izloci_random_age(self,  sex, age, st, oldcat, prevGenDict):
+        freeRow = list(self.ped.loc[(self.ped.age==age) & (self.ped.sex==sex) & (self.ped.Indiv.isin(prevGenDict[oldcat])) & (self.ped.cat == "")].index ) #rows with no assigned category
+        if len(freeRow) < st:
+            print("Too little animals to choose from. <{} {}>".format("izloči random", oldcat))
+        else:
+            choice = list(np.random.choice(freeRow, st, replace=False))
+            self.set_cat_list(choice, 'izl')
+            self.set_active_list(choice, 2) 
     
     def izloci_cat(self, cat, prevGenDict):
         self.ped.loc[self.ped.Indiv.isin(prevGenDict[cat]), 'cat'] = 'izl'
@@ -446,8 +464,8 @@ class pedigree:
             self.set_mother_catPotomca(bmMother, 'potomciNP')
         #
         
-        if 'k1' in self.cat():#TUKAJ SO DOLOČENE SEDAJ VSE MATERE!!!
-            mother = [self.select_mother_EBV_top('k', int(round(ptn*kraveUp*0.9))) for i in range(1, kwargs.get('kraveUp')+1)] #tukaj odberi brez tistih, ki so za gospodarsko križanje
+        if 'k' in self.cat():#TUKAJ SO DOLOČENE SEDAJ VSE MATERE!!!
+            mother = self.select_mother_EBV_top('k', int(round(ptn*kraveUp*0.9))) #tukaj odberi brez tistih, ki so za gospodarsko križanje
             if len(mother) >= (stNB - sTbmMother): # če že imaš dovolj krav, določi matere vsem novorojenim oz. odbiraš matere, saj jih imaš preveč!
                 motherOther = random.sample(mother, (stNB - sTbmMother))
                 self.set_mother_catPotomca(motherOther, 'nr') #TUKAJ SO DOLOČENE SEDAJ VSE MATERE!!!
@@ -526,15 +544,7 @@ class OrigPed():
         self.name = AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues.txt'
         self.pdPed = pd.read_table(self.name, sep='\s+')
 
-    def addCat(self):
-        self.pdPed.Indiv = [float(i) for i in self.pdPed.Indiv]
-        catDF = pd.read_csv(max(sorted([ i for i in os.listdir('/home/jana/bin/AlphaSim1.05Linux/') if i.startswith('Cat')])))
-        self.pdPed['cat'] = [''] * len(self.pdPed)
-        for cat in catDF.columns:
-            self.pdPed.loc[self.pdPed.Indiv.isin(catDF[cat]), 'cat'] = cat
-        self.pdPed.Indiv = [int(i) for i in self.pdPed.Indiv]
-        self.pdPed.to_csv(self.name.strip('.txt') + '_cat.txt', index=None)        
-        
+
     def computeEBV(self, cor):
         # precacunas EBV v Ru in zapises PEDIGRE
         shutil.copy("/home/jana/Genotipi/Genotipi_CODES/Rcorr_PedEBV.R", "Rcorr_PedEBV_ThisGen.R")
@@ -600,20 +610,18 @@ def selekcija_total(pedFile, **kwargs):
     # age > 2 - tukaj odbiraš in izločaš krave, odbiraš in izločaš BM
     # najprej dodaj nove krave, če jih že imaš v populaciji
     if ('pt' in categories.keys()): #če imaš v pedigreju plemenske telice
-        ped.set_cat_old('pt', 'k1', categories)  # osemenjene telice postanejo krave - predpostavimo, da vse
+        ped.set_cat_old('pt', 'k', categories)  # osemenjene telice postanejo krave - predpostavimo, da vse
         ped.set_active_cat('pt', 1, categories)
-        ped.set_active_cat('k1', 1, categories)
+        ped.set_active_cat('k', 1, categories)
 
+    # krave po 1., 2., 3. laktaciji prestavi naprej v krave - OZIROMA PODALJŠAJ STATUS!
+    for i in range(2 + 1, (2 + kwargs.get('kraveUp'))):  # 2 + 1 - pri dveh letih prva laktacija, prestavljati začneš leto po tem
+        ped.izberi_random_age('F', i, ((kwargs.get('ptn') - kwargs.get('MinusDamLact')*(i-2)) - int(kwargs.get('bmn') / kwargs.get('bmUp'))),'k', 'k', categories)
+        ped.izloci_random_age('F', i, (kwargs.get('MinusDamLact')),'k', categories)
 
-
+    # potem izloči najstarejše krave - po 4. laktaciji
     if ('k' in categories.keys()) and ((kwargs.get('kraveUp') + 2) in ped.age()):  # izloči koliko laktacij + 2 leti
-            # krave po 1., 2., 3. laktaciji prestavi naprej v krave - OZIROMA PODALJŠAJ STATUS!
-        for i in range(2 + 1, (2 + kwargs.get('kraveUp'))):  # 2 + 1 - pri dveh letih prva laktacija, prestavljati začneš leto po tem
-            ped.izberi_random('F', (len(categories[('k' + str(i-2))]) - kwargs.get('MinusDamLact')), ('k' + str(i-2)), ('k' + str(i-1)), categories)
-            ped.set_active_cat('k', 1, categories)
-            ped.izloci_random('F', kwargs.get('MinusDamLact'), ('k' + str(i-2)))
-        # potem izloči najstarejše krave - po 4. laktaciji   
-        ped.izloci_age_cat(('k' + str(kwargs.get('kraveUp'))), 'k', categories)
+        ped.izloci_age_cat((kwargs.get('kraveUp') + 2), 'k', categories)
 
 
     # če imaš že dovolj stare krave, potem odberi BM
@@ -855,6 +863,7 @@ def nastavi_cat (PedFile, **kwargs):
     
     #določi spol 
     gender = pd.read_table('/home/jana/bin/AlphaSim1.05Linux/SimulatedData/Gender.txt', sep='\s+')
+    print len(gender)
     females = list(gender[gender.Gender==2]['Indiv'])
     males = list(gender[gender.Gender==1]['Indiv'])
     ped.set_sex_list(ped.ped[ped.ped.Indiv.isin(females)].index.tolist(), "F")
@@ -918,7 +927,7 @@ def nastavi_cat (PedFile, **kwargs):
     #odberi plemenske bm najprej
     for i in range((1 + kwargs.get('bmOdbira')), (1 + kwargs.get('bmOdbira')+ kwargs.get('bmUp'))):
         ped.izberi_poEBV_top_age_naive('F',i, int(kwargs.get('bmn') / kwargs.get('bmUp')), 'pBM')
-        ped.izberi_poEBV_top_age_naive('F',i, (kwargs.get('ptn') - int(kwargs.get('bmn') / kwargs.get('bmUp'))), 'k')
+        ped.izberi_poEBV_top_age_naive('F',i, ((kwargs.get('ptn') - kwargs.get('MinusDamLact')*(i-2)) - int(kwargs.get('bmn') / kwargs.get('bmUp'))), 'k')
     
     #age 6
     #izberi odslužene bm
@@ -949,7 +958,8 @@ def nastavi_cat (PedFile, **kwargs):
     ped.save_sex_DF()
     ped.save_active_DF()
     ped.write_ped("/home/jana/bin/AlphaSim1.05Linux/ExternalPedigree.txt")
-    
+    ped.write_pedTotal("/home/jana/PedTotal.txt")
+
     return ped, ped.save_cat(), ped.save_sex(), ped.save_active()
 
 class TBVGenTable: #to je tabela za grafiranje genetskih trendov čez populacije
@@ -1015,4 +1025,4 @@ class AlphaSimSpec:
         
 class test:
     def __init__(self):
-print 123 
+        print 123

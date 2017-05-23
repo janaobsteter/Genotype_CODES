@@ -8,14 +8,17 @@ from PyQt4.QtGui import *
 import math
 import selection
 from selection import *
-from selection import selekcija_ena_gen, nastavi_cat, selekcija_total
+from selection import nastavi_cat, selekcija_total
 from collections import defaultdict
 import shutil
 import pandas as pd
 import numpy as np
 
+
+
 #nalozi GUI za selekcijo
-qtCreatorFile = '/home/jana/Genotipi/Genotipi_CODES/SelectionParameters.ui' # Enter file here.
+#qtCreatorFile = '/home/jana/Genotipi/Genotipi_CODES/SelectionParameters.ui' # Enter file here.
+qtCreatorFile = '/home/jana/Genotype_CODES/SelectionParameters.ui' # Enter file here.
 Ui_MainWindow, QtBaseClass = uic.loadUiType(qtCreatorFile)
 
 
@@ -32,8 +35,12 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
         self.SpecFile = AlphaSimSpec()
         # AlphaSimSpec je class iz selection, ki omogoča nastavljanje parametrov AlphaSimSpec fila
         self.setParamDict = defaultdict()
+        # self.DoMagic.clicked.connect(self.setSelParam)
+        #self.DoMagic.clicked.connect(self.setText)
+
         self.gEBV_YN.stateChanged.connect(self.disableEBV)
         self.EBV_YN.stateChanged.connect(self.disablegEBV)
+
 
 
     #poveži tipko za AlphaSimDir z QFileDialog (posploši za vse take tipke!)
