@@ -41,6 +41,9 @@ class pedigree:
     def displayInd (self, ind):
         return self.ped[self.ped.Indiv == ind]
         
+    def displayCat_prevGen(self, cat, prevGenDict):
+        return self.ped.loc[(self.ped.Indiv.isin(prevGenDict[cat]))] 
+    
     def rows(self):
         return len(self.ped)
     
@@ -91,7 +94,15 @@ class pedigree:
         self.ped.loc[self.ped.Indiv.isin(prevGenDict['F']), 'sex'] = "F"
         self.ped.loc[self.ped.Indiv.isin(prevGenDict['M']), 'sex'] = "M"  
         
-                                                
+    def set_sex_AlphaSim(self, AlphaSimDir):
+        #določi spol 
+ #       gender = pd.read_table(AlphaSimDir + '/Gender_BURNIN.txt', sep='\s+')
+        gender = pd.read_table(AlphaSimDir + '/SimulatedData/Gender.txt', sep='\s+')
+        females = list(gender[gender.Gender==2]['Indiv'])
+        males = list(gender[gender.Gender==1]['Indiv'])
+        self.set_sex_list(self.ped[self.ped.Indiv.isin(females)].index.tolist(), "F")
+        self.set_sex_list(self.ped[self.ped.Indiv.isin(males)].index.tolist(), "M")
+                                                    
     def set_active(self, start, stop,active): #pregled po kategorijah
         self.ped.loc[range(start,(start + stop)), 'active'] = active 
     
@@ -99,15 +110,18 @@ class pedigree:
         self.ped.loc[seznam, 'active'] = active 
     
     def set_active_prevGen(self, prevGenDict): 
-        self.ped.loc[self.ped.Indiv.isin(prevGenDict[1]), 'active'] = 1
-        self.ped.loc[self.ped.Indiv.isin(prevGenDict[2]), 'active'] = 2 
+        self.ped.loc[self.ped.Indiv.isin(prevGenDict['1']), 'active'] = 1
+        self.ped.loc[self.ped.Indiv.isin(prevGenDict['2']), 'active'] = 2 
     
     def set_active_age_cat(self, cat, age, active, prevGenDict):
         self.ped.loc[(self.ped['age'] ==age) & (self.ped.Indiv.isin(prevGenDict[cat])), 'active'] = active 
     
     def set_active_cat(self, cat, active, prevGenDict):
         self.ped.loc[(self.ped.Indiv.isin(prevGenDict[cat])), 'active'] = active
-    
+        
+    def set_active_catCurrent(self, cat, active):
+        self.ped.loc[(self.ped['cat'] == cat), 'active'] = active
+            
     def cat(self):
         return self.ped.cat.value_counts()
     
@@ -134,6 +148,9 @@ class pedigree:
 
     def cat_age(self, cat):
         return self.ped.loc[self.ped.cat==cat, 'age'].value_counts()
+        
+    def cat_sex(self, cat):
+        return self.ped.loc[self.ped.cat==cat, 'sex'].value_counts()
      
     def catCurrent_indiv(self, cat):
         return list(self.ped.loc[self.ped.cat==cat, 'Indiv'])
@@ -560,11 +577,17 @@ def selekcija_total(pedFile, **kwargs):
     print kwargs
     ped = pedigree(pedFile)
     
+    
+    #določi spol 
+    #ped.set_sex_AlphaSim(kwargs.get('AlphaSimDir'))
+    
     #tukaj potem pridobi kategorije - če imaš samo eno burn-in, štartaš iz nule
-    if max(ped.gen) == 1:
+    if max(ped.gen) == 1: #ČE SAMO ENA GENERACIJA V PEDIGREJU! - to zdj ne delaš več tako
         ped.set_cat_gen(max(ped.gen), "nr")  # to je samo na prvem loopu
         ped.set_sex_list([x for x in range(0, ped.rows()) if x % 2 == 0], "F")
         ped.set_sex_list([x for x in range(0, ped.rows()) if x % 2 != 0], "M")
+        #določi spol 
+        #ped.set_sex_AlphaSim(kwargs.get('AlphaSimDir'))
         ped.izberi_poEBV_top_catCurrent("F", int(kwargs.get('potomciNPn')), 'nr', 'potomciNP')
         ped.izberi_poEBV_top_catCurrent("M", int(kwargs.get('potomciNPn')), 'nr', 'potomciNP')
        
@@ -579,6 +602,9 @@ def selekcija_total(pedFile, **kwargs):
         categories = ped.create_categoriesDict('Categories_gen' + str(max(ped.gens())) + 'DF.csv')  
         sex = ped.create_sexDict('Sex_gen' + str(max(ped.gens())) + 'DF.csv')  
         active = ped.create_activeDict('Active_gen' + str(max(ped.gens())) + 'DF.csv')  
+    
+    #določi spol po AlphaSIm - ampak to ni potrebno, ker je vseskozi external pedigre
+    #ped.set_sex_AlphaSim(kwargs.get('AlphaSimDir'))
        
     ped.set_sex_prevGen(sex)  # add sex information for individuals from prevGen
     ped.set_active_prevGen(active)  # add active information for individuals from prevGen
@@ -598,6 +624,7 @@ def selekcija_total(pedFile, **kwargs):
     #################################################
     # age 0 - here you have newborn females (NB & potomkeNP) --> nekaj jih izloči, druge gredo naprej do ženskih telet
     ped.set_cat_sex_old("F", "potomciNP", "telF", categories) #potomke načrtnih parjenj gredo v telice
+    ped.set_active_catCurrent('telF', 1)
     izlF = int(kwargs.get('nrFn')) - int(kwargs.get('telFn'))  # number of culles NB females
     ped.izberi_poEBV_top("F", kwargs.get('telFn'), "nr", "telF", categories)  # izberi NB ženske, ki preživijo in postanejo telice
     ped.izloci_poEBV("F", izlF, "nr", categories)  # cull females (lowest on EBV) tukaj jih izloči, funkcija v modulu
@@ -614,24 +641,12 @@ def selekcija_total(pedFile, **kwargs):
         ped.set_active_cat('pt', 1, categories)
         ped.set_active_cat('k', 1, categories)
 
-    # krave po 1., 2., 3. laktaciji prestavi naprej v krave - OZIROMA PODALJŠAJ STATUS!
-    for i in range(2 + 1, (2 + kwargs.get('kraveUp'))):  # 2 + 1 - pri dveh letih prva laktacija, prestavljati začneš leto po tem
-        ped.izberi_random_age('F', i, ((kwargs.get('ptn') - kwargs.get('MinusDamLact')*(i-2)) - int(kwargs.get('bmn') / kwargs.get('bmUp'))),'k', 'k', categories)
-        ped.izloci_random_age('F', i, (kwargs.get('MinusDamLact')),'k', categories)
 
-    # potem izloči najstarejše krave - po 4. laktaciji
-    if ('k' in categories.keys()) and ((kwargs.get('kraveUp') + 2) in ped.age()):  # izloči koliko laktacij + 2 leti
-        ped.izloci_age_cat((kwargs.get('kraveUp') + 2), 'k', categories)
-
-
-    # če imaš že dovolj stare krave, potem odberi BM
+    # če imaš že dovolj stare krave, potem odberi BM - NAJPREJ - kasneje funkcija random polni prazne prostore (cat)!!!
     # BM se odbira po drugi laktaciji - to je starost 3 - 4 (starost v pedigreju = 3, ker imaš tudi 0)
     if ('k' in categories.keys()) and ((1 + kwargs.get('bmOdbira')) in ped.age()):
         ped.izberi_poEBV_top_age("F", kwargs.get('bmOdbira')+1, int(kwargs.get('bmn') / kwargs.get('bmUp')), 'k', 'pBM', categories)  # izberi BM, ki jih osemeniš (plemenske BM = pBM) iz krav po 2. laktaciji
         ped.set_active_cat('pBM', 1, categories)
-    # in izloči najastarejše BM, če jih imaš
-    if ('bm' in categories.keys()):
-        ped.izloci_cat('bm', categories)
     # ostale BM prestavi naprej - BM po 1. do izločitvene laktacije
     if 'pBM' in categories.keys():
         for i in range((1 + kwargs.get('bmOdbira') + 1), (
@@ -639,7 +654,23 @@ def selekcija_total(pedFile, **kwargs):
             ped.set_cat_age_old(i, 'pBM', 'pBM', categories)
         # spremeni kategorijo iz plemenskih BM v bm v zadnji laktaciji 
         ped.set_cat_age_old((1 + kwargs.get('bmOdbira') + kwargs.get('bmUp')), 'pBM', 'bm',
-                            categories)  
+                            categories)      
+    
+        
+                
+    # potem odberi krave - na random, vsako leto za določeno število manj krav
+    for i in range(2 + 1, (2 + kwargs.get('kraveUp'))):  # 2 + 1 - pri dveh letih prva laktacija, prestavljati začneš leto po tem
+        ped.izberi_random_age('F', i, (kwargs.get('ptn') - (kwargs.get('MinusDamLact')*(i-2)) - int(kwargs.get('bmn') / kwargs.get('bmUp'))),'k', 'k', categories)
+        ped.izloci_random_age('F', i, (kwargs.get('MinusDamLact')),'k', categories)
+
+    # potem izloči najstarejše krave - po 4. laktaciji
+    if ('k' in categories.keys()) and ((kwargs.get('kraveUp') + 2) in ped.age()):  # izloči koliko laktacij + 2 leti
+        ped.izloci_age_cat((kwargs.get('kraveUp') + 2), 'k', categories)
+
+    # in izloči najastarejše BM, če jih imaš
+    if ('bm' in categories.keys()):
+        ped.izloci_cat('bm', categories)
+
 
     #################################################################
     # MALES
@@ -719,6 +750,7 @@ def selekcija_total(pedFile, **kwargs):
     # plemenske bike prestavljaj naprej - zvseskozi, za očete pa nato uporabi le tiste iz željenih let
     if 'pb' in categories.keys():
         ped.set_cat_old('pb', 'pb', categories)
+        ped.set_active_cat('pb', 2, categories)
     if 'gpb' in categories.keys():
         ped.set_cat_old('gpb', 'gpb', categories)
         ped.set_active_cat('gpb', 2, categories)
@@ -749,6 +781,7 @@ def selekcija_total(pedFile, **kwargs):
     ped.save_active_DF()
     ped.write_ped("/home/jana/bin/AlphaSim1.05Linux/ExternalPedigree.txt")
     ped.write_pedTotal("/home/jana/bin/AlphaSim1.05Linux/ExternalPedigreeTotal.txt")
+    ped.write_pedTotal("/home/jana/PedTotal.txt")
 
     return ped, ped.save_cat(), ped.save_sex(), ped.save_active()
 
@@ -849,6 +882,7 @@ pozitivnoTestDoz=None, pbUp=None):
         #preveri - mora biti nič!!! - oz. če mater še ni dovolj, potem še ne!
         ped.mother_nr_blank()
                 
+
         categories.clear() #sprazni slovar od prejšnjega leta
     
     ped.write_ped("/home/jana/bin/AlphaSim1.05Linux/ExternalPedigree.txt")
@@ -862,14 +896,11 @@ def nastavi_cat (PedFile, **kwargs):
     ped.compute_age()
     
     #določi spol 
-    gender = pd.read_table('/home/jana/bin/AlphaSim1.05Linux/SimulatedData/Gender.txt', sep='\s+')
-    print len(gender)
-    females = list(gender[gender.Gender==2]['Indiv'])
-    males = list(gender[gender.Gender==1]['Indiv'])
-    ped.set_sex_list(ped.ped[ped.ped.Indiv.isin(females)].index.tolist(), "F")
-    ped.set_sex_list(ped.ped[ped.ped.Indiv.isin(males)].index.tolist(), "M")
+    ped.set_sex_AlphaSim(kwargs.get('AlphaSimDir'))
 
-    
+    #ped.set_sex_list([i for i in range(ped.rows()) if i%2==0], "F")
+    #ped.set_sex_list([i for i in range(ped.rows()) if i%2!=0], "M")
+
     #MALES FIRST
     #najprej deli, ki so skupni progenemu testi in genomskemu testiranju - to je neselekcionirana populacija
     #določi moška teleta pod 12
@@ -913,7 +944,7 @@ def nastavi_cat (PedFile, **kwargs):
     #FEMALES
     #age 0
     #določi ženska teleta pod 12
-    ped.izberi_poEBV_top_age_naive('F',0, kwargs.get('telFn'), 'telF')
+    ped.izberi_poEBV_top_age_naive('F',0, kwargs.get('telFnTotal'), 'telF')
     
     #age1
     #določi plemenske telice
@@ -970,7 +1001,12 @@ class TBVGenTable: #to je tabela za grafiranje genetskih trendov čez populacije
         self.TBVvar = np.var(self.TBVtable.TBV)
         self.TBVse = stats.sem(self.TBVtable.TBV)
     
-
+class TBVPed: #to je tabela za grafiranje genetskih trendov čez populacije
+    def __init__(self):
+        self.TBVtable = pd.read_table('/home/jana/bin/AlphaSim1.05Linux/SimulatedData/PedigreeAndGeneticValues.txt',sep='\s+')
+        self.gens = list(set(self.TBVtable.Generation))
+        self.means = self.TBVtable.gvNormUnres1.groupby(self.TBVtable.Generation).aggregate(np.mean)
+        self.vars = self.TBVtable.gvNormUnres1.groupby(self.TBVtable.Generation).aggregate(np.var)
  
 class AlphaSimSpec:
     def __init__(self):

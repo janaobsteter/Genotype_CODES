@@ -6,15 +6,18 @@ from PyQt4 import QtGui, QtCore, uic
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 import math
-import selection
-from selection import *
-from selection import selekcija_ena_gen, nastavi_cat, selekcija_total
+import selection10
+from selection10 import *
+from selection10 import nastavi_cat, selekcija_total
 from collections import defaultdict
 import shutil
 import pandas as pd
 import numpy as np
 
+
+
 #nalozi GUI za selekcijo
+#qtCreatorFile = '/home/jana/Genotipi/Genotipi_CODES/SelectionParameters.ui' # Enter file here.
 qtCreatorFile = '/home/jana/Genotipi/Genotipi_CODES/SelectionParameters.ui' # Enter file here.
 Ui_MainWindow, QtBaseClass = uic.loadUiType(qtCreatorFile)
 
@@ -32,8 +35,12 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
         self.SpecFile = AlphaSimSpec()
         # AlphaSimSpec je class iz selection, ki omogoča nastavljanje parametrov AlphaSimSpec fila
         self.setParamDict = defaultdict()
+        #self.DoMagic.clicked.connect(self.setSelParam)
+        #self.DoMagic.clicked.connect(self.setText)
+
         self.gEBV_YN.stateChanged.connect(self.disableEBV)
         self.EBV_YN.stateChanged.connect(self.disablegEBV)
+
 
 
     #poveži tipko za AlphaSimDir z QFileDialog (posploši za vse take tipke!)
@@ -87,6 +94,7 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
         self.setParamDict['StSelGen'] = int(self.SelToGen.text()) if not self.SelToGen.text().isEmpty() else 0
         self.setParamDict['NumberOfSires'] = int(self.NoSires.text()) if not self.NoSires.text().isEmpty() else 0
         self.setParamDict['NumberOfDams'] = int(self.NoDams.text()) if not self.NoDams.text().isEmpty() else 0
+
         # self.setParamDict['AlphaSimDir'] = choose_dir()
 
         self.setParamDict['nrMn'] = int(self.setParamDict['stNBn'] * 0.5)
@@ -95,10 +103,15 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
 
         self.setParamDict['nrFn'] = int(self.setParamDict['stNBn'] * 0.5) - self.setParamDict['potomciNPn']
         self.setParamDict['telFn'] = int(float(self.telF.text()) * self.setParamDict['nrFn']) if not self.telF.text().isEmpty() else 0
-        self.setParamDict['ptn'] = int(float(self.pt.text()) * self.setParamDict['telFn']) if not self.pt.text().isEmpty() else 0
+        self.setParamDict['telFnTotal'] = int(float(self.telF.text()) * self.setParamDict['nrFn'] + self.setParamDict['potomciNPn']) \
+            if not self.telF.text().isEmpty() else 0 #tu prištej, da dobiš končno število telFn (pridejo po dveh poteh, ene preko potomciNP)
+        self.setParamDict['ptn'] = int(float(self.pt.text()) * self.setParamDict['telFnTotal']) if not self.pt.text().isEmpty() else 0
+        self.setParamDict['MinusDamLact'] = int((1 - float(self.cowsLactLact.text())) * self.setParamDict['ptn']) if not self.cowsLactLact.text().isEmpty() else 0
+        self.setParamDict['kn'] = int(self.setParamDict['ptn'] *
+                                     self.setParamDict['kraveUp'] - (self.setParamDict['MinusDamLact'] * sum(range((self.setParamDict['kraveUp'])))))
         self.setParamDict['bmn'] = int(
-            float(self.bm.text()) * self.setParamDict['ptn'] * self.setParamDict['kraveUp']) if not self.bm.text().isEmpty() else 0
-
+            float(self.bm.text()) * (self.setParamDict['ptn'] *
+                                     self.setParamDict['kraveUp'] - (self.setParamDict['MinusDamLact'] * sum(range((self.setParamDict['kraveUp'])))))) if not self.bm.text().isEmpty() else 0
 
         self.setParamDict['telMn'] = int(float(self.telM.text()) * self.setParamDict['nrMn']) if not self.telF.text().isEmpty() else 0
         self.setParamDict['potomciNPn'] = int(
@@ -121,7 +134,8 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
         self.setParamDict['bik12n'] = int(float(self.bik12.text()) * self.setParamDict['telMn']) if not self.bik12.text().isEmpty() else 0
         self.setParamDict['pripust2n'] = int(
             round(self.setParamDict['pripust1n'] * (float(self.setParamDict['pripustUp']) - 1)))
-        pd.DataFrame.from_dict(self.setParamDict, orient='index').to_csv('/home/jana/SelectionParamTEST.csv', header=False)
+        self.setParamDict['AlphaSimDir'] = str(self.AlphaSimDirShow.text())
+        pd.DataFrame.from_dict(self.setParamDict, orient='index').to_csv('/home/jana/SelectionParam.csv', header=False)
         return self.setParamDict
 
     #funkcija selekcija
@@ -216,17 +230,16 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
 
     def setText(self):
         self.message.setText('Button Clicked')
-
+"""
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
     window = SelParam()
     window.show()
     window.NoNB.setText('6700')
-    window.NoSires.setText('4')
-    window.NoDams.setText('2750')
     window.telF.setText('0.966')
     window.pt.setText('0.85')
     window.bm.setText('0.0127')
+    window.cowsLactLact.setText('0.8')
     window.potomciNP.setText('0.0135')
     window.vhlevljeni.setText('0.6')
     window.mladi.setText('0.3')
@@ -245,14 +258,14 @@ if __name__ == "__main__":
     window.pripustDozE.setText('27')
     window.pozitivnoTestDozE.setText('220')
     window.StBurnInGenE.setText('10')
-    window.NoSelGen.setText('40')
-    window.SelFromGen.setText('1')
-    window.SelToGen.setText('40')
+    window.NoSelGen.setText('20')
+    window.SelFromGen.setText('2')
+    window.SelToGen.setText('2')
     window.AlphaSimDirShow.setText('/home/jana/bin/AlphaSim1.05Linux/')
     sys.exit(app.exec_())
 
 
-"""
+
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
     window = SelParam()
@@ -286,4 +299,40 @@ if __name__ == "__main__":
     window.SelToGen.setText('5')
     window.AlphaSimDirShow.setText('/home/jana/bin/AlphaSim1.05Linux/')
     sys.exit(app.exec_())
+
+
 """
+if __name__ == "__main__":
+    app = QtGui.QApplication(sys.argv)
+    window = SelParam()
+    window.show()
+    window.NoNB.setText('8640')
+    window.NoSires.setText('4')
+    window.NoDams.setText('3500')
+    window.telF.setText('0.99')
+    window.pt.setText('0.9')
+    window.bm.setText('0.012')
+    window.cowsLactLact.setText('0.8')
+    window.potomciNP.setText('0.0105')
+    window.vhlevljeni.setText('0.6')
+    window.mladi.setText('0.3')
+    window.pb.setText('0.5')
+    window.pripust1.setText('0.7')
+    window.telM.setText('0.73')
+    window.bik12.setText('0.12')
+    window.accEBV.setText('0.8')
+    window.kraveUpE.setText('4')
+    window.bmOdbiraE.setText('2')
+    window.bmUpE.setText('3')
+    window.cakE.setText('3')
+    window.pripustUpE.setText('1.4')
+    window.pbUpE.setText('5')
+    window.mladiDozE.setText('250')
+    window.pripustDozE.setText('27')
+    window.pozitivnoTestDozE.setText('400')
+    window.StBurnInGenE.setText('10')
+    window.NoSelGen.setText('40')
+    window.SelFromGen.setText('1')
+    window.SelToGen.setText('40')
+    window.AlphaSimDirShow.setText('/home/jana/bin/AlphaSim1.05Linux/')
+    sys.exit(app.exec_())

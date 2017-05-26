@@ -11,6 +11,7 @@ def IndCat(ind):
         catDF = pd.read_csv(i)
         for cat in catDF.columns:
             if float(ind) in set(catDF[cat].dropna()):
+                print cat
                 indcat.append(cat) 
     return indcat
 

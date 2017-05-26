@@ -10,7 +10,7 @@ from collections import defaultdict
 import random
 from itertools import chain
 from subprocess import call
-from selection1 import *
+from selection10 import *
 #reload(selection)
 #from selection import *
 # -*- coding: utf-8 -*-
@@ -656,17 +656,27 @@ if OPTION == 2:
 ###################################################################################################
 #plot the results
 #class TBVGenTable (SelectionTbvTest.txt)
+from scipy import stats
 
 TBVmeans.clear()
 TBVmeans = defaultdict(list)
 for roundNo in range(1,rounds+1):
-    from scipy import stats
+    
     TBVt = TBVGenTable(AlphaSimDir + '/Selection/SelectionFolder' + str(roundNo) + '/SelectionTbvTest.txt')
     TBVmeans[roundNo] = TBVt.TBVmean
     
+TBV  = TBVPed()
+plt.errorbar(x = TBV.gens, y = TBV.means, yerr = TBV.vars)
 
-plt.plot(TBVmeans.keys(), TBVmeans.values())
-plt.xticks(TBVmeans.keys())
+plt.plot( TBV.gens, TBV.means,  label = 'Mean Gen TBV')
 plt.xlabel('Selected Generation')
 plt.ylabel('Mean Generation TBV')
+pylab.legend(loc='upper left')
 plt.show()
+plt.plot(TBV.gens, TBV.vars, label = 'TBV Var')
+pylab.legend(loc='upper left')
+plt.xlabel('Selected Generation')
+plt.ylabel('Generation TBV variance')
+plt.show()
+
+

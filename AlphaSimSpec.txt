@@ -111,7 +111,7 @@ PercentageDifferenceInbreeding                    ,0
 BOX 12 - TRAITS
 NumberOfTraits                                    ,1
 IndexWeights                                      ,1.0
-TraitHeritability                                 ,0.33
+TraitHeritability                                 ,0.25
 UseNarrowSenseHeritabilityYesNo                   ,Yes
 TraitGeneticVariance                              ,8.2
 ###############################################################
@@ -122,11 +122,13 @@ Residual Correlation Matrix
 1.0
 ###############################################################
 BOX 14 - OUTPUTS
-KeepChromosomesFolderYesNo                        ,Yes
-WriteFullSequenceOutOnOff                         ,On
+KeepChromosomesFolderYesNo                        ,No
+WriteFullSequenceOutOnOff                         ,Off
 ZipSequenceOutputFilesYesNo                       ,No
 ###############################################################
 BOX 15 - GENOME COMPRESSION
 GenomeCompressionOnOff                            ,On
-GenomeCompression                                 ,100, 100
+GenomeCompression                                 ,100
 ###############################################################
+
+
