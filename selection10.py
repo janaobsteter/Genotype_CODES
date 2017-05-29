@@ -569,7 +569,65 @@ class OrigPed():
         os.system('sed -i "s|setCor|' + str(cor) + '|g" Rcorr_PedEBV_ThisGen.R')
         call('Rscript Rcorr_PedEBV_ThisGen.R', shell=True)              
                    
+class blupf90:
+    def __init__(self, AlphaSimDir):
+        self.AlphaPed = pd.read_table(AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues.txt', sep='\s+')
+        self.AlphaGender = pd.read_table(AlphaSimDir + '/SimulatedData/Gender.txt', sep='\s+')
+        self.AlphaSimDir = AlphaSimDir
+        self.gen = max(self.AlphaPed['Generation'])
+        self.animals = len(self.AlphaPed)
+        self.blupPed = self.AlphaPed.loc[:, ['Indiv', 'Father', 'Mother']]
+        self.blupDat = self.AlphaPed.loc[:, ['Indiv', 'phenoNormUnres1']]
+        self.blupgenParamFile = '/home/jana/Genotipi/Genotipi_CODES/blupf90_Selection'
+        self.blupParamFile = AlphaSimDir + 'blupf90_Selection'
 
+    def makePed(self):
+        self.blupPed.loc[((self.blupPed['Mother'] != 0) & (self.blupPed['Father'] != 0)), 'Code'] = 1
+        self.blupPed.loc[((self.blupPed['Mother'] == 0) & (self.blupPed['Father'] != 0)), 'Code'] = 2
+        self.blupPed.loc[((self.blupPed['Mother'] != 0) & (self.blupPed['Father'] == 0)), 'Code'] = 2
+        self.blupPed.loc[((self.blupPed['Mother'] == 0) & (self.blupPed['Father'] == 0)), 'Code'] = 3
+        # df['Code'] = df.Code.astype(int)
+        self.blupPed.to_csv(self.AlphaSimDir + 'Blupf90.ped', float_format="%.0f", header=None, index=False, sep=" ")
+
+    def makeDat(self):
+        self.blupDat.loc[:, 'Gender'] = self.AlphaGender.Gender
+        self.blupDat.to_csv(self.AlphaSimDir + 'Blupf90.dat', header=None, index=False, sep=" ")
+
+
+    def setNumberAnimals(self):
+        os.system('sed -i "s|NumberOfAnimals|' + str(self.animals) + '|g" ' + self.blupParamFile)
+
+    def setResidualVariance(self, resvar):
+        os.system('sed -i "s|ResidualVariance|' + str(resvar) + '|g" ' + self.blupParamFile)
+
+    def setGeneticVariance(self, genvar):
+        os.system('sed -i "s|GeneticVariance|' + str(genvar) + '|g" ' + self.blupParamFile)
+
+    def prepareSelPed(self):
+        blupSol = pd.read_csv(self.AlphaSimDir + '/solutions', skiprows=1, header=None, sep='\s+', names=['Trait', 'Effect', 'Level', 'Solution'])
+        AlphaSelPed = self.AlphaPed.loc[:, ['Generation', 'Indiv', 'Father', 'Mother', 'gvNormUnres1']]
+        blupSolRandom = blupSol.loc[blupSol.Effect == 1]
+        AlphaSelPed.loc[:, 'EBV'] = blupSolRandom.Solution
+        AlphaSelPed.to_csv(self.AlphaSimDir + 'GenPed_EBV.txt', index=None)
+
+
+
+class AlphaSim_OutputFile:
+    def __init__(self, AlphaSimDir):
+        self.AlphaSimDir = AlphaSimDir
+        self.TraitVariance = pd.read_csv(self.AlphaSimDir + '/SimulatedData/TraitVarianceComponents.txt', skiprows = 1,sep='\s+', skipfooter=2, engine='python')
+
+    def getAddVar(self):
+        return self.TraitVariance.NormalModelUnres['VarA']
+
+    def getResVar(self):
+        return self.TraitVariance.NormalModelUnres['VarE']
+
+    def getGenVar(self):
+        return self.TraitVariance.NormalModelUnres['VarG']
+
+    def getDomVar(self):
+        return self.TraitVariance.NormalModelUnres['VarD']
 ################################################################
 #FUNKCIJE     
 ###################################################################

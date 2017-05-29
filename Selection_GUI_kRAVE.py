@@ -186,9 +186,30 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
             # prestavi se v AlphaSim Dir
             os.chdir(self.AlphaSimDir)
             # precacunas EBV v Ru in zapises PEDIGRE --> naredi ti GenPed_EBV.txt v cwd
-            GenPedEBV = OrigPed(self.AlphaSimDir)
-            GenPedEBV.computeEBV(self.accuracyEBV)
+            #GenPedEBV = OrigPed(self.AlphaSimDir)
+            #GenPedEBV.computeEBV(self.accuracyEBV)
 
+            #pripravi fajle za blupf90
+            blupFiles = blupf90(self.AlphaSimDir)
+            blupFiles.makePed() #pripravi ped file za blup
+            blupFiles.makeDat() #pripravi map files za blup
+            shutil.copy(blupFiles.blupgenParamFile, self.AlphaSimDir) #skopiraj generičen paramfile
+
+            OutputFiles = AlphaSim_OutputFile(self.AlphaSimDir)
+            genvar = OutputFiles.getAddVar() #dobi additivno varianco
+            resvar = OutputFiles.getResVar() #dobi varianco za ostanek
+
+            blupFiles.setNumberAnimals() #set levels of random aniaml effect
+            blupFiles.setGeneticVariance(genvar) #set additive variance
+            blupFiles.setResidualVariance(resvar) #set residual variance
+            #the paramfile is now set
+            os.system('blupf90 blupf90_Selection') #run blupf90
+
+            #copy the solution in a file that does not get overwritten
+            shutil.copy('solutions', 'solutions_' + str(blupFiles.gen))
+
+            blupFiles.prepareSelPed() #obtain solution and add them to
+            # AlphaPed PedigreeAndGeneticValues files --> Write them to GenPed_EBV.txt, which is read by module selection
 
             #USTVARI EXTERNAL PEDIGREE
             #doloci kategorije zivalim v pedigreju - če je to prvi krog, nastavi kategorije,
@@ -230,6 +251,7 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
 
     def setText(self):
         self.message.setText('Button Clicked')
+
 """
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
@@ -333,6 +355,6 @@ if __name__ == "__main__":
     window.StBurnInGenE.setText('10')
     window.NoSelGen.setText('40')
     window.SelFromGen.setText('1')
-    window.SelToGen.setText('40')
+    window.SelToGen.setText('20')
     window.AlphaSimDirShow.setText('/home/jana/bin/AlphaSim1.05Linux/')
     sys.exit(app.exec_())

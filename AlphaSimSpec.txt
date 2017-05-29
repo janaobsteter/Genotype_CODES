@@ -33,20 +33,20 @@ MergeFiles                                        ,none
 ###############################################################
 BOX 5 - CHROMOSOMES
 UserMaCSHaplotypesYesNo                           ,no
-PopulationHistoryMaCS                             ,InternalTest
+PopulationHistoryMaCS                             ,InternalCattle
 EffectivePopulationSizeBaseMaCs                   ,Internal,0
 MutationRateMaCS                                  ,Internal,0
 ChromosomeLengthBasesMaCS                         ,External,100E+6
 ChromosomeLengthMorgansMaCS                       ,Internal,0
 ChromosomeLengthMorgansAlphaSim                   ,Internal,0
-NumberOfChromosomes                               ,2
+NumberOfChromosomes                               ,10
 NumberOfHaplotypes                                ,400
 RecombinationHotspotsOnOff                        ,Off
 ###############################################################
 BOX 6 - SNP CHIPS
 UseSnpChipOnOff                                   ,Off
 NumberOfSnpChips                                  ,1
-nSnpPerChipPerChromosome                          ,200
+nSnpPerChipPerChromosome                          ,2000
 MinMaxAlleleFreqForSnp                            ,0.05,0.95
 SnpChipIncludesQtnYesNoRandom                     ,Yes
 SnpChipsAreNestedYesNo                            ,No
