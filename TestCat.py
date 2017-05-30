@@ -26,8 +26,8 @@ for i in range(len(sel)):
 baba['BurnInYN'] = False
 baba['EBV'] = False
 baba['gEBV'] = True
-baba['EBV'] = True
-baba['gEBV'] = False
+#baba['EBV'] = True
+#baba['gEBV'] = False
 baba['AlphaSimDir'] = '/home/jana/bin/AlphaSim1.05Linux'
 
 genPed = pd.DataFrame(columns=['Generation', 'Indiv', 'Father', 'Mother', 'EBV'])

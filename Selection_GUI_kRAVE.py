@@ -128,8 +128,8 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
 
         if self.gEBV_YN.isChecked():
             self.setParamDict['pbn'] = int(float(self.pb.text()) * self.setParamDict['potomciNPn']) if not self.pb.text().isEmpty() else 0
-            self.setParamDict['pripust1n'] = int(round(
-                float(self.pripust1.text()) * self.setParamDict['potomciNPn'])) if not self.pripust1.text().isEmpty() else 0
+            self.setParamDict['pripust1n'] = int(round(round(
+                float(self.pripust1.text()) * self.setParamDict['potomciNPn'], 1))) if not self.pripust1.text().isEmpty() else 0
 
         self.setParamDict['bik12n'] = int(float(self.bik12.text()) * self.setParamDict['telMn']) if not self.bik12.text().isEmpty() else 0
         self.setParamDict['pripust2n'] = int(
@@ -185,23 +185,22 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
         for roundNo in range(self.StartSelGen, (self.StopSelGen + 1)): #za vsak krog selekcije
             # prestavi se v AlphaSim Dir
             os.chdir(self.AlphaSimDir)
-            # precacunas EBV v Ru in zapises PEDIGRE --> naredi ti GenPed_EBV.txt v cwd
-            #GenPedEBV = OrigPed(self.AlphaSimDir)
-            #GenPedEBV.computeEBV(self.accuracyEBV)
+
+            # tukaj dodaj kategorije k PedigreeAndGeneticValues (AlphaSim File)
+            PedCat = OrigPed(self.AlphaSimDir)
+            PedCat.addCat() #to ti zapiše PedigreeAndGeneticValues_cat.txt v AlphaSim/SimualatedData
 
             #pripravi fajle za blupf90
             blupFiles = blupf90(self.AlphaSimDir)
-            blupFiles.makePed() #pripravi ped file za blup
-            blupFiles.makeDat() #pripravi map files za blup
-            shutil.copy(blupFiles.blupgenParamFile, self.AlphaSimDir) #skopiraj generičen paramfile
+            listUnphenotyped = ['potomciNP', 'nr', 'telF', 'telM', 'pt', 'mladi', 'vhlevljeni', 'cak'] #list of unphenotyped categories (better ages?)
+            blupFiles.preparePedDat(listUnphenotyped) #pripravi ped, dat file za blup #skopiraj generičen paramfile v AlphaSim Directory
 
+            #get variance components from AlphaSim Output Files
             OutputFiles = AlphaSim_OutputFile(self.AlphaSimDir)
             genvar = OutputFiles.getAddVar() #dobi additivno varianco
             resvar = OutputFiles.getResVar() #dobi varianco za ostanek
 
-            blupFiles.setNumberAnimals() #set levels of random aniaml effect
-            blupFiles.setGeneticVariance(genvar) #set additive variance
-            blupFiles.setResidualVariance(resvar) #set residual variance
+            blupFiles.prepareParamFiles(genvar, resvar) #set levels of random aniaml effect, add var and res var
             #the paramfile is now set
             os.system('blupf90 blupf90_Selection') #run blupf90
 

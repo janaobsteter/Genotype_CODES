@@ -666,7 +666,7 @@ for roundNo in range(1,rounds+1):
     TBVmeans[roundNo] = TBVt.TBVmean
     
 TBV  = TBVPed()
-plt.errorbar(x = TBV.gens, y = TBV.means, yerr = TBV.vars)
+#plt.errorbar(x = TBV.gens, y = TBV.means, yerr = TBV.vars)
 
 plt.plot( TBV.gens, TBV.means,  label = 'Mean Gen TBV')
 plt.xlabel('Selected Generation')
@@ -678,5 +678,4 @@ pylab.legend(loc='upper left')
 plt.xlabel('Selected Generation')
 plt.ylabel('Generation TBV variance')
 plt.show()
-
 

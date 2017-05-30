@@ -555,12 +555,19 @@ class pedigree:
             values = [int(i) for i in activeDF[active] if not math.isnan(i)]
             activeDict[active] = values
         return activeDict 
+        
+        
 
 class OrigPed():
     def __init__(self, AlphaSimDir):
         self.name = AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues.txt'
         self.pdPed = pd.read_table(self.name, sep='\s+')
+        self.AlphaSimDir = AlphaSimDir
 
+    def addCat(self):
+        pedTotal = pd.read_csv(self.AlphaSimDir + 'ExternalPedigreeTotal.txt')
+        self.pdPed.loc[:, 'cat'] = pedTotal.cat
+        self.pdPed.to_csv(self.AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues_cat.txt', index=None, sep=" ")
 
     def computeEBV(self, cor):
         # precacunas EBV v Ru in zapises PEDIGRE
@@ -571,13 +578,13 @@ class OrigPed():
                    
 class blupf90:
     def __init__(self, AlphaSimDir):
-        self.AlphaPed = pd.read_table(AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues.txt', sep='\s+')
+        self.AlphaPed = pd.read_table(AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues_cat.txt', sep=' ')
         self.AlphaGender = pd.read_table(AlphaSimDir + '/SimulatedData/Gender.txt', sep='\s+')
         self.AlphaSimDir = AlphaSimDir
         self.gen = max(self.AlphaPed['Generation'])
         self.animals = len(self.AlphaPed)
         self.blupPed = self.AlphaPed.loc[:, ['Indiv', 'Father', 'Mother']]
-        self.blupDat = self.AlphaPed.loc[:, ['Indiv', 'phenoNormUnres1']]
+        self.blupDatT = self.AlphaPed.loc[:, ['Indiv', 'phenoNormUnres1', 'cat']]
         self.blupgenParamFile = '/home/jana/Genotipi/Genotipi_CODES/blupf90_Selection'
         self.blupParamFile = AlphaSimDir + 'blupf90_Selection'
 
@@ -589,9 +596,12 @@ class blupf90:
         # df['Code'] = df.Code.astype(int)
         self.blupPed.to_csv(self.AlphaSimDir + 'Blupf90.ped', float_format="%.0f", header=None, index=False, sep=" ")
 
-    def makeDat(self):
-        self.blupDat.loc[:, 'Gender'] = self.AlphaGender.Gender
-        self.blupDat.to_csv(self.AlphaSimDir + 'Blupf90.dat', header=None, index=False, sep=" ")
+    def makeDat(self, listUnphenotyped):
+        #first remove phenotype from animals that do not have phenotype
+        for i in listUnphenotyped:
+            self.blupDatT.loc[self.blupDatT.cat == i, 'phenoNormUnres1'] = 0
+        self.blupDatT.loc[:, 'Gender'] = self.AlphaGender.Gender
+        self.blupDatT[['Indiv', 'phenoNormUnres1', 'Gender']].to_csv(self.AlphaSimDir + 'Blupf90.dat', header=None, index=False, sep=" ")
 
 
     def setNumberAnimals(self):
@@ -610,6 +620,15 @@ class blupf90:
         AlphaSelPed.loc[:, 'EBV'] = blupSolRandom.Solution
         AlphaSelPed.to_csv(self.AlphaSimDir + 'GenPed_EBV.txt', index=None)
 
+    def preparePedDat(self, listUnphenotyped):
+        self.makePed()
+        self.makeDat(listUnphenotyped)
+        shutil.copy(self.blupgenParamFile, self.AlphaSimDir)
+
+    def prepareParamFiles(self, genvar, resvar):
+        self.setNumberAnimals()
+        self.setGeneticVariance(genvar)
+        self.setResidualVariance(resvar)
 
 
 class AlphaSim_OutputFile:
