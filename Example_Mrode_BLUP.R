@@ -1,7 +1,7 @@
 library(pedigree)
- varE <- 20
- varA <- 40
- alpha <- varA / varE
+ varE <- 40
+ varA <- 20
+ alpha <- varE / varA
 
 blupAcc <- function(X, noAnObs, y, ped, alpha) {
   Z <- matrix (nrow = noAnObs , ncol = nrow(ped), c(rep(0,noAnObs*(nrow(ped) - noAnObs)), 1, rep(c(rep(0, noAnObs),1),(noAnObs-1))))
@@ -108,6 +108,22 @@ AccDFTemp <- data.frame(id = ped$id, Offspring1 = blupAcc(X, 7, y, ped, alpha))
 AccDF <- merge(AccDF, AccDFTemp, by='id', all=T)
 
 #add another offspring - male
+X <- matrix (nrow = 8 , ncol = 2, c(c(1,0,0,1,1,1, 0, 1), c(0,1,1,0,0,0,1,0)))
+y <- as.vector(c(4.5, 2.9, 3.9, 3.5, 5.0, 3.5, 4.7, 3.1))
+ped <- data.frame(id=1:11, dam=c(NA,NA,NA,NA,2,2,5,6,2,6,5), sire=c(NA,NA,NA,1,3,1,4,3,3,7,7))
+
+AccDFTemp <- data.frame(id = ped$id, Offspring2 = blupAcc(X, 8, y, ped, alpha))
+AccDF <- merge(AccDF, AccDFTemp, by='id', all=T)
+
+#basic scenario 2
+X <- matrix (nrow = 8 , ncol = 2, c(c(1,0,0,1,1,1, 0, 1), c(0,1,1,0,0,0,1,0)))
+y <- as.vector(c(4.5, 2.9, 3.9, 3.5, 5.0, 3.5, 4.7, 3.1))
+ped <- data.frame(id=1:11, dam=c(NA,NA,NA,NA,2,2,5,6,5,6,5), sire=c(NA,NA,NA,1,3,1,4,3,1,7,7))
+
+AccDFTemp <- data.frame(id = ped$id, Basic2 = blupAcc(X, 8, y, ped, alpha))
+AccDF <- merge(AccDF, AccDFTemp, by='id', all=T)
+
+#add another offspring - male
 X <- matrix (nrow = 9 , ncol = 2, c(c(1,0,0,1,1,1, 0, 1,1), c(0,1,1,0,0,0,1,0,0)))
 y <- as.vector(c(4.5, 2.9, 3.9, 3.5, 5.0, 3.5, 4.7, 3.1,3.2))
 ped <- data.frame(id=1:12, dam=c(NA,NA,NA,NA,2,2,5,6,5,6,5,5), sire=c(NA,NA,NA,1,3,1,4,3,1,7,7,3))
@@ -134,7 +150,7 @@ AccDF <- merge(AccDF, AccDFTemp, by='id', all=T)
 #add unrelated male
 X <- matrix (nrow = 12 , ncol = 2, c(c(1,0,0,1,1,1, 0, 1,1,0,0,1), c(0,1,1,0,0,0,1,0,0,1,1,0)))
 y <- as.vector(c(4.5, 2.9, 3.9, 3.5, 5.0, 3.5, 4.7, 3.1,3.2, 4.4, 3.0, 4.3))
-ped <- data.frame(id=1:15, dam=c(NA,NA,NA,NA,2,2,5,6,5,6,5,5,10, 10, 0), sire=c(NA,NA,NA,1,3,1,4,3,1,7,7,3,3, 12, 0))
+ped <- data.frame(id=1:15, dam=c(NA,NA,NA,NA,2,2,5,6,5,6,5,5,10, 10, NA), sire=c(NA,NA,NA,1,3,1,4,3,1,7,7,3,3, 12, NA))
 
 AccDFTemp <- data.frame(id = ped$id, UnrelatedM = blupAcc(X, 12, y, ped, alpha))
 AccDF <- merge(AccDF, AccDFTemp, by='id', all=T)

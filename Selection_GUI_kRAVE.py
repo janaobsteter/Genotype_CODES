@@ -174,11 +174,18 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
             # pozenes ALPHASIM
             os.system('./AlphaSim1.05')
 ##############################################################################
-	#ko si ustvaril burn in - ali pa ga imaš od prej - imaš torej PEdigreeAndGeneticValues
-        #za VSAK KROG selekcije
-	#1) vzami AlphaSim sproduciran PedigreeAndGeneticValues
-	#2) preračunaj TBV --> EBV, doloci zeljeno korelacijo
-	#3) nastavi kategorije (nastavi kategorije glede na EBV) ali izvedi selekcijo (določi kategorije glede na prejšenje leto)
+        #odstrani Blupf90 fajle iz prejšnjih rund - ker se merge-a
+        #enako tudi za generacijski interval
+        if os.path.isfile(self.AlphaSimDir + 'Blupf90.dat'):
+            os.remove(self.AlphaSimDir + 'Blupf90.dat')
+        if os.path.isfile(self.AlphaSimDir + 'GenInts.txt'):
+            os.remove(self.AlphaSimDir + 'GenInts.txt')
+
+        #ko si ustvaril burn in - ali pa ga imaš od prej - imaš torej PEdigreeAndGeneticValues
+            #za VSAK KROG selekcije
+        #1) vzami AlphaSim sproduciran PedigreeAndGeneticValues
+        #2) preračunaj TBV --> EBV, doloci zeljeno korelacijo
+        #3) nastavi kategorije (nastavi kategorije glede na EBV) ali izvedi selekcijo (določi kategorije glede na prejšenje leto)
         #obe določita starše novim živalim - torej dodata novo generacijo plus starše
         #obe ustvarita external pedigree za naslednjo generacijo
 
@@ -188,13 +195,22 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
 
             # tukaj dodaj kategorije k PedigreeAndGeneticValues (AlphaSim File)
             PedCat = OrigPed(self.AlphaSimDir)
-            PedCat.addCat() #to ti zapiše PedigreeAndGeneticValues_cat.txt v AlphaSim/SimualatedData
+            PedCat.addInfo() #to ti zapiše PedigreeAndGeneticValues_cat.txt v AlphaSim/SimualatedData
+
+            #tukaj pridobi podatke za generacijske intervale
+            GenInt = genInterval(self.AlphaSimDir) #tukaj preberi celoten pedigre
+            GenInt.prepareGenInts(['vhlevljeni', 'pt'])
+
 
             #pripravi fajle za blupf90
             blupFiles = blupf90(self.AlphaSimDir)
-            listUnphenotyped = ['potomciNP', 'nr', 'telF', 'telM', 'pt', 'mladi', 'vhlevljeni', 'cak'] #list of unphenotyped categories (better ages?)
-            blupFiles.preparePedDat(listUnphenotyped) #pripravi ped, dat file za blup #skopiraj generičen paramfile v AlphaSim Directory
+            #listUnphenotyped = ['potomciNP', 'nr', 'telF', 'telM', 'pt', 'mladi', 'vhlevljeni', 'cak'] #list of unphenotyped categories (better ages?)
+            #blupFiles.preparePedDat_cat(listUnphenotyped) #pripravi ped, dat file za blup #skopiraj generičen paramfile v AlphaSim Directory
+            blupFiles.makePed() #make ped file for blup
+            blupFiles.makeDat_removePhen_milk() #odstrani genotip moškim živali in pripravi dat file - repetabaility model
+            shutil.copy(blupFiles.blupgenParamFile, blupFiles.AlphaSimDir)  #skopiraj template blupparam file
 
+            #uredi blupparam file
             #get variance components from AlphaSim Output Files
             OutputFiles = AlphaSim_OutputFile(self.AlphaSimDir)
             genvar = OutputFiles.getAddVar() #dobi additivno varianco
@@ -285,7 +301,7 @@ if __name__ == "__main__":
     window.AlphaSimDirShow.setText('/home/jana/bin/AlphaSim1.05Linux/')
     sys.exit(app.exec_())
 
-
+"""
 
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
@@ -293,6 +309,7 @@ if __name__ == "__main__":
     window.show()
     window.NoNB.setText('100')
     window.telF.setText('0.96')
+    window.cowsLactLact.setText('0.8')
     window.pt.setText('0.9')
     window.bm.setText('0.1')
     window.potomciNP.setText('0.12')
@@ -357,3 +374,4 @@ if __name__ == "__main__":
     window.SelToGen.setText('20')
     window.AlphaSimDirShow.setText('/home/jana/bin/AlphaSim1.05Linux/')
     sys.exit(app.exec_())
+"""

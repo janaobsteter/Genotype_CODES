@@ -657,6 +657,7 @@ if OPTION == 2:
 #plot the results
 #class TBVGenTable (SelectionTbvTest.txt)
 from scipy import stats
+import matplotlib.pyplot as plt
 
 TBVmeans.clear()
 TBVmeans = defaultdict(list)
