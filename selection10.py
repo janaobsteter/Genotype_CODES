@@ -10,8 +10,10 @@ import shutil
 from itertools import chain
 from subprocess import call
 import math
+from pylab import legend
 from scipy import stats
 import matplotlib.pyplot as plt
+plt.style.use('ggplot')
 
 class classPed(object):
     def __init__(self, pedfile):
@@ -598,16 +600,30 @@ class OrigPed(object):
         call('Rscript Rcorr_PedEBV_ThisGen.R', shell=True)              
                    
 class blupf90:
-    def __init__(self, AlphaSimDir):
-        self.AlphaPed = pd.read_table(AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues_cat.txt', sep=' ')
-        #self.AlphaGender = pd.read_table(AlphaSimDir + '/SimulatedData/Gender.txt', sep='\s+')
-        self.AlphaSimDir = AlphaSimDir
-        self.gen = max(self.AlphaPed['Generation'])
-        self.animals = len(self.AlphaPed)
-        self.blupPed = self.AlphaPed.loc[:, ['Indiv', 'Father', 'Mother']]
-        self.blupDatT = self.AlphaPed.loc[:, ['Indiv', 'phenoNormUnres1', 'cat', 'sex', 'age', 'active']]
-        self.blupgenParamFile = '/home/jana/Genotipi/Genotipi_CODES/blupf90_Selection'
-        self.blupParamFile = AlphaSimDir + 'blupf90_Selection'
+    def __init__(self, AlphaSimDir, way=None, sel=None):
+        if sel == 'class':
+            self.blupgenParamFile = '/home/jana/Genotipi/Genotipi_CODES/blupf90_Selection'
+            self.blupParamFile = AlphaSimDir + 'blupf90_Selection'
+        if sel == 'gen':
+            self.blupgenParamFile = '/home/jana/Genotipi/Genotipi_CODES/renumf90_gen.par'
+            self.blupParamFile = AlphaSimDir + 'renumf90_gen.par'
+        if way == 'milk':
+            self.AlphaPed = pd.read_table(AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues_cat.txt', sep=' ')
+            #self.AlphaGender = pd.read_table(AlphaSimDir + '/SimulatedData/Gender.txt', sep='\s+')
+            self.AlphaSimDir = AlphaSimDir
+            self.gen = max(self.AlphaPed['Generation'])
+            self.animals = len(self.AlphaPed)
+            self.blupPed = self.AlphaPed.loc[:, ['Indiv', 'Father', 'Mother']]
+            self.blupDatT = self.AlphaPed.loc[:, ['Indiv', 'phenoNormUnres1', 'cat', 'sex', 'age', 'active']]
+        if way == 'burnin_milk':
+            self.AlphaSimDir = AlphaSimDir
+            self.AlphaPed = pd.read_table(AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues.txt', sep='\s+')
+            self.AlphaGender = pd.read_table(AlphaSimDir + '/SimulatedData/Gender.txt', sep='\s+')
+            self.AlphaPed.loc[:, 'sex'] = self.AlphaGender.Gender
+            self.gen = max(self.AlphaPed['Generation'])
+            self.animals = len(self.AlphaPed)
+            self.blupDatT = self.AlphaPed.loc[:, ['Indiv', 'phenoNormUnres1', 'sex']]
+            self.blupPed = self.AlphaPed.loc[:, ['Indiv', 'Father', 'Mother']]
 
     def makePed(self):
         self.blupPed.loc[((self.blupPed['Mother'] != 0) & (self.blupPed['Father'] != 0)), 'Code'] = 1
@@ -626,35 +642,39 @@ class blupf90:
 
     def deletePhenotype_sex(self, sex):
         self.blupDatT.loc[self.blupDatT.sex == sex, 'phenoNormUnres1'] = 0
+
+    def deleteInd_sex(self, sex):
+        self.blupDatT = self.blupDatT.loc[self.blupDatT.sex != sex]
             
-    def makeDat(self): #THIS IS not for the repeatability model
-        #first remove phenotype from animals that do not have phenotype
-        self.blupDatT.loc[self.blupDatT.sex=='M', 'sex'] = 1
-        self.blupDatT.loc[self.blupDatT.sex=='F', 'sex'] = 2
+    def makeDat_sex(self, sex): #THIS IS not for the repeatability model
+        #first remove animals that do not have phenotype (chosen sex)
+        self.blupDatT = self.blupDatT.loc[self.blupDatT.sex == sex]
         self.blupDatT[['Indiv', 'phenoNormUnres1', 'sex']].to_csv(self.AlphaSimDir + 'Blupf90.dat', header=None, index=False, sep=" ")
 
     #this is for the repeatability model since it merges previous dat file with the new one
     # this one deletes phenotypes of the given sex
     def makeDat_removePhen_milk(self):
         #first remove phenotype from animals that do not have phenotype
-        self.deletePhenotype_sex('M') # odstrani fenotip moškim živalim
-        self.deletePhenotype_cat(['potomciNP', 'nr', 'telF', 'pt']) #odstrani fenotip ženskim telicam
+        #self.deletePhenotype_sex('M') # odstrani fenotip moškim živalim
+        #self.deletePhenotype_cat(['potomciNP', 'nr', 'telF', 'pt']) #odstrani fenotip ženskim telicam
         #merge with previous dat file - if there is one - add only the phenotypes of ACTIVE individuals!!!
         if os.path.isfile(self.AlphaSimDir + 'Blupf90.dat'):
             blupDatOld = pd.read_csv('Blupf90.dat', sep=" ", names = ['Indiv', 'phenoNormUnres1', 'sex']) #to je dat iz prejšnjega kroga selekcija
-            print 'datOld{0}'.format(str(len(blupDatOld)))
+            #print 'datOld{0}'.format(str(len(blupDatOld)))
             #pusti samo živali, ki imajo fenotipe (za mleko so to krave in bikovske matere)
             blupDatNew = self.blupDatT.loc[(self.blupDatT.active == 1) & ((self.blupDatT.cat == 'k') | (self.blupDatT.cat == 'bm')
                                                                           | (self.blupDatT.cat == 'pBM')), ['Indiv', 'phenoNormUnres1', 'sex']]
             #blupDatNew = self.blupDatT.loc[(self.blupDatT.active == 1), ['Indiv', 'phenoNormUnres1', 'sex']] #tukaj izberi samo krave in bikovske matere - aktivne!
-            print 'datNew{0}'.format(str(len(blupDatNew)))
-            blupDatNew.loc[blupDatNew.sex == 'M', 'sex'] = 1
+            #print 'datNew{0}'.format(str(len(blupDatNew)))
+            #blupDatNew.loc[blupDatNew.sex == 'M', 'sex'] = 1
             blupDatNew.loc[blupDatNew.sex == 'F', 'sex'] = 2
             pd.concat([blupDatOld, blupDatNew]).to_csv(self.AlphaSimDir + 'Blupf90.dat', header=None, index=False, sep=" ") #dodaj fenotip
-        else: #if there is none create the file with all individuals!
-            self.blupDatT.loc[self.blupDatT.sex == 'M', 'sex'] = 1
-            self.blupDatT.loc[self.blupDatT.sex == 'F', 'sex'] = 2
-            self.blupDatT[['Indiv', 'phenoNormUnres1', 'sex']].to_csv(self.AlphaSimDir + 'Blupf90.dat', header=None, index=False, sep=" ")    #this is for the repeatability model since it merges previous dat file with the new one
+            #os.system('sed -i "s/ 0.0 / 0 /g" Blupf90.dat')
+        #else: #if there is none create the file with all individuals! --> This is after burn-in
+            #self.blupDatT = self.blupDatT.loc[self.blupDatT.sex == 'F']
+            #self.blupDatT.loc[self.blupDatT.sex == 'F', 'sex'] = 2
+            #self.blupDatT[['Indiv', 'phenoNormUnres1', 'sex']].to_csv(self.AlphaSimDir + 'Blupf90.dat', header=None, index=False, sep=" ")    #this is for the repeatability model since it merges previous dat file with the new one
+            #os.system('sed -i "s/ 0.0 / 0 /g" Blupf90.dat')
 
     #this one deletes phenotypes according to given categories
     def makeDat_removePhen_cat(self, listUnphenotyped):
@@ -701,6 +721,39 @@ class blupf90:
         self.setNumberAnimals()
         self.setGeneticVariance(genvar)
         self.setResidualVariance(resvar)
+
+
+
+class accuracies:
+    def __init__(self, AlphaSimDir):
+        self.AlphaSimDir = AlphaSimDir
+        self.accuracies = defaultdict()
+        self.accuraciesGen = pd.DataFrame()
+        self.accuraciesCat = pd.DataFrame()
+
+    def saveAcc(self):
+        name = self.AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues_cat.txt'
+        pdPed = pd.read_table(name, sep=' ')
+        gen = max(pdPed['Generation'])
+        EBV = pd.read_table(self.AlphaSimDir + 'solutions_' + str(gen), sep='\s+')[['level', 'solution']]
+        pdPed.loc[:, 'EBV'] = list(EBV.solution)
+        cor = stats.pearsonr(pdPed.EBV, pdPed.gvNormUnres1)[0]
+        self.accuracies[gen] = cor
+        corGenX = pd.DataFrame({gen: list(pdPed.groupby('Generation')[['gvNormUnres1','EBV']].corr().ix[0::2,'EBV'])})
+        self.accuraciesGen = pd.concat([self.accuraciesGen, corGenX], ignore_index=True, axis=1)
+        corCatX = pd.DataFrame({'cat': list((pdPed.groupby('cat')[['gvNormUnres1','EBV']].corr().ix[0::2,'EBV'].index.levels)[0]),
+                                gen: list(pdPed.groupby('cat')[['gvNormUnres1','EBV']].corr().ix[0::2,'EBV'])})
+        try:
+            self.accuraciesCat = pd.merge(self.accuraciesCat, corCatX, on='cat', how='outer')
+        except:
+            self.accuraciesCat = pd.concat([self.accuraciesCat, corCatX], ignore_index=True)
+
+
+    def writeAcc(self):
+        pd.DataFrame({'Gen': self.accuracies.keys(), 'r': self.accuracies.values()})\
+            .to_csv(self.AlphaSimDir + 'AccuraciesBV.txt', index=None)
+        self.accuraciesGen.to_csv(self.AlphaSimDir + 'Accuracies_Gen.csv', sep=",", index=None)
+        self.accuraciesCat.to_csv(self.AlphaSimDir + 'Accuracies_Cat.csv', sep=",", index=None)
 
 
 class AlphaSim_OutputFile:
@@ -1151,13 +1204,65 @@ class TBVGenTable: #to je tabela za grafiranje genetskih trendov čez populacije
         self.TBVvar = np.var(self.TBVtable.TBV)
         self.TBVse = stats.sem(self.TBVtable.TBV)
     
-class TBVPed: #to je tabela za grafiranje genetskih trendov čez populacije
-    def __init__(self):
-        self.TBVtable = pd.read_table('/home/jana/bin/AlphaSim1.05Linux/SimulatedData/PedigreeAndGeneticValues.txt',sep='\s+')
+class TBVPed(object): #to je tabela za grafiranje genetskih trendov čez populacije
+    def __init__(self, AlphaSimDir):
+        self.AlphaSimDir = AlphaSimDir
+
+
+    def genTrend(self, table):
+        self.TBVtable = pd.read_table(table,sep='\s+')
         self.gens = list(set(self.TBVtable.Generation))
         self.means = self.TBVtable.gvNormUnres1.groupby(self.TBVtable.Generation).aggregate(np.mean)
         self.vars = self.TBVtable.gvNormUnres1.groupby(self.TBVtable.Generation).aggregate(np.var)
+
+    def catTrend(self):
+        cat = list(
+            set(pd.read_table(self.AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues_cat.txt', sep='\s+').cat))
+        TBVtable = pd.read_table(self.AlphaSimDir + 'SimulatedData/PedigreeAndGeneticValues_cat.txt',sep='\s+')
+        gen = max(set(TBVtable.Generation))
+        means = TBVtable.gvNormUnres1.groupby(TBVtable.cat).aggregate(np.mean)
+        vars = TBVtable.gvNormUnres1.groupby(TBVtable.cat).aggregate(np.var)
+        return pd.DataFrame({'cat': cat,str(gen) + '_mean': means, str(gen) + '_vars': vars})
+
+    def GenTrend(self):
+        gens = list(
+            set(pd.read_table(self.AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues_cat.txt', sep='\s+').Generation))
+        TBVtable = pd.read_table(self.AlphaSimDir + 'SimulatedData/PedigreeAndGeneticValues_cat.txt',sep='\s+')
+        gen = max(set(TBVtable.Generation))
+        means = TBVtable.gvNormUnres1.groupby(TBVtable.Generation).aggregate(np.mean)
+        vars = TBVtable.gvNormUnres1.groupby(TBVtable.Generation).aggregate(np.var)
+        return pd.DataFrame({'Gen': gens, str(gen) + '_mean': means, str(gen) + '_vars': vars})
  
+class TBVCat(TBVPed):
+    def __init__(self, AlphaSimDir):
+        super(TBVCat, self).__init__(AlphaSimDir)
+        self.genTrends_cat = pd.DataFrame()
+        self.genTrends_gen = pd.DataFrame()
+
+    def saveTrendsCat(self):
+        currentTrend_C = self.catTrend()
+        try:
+            self.genTrends_cat = pd.merge(self.genTrends_cat, currentTrend_C, on='cat')
+        except:
+            self.genTrends_cat = pd.concat([self.genTrends_cat, currentTrend_C], ignore_index=True)
+
+    def saveTrendsGen(self):
+        currentTrend_G = self.GenTrend()
+        try:
+            self.genTrends_gen = pd.merge(self.genTrends_gen, currentTrend_G, on='Gen')
+        except:
+            self.genTrends_gen = pd.concat([self.genTrends_gen, currentTrend_G], ignore_index=True)
+
+
+    def writeTrendsCat(self):
+        self.genTrends_cat.to_csv(self.AlphaSimDir + 'GenTrends_cat.csv', sep=",", index=None)
+        self.genTrends_gen.to_csv(self.AlphaSimDir + 'GenTrends_gen.csv', sep=",", index=None)
+
+
+
+
+
+
 class AlphaSimSpec:
     def __init__(self):
         self.SpecFile = '/home/jana/bin/AlphaSim1.05Linux/AlphaSimSpec.txt'
@@ -1217,7 +1322,6 @@ class genInterval():
     def __init__(self, AlphaSimDir):
         self.name = AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues_cat.txt'
         self.pdPed = pd.read_table(self.name, sep='\s+')
-        self.pedTotal = self.name
         self.AlphaSimDir = AlphaSimDir
 
 
@@ -1255,8 +1359,9 @@ class genInterval():
         MADF = MA.MAge.groupby([MA.GenerationInd, MA.sex]).mean()
         FADF = FADF.to_frame().reset_index(level=['GenerationInd',"sex"])
         MADF = MADF.to_frame().reset_index(level=['GenerationInd',"sex"])
-        genInts = pd.DataFrame({'GenF': FADF.GenerationInd, 'sexF': FADF.sex, 'genIntF':FADF.FAge,
-                                'GenM': MADF.GenerationInd, 'sexM': MADF.sex, 'genIntM':MADF.MAge})
+        genIntsF = pd.DataFrame({'Gen': FADF.GenerationInd, 'sex': FADF.sex, 'genInt':FADF.FAge, 'line': 'sire'})
+        genIntsM = pd.DataFrame({'Gen': MADF.GenerationInd, 'sex': MADF.sex, 'genInt':MADF.MAge, 'line': 'dam'})
+        genInts = pd.concat([genIntsM, genIntsF])
         if os.path.isfile(self.AlphaSimDir + 'GenInts.txt'):
             GenIntsOld = pd.read_csv(self.AlphaSimDir + 'GenInts.txt', sep=" ")
             pd.concat([GenIntsOld, genInts]).to_csv(self.AlphaSimDir + 'GenInts.txt', index=False, sep=" ")
@@ -1273,18 +1378,20 @@ class genInterval():
 
     def plotGenInt(self):
         GenInts = pd.read_csv(self.AlphaSimDir + 'GenInts.txt', sep=" ")
-        Mother = GenInts[['GenM', 'genIntM', 'sexM']]
-        Father = GenInts[['GenF', 'genIntF', 'sexF']]
+        GenInts.loc[:,'label'] = GenInts['line'] + GenInts['sex']
+        Gens = GenInts[['Gen', 'genInt', 'label']]
+        Gens.groupby(['Gen','label']).sum().unstack().plot()
+        legend(['dam>dam', 'dam>sire', 'sire>sire', 'sire>dam'],loc='upper left')
+        plt.savefig("GenInt_PLOT.pdf")
 
-        groups = Father.groupby('sexF')
 
-        # Plot
-        # Plot
-        fig, ax = plt.subplots()
-        ax.margins(0.05)  # Optional, just adds 5% padding to the autoscaling
-        for name, group in groups:
-            ax.plot(group.GenF, group.genIntF, linestyle='solid', marker='o', ms=12, label=name)
-        ax.legend()
+class snpFiles:
+    def __init__(self, AlphaSimDir):
+        self.AlphaSimDir = AlphaSimDir
+        self.chipFile = self.AlphaSimDir + '/SimulatedData/AllIndividualsSnpChips/Chip1Genotype.txt'
 
-        plt.show()
-
+    def createBlupf90SNPFile(self):
+        os.system("sed 's/^ *//' " + self.chipFile + " > ChipFile.txt") #remove spaces at the beginning of each line
+        os.system("cut -f1 -d ' ' ChipFile.txt > Individuals.txt") #obtain IDs
+        os.system('''awk '{$1=""; print $0}' ChipFile.txt | sed 's/ //g' > Snps.txt''') #obtain SNP genotypes
+        os.system(r'''paste Individuals.txt Snps.txt | awk '{printf "%- 10s %+ 15s\n",$1,$2}' > GenoFile.txt''') #obtain SNP genotypes

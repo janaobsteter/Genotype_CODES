@@ -666,10 +666,12 @@ for roundNo in range(1,rounds+1):
     TBVt = TBVGenTable(AlphaSimDir + '/Selection/SelectionFolder' + str(roundNo) + '/SelectionTbvTest.txt')
     TBVmeans[roundNo] = TBVt.TBVmean
     
-TBV  = TBVPed()
+TBV  = TBVPed(AlphaSimDir)
+TBV.genTrend(AlphaSimDir + '/PED_CLAS')
+TBV.genTrend(AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues.txt')
 #plt.errorbar(x = TBV.gens, y = TBV.means, yerr = TBV.vars)
 
-plt.plot( TBV.gens, TBV.means,  label = 'Mean Gen TBV')
+plt.plot( TBV.gens, TBV.means,  label = 'Mean Gen gTBV')
 plt.xlabel('Selected Generation')
 plt.ylabel('Mean Generation TBV')
 pylab.legend(loc='upper left')

@@ -1,0 +1,29 @@
+Scripts for plotting accuracies, generation intervals and genetic trends:
+
+PlotAccGen.py - plots the accuracy of a specific generation (year of birth) across selection cycles 
+	- takes 2 arguments: start and stop generation=YOB (999 = last generation), prints over all cycles
+	- produces AccuraciesGen.pdf
+
+PlotAccCat.py - plots the accuracy of a specific animal category across selection cycles (not very 
+useful, should be ~same across) 
+	- takes 1 arguments: category
+	- produces Accuracies_CHOSENCAT.pdf
+
+
+PlotAccCat_Cycle.py - plots the accuracies of all categories in a specific cycle
+	- takes 1 arguments: category
+	- produces AccuraciesCat_cycleCHOSENCYCLE.pdf
+
+PlotGenGain_cat.py - plots genetic gain of a chosen category across selection cycles
+	- takes 1 argument: category
+	- produces 'GenTrends_Mean_' + cat + '.pdf' and 'GenTrends_Var_' + cat + '.pdf')
+
+
+PlotGenGain.py - plots genetic gain from the final Pedigree file - the change through generations
+	- produces 'GenTrendsLast_Var.pdf' and 'GenTrendsLast_Mean.pdf'
+
+PlotGenint.py - plots generation interval:
+	- produced GenInt_PLOT.pdf
+
+
+

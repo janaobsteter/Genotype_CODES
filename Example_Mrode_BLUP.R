@@ -1,10 +1,13 @@
 library(pedigree)
+library(pedigreemm)
  varE <- 40
  varA <- 20
  alpha <- varE / varA
 
 blupAcc <- function(X, noAnObs, y, ped, alpha) {
-  Z <- matrix (nrow = noAnObs , ncol = nrow(ped), c(rep(0,noAnObs*(nrow(ped) - noAnObs)), 1, rep(c(rep(0, noAnObs),1),(noAnObs-1))))
+  dat <- data.frame(id=1:nrow(ped), data=c(NA,NA,NA,y))
+  dat$id = factor(dat$id, levels=ped$id)
+  Z = model.matrix(dat$data~dat$id)
   XtZ = t(X)%*%Z
   ZtX = t(XtZ)
   Xty <- t(X) %*% y
@@ -12,14 +15,7 @@ blupAcc <- function(X, noAnObs, y, ped, alpha) {
   ZtZ <- t(Z) %*% Z
   XtX <- t(X) %*% X
   
-  makeAinv(ped)
-  Ai <- read.table("Ainv.txt")
-  nInd <- nrow(ped)
-  Ainv <- matrix(0,nrow = nInd,ncol = nInd)
-  Ainv[as.matrix(Ai[,1:2])] <- Ai[,3]
-  dd <- diag(Ainv)
-  Ainv <- Ainv + t(Ainv)
-  diag(Ainv) <- dd
+  getAInv(ped)
   
   AinvAlpha <- Ainv*alpha
   gen <- ZtZ + AinvAlpha
@@ -69,6 +65,8 @@ AccDF <- data.frame(id = ped$id, basic = blupAcc(X, 5, y, ped, alpha))
 X <- matrix (nrow = 6 , ncol = 2, c(c(1,0,0,1,1,0), c(0,1,1,0,0,1)))
 y <- as.vector(c(4.5, 2.9, 3.9, 3.5, 5.0, 3.5))
 ped <- data.frame(id=1:9, dam=c(NA,NA,NA,NA,2,2,5,6,5), sire=c(NA,NA,NA,1,3,1,4,3,1))
+
+
 
 AccDFTemp <- data.frame(id = ped$id, FeMaleHalfSib = blupAcc(X, 6, y, ped, alpha))
 AccDF <- merge(AccDF, AccDFTemp, by='id', all=T)
