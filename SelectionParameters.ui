@@ -430,19 +430,6 @@
       </rect>
      </property>
     </widget>
-    <widget class="QLabel" name="label_29">
-     <property name="geometry">
-      <rect>
-       <x>20</x>
-       <y>180</y>
-       <width>126</width>
-       <height>17</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Perform selection:</string>
-     </property>
-    </widget>
     <widget class="QLabel" name="label_33">
      <property name="geometry">
       <rect>
@@ -513,6 +500,19 @@
      </property>
      <property name="text">
       <string>NoSires</string>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="PerformSel">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>180</y>
+       <width>171</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Perform Selection</string>
      </property>
     </widget>
    </widget>

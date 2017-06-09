@@ -23,6 +23,51 @@ qtCreatorFile = '/home/jana/Genotipi/Genotipi_CODES/SelectionParameters.ui' # En
 Ui_MainWindow, QtBaseClass = uic.loadUiType(qtCreatorFile)
 
 
+class estimateBV:
+    def __init__(self, AlphaSimDir):
+        self.AlphaSimDir = AlphaSimDir
+
+    def computeEBV(self, way, sel=None):
+        # pripravi fajle za blupf90
+        blupFiles = blupf90(self.AlphaSimDir, way=way, sel=sel)
+        # listUnphenotyped = ['potomciNP', 'nr', 'telF', 'telM', 'pt', 'mladi', 'vhlevljeni', 'cak'] #list of unphenotyped categories (better ages?)
+        # blupFiles.preparePedDat_cat(listUnphenotyped) #pripravi ped, dat file za blup #skopiraj generičen paramfile v AlphaSim Directory
+        if way == 'milk':
+            blupFiles.makeDat_removePhen_milk()  # odstrani genotip moškim živali in pripravi dat file - repetabaility model
+        if way == 'burnin_milk':  # če je takoj po burn inu - nimaš še kategorij (za prvih n burningeneracij brze dodane naslednje)
+            blupFiles.makeDat_sex(2)
+
+        shutil.copy(blupFiles.blupgenParamFile, blupFiles.AlphaSimDir)  # skopiraj template blupparam file
+
+        # uredi blupparam file
+        # get variance components from AlphaSim Output Files
+        OutputFiles = AlphaSim_OutputFile(self.AlphaSimDir)
+        genvar = OutputFiles.getAddVar()  # dobi additivno varianco
+        resvar = OutputFiles.getResVar()  # dobi varianco za ostanek
+
+        blupFiles.prepareParamFiles(genvar, resvar)  # set levels of random aniaml effect, add var and res var
+        # the paramfile is now set
+        if sel == 'class':
+            blupFiles.makePed_class()  # make ped file for blup, code (1, 2, 3 - both parentr knows/unknown/group)
+            os.system('./blupf90 blupf90_Selection')
+        if sel == 'gen':
+            blupFiles.makePed_gen()  # make ped file for blup, no Code!
+            GenFiles = snpFiles(self.AlphaSimDir)
+            GenFiles.createBlupf90SNPFile()
+            os.system('./renumf90 < renumParam')  # run blupf90
+            # os.system('./blupf90 blupf90_Selection')
+            resource.setrlimit(resource.RLIMIT_STACK, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
+            os.system('./preGSf90 renf90.par')
+            os.system('./blupf90 renf90.par')
+            # os.system('./postGSf90 renf90.par')
+            # os.system('./ renf90.par')
+
+        # copy the solution in a file that does not get overwritten
+        shutil.copy('solutions', 'solutions_' + str(blupFiles.gen))
+
+        blupFiles.prepareSelPed()  # obtain solution and add them to
+        # AlphaPed PedigreeAndGeneticValues files --> Write them to GenPed_EBV.txt, which is read by module selection
+
 
 #SelParam je class za okno
 class SelParam(QtGui.QMainWindow, Ui_MainWindow):
@@ -32,7 +77,7 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self.AlphaSimDir.clicked.connect(self.choose_dir)
         self.DoMagic.clicked.connect(self.selekcija)
-        self.DoMagic.clicked.connect(self.setSelParam)
+        #self.DoMagic.clicked.connect(self.setSelParam)
         self.SpecFile = AlphaSimSpec()
         # AlphaSimSpec je class iz selection, ki omogoča nastavljanje parametrov AlphaSimSpec fila
         self.setParamDict = defaultdict()
@@ -142,6 +187,7 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
     #funkcija selekcija
     def selekcija(self):
         self.BurnInYN = self.BurnInYNE.isChecked() #ali izvedeš tudi BurnIn
+        self.SelYN = self.PerformSel.isChecked() #ali izvedeš tudi BurnIn
         self.StNB = int(self.NoNB.text())
         self.StBurnInGen = int(self.StBurnInGenE.text())
         self.StSelGen = int(self.NoSelGen.text())
@@ -176,130 +222,91 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
             # pozenes ALPHASIM
             os.system('./AlphaSim1.05')
 ##############################################################################
-        #odstrani Blupf90 fajle iz prejšnjih rund - ker se merge-a
-        #enako tudi za generacijski interval
-        if os.path.isfile(self.AlphaSimDir + 'Blupf90.dat'):
-            os.remove(self.AlphaSimDir + 'Blupf90.dat')
-        if os.path.isfile(self.AlphaSimDir + 'GenInts.txt'):
-            os.remove(self.AlphaSimDir + 'GenInts.txt')
+        if self.SelYN: #če naj izvedem tudi selekcijo
+            #odstrani Blupf90 fajle iz prejšnjih rund - ker se merge-a
+            #enako tudi za generacijski interval
+            if os.path.isfile(self.AlphaSimDir + 'Blupf90.dat'):
+                os.remove(self.AlphaSimDir + 'Blupf90.dat')
+            if os.path.isfile(self.AlphaSimDir + 'GenInts.txt'):
+                os.remove(self.AlphaSimDir + 'GenInts.txt')
 
-        #ko si ustvaril burn in - ali pa ga imaš od prej - imaš torej PEdigreeAndGeneticValues
-            #za VSAK KROG selekcije
-        #1) vzami AlphaSim sproduciran PedigreeAndGeneticValues
-        #2) preračunaj TBV --> EBV, doloci zeljeno korelacijo
-        #3) nastavi kategorije (nastavi kategorije glede na EBV) ali izvedi selekcijo (določi kategorije glede na prejšenje leto)
-        #obe določita starše novim živalim - torej dodata novo generacijo plus starše
-        #obe ustvarita external pedigree za naslednjo generacijo
-        Acc = accuracies(self.AlphaSimDir)
-        GenTrends = TBVCat(self.AlphaSimDir)
+            #ko si ustvaril burn in - ali pa ga imaš od prej - imaš torej PEdigreeAndGeneticValues
+                #za VSAK KROG selekcije
+            #1) vzami AlphaSim sproduciran PedigreeAndGeneticValues
+            #2) preračunaj TBV --> EBV, doloci zeljeno korelacijo
+            #3) nastavi kategorije (nastavi kategorije glede na EBV) ali izvedi selekcijo (določi kategorije glede na prejšenje leto)
+            #obe določita starše novim živalim - torej dodata novo generacijo plus starše
+            #obe ustvarita external pedigree za naslednjo generacijo
+            Acc = accuracies(self.AlphaSimDir)
+            GenTrends = TBVCat(self.AlphaSimDir)
 
-        for roundNo in range(self.StartSelGen, (self.StopSelGen + 1)): #za vsak krog selekcije
-            # prestavi se v AlphaSim Dir
-            os.chdir(self.AlphaSimDir)
+            for roundNo in range(self.StartSelGen, (self.StopSelGen + 1)): #za vsak krog selekcije
+                # prestavi se v AlphaSim Dir
+                os.chdir(self.AlphaSimDir)
 
-            # USTVARI EXTERNAL PEDIGREE
-            # doloci kategorije zivalim v pedigreju - če je to prvi krog, nastavi kategorije,
-            # ce pa je to eden od naslednjih krogov, pa preberi kategorije iz prejsnje generacije
-            # selekcija_total zapise kategorije, sex in active za vsako generacijo
-            # nastavi_cat in selekcija_total ti zapišeta ExternalPedigree.txt
-            if roundNo == 1:  # če je to prvi krog - nimaš še kategorij od prej, nimaš niti EBV-jev
-                #nimaš GenPed_EBV.txt
-                blups = estimateBV(self.AlphaSimDir)
-                blups.computeEBV(way='burnin_milk', sel=self.seltype) #tukaj izbriši samo fenotipe moških - ne morš po kategorijah, ker jih nimaš
-                #Acc.saveAcc()
-                nastavi_cat('GenPed_EBV.txt', **self.setSelParam())
+                # USTVARI EXTERNAL PEDIGREE
+                # doloci kategorije zivalim v pedigreju - če je to prvi krog, nastavi kategorije,
+                # ce pa je to eden od naslednjih krogov, pa preberi kategorije iz prejsnje generacije
+                # selekcija_total zapise kategorije, sex in active za vsako generacijo
+                # nastavi_cat in selekcija_total ti zapišeta ExternalPedigree.txt
+                if roundNo == 1:  # če je to prvi krog - nimaš še kategorij od prej, nimaš niti EBV-jev
+                    #nimaš GenPed_EBV.txt
+                    blups = estimateBV(self.AlphaSimDir)
+                    blups.computeEBV(way='burnin_milk', sel=self.seltype) #tukaj izbriši samo fenotipe moških - ne morš po kategorijah, ker jih nimaš
+                    #Acc.saveAcc()
+                    nastavi_cat('GenPed_EBV.txt', **self.setSelParam())
 
-            elif roundNo > 1:
-                # izvedi selekcijo, doloci kategorije zivali, dodaj novo generacijo in dodeli starse
-                # pedigre se zapise v AlphaSimDir/SelectionFolder/ExternalPedigree.txt
-                selekcija_total('GenPed_EBV.txt', **self.setSelParam())
+                elif roundNo > 1:
+                    # izvedi selekcijo, doloci kategorije zivali, dodaj novo generacijo in dodeli starse
+                    # pedigre se zapise v AlphaSimDir/SelectionFolder/ExternalPedigree.txt
+                    selekcija_total('GenPed_EBV.txt', **self.setSelParam())
 
-            # kopiraj pedigre v selection folder
-            if not os.path.exists(self.AlphaSimDir + '/Selection/SelectionFolder' + str(roundNo) + '/'):
-                os.makedirs(self.AlphaSimDir + '/Selection/SelectionFolder' + str(roundNo) + '/')
-            shutil.copy(self.AlphaSimDir + 'ExternalPedigree.txt',
-                        self.AlphaSimDir + '/Selection/SelectionFolder' + str(roundNo) + '/')
-            # TUKAJ POTEM popravis AlphaSimSpec
-            # PRVIc PO BURN IN-U
-            shutil.copy(self.SpecFile.genSpecFile,
-                        self.AlphaSimDir)  # skopiraj generično ALphaSimSpec datoteko v AlphaSimDir
-            self.SpecFile = AlphaSimSpec()  # AlphaSimSpec je class iz selection, ki omogoča nastavljanje parametrov AlphaSimSpec fila
-            self.SpecFile.setPedType("ExternalPedigree.txt")
-            self.SpecFile.setBurnInGen(self.StBurnInGen)
-            self.SpecFile.setSelGen(self.StSelGen)
-            self.SpecFile.setNoSires(0)
-            self.SpecFile.setNoDams(0)
-            self.SpecFile.turnOnGenFlex()
-            self.SpecFile.setFlexGenToFrom((self.StBurnInGen + roundNo), (self.StBurnInGen + roundNo))
-            self.SpecFile.turnOnSelFlex()
-            self.SpecFile.setExtPedForGen(self.StBurnInGen + roundNo)
-            self.SpecFile.setTBVComp(2)
-            self.SpecFile.setNB(self.StNB)
-            # pozenes ALPHASIM
-            os.system('./AlphaSim1.05')
+                # kopiraj pedigre v selection folder
+                if not os.path.exists(self.AlphaSimDir + '/Selection/SelectionFolder' + str(roundNo) + '/'):
+                    os.makedirs(self.AlphaSimDir + '/Selection/SelectionFolder' + str(roundNo) + '/')
+                shutil.copy(self.AlphaSimDir + 'ExternalPedigree.txt',
+                            self.AlphaSimDir + '/Selection/SelectionFolder' + str(roundNo) + '/')
+                # TUKAJ POTEM popravis AlphaSimSpec
+                # PRVIc PO BURN IN-U
+                shutil.copy(self.SpecFile.genSpecFile,
+                            self.AlphaSimDir)  # skopiraj generično ALphaSimSpec datoteko v AlphaSimDir
+                self.SpecFile = AlphaSimSpec()  # AlphaSimSpec je class iz selection, ki omogoča nastavljanje parametrov AlphaSimSpec fila
+                self.SpecFile.setPedType("ExternalPedigree.txt")
+                self.SpecFile.setBurnInGen(self.StBurnInGen)
+                self.SpecFile.setSelGen(self.StSelGen)
+                self.SpecFile.setNoSires(0)
+                self.SpecFile.setNoDams(0)
+                self.SpecFile.turnOnGenFlex()
+                self.SpecFile.setFlexGenToFrom((self.StBurnInGen + roundNo), (self.StBurnInGen + roundNo))
+                self.SpecFile.turnOnSelFlex()
+                self.SpecFile.setExtPedForGen(self.StBurnInGen + roundNo)
+                self.SpecFile.setTBVComp(2)
+                self.SpecFile.setNB(self.StNB)
+                # pozenes ALPHASIM
+                os.system('./AlphaSim1.05')
 
-            # tukaj dodaj kategorije k PedigreeAndGeneticValues (AlphaSim File)
-            PedCat = OrigPed(self.AlphaSimDir)
-            PedCat.addInfo() #to ti zapiše PedigreeAndGeneticValues_cat.txt v AlphaSim/SimualatedData
+                # tukaj dodaj kategorije k PedigreeAndGeneticValues (AlphaSim File)
+                PedCat = OrigPed(self.AlphaSimDir)
+                PedCat.addInfo() #to ti zapiše PedigreeAndGeneticValues_cat.txt v AlphaSim/SimualatedData
 
-            #tukaj pridobi podatke za generacijske intervale
-            GenInt = genInterval(self.AlphaSimDir) #tukaj preberi celoten pedigre
-            GenInt.prepareGenInts(['vhlevljeni', 'pt'])
+                #tukaj pridobi podatke za generacijske intervale
+                GenInt = genInterval(self.AlphaSimDir) #tukaj preberi celoten pedigre
+                if self.seltype == 'class':
+                    GenInt.prepareGenInts(['vhlevljeni', 'pt']) #pri klasični so izrbrani potomci vhlevljeni (test in pripust) in plemenske telice
+                if self.seltype == 'gen':
+                    GenInt.prepareGenInts(['genTest', 'pt']) #pri klasični so izbrani potomci vsi genomsko testirani (pozTest in pripust) in plemenske telice
+                blupNextGen = estimateBV(self.AlphaSimDir)
+                blupNextGen.computeEBV(way='milk', sel=self.seltype) #estimate EBV with added phenotypes only of animals of certain category (here = milk)
+                Acc.saveAcc()
+                GenTrends.saveTrendsCat()
 
-            blupNextGen = estimateBV(self.AlphaSimDir)
-            blupNextGen.computeEBV(way='milk', sel=self.seltype) #estimate EBV with added phenotypes only of animals of certain category (here = milk)
-            Acc.saveAcc()
-            GenTrends.saveTrendsCat()
+            Acc.writeAcc()
+            GenTrends.writeTrendsCat()
+            print 'Process finished'
 
-        Acc.writeAcc()
-        GenTrends.writeTrendsCat()
-        print 'Process finished'
+        def setText(self):
+            self.message.setText('Button Clicked')
 
-    def setText(self):
-        self.message.setText('Button Clicked')
-
-class estimateBV:
-    def __init__(self, AlphaSimDir):
-        self.AlphaSimDir = AlphaSimDir
-
-    def computeEBV(self, way, sel=None):
-        #pripravi fajle za blupf90
-        blupFiles = blupf90(self.AlphaSimDir, way=way, sel=sel)
-        #listUnphenotyped = ['potomciNP', 'nr', 'telF', 'telM', 'pt', 'mladi', 'vhlevljeni', 'cak'] #list of unphenotyped categories (better ages?)
-        #blupFiles.preparePedDat_cat(listUnphenotyped) #pripravi ped, dat file za blup #skopiraj generičen paramfile v AlphaSim Directory
-        blupFiles.makePed() #make ped file for blup
-        if way == 'milk':
-            blupFiles.makeDat_removePhen_milk() #odstrani genotip moškim živali in pripravi dat file - repetabaility model
-        if way == 'burnin_milk': #če je takoj po burn inu - nimaš še kategorij (za prvih n burningeneracij brze dodane naslednje)
-            blupFiles.makeDat_sex(2)
-
-        shutil.copy(blupFiles.blupgenParamFile, blupFiles.AlphaSimDir)  #skopiraj template blupparam file
-
-        #uredi blupparam file
-        #get variance components from AlphaSim Output Files
-        OutputFiles = AlphaSim_OutputFile(self.AlphaSimDir)
-        genvar = OutputFiles.getAddVar() #dobi additivno varianco
-        resvar = OutputFiles.getResVar() #dobi varianco za ostanek
-
-        blupFiles.prepareParamFiles(genvar, resvar) #set levels of random aniaml effect, add var and res var
-        #the paramfile is now set
-        if sel == 'class':
-            os.system('./blupf90 blupf90_Selection')
-        if sel == 'gen':
-            GenFiles = snpFiles(self.AlphaSimDir)
-            GenFiles.createBlupf90SNPFile()
-            os.system('./renumf90 < renumParam') #run blupf90
-            #os.system('./blupf90 blupf90_Selection')
-            resource.setrlimit(resource.RLIMIT_STACK, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
-            os.system('./blupf90 renf90.par')
-            #os.system('./postGSf90 renf90.par')
-            #os.system('./ renf90.par')
-
-        #copy the solution in a file that does not get overwritten
-        shutil.copy('solutions', 'solutions_' + str(blupFiles.gen))
-
-        blupFiles.prepareSelPed() #obtain solution and add them to
-        # AlphaPed PedigreeAndGeneticValues files --> Write them to GenPed_EBV.txt, which is read by module selection
 
 
 
@@ -336,8 +343,6 @@ if __name__ == "__main__":
     window.SelToGen.setText('2')
     window.AlphaSimDirShow.setText('/home/jana/bin/AlphaSim1.05Linux/')
     sys.exit(app.exec_())
-
-"""
 
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
@@ -410,4 +415,3 @@ if __name__ == "__main__":
     window.SelToGen.setText('20')
     window.AlphaSimDirShow.setText('/home/jana/bin/AlphaSim1.05Linux/')
     sys.exit(app.exec_())
-"""

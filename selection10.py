@@ -625,14 +625,17 @@ class blupf90:
             self.blupDatT = self.AlphaPed.loc[:, ['Indiv', 'phenoNormUnres1', 'sex']]
             self.blupPed = self.AlphaPed.loc[:, ['Indiv', 'Father', 'Mother']]
 
-    def makePed(self):
+    def makePed_class(self):
         self.blupPed.loc[((self.blupPed['Mother'] != 0) & (self.blupPed['Father'] != 0)), 'Code'] = 1
         self.blupPed.loc[((self.blupPed['Mother'] == 0) & (self.blupPed['Father'] != 0)), 'Code'] = 2
         self.blupPed.loc[((self.blupPed['Mother'] != 0) & (self.blupPed['Father'] == 0)), 'Code'] = 2
         self.blupPed.loc[((self.blupPed['Mother'] == 0) & (self.blupPed['Father'] == 0)), 'Code'] = 3
         # df['Code'] = df.Code.astype(int)
         self.blupPed.to_csv(self.AlphaSimDir + 'Blupf90.ped', float_format="%.0f", header=None, index=False, sep=" ")
-    
+
+    def makePed_gen(self):
+        self.blupPed.to_csv(self.AlphaSimDir + 'Blupf90.ped', float_format="%.0f", header=None, index=False, sep=" ")
+
     def deletePhenotype_cat(self, listUnphenotyped):
         for i in listUnphenotyped:
             self.blupDatT.loc[self.blupDatT.cat == i, 'phenoNormUnres1'] = 0
@@ -1210,10 +1213,11 @@ class TBVPed(object): #to je tabela za grafiranje genetskih trendov čez populac
 
 
     def genTrend(self, table):
-        self.TBVtable = pd.read_table(table,sep='\s+')
-        self.gens = list(set(self.TBVtable.Generation))
-        self.means = self.TBVtable.gvNormUnres1.groupby(self.TBVtable.Generation).aggregate(np.mean)
-        self.vars = self.TBVtable.gvNormUnres1.groupby(self.TBVtable.Generation).aggregate(np.var)
+        TBVtable = pd.read_table(table,sep='\s+')
+        gens = list(set(TBVtable.Generation))
+        means = TBVtable.gvNormUnres1.groupby(TBVtable.Generation).aggregate(np.mean)
+        vars = TBVtable.gvNormUnres1.groupby(TBVtable.Generation).aggregate(np.var)
+        return gens, means, vars
 
     def catTrend(self):
         cat = list(
@@ -1381,7 +1385,7 @@ class genInterval():
         GenInts.loc[:,'label'] = GenInts['line'] + GenInts['sex']
         Gens = GenInts[['Gen', 'genInt', 'label']]
         Gens.groupby(['Gen','label']).sum().unstack().plot()
-        legend(['dam>dam', 'dam>sire', 'sire>sire', 'sire>dam'],loc='upper left')
+        legend(['dam>dam', 'dam>sire', 'sire>dam', 'sire>sire'],loc='upper left')
         plt.savefig("GenInt_PLOT.pdf")
 
 
@@ -1395,3 +1399,4 @@ class snpFiles:
         os.system("cut -f1 -d ' ' ChipFile.txt > Individuals.txt") #obtain IDs
         os.system('''awk '{$1=""; print $0}' ChipFile.txt | sed 's/ //g' > Snps.txt''') #obtain SNP genotypes
         os.system(r'''paste Individuals.txt Snps.txt | awk '{printf "%- 10s %+ 15s\n",$1,$2}' > GenoFile.txt''') #obtain SNP genotypes
+        pd.read_csv(self.AlphaSimDir + '/SimulatedData/Chip1SnpInformation.txt', sep='\s+')[[0, 1, 2]].to_csv(self.AlphaSimDir + 'SnpMap.txt', index=None, sep=" ", header=None)

@@ -20,3 +20,5 @@ GenoFile.txt
 GeneticVariance  
 OPTION chrinfo SnpMap.txt
 OPTION no_quality_control
+OPTION saveAscii
+OPTION readGimA22i

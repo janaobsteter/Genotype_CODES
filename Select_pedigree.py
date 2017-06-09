@@ -667,18 +667,35 @@ for roundNo in range(1,rounds+1):
     TBVmeans[roundNo] = TBVt.TBVmean
     
 TBV  = TBVPed(AlphaSimDir)
-TBV.genTrend(AlphaSimDir + '/PED_CLAS')
-TBV.genTrend(AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues.txt')
+gens, means, vars = TBV.genTrend(AlphaSimDir + '/Gen/SimulatedData/PedigreeAndGeneticValues.txt')
+gensC, meansC, varsC = TBV.genTrend(AlphaSimDir + 'Class/SimulatedData/PedigreeAndGeneticValues.txt')
 #plt.errorbar(x = TBV.gens, y = TBV.means, yerr = TBV.vars)
 
-plt.plot( TBV.gens, TBV.means,  label = 'Mean Gen gTBV')
+
+plt.plot( gens, means,  label = 'Mean Gen TBV, gen')
 plt.xlabel('Selected Generation')
 plt.ylabel('Mean Generation TBV')
 pylab.legend(loc='upper left')
 plt.show()
-plt.plot(TBV.gens, TBV.vars, label = 'TBV Var')
+
+plt.plot( gensC, meansC,  label = 'Mean Gen TBV, class')
+plt.xlabel('Selected Generation')
+plt.ylabel('Mean Generation TBV')
+pylab.legend(loc='upper left')
+plt.show()
+
+
+plt.plot(gens, vars, label = 'TBV Var gen')
 pylab.legend(loc='upper left')
 plt.xlabel('Selected Generation')
 plt.ylabel('Generation TBV variance')
 plt.show()
+
+
+plt.plot(gensC, varsC, label = 'TBV Var class')
+pylab.legend(loc='upper left')
+plt.xlabel('Selected Generation')
+plt.ylabel('Generation TBV variance')
+plt.show()
+
 
