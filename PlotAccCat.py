@@ -15,3 +15,4 @@ tgenAP = tgenA[[cat, 'Cycle']]
 tgenAP.set_index('Cycle').plot()
 plt.savefig('Accuracies_' + cat + '.pdf')
 
+print 'Created plot: Accuracies_' + cat+ '.pdf'

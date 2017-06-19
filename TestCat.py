@@ -17,7 +17,7 @@ sel = pd.read_csv('/home/jana/SelectionParamTEST.csv', header=None)
 sel = pd.read_csv('/home/jana/SelectionParam.csv', header=None)
 
 for i in range(len(sel)):
-    if (sel[0][i]) not in  ['BurnInYN','EBV','gEBV', 'AlphaSimDir']:
+    if (sel[0][i]) not in  ['BurnInYN','EBV','gEBV', 'AlphaSimDir', 'genotyped']:
         try:
             baba[sel[0][i]] = int(sel[1][i])
         except:
@@ -26,9 +26,15 @@ for i in range(len(sel)):
 baba['BurnInYN'] = False
 baba['EBV'] = False
 baba['gEBV'] = True
-#baba['EBV'] = True
-#baba['gEBV'] = False
+baba['EBV'] = True
+baba['gEBV'] = False
+baba['genotyped'] = ['potomciNP', 'telM']
 baba['AlphaSimDir'] = '/home/jana/bin/AlphaSim1.05Linux'
+
+
+
+babaClas = baba
+babaGen = baba
 
 genPed = pd.DataFrame(columns=['Generation', 'Indiv', 'Father', 'Mother', 'EBV'])
 genPed['Generation'] = list(chain.from_iterable([[i] * 6700 for i in range(1,11)]))
@@ -52,7 +58,7 @@ Gender.to_csv('/home/jana/bin/AlphaSim1.05Linux/SimulatedData/Gender.txt', index
 
 IndCat = pd.DataFrame()
 ped, c, s, a = nastavi_cat('/home/jana/Genotipi/Genotipi_CODES/GenericPed_67000.txt', **baba) #nastavi kategorije 
-krogov = 10
+krogov = 5
 ped, c, s, a = nastavi_cat('/home/jana/Genotipi/Genotipi_CODES/GenericPed_1000.txt', **baba) #nastavi kategorije 
 ped, c1, s, a = nastavi_cat('/home/jana/Genotipi/Genotipi_CODES/GenericPed_86400.txt', **baba) #nastavi kategorije 
 

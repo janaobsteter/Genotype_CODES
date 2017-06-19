@@ -14,7 +14,11 @@ RANDOM
 animal
 FILE
 Blupf90.ped
+SNP_FILE
+GenoFile.txt
 PED_DEPTH
 0
 (CO)VARIANCES
 GeneticVariance  
+OPTION chrinfo SnpMap.txt
+OPTION no_quality_control

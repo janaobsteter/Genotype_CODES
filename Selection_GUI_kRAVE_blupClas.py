@@ -6,9 +6,9 @@ from PyQt4 import QtGui, QtCore, uic
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 import math
-import selection10
-from selection10 import *
-from selection10 import nastavi_cat, selekcija_total
+import selection10_blupClas
+from selection10_blupClas import *
+from selection10_blupClas import nastavi_cat, selekcija_total
 from collections import defaultdict
 import shutil
 import pandas as pd
@@ -29,7 +29,7 @@ class estimateBV:
         self.way = way
         self.sel = sel
 
-    def computeEBV(self, nbIndGen):
+    def computeEBV(self):
         # pripravi fajle za blupf90
         blupFiles = blupf90(self.AlphaSimDir, way=self.way, sel=self.sel)
         # listUnphenotyped = ['potomciNP', 'nr', 'telF', 'telM', 'pt', 'mladi', 'vhlevljeni', 'cak'] #list of unphenotyped categories (better ages?)
@@ -38,11 +38,8 @@ class estimateBV:
             blupFiles.makeDat_removePhen_milk()  # odstrani genotip moškim živali in pripravi dat file - repetabaility model
         if self.way == 'burnin_milk':  # če je takoj po burn inu - nimaš še kategorij (za prvih n burningeneracij brze dodane naslednje)
             blupFiles.makeDat_sex(2)
-        #skopiraj paramFile za renumf90
-        if self.sel == 'gen':
-            shutil.copy(blupFiles.blupgenParamFile, blupFiles.AlphaSimDir + 'renumf90.par')  # skopiraj template blupparam file
-        if self.sel == 'class':
-            shutil.copy(blupFiles.blupgenParamFile_Clas, blupFiles.AlphaSimDir + 'renumf90.par')  # skopiraj template blupparam file
+
+        shutil.copy(blupFiles.blupgenParamFile, blupFiles.AlphaSimDir)  # skopiraj template blupparam file
 
         # uredi blupparam file
         # get variance components from AlphaSim Output Files
@@ -50,30 +47,31 @@ class estimateBV:
         genvar = OutputFiles.getAddVar()  # dobi additivno varianco
         resvar = OutputFiles.getResVar()  # dobi varianco za ostanek
 
-        blupFiles.prepareParamFiles(genvar, resvar, self.AlphaSimDir + '/renumf90.par')  # set levels of random aniaml effect, add var and res var
+        blupFiles.prepareParamFiles(genvar, resvar)  # set levels of random aniaml effect, add var and res var
         # the paramfile is now set
         blupFiles.makePed_gen()  # make ped file for blup, no Code!
+        GenFiles = snpFiles(self.AlphaSimDir)
+        GenFiles.createBlupf90SNPFile()
+
         if self.sel == 'gen':
-            GenFiles = snpFiles(self.AlphaSimDir)
-            GenFiles.createBlupf90SNPFile(nbIndGen)
+            os.system("./renumf90 < renumParam")  # run renumf90
 
-        os.system("./renumf90 < renumParam")  # run renumf90
-
-        #if self.sel == 'class': #ZDJ TEGA NI, KER JE POSEBEJ FILE!
+        if self.sel == 'class':
             #os.system("head -n-3 renf90.par > tmp && mv tmp renf90.par")
-            #os.system("./blupf90 blupf90_Selection")  # run blupf90
+            os.system("./blupf90 blupf90_Selection")  # run blupf90
 
         resource.setrlimit(resource.RLIMIT_STACK, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
         #os.system('./preGSf90 renf90.par')
-        os.system('./blupf90 renf90.par')
+        if self.sel == 'gen':
+            os.system('./blupf90 renf90.par')
         # os.system('./postGSf90 renf90.par')
 
 
         #renumber the solutions
         # copy the solution in a file that does not get overwritten
-        os.system("bash Match_AFTERRenum.sh")
-        shutil.copy('renumbered_Solutions', 'renumbered_Solutions_' + str(blupFiles.gen))
-        #shutil.copy('solutions', 'renumbered_Solutions_' + str(blupFiles.gen))
+        #os.system("bash Match_AFTERRenum.sh")
+        #shutil.copy('renumbered_Solutions', 'renumbered_Solutions_' + str(blupFiles.gen))
+        shutil.copy('solutions', 'renumbered_Solutions_' + str(blupFiles.gen))
 
         blupFiles.prepareSelPed()  # obtain solution and add them to
         # AlphaPed PedigreeAndGeneticValues files --> Write them to GenPed_EBV.txt, which is read by module selection
@@ -94,11 +92,9 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
         #self.DoMagic.clicked.connect(self.setSelParam)
         #self.DoMagic.clicked.connect(self.setText)
 
-        #self.gEBV_YN.stateChanged.connect(self.disableEBV)
+        self.gEBV_YN.stateChanged.connect(self.disableEBV)
         self.EBV_YN.stateChanged.connect(self.disablegEBV)
-        criteria = ['random', 'PA', 'EBV']
-        for i in [self.potomciNP_M_genC, self.potomciNP_F_genC, self.nrM_genC, self.nrF_genC, self.telF_genC, self.k_genC, self.bm_genC, self.pb_genC]:
-            i.addItems(criteria)
+
 
 
     #poveži tipko za AlphaSimDir z QFileDialog (posploši za vse take tipke!)
@@ -111,7 +107,7 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
         if self.gEBV_YN.isChecked():
             self.vhlevljeni.setEnabled(False)
             self.mladi.setEnabled(False)
-            #self.cakE.setEnabled(False)
+            self.cakE.setEnabled(False)
             self.mladiDozE.setEnabled(False)
             self.EBV_YN.setEnabled(False)
         if not self.gEBV_YN.isChecked():
@@ -124,9 +120,7 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
     def disablegEBV(self):
         if self.EBV_YN.isChecked():
             self.gEBV_YN.setEnabled(False)
-            self.genpb.setEnabled(False)
-            self.genpripust1.setEnabled(False)
-            self.GenotypedInd.setEnabled(False)
+            #self.genmladi.setEnabled(False)
         if not self.EBV_YN.isChecked():
             self.gEBV_YN.setEnabled(True)
             #self.genmladi.setEnabled(True)
@@ -135,15 +129,6 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
     #funkcija, ki ustvari dict in vseh vnešenih parametrov okna SelParam
     #ta dict potem daš funkciji, ki dela selekcijo oz. nastavlja kategorije
     def setSelParam(self):
-        self.setParamDict['genotyped'] = [(str(x.text()), float(xP.text()), str(xC.currentText()), str(sex)) for (x, xP, xC, sex) in
-                                          [(self.potomciNP_M_gen, self.potomciNP_M_genP, self.potomciNP_M_genC, 'M'),
-                                           (self.potomciNP_F_gen, self.potomciNP_F_genP, self.potomciNP_F_genC, 'F'),
-                                           (self.nrF_gen, self.nrF_genP, self.nrF_genC, 'F'),
-                                           (self.nrM_gen, self.nrM_genP, self.nrM_genC, 'M'),
-                                           (self.telF_gen, self.telF_genP, self.telF_genC, 'F'),
-                                           (self.k_gen, self.k_genP, self.k_genC, 'F'),
-                                           (self.bm_gen, self.bm_genP, self.bm_genC, 'F'),
-                                           (self.pb_gen, self.pb_genP, self.pb_genC, 'M')] if x.isChecked()]
         self.setParamDict['EBV'] = self.EBV_YN.isChecked()
         self.setParamDict['gEBV'] = self.gEBV_YN.isChecked()
         self.setParamDict['stNBn'] = int(self.NoNB.text()) if not self.NoNB.text().isEmpty() else 0
@@ -186,22 +171,23 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
         self.setParamDict['potomciNPn'] = int(
             float(self.potomciNP.text()) * self.setParamDict['nrMn']) if not self.potomciNP.text().isEmpty() else 0
 
-      #  if self.EBV_YN.isChecked():
-        self.setParamDict['vhlevljenin'] = int(
-            float(self.vhlevljeni.text()) * self.setParamDict['potomciNPn']) if not self.vhlevljeni.text().isEmpty() else 0
-        self.setParamDict['mladin'] = int(
-            float(self.mladi.text()) * self.setParamDict['vhlevljenin']) if not self.mladi.text().isEmpty() else 0
-        self.setParamDict['pbn'] = int(float(self.pb.text()) * self.setParamDict['mladin']) if not self.pb.text().isEmpty() else 0
-        self.setParamDict['pripust1n'] = int(round(
-            float(self.pripust1.text()) * self.setParamDict['vhlevljenin'])) if not self.pripust1.text().isEmpty() else 0
+        if self.EBV_YN.isChecked():
+            self.setParamDict['vhlevljenin'] = int(
+                float(self.vhlevljeni.text()) * self.setParamDict['potomciNPn']) if not self.vhlevljeni.text().isEmpty() else 0
+            self.setParamDict['mladin'] = int(
+                float(self.mladi.text()) * self.setParamDict['vhlevljenin']) if not self.mladi.text().isEmpty() else 0
+            self.setParamDict['pbn'] = int(float(self.pb.text()) * self.setParamDict['mladin']) if not self.pb.text().isEmpty() else 0
+            self.setParamDict['pripust1n'] = int(round(
+                float(self.pripust1.text()) * self.setParamDict['vhlevljenin'])) if not self.pripust1.text().isEmpty() else 0
 
-        #if self.gEBV_YN.isChecked():
-        self.setParamDict['genpbn'] = int(round(float(self.genpb.text()) * self.setParamDict['potomciNPn'])) if not self.pb.text().isEmpty() else 0
-        self.setParamDict['genpripust1n'] = int(round(round(
-            float(self.genpripust1.text()) * self.setParamDict['potomciNPn'], 1))) if not self.pripust1.text().isEmpty() else 0
+        if self.gEBV_YN.isChecked():
+            self.setParamDict['pbn'] = int(float(self.pb.text()) * self.setParamDict['potomciNPn']) if not self.pb.text().isEmpty() else 0
+            self.setParamDict['pripust1n'] = int(round(round(
+                float(self.pripust1.text()) * self.setParamDict['potomciNPn'], 1))) if not self.pripust1.text().isEmpty() else 0
 
         self.setParamDict['bik12n'] = int(float(self.bik12.text()) * self.setParamDict['telMn']) if not self.bik12.text().isEmpty() else 0
-        self.setParamDict['pripust2n'] = float(float(self.setParamDict['pripustUp']) - 1)
+        self.setParamDict['pripust2n'] = int(
+            round(self.setParamDict['pripust1n'] * (float(self.setParamDict['pripustUp']) - 1)))
         self.setParamDict['AlphaSimDir'] = str(self.AlphaSimDirShow.text())
         pd.DataFrame.from_dict(self.setParamDict, orient='index').to_csv('/home/jana/SelectionParam.csv', header=False)
         return self.setParamDict
@@ -219,6 +205,7 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
         self.NumberOfDams = int(self.NoDams.text()) if not self.NoDams.text().isEmpty() else 0 # to je za burn in - NoDams in NoSires
         self.AlphaSimDir = str(self.AlphaSimDirShow.text())
         self.AlphaSimPed = str(self.AlphaSimDir).strip('/.') + '/SimulatedData/PedigreeAndGeneticValues.txt'
+        self.accuracyEBV = float(self.accEBV.text())
         self.seltype = ['class' if self.EBV_YN.isChecked() else 'gen'][0]
 
 
@@ -244,6 +231,13 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
             os.system('./AlphaSim1.05')
 ##############################################################################
         if self.SelYN: #če naj izvedem tudi selekcijo
+            #odstrani Blupf90 fajle iz prejšnjih rund - ker se merge-a
+            #enako tudi za generacijski interval
+            if os.path.isfile(self.AlphaSimDir + 'Blupf90.dat'):
+                os.remove(self.AlphaSimDir + 'Blupf90.dat')
+            if os.path.isfile(self.AlphaSimDir + 'GenInts.txt'):
+                os.remove(self.AlphaSimDir + 'GenInts.txt')
+
             #ko si ustvaril burn in - ali pa ga imaš od prej - imaš torej PEdigreeAndGeneticValues
                 #za VSAK KROG selekcije
             #1) vzami AlphaSim sproduciran PedigreeAndGeneticValues
@@ -251,12 +245,12 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
             #3) nastavi kategorije (nastavi kategorije glede na EBV) ali izvedi selekcijo (določi kategorije glede na prejšenje leto)
             #obe določita starše novim živalim - torej dodata novo generacijo plus starše
             #obe ustvarita external pedigree za naslednjo generacijo
-
+            Acc = accuracies(self.AlphaSimDir)
+            GenTrends = TBVCat(self.AlphaSimDir)
 
             for roundNo in range(self.StartSelGen, (self.StopSelGen + 1)): #za vsak krog selekcije
                 # prestavi se v AlphaSim Dir
                 os.chdir(self.AlphaSimDir)
-
 
                 # USTVARI EXTERNAL PEDIGREE
                 # doloci kategorije zivalim v pedigreju - če je to prvi krog, nastavi kategorije,
@@ -264,38 +258,13 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
                 # selekcija_total zapise kategorije, sex in active za vsako generacijo
                 # nastavi_cat in selekcija_total ti zapišeta ExternalPedigree.txt
                 if roundNo == 1:  # če je to prvi krog - nimaš še kategorij od prej, nimaš niti EBV-jev
-                    # odstrani Blupf90 fajle iz prejšnjih runov - ker se merge-a
-                    # enako tudi za generacijski interval in file z genotipi
-                    if os.path.isfile(self.AlphaSimDir + 'Blupf90.dat'):
-                        os.remove(self.AlphaSimDir + 'Blupf90.dat')
-                    if os.path.isfile(self.AlphaSimDir + 'GenInts.txt'):
-                        os.remove(self.AlphaSimDir + 'GenInts.txt')
-                    if os.path.isfile(self.AlphaSimDir + 'GenoFile.txt'):
-                        os.remove(self.AlphaSimDir + 'GenoFile.txt')
-                    if os.path.isfile(self.AlphaSimDir + 'IndForGeno.txt'):
-                        os.remove(self.AlphaSimDir + 'IndForGeno.txt')
-                    if os.path.isfile(self.AlphaSimDir + 'GenTrends_gen.csv'):
-                        os.remove(self.AlphaSimDir + 'GenTrends_gen.csv')
-                    if os.path.isfile(self.AlphaSimDir + 'GenTrends_cat.csv'):
-                        os.remove(self.AlphaSimDir + 'GenTrends_cat.csv')
-                    if os.path.isfile(self.AlphaSimDir + 'Accuracies_Cat.csv'):
-                        os.remove(self.AlphaSimDir + 'Accuracies_Cat.csv')
-                    if os.path.isfile(self.AlphaSimDir + 'Accuracies_Gen.csv'):
-                        os.remove(self.AlphaSimDir + 'Accuracies_Gen.csv')
-                    #if os.path.isfile(self.AlphaSimDir + 'AccuraciesBV.csv'):
-                        #os.remove(self.AlphaSimDir + 'AccuraciesBV.csv')
-
-                    Acc = accuracies(self.AlphaSimDir) #nastavi
-                    GenTrends = TBVCat(self.AlphaSimDir)
                     #nimaš GenPed_EBV.txt
                     blups = estimateBV(self.AlphaSimDir, way='burnin_milk', sel=self.seltype)
-                    blups.computeEBV(self.StNB) #tukaj izbriši samo fenotipe moških - ne morš po kategorijah, ker jih nimaš
+                    blups.computeEBV() #tukaj izbriši samo fenotipe moških - ne morš po kategorijah, ker jih nimaš
                     #Acc.saveAcc()
                     nastavi_cat('GenPed_EBV.txt', **self.setSelParam())
 
                 elif roundNo > 1:
-                    Acc = accuracies(self.AlphaSimDir)
-                    GenTrends = TBVCat(self.AlphaSimDir)
                     # izvedi selekcijo, doloci kategorije zivali, dodaj novo generacijo in dodeli starse
                     # pedigre se zapise v AlphaSimDir/SelectionFolder/ExternalPedigree.txt
                     selekcija_total('GenPed_EBV.txt', **self.setSelParam())
@@ -335,12 +304,12 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
                 if self.seltype == 'gen':
                     GenInt.prepareGenInts(['genTest', 'pt']) #pri klasični so izbrani potomci vsi genomsko testirani (pozTest in pripust) in plemenske telice
                 blupNextGen = estimateBV(self.AlphaSimDir, way='milk', sel=self.seltype)
-                blupNextGen.computeEBV(self.StNB) #estimate EBV with added phenotypes only of animals of certain category (here = milk)
+                blupNextGen.computeEBV() #estimate EBV with added phenotypes only of animals of certain category (here = milk)
                 Acc.saveAcc()
-                GenTrends.saveTrends()
-                #zdaj za vsako zapiši, ker vsakič na novo prebereš
-                Acc.writeAcc()
-                GenTrends.writeTrends()
+                GenTrends.saveTrendsCat()
+
+            Acc.writeAcc()
+            GenTrends.writeTrendsCat()
             print 'Process finished'
 
         def setText(self):
@@ -366,6 +335,7 @@ if __name__ == "__main__":
     window.pripust1.setText('0.7')
     window.telM.setText('0.73')
     window.bik12.setText('0.12')
+    window.accEBV.setText('0.8')
     window.kraveUpE.setText('4')
     window.bmOdbiraE.setText('2')
     window.bmUpE.setText('3')
@@ -381,7 +351,7 @@ if __name__ == "__main__":
     window.SelToGen.setText('2')
     window.AlphaSimDirShow.setText('/home/jana/bin/AlphaSim1.05Linux/')
     sys.exit(app.exec_())
-
+"""
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
     window = SelParam()
@@ -395,11 +365,10 @@ if __name__ == "__main__":
     window.vhlevljeni.setText('0.667')
     window.mladi.setText('0.5')
     window.pb.setText('0.5')
-    window.genpb.setText('0.2')
     window.pripust1.setText('0.5')
-    window.genpripust1.setText('0.8')
     window.telM.setText('0.68')
     window.bik12.setText('0.333')
+    window.accEBV.setText('0.8')
     window.kraveUpE.setText('4')
     window.bmOdbiraE.setText('2')
     window.bmUpE.setText('3')
@@ -408,7 +377,7 @@ if __name__ == "__main__":
     window.pbUpE.setText('5')
     window.mladiDozE.setText('25')
     window.pripustDozE.setText('5')
-    window.pozitivnoTestDozE.setText('35')
+    window.pozitivnoTestDozE.setText('22')
     window.StBurnInGenE.setText('10')
     window.NoSelGen.setText('20')
     window.NoDams.setText('40')
@@ -435,11 +404,10 @@ if __name__ == "__main__":
     window.vhlevljeni.setText('0.6')
     window.mladi.setText('0.3')
     window.pb.setText('0.5')
-    window.genpb.setText('0.2')
     window.pripust1.setText('0.7')
-    window.genpripust1.setText('0.8')
     window.telM.setText('0.73')
     window.bik12.setText('0.12')
+    window.accEBV.setText('0.8')
     window.kraveUpE.setText('4')
     window.bmOdbiraE.setText('2')
     window.bmUpE.setText('3')
@@ -449,9 +417,10 @@ if __name__ == "__main__":
     window.mladiDozE.setText('250')
     window.pripustDozE.setText('27')
     window.pozitivnoTestDozE.setText('400')
-    window.StBurnInGenE.setText('20')
+    window.StBurnInGenE.setText('10')
     window.NoSelGen.setText('40')
     window.SelFromGen.setText('1')
     window.SelToGen.setText('20')
     window.AlphaSimDirShow.setText('/home/jana/bin/AlphaSim1.05Linux/')
     sys.exit(app.exec_())
+"""

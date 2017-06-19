@@ -104,7 +104,7 @@ class pedigree(classPed):
     def set_sex_AlphaSim(self, AlphaSimDir):
         # določi spol
         #       gender = pd.read_table(AlphaSimDir + '/Gender_BURNIN.txt', sep='\s+')
-        gender = pd.read_table('/home/jana/Gender.txt', sep='\s+')
+        gender = pd.read_table(AlphaSimDir + '/SimulatedData/Gender.txt', sep='\s+')
         females = list(gender[gender.Gender == 2]['Indiv'])
         males = list(gender[gender.Gender == 1]['Indiv'])
         self.set_sex_list(self.ped[self.ped.Indiv.isin(females)].index.tolist(), "F")
@@ -441,8 +441,8 @@ class pedigree(classPed):
         self.ped.to_csv(path, quoting=None, index=False, header=True)
 
     def computePA_currentCat(self, cat): #therefore you have to use this at the end of the selection cycle
-        for i in self.ped.loc[self.ped.cat == cat].index:
-            self.ped.loc[i, 'PA'] = (float(self.ped.EBV[self.ped.Indiv == self.ped.Father[i]]) + float(self.ped.EBV[self.ped.Indiv == self.ped.Mother[i]])) / 2
+        for i in self.ped.loc[self.ped.cat == cat, 'PA'].index:
+            self.ped.loc[i, 'PA'] = (self.ped.PA[self.ped.Indiv == self.ped.Father[i]] + self.ped.PA[self.ped.Indiv == self.ped.Father[i]]) / 2
 
     def UpdateIndCat(self, Dir):
         if not os.path.isfile(Dir + '/IndCat.csv'):
@@ -640,7 +640,7 @@ class pedigree(classPed):
         if os.path.isfile('IndForGeno.txt'):
             pd.DataFrame({0: sorted(list(set
                                          (chain.from_iterable([self.catCurrent_indiv_sex_criteria(x, sex, xC,
-                                                                                                  int((len(self.catCurrent_indiv_sex(x, sex)) * (xP / 100))))
+                                                                                                  int((len(self.catCurrent_indiv(x)) * (xP / 100))))
                                                                for (x, xP, xC, sex) in genotypedCat]))))}).to_csv(
                 'IndForGeno_new.txt', index=None, header=None)
             os.system("grep -v -f IndForGeno.txt IndForGeno_new.txt > uniqNew && mv uniqNew IndForGeno_new.txt")

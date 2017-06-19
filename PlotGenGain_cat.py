@@ -24,3 +24,4 @@ plt.savefig('GenTrends_Mean_' + cat + '.pdf')
 tT_varP.set_index('Cycle').plot()
 plt.savefig('GenTrends_Var_' + cat + '.pdf')
 
+print 'Created plots: GenTrends_Mean_' + cat + '.pdf and GenTrends_Var_' + cat + '.pdf'
