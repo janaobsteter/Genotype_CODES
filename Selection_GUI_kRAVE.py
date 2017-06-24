@@ -202,6 +202,9 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
 
         self.setParamDict['bik12n'] = int(float(self.bik12.text()) * self.setParamDict['telMn']) if not self.bik12.text().isEmpty() else 0
         self.setParamDict['pripust2n'] = float(float(self.setParamDict['pripustUp']) - 1)
+        self.setParamDict['EliteDamsGenBulls'] = self.EliteDamsGenBulls.isChecked()
+        self.setParamDict['CowsGenBulls_Per'] = int((float(self.CowsGenBullsPer.text()) / 100) * self.setParamDict['stNBn']) \
+            if not self.CowsGenBullsPer.text().isEmpty() else 0
         self.setParamDict['AlphaSimDir'] = str(self.AlphaSimDirShow.text())
         pd.DataFrame.from_dict(self.setParamDict, orient='index').to_csv('/home/jana/SelectionParam.csv', header=False)
         return self.setParamDict

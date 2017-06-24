@@ -562,7 +562,7 @@ class pedigree(classPed):
                 stNB - sTbmMother):  # če jih še ni dovolj, ne odbiraš mater, ampak uporabiš vse MINUS gosp. križanmja
                 self.set_mother_catPotomca(mother, 'nr')
 
-    def doloci_ocete(self, stNB, potomciNPn, cak, pbUp, pripustDoz, mladiDoz, pozitivnoTestDoz):
+    def doloci_ocete(self, stNB, potomciNPn, cak, pbUp, pripustDoz, mladiDoz, pozitivnoTestDoz, NbGenTest, EliteDamsGenBulls):
         # OČETJE
         mladiOce = self.catCurrent_indiv('mladi')
         pripustOce = self.catCurrent_indiv('pripust1') + self.catCurrent_indiv('pripust2')
@@ -576,29 +576,29 @@ class pedigree(classPed):
         bmMother = (potomciNPn * 2) if len(self.catCurrent_indiv('pBM')) >= (potomciNPn * 2) else len(
             self.catCurrent_indiv('pBM'))  # the number of elite dams - they are the limiting factor
         # for classical testing - if you already have elite bulls
-        if 'pb' in self.cat():
+        if not EliteDamsGenBulls: #whether the elite dams are inseminated with genomicaly tested or progeny tested bulls
             if testiraniOce:
                 elita = np.random.choice(testiraniOce, bmMother, replace=True)
-                #       pd.Series(elita).value_counts()#preveri zastopanost po bikih
-            # naštimaj očete elite --> BM
-            else:
+                    #       pd.Series(elita).value_counts()#preveri zastopanost po bikih
+                # naštimaj očete elite --> BM
+        if EliteDamsGenBulls: #if with genomically tested
+            if gentestiraniOce: #if you already have genomically proven bulls
                 elita = np.random.choice(gentestiraniOce, bmMother, replace=True)
+            else: #otherwise inseminate with progeny tested until genomically tested become proven
+                elita = np.random.choice(testiraniOce, bmMother, replace=True)
 
-            self.set_father_catPotomca(elita, 'potomciNP')
+        self.set_father_catPotomca(elita, 'potomciNP')
 
-
-            # for genomic testing - if you already have proven bulls
-        """ if 'gpb' in self.cat():
-            elita = np.random.choice(gentestiraniOce, bmMother, replace=True)
-            self.set_father_catPotomca(elita, 'potomciNP')"""  # zaenkrat samo progeno testirani kot očetje za elito
 
         # this if for the rest of the new born population - 'mix' semen of all potential fathers
-        ocetje = pripustOce * pripustDoz + testiraniOce * pozitivnoTestDoz + mladiOce * mladiDoz + gentestiraniOce * pozitivnoTestDoz
-        if len(ocetje) >= (stNB - potomciNPn * 2):  # če imaš dovolj DOZ za vse NB
-            ocetjeNB = random.sample(ocetje, (stNB - potomciNPn * 2))  # tukaj izbereš očete za vse krave  - razen BM!
+        GenOcetje = random.choice(gentestiraniOce, NbGenTest, replace=True) #number of cows inseminated with genomically tested bulls, percentages set by the user
+        ClassOcetje = pripustOce * pripustDoz + testiraniOce * pozitivnoTestDoz + mladiOce * mladiDoz #progeny teste fathers - keep the ratios between young / natural service / PT
+        lenOce = len(GenOcetje) + len(ClassOcetje) #combined number of semen
+        if lenOce >= (stNB - potomciNPn * 2):  # če imaš dovolj DOZ za vse NB - random select the realised fathers
+            ocetjeNB = random.sample(ClassOcetje, (stNB - potomciNPn * 2 - NbGenTest)) + GenOcetje  # tukaj izbereš očete za vse krave  - razen BM!
             self.set_father_catPotomca(ocetjeNB, 'nr')
-        if len(ocetje) < (stNB - potomciNPn * 2):
-            self.set_father_catPotomca(ocetje, 'nr')
+        if lenOce < (stNB - potomciNPn * 2): #if you dont have enought semen use all of it (no random choice)
+            self.set_father_catPotomca(GenOcetje + ClassOcetje, 'nr')
 
     def save_cat_DF(self):
         categoriesDF = pd.DataFrame.from_dict(self.save_cat(), orient='index').transpose()
@@ -641,7 +641,7 @@ class pedigree(classPed):
             pd.DataFrame({0: sorted(list(set
                                          (chain.from_iterable([self.catCurrent_indiv_sex_criteria(x, sex, xC,
                                                                                                   int((len(self.catCurrent_indiv_sex(x, sex)) * (xP / 100))))
-                                                               for (x, xP, xC, sex) in genotypedCat]))))}).to_csv(
+                                                               if xP != 100 else self.catCurrent_indiv_sex(x, sex) for (x, xP, xC, sex) in genotypedCat]))))}).to_csv(
                 'IndForGeno_new.txt', index=None, header=None)
             os.system("grep -v -f IndForGeno.txt IndForGeno_new.txt > uniqNew && mv uniqNew IndForGeno_new.txt")
             os.system(
@@ -1090,7 +1090,8 @@ def selekcija_total(pedFile, **kwargs):
     ped.mother_nr_blank()
     # dodaj očete
     ped.doloci_ocete(kwargs.get('stNBn'), kwargs.get('potomciNPn'), kwargs.get('cak'), kwargs.get('pbUp'),
-                     kwargs.get('pripustDoz'), kwargs.get('mladiDoz'), kwargs.get('pozitivnoTestDoz'))
+                     kwargs.get('pripustDoz'), kwargs.get('mladiDoz'), kwargs.get('pozitivnoTestDoz'),
+                     kwargs.get('CowsGenBulls_Per'), kwargs.get('EliteDamsGenBulls'))
 
     # preveri - mora biti nič!!! - oz. če mater še ni dovolj, potem še ne!
     ped.mother_nr_blank()
@@ -1318,7 +1319,8 @@ def nastavi_cat(PedFile, **kwargs):
     ped.mother_nr_blank()
     # dodaj očete
     ped.doloci_ocete(kwargs.get('stNBn'), kwargs.get('potomciNPn'), kwargs.get('cak'), kwargs.get('pbUp'),
-                     kwargs.get('pripustDoz'), kwargs.get('mladiDoz'), kwargs.get('pozitivnoTestDoz'))
+                     kwargs.get('pripustDoz'), kwargs.get('mladiDoz'), kwargs.get('pozitivnoTestDoz'),
+                     kwargs.get('CowsGenBulls_Per'), kwargs.get('EliteDamsGenBulls'))
 
     # ped.UpdateIndCat('/home/jana/')
     ped.save_cat_DF()
@@ -1346,8 +1348,9 @@ class TBVPed(object):  # to je tabela za grafiranje genetskih trendov čez popul
     def __init__(self, AlphaSimDir):
         self.AlphaSimDir = AlphaSimDir
 
-    def genTrend(self, table):
+    def genTrend(self, table, startgen, stopgen):
         TBVtable = pd.read_table(table, sep='\s+')
+        TBVtable = TBVtable.loc[TBVtable.Generation.isin(range(startgen, stopgen))]
         gens = list(set(TBVtable.Generation))
         means = TBVtable.gvNormUnres1.groupby(TBVtable.Generation).aggregate(np.mean)
         vars = TBVtable.gvNormUnres1.groupby(TBVtable.Generation).aggregate(np.var)
