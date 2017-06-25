@@ -640,8 +640,8 @@ class pedigree(classPed):
         if os.path.isfile('IndForGeno.txt'):
             pd.DataFrame({0: sorted(list(set
                                          (chain.from_iterable([self.catCurrent_indiv_sex_criteria(x, sex, xC,
-                                                                                                  int((len(self.catCurrent_indiv_sex(x, sex)) * (xP / 100))))
-                                                               for (x, xP, xC, sex) in genotypedCat]))))}).to_csv(
+                                                                                                  int((len(self.catCurrent_indiv_sex(x, sex)) * (xP / 100.0))))
+                                                               if xP != 100.0 else self.catCurrent_indiv_sex(x, sex) for (x, xP, xC, sex) in genotypedCat]))))}).to_csv(
                 'IndForGeno_new.txt', index=None, header=None)
             os.system("grep -v -f IndForGeno.txt IndForGeno_new.txt > uniqNew && mv uniqNew IndForGeno_new.txt")
             os.system(
@@ -649,7 +649,7 @@ class pedigree(classPed):
         else:
             pd.DataFrame({0: sorted(list(set
                                          (chain.from_iterable([self.catCurrent_indiv_sex_criteria(x, sex, xC,
-                                                                                                  int((len(self.catCurrent_indiv(x)) * (xP / 100))))
+                                                                                                  int((len(self.catCurrent_indiv_sex(x, sex)) * (xP / 100.0))))
                                                                for (x, xP, xC, sex) in genotypedCat]))))}).to_csv(
                 'IndForGeno.txt', index=None, header=None)
 
@@ -1532,10 +1532,10 @@ class snpFiles:
         self.AlphaSimDir = AlphaSimDir
         self.chipFile = self.AlphaSimDir + '/SimulatedData/AllIndividualsSnpChips/Chip1Genotype.txt'
 
-    def createBlupf90SNPFile(self, nbIndGen):
-        if os.path.isfile(self.AlphaSimDir + 'GenoFile.txt'):
+    def createBlupf90SNPFile(self):
+        if os.path.isfile(self.AlphaSimDir + 'GenoFile.txt'): #if GenoFile.txt exists, only add the newIndividuals for genotypisation
             os.system(
-                '''sed -n "$(sed 's/$/p/' IndForGeno_new.txt)" ''' + self.chipFile + ' > ChosenInd.txt')  # only individuals chosen for genotypisation - ONLY NEW - LAST GEN!
+                'grep -Fwf IndForGeno.txt ' + self.chipFile + ' > ChosenInd.txt')  # only individuals chosen for genotypisation - ONLY NEW - LAST GEN!
             os.system("sed 's/^ *//' ChosenInd.txt > ChipFile.txt")  # Remove blank spaces at the beginning
             os.system("cut -f1 -d ' ' ChipFile.txt > Individuals.txt")  # obtain IDs
             os.system('''awk '{$1=""; print $0}' ChipFile.txt | sed 's/ //g' > Snps.txt''')  # obtain SNP genotypes
@@ -1545,7 +1545,7 @@ class snpFiles:
             os.system("less GenoFile.txt | sort -n | uniq > Genotmp && mv Genotmp GenoFile.txt")
         else:
             os.system(
-                '''sed -n "$(sed 's/$/p/' IndForGeno.txt)" ''' + self.chipFile + ' > ChosenInd.txt')  # only individuals chosen for genotypisation - ALL
+                'grep -Fwf IndForGeno.txt ' + self.chipFile + ' > ChosenInd.txt')  # only individuals chosen for genotypisation - ALL
             os.system("sed 's/^ *//' ChosenInd.txt > ChipFile.txt")  # Remove blank spaces at the beginning
             os.system("cut -f1 -d ' ' ChipFile.txt > Individuals.txt")  # obtain IDs
             os.system('''awk '{$1=""; print $0}' ChipFile.txt | sed 's/ //g' > Snps.txt''')  # obtain SNP genotypes
