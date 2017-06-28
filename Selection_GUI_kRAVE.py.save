@@ -56,10 +56,1796 @@ class estimateBV:
         if self.sel == 'gen':
             GenFiles = snpFiles(self.AlphaSimDir)
             GenFiles.createBlupf90SNPFile()
+4232,
+         'AlphaSimDir': '/home/jana/bin/AlphaSim1.05Linux/', 'pripust2n': 0.3999999999999999, 'stNBn': 8640,
+         'pripustDoz': 27, 'telMn': 3153, 'gEBV': True, 'pripustUp': 1.4, 'bmUp': 3,
+         'genotyped': [('potomciNP', 100.0, 'random', 'M'), ('pb', 100.0, 'random', 'M')], 'pozitivnoTestDoz': 400,
+         'StBurnInGen': 20, 'NumberOfDams': 3500, 'mladiDoz': 250, 'bik12n': 378, 'nrFn': 4275, 'mladin': 8,
+         'NumberOfSires': 4, 'bmn': 129, 'genpripust1n': 41, 'pripust1n': 19, 'potomciNPn': 45, 'vhlevljenin': 27,
+         'StSelGen': 40, 'BurnInYN': False, 'telFnTotal': 4277, 'bmOdbira': 2, 'kn': 10782, 'cak': 3, 'EBV': False,
+         'pbn': 4, 'genpbn': 5, 'pbUp': 5}
+        izl
+        322914
+        k
+        10653
+        telF
+        4277
+        pt
+        3849
+        telM
+        3153
+        bik12
+        378
+        pBM
+        129
+        pb
+        100
+        genTest
+        45
+        bm
+        43
+        cak
+        24
+        pripust1
+        19
+        pripust2
+        8
+        mladi
+        8
+        Name: cat, dtype: int64
+        90
+        izl
+        322914
+        k
+        10653
+        nr
+        8550
+        telF
+        4277
+        pt
+        3849
+        telM
+        3153
+        bik12
+        378
+        pBM
+        129
+        pb
+        100
+        potomciNP
+        90
+        genTest
+        45
+        bm
+        43
+        cak
+        24
+        pripust1
+        19
+        pripust2
+        8
+        mladi
+        8
+        Name: cat, dtype: int64
+        2
+        323038
+        1
+        31202
+        Name: active, dtype: int64
+        GenTest0
 
+        ** ** ** ** ** ** ** ** ** ** **
+        * *
+        *AlphaSim *
+        * *
+        ** ** ** ** ** ** ** ** ** ** **
+        VERSION:commit - 1801
+        eac
+
+    Software
+    for simulating phenotype, sequence, and SNP data
+
+    No
+    Liability
+
+
+Bugs
+to
+John.Hickey @ roslin.ed.ac.uk
+
+Input
+File: AlphaSimSpec.txt
+
+Modelling
+population
+history
+using
+InternalCattle
+NOTE: When
+writing
+out
+the
+full
+sequences,
+WriteFullSequenceOutOnOff
+must
+be
+On
+from the first
+
+burn - in generation
+
+Pedigree
+imported
+for generation  41
+
+Selection is performed
+using
+TBV
+
+Generation
+40 / Selection
+cycle
+21
+External
+pedigree
+successfully
+imported
+EBVacc
+GVmean
+VarG
+1.00000
+1.89399
+0.92073
+
+Last
+Generation
+41
+EBVacc
+GVmean
+VarG
+1.00000
+2.00352
+0.88510
+
+Time
+duration
+of
+AlphaSim = 995.4080
+seconds.
+
+RENUMF90
+version
+1.122
+name
+of
+parameter
+file? renumf90.par
+datafile:Blupf90.dat
+traits:           2
+R
+6.974
+
+Processing
+effect
+1
+of
+type
+cross
+item_kind = alpha
+pedigree
+file
+name
+"Blupf90.ped"
+positions
+of
+animal, sire, dam, alternate
+dam, yob, and group
+1
+2
+3
+0
+0
+0
+SNP
+file
+name
+"GenoFile.txt"
+all
+pedigrees
+to
+be
+included
+Reading(CO)
+VARIANCES:           1
+x
+1
+
+Maximum
+size
+of
+character
+fields: 20
+
+Maximum
+size
+of
+record(max_string_readline): 800
+
+Maximum
+number
+of
+fields
+for input file(max_field_readline): 100
+
+Pedigree
+search
+method(ped_search): convention
+
+Missing
+observation
+code(missing): 0
+
+hash
+tables
+for effects set up
+table
+expanded
+from
+
+10000
+to
+20000
+records
+table
+expanded
+from
+
+20000
+to
+40000
+records
+table
+expanded
+from
+
+40000
+to
+80000
+records
+table
+expanded
+from
+
+80000
+to
+160000
+records
+table
+expanded
+from
+
+160000
+to
+320000
+records
+read
+313725
+records
+added
+count
+Effect
+group
+1
+of
+column
+1
+with       155682  levels
+wrote
+statistics in file
+"renf90.tables"
+
+Basic
+statistics
+for input data(missing value code is 0)
+Pos
+Min
+Max
+Mean
+SD
+N
+2 - 14.339
+12.862 - 0.19524E-01
+2.9805
+313725
+
+random
+effect
+with SNPs  1
+type: animal
+file: GenoFile.txt
+read
+SNPs
+10402
+records
+Effect
+group
+1
+of
+column
+1
+with       155827  levels
+
+random
+effect
+1
+type:animal
+opened
+output
+pedigree
+file
+"renadd01.ped"
+table
+expanded
+from
+
+320000
+to
+640000
+records
+read
+354240
+pedigree
+records
+loaded
+198413
+parent(s) in round
+0
+
+Pedigree
+checks
+
+Number
+of
+animals
+with records:      155682
+Number
+of
+animals
+with genotypes:       10402
+Number
+of
+animals
+with records or genotypes:      155827
+Number
+of
+animals
+with genotypes and no records         145
+Number
+of
+parents
+without
+records or genotypes:      198413
+Total
+number
+of
+animals:      354240
+
+Wrote
+cross
+reference
+IDs
+for SNP file "GenoFile.txt_XrefID"
+
+Wrote
+parameter
+file
+"renf90.par"
+Wrote
+renumbered
+data
+"renf90.dat"
+313725
+records
+
+renf90.par
+
+Options
+read
+from parameter file:
+
+*SNP
+file: GenoFile.txt
+*SNP
+Xref
+file: GenoFile.txt_XrefID
+*Map
+file: SnpMap.txt
+*No
+Quality
+Control
+Checks !!!!! (default.false.):  T
+BLUPF90
+1.55
+
+Parameter
+file:             renf90.par
+Data
+file:                  renf90.dat
+Number
+of
+Traits
+1
+Number
+of
+Effects
+1
+Position
+of
+Observations
+1
+Position
+of
+Weight(1)
+0
+Value
+of
+Missing
+Trait / Observation
+0
+
+EFFECTS
+#  type                position (2)        levels   [positions for nested]
+1
+cross - classified
+2
+354240
+
+Residual(co)
+variance
+Matrix
+6.9739
+
+Random
+Effect(s)
+1
+Type
+of
+Random
+Effect:      additive
+animal
+Pedigree
+File:              renadd01.ped
+trait
+effect(CO)
+VARIANCES
+1
+1
+2.325
+
+REMARKS
+(1)
+Weight
+position
+0
+means
+no
+weights
+utilized
+(2)
+Effect
+positions
+of
+0
+for some effects and traits means that such
+effects
+are
+missing
+for specified traits
+
+Data
+record
+length = 2
+# equations =       354240
+G
+2.3246
+hash
+matrix
+increased
+from
+
+131072
+to
+262144 % filled:     0.8000
+read
+313725
+records in 0.3280000
+s, 155682
+nonzeroes
+hash
+matrix
+increased
+from
+
+262144
+to
+524288 % filled:     0.8000
+hash
+matrix
+increased
+from
+
+524288
+to
+1048576 % filled:     0.8000
+hash
+matrix
+increased
+from
+
+1048576
+to
+2097152 % filled:     0.8000
+read
+354240
+additive
+pedigrees
+
+*-------------------------------------------------------------- *
+*Genomic
+Library: Dist
+Version
+1.217 *
+* *
+*Optimized
+OpenMP
+Version - 8
+threads *
+* *
+*Modified
+relationship
+matrix(H)
+created
+for effect:   1 *
+*-------------------------------------------------------------- *
+
+Read
+354240
+animals
+from pedigree file: "renadd01.ped"
+Number
+of
+Genotyped
+Animals: 10402
+
+Creating
+A22
+Extracting
+subset
+of: 50864
+pedigrees
+from: 354240
+elapsed
+time:     0.0360
+Calculating
+A22
+Matrix
+by
+Colleau
+OpenMP...elapsed
+time: 1.5826
+Numbers
+of
+threads = 4
+8
+
+Reading
+SNP
+file
+Column
+position in file
+for the first marker: 12
+Format
+to
+read
+SNP
+file: (11
+x, 400000
+i1)
+Number
+of
+SNPs: 20000
+Format: integer
+genotypes(0
+to
+5) to
+double - precision
+array
+Number
+of
+Genotyped
+animals: 10402
+Reading
+SNP
+file
+elapsed
+time: 8.26
+
+Statistics
+of
+alleles
+frequencies in the
+current
+population
+N:          20000
+Mean:       0.433
+Min:        0.000
+Max:        1.000
+Var:        0.141
+
+Reading
+MAP
+file: "SnpMap.txt" - 20000
+SNPs
+out
+of
+20000
+
+Min and max  # of chromosome: 1 10
+
+Min and max  # of SNP: 1 20000
+
+Quality
+Control - Monomorphic
+SNPs
+Exist - NOT
+REMOVED: 4851
+
+Genotypes
+missings( %):  0.000
+
+Calculating
+G
+Matrix
+Dgemm
+MKL  # threads=     4    8 Elapsed omp_get_time:    27.4968
+
+Scale
+by
+Sum(2
+pq).Average:   4195.92157715607
+
+Blend
+G as alpha * G + beta * A22: (alpha, beta)
+0.950
+0.050
+
+Frequency - Diagonal
+of
+G
+N:       10402
+Mean:        1.378
+Min:         1.133
+Max:         1.839
+Range:       0.035
+Class:     20
+
+# Class       Class   Count
+1
+1.133
+1
+2
+1.168
+3
+3
+1.204
+40
+4
+1.239
+247
+5
+1.274
+906
+6
+1.309
+1936
+7
+1.345
+2567
+8
+1.380
+2189
+9
+1.415
+1410
+10
+1.451
+636
+11
+1.486
+279
+12
+1.521
+105
+13
+1.556
+43
+14
+1.592
+26
+15
+1.627
+5
+16
+1.662
+2
+17
+1.697
+1
+18
+1.733
+2
+19
+1.768
+2
+20
+1.803
+2
+21
+1.839
+0
+
+Check
+for diagonal of genomic relationship matrix
+
+** High
+Diagonal
+of
+genotype
+1
+1.84
+Not
+Removed
+** High
+Diagonal
+of
+genotype
+2
+1.77
+Not
+Removed
+** High
+Diagonal
+of
+genotype
+3
+1.78
+Not
+Removed
+** High
+Diagonal
+of
+genotype
+4
+1.83
+Not
+Removed
+** High
+Diagonal
+of
+genotype
+6
+1.64
+Not
+Removed
+** High
+Diagonal
+of
+genotype
+8
+1.62
+Not
+Removed
+** High
+Diagonal
+of
+genotype
+9
+1.75
+Not
+Removed
+** High
+Diagonal
+of
+genotype
+10
+1.62
+Not
+Removed
+** High
+Diagonal
+of
+genotype
+11
+1.65
+Not
+Removed
+** High
+Diagonal
+of
+genotype
+12
+1.73
+Not
+Removed
+** High
+Diagonal
+of
+genotype
+513
+1.62
+Not
+Removed
+** High
+Diagonal
+of
+genotype
+643
+1.60
+Not
+Removed
+** High
+Diagonal
+of
+genotype
+2421
+1.62
+Not
+Removed
+** High
+Diagonal
+of
+genotype
+3137
+1.61
+Not
+Removed
+** High
+Diagonal
+of
+genotype
+3220
+1.60
+Not
+Removed
+** High
+Diagonal
+of
+genotype
+3999
+1.61
+Not
+Removed
+** High
+Diagonal
+of
+genotype
+4483
+1.60
+Not
+Removed
+** High
+Diagonal
+of
+genotype
+4903
+1.60
+Not
+Removed
+** High
+Diagonal
+of
+genotype
+5539
+1.64
+Not
+Removed
+** High
+Diagonal
+of
+genotype
+5638
+1.62
+Not
+Removed
+** High
+Diagonal
+of
+genotype
+5939
+1.61
+Not
+Removed
+** High
+Diagonal
+of
+genotype
+6044
+1.62
+Not
+Removed
+** High
+Diagonal
+of
+genotype
+6102
+1.71
+Not
+Removed
+** High
+Diagonal
+of
+genotype
+6121
+1.61
+Not
+Removed
+** High
+Diagonal
+of
+genotype
+6417
+1.60
+Not
+Removed
+** High
+Diagonal
+of
+genotype
+6545
+1.61
+Not
+Removed
+** High
+Diagonal
+of
+genotype
+7044
+1.69
+Not
+Removed
+** High
+Diagonal
+of
+genotype
+7106
+1.60
+Not
+Removed
+** High
+Diagonal
+of
+genotype
+7555
+1.61
+Not
+Removed
+** High
+Diagonal
+of
+genotype
+7665
+1.67
+Not
+Removed
+** High
+Diagonal
+of
+genotype
+8001
+1.66
+Not
+Removed
+** High
+Diagonal
+of
+genotype
+8827
+1.61
+Not
+Removed
+** High
+Diagonal
+of
+genotype
+8927
+1.62
+Not
+Removed
+** High
+Diagonal
+of
+genotype
+9300
+1.65
+Not
+Removed
+** High
+Diagonal
+of
+genotype
+9646
+1.63
+Not
+Removed
+** High
+Diagonal
+of
+genotype
+9919
+1.62
+Not
+Removed
+
+Check
+for diagonal of genomic relationship matrix, genotypes not removed: 36
+
+------------------------------
+Final
+Pedrigree - Based
+Matrix
+------------------------------
+
+Statistic
+of
+Rel.Matrix
+A22
+N
+Mean
+Min
+Max
+Var
+Diagonal
+10402
+1.378
+1.224
+1.577
+0.001
+Off - diagonal
+108191202
+0.761
+0.470
+1.328
+0.002
+
+----------------------
+Final
+Genomic
+Matrix
+----------------------
+
+Statistic
+of
+Genomic
+Matrix
+N
+Mean
+Min
+Max
+Var
+Diagonal
+10402
+1.378
+1.133
+1.839
+0.004
+Off - diagonal
+108191202
+0.761
+0.479
+1.358
+0.003
+
+Correlation
+of
+Genomic
+Inbreeding and Pedigree
+Inbreeding
+Correlation:     0.1314
+
+All
+elements - Diagonal / Off - Diagonal
+Estimating
+Regression
+Coefficients
+G = b0
+11
+' + b1 A + e
+Regression
+coefficients
+b0
+b1 = 0.319
+0.581
+
+Correlation
+all
+elements
+G & A
+0.417
+
+Off - Diagonal
+Using
+108191202
+elements
+from A22 >= .02000
+
+Estimating
+Regression
+Coefficients
+G = b0
+11
+' + b1 A + e
+Regression
+coefficients
+b0
+b1 = 0.326
+0.571
+
+Correlation
+Off - Diagonal
+elements
+G & A
+0.408
+
+** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** *
+*CORRELATION
+FOR
+OFF - DIAGONALS
+G & A22
+IS
+LOW
+THAN
+0.50  !!!!! *
+*MISIDENTIFIED
+GENOMIC
+SAMPLES
+OR
+POOR
+QUALITY
+GENOMIC
+DATA *
+** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** *
+
+Creating
+A22 - inverse
+Inverse
+LAPACK
+MKL
+dpotrf / i  # threads=    4    8 Elapsed omp_get_time:     9.2622
+
+----------------------
+Final
+A22
+Inv
+Matrix
+----------------------
+
+Statistic
+of
+Inv.Rel.Matrix
+A22
+N
+Mean
+Min
+Max
+Var
+Diagonal
+10402
+3.334
+1.806
+226.863
+83.721
+Off - diagonal
+108191202 - 0.000 - 4.703
+2.592
+0.000
+
+Creating
+G - inverse
+Inverse
+LAPACK
+MKL
+dpotrf / i  # threads=    4    8 Elapsed omp_get_time:     8.9444
+
+--------------------------
+Final
+Genomic
+Inv
+Matrix
+--------------------------
+
+Statistic
+of
+Inv.Genomic
+Matrix
+N
+Mean
+Min
+Max
+Var
+Diagonal
+10402
+78.501
+35.171
+5356.830
+47646.010
+Off - diagonal
+108191202 - 0.008 - 115.310
+79.044
+0.381
+
+Check
+for diagonal of Inverse Genomic - Inverse of pedigree relationship matrix
+
+------------------------------
+Final
+G
+Inv - A22
+Inv
+Matrix
+------------------------------
+
+Statistic
+of
+Inv.Genomic - A22
+Matrix
+N
+Mean
+Min
+Max
+Var
+Diagonal
+10402
+75.167
+32.863
+5129.967
+43736.396
+Off - diagonal
+108191202 - 0.007 - 110.607
+76.453
+0.359
+
+*------------------------ *
+*Setup
+Genomic
+Done !!! *
+*------------------------ *
+
+hash
+matrix
+increased
+from
+
+2097152
+to
+4194304 % filled:     0.8000
+hash
+matrix
+increased
+from
+
+4194304
+to
+8388608 % filled:     0.8000
+hash
+matrix
+increased
+from
+
+8388608
+to
+16777216 % filled:     0.8000
+hash
+matrix
+increased
+from
+
+16777216
+to
+33554432 % filled:     0.8000
+hash
+matrix
+increased
+from
+
+33554432
+to
+67108864 % filled:     0.8000
+hash
+matrix
+increased
+from
+
+67108864
+to
+134217728 % filled:     0.8000
+finished
+peds in 301.0800
+s, 55422175
+nonzeroes
+round = 1
+convergence = 3.711
+round = 2
+convergence = 1.873
+round = 3
+convergence = 6.758
+round = 4
+convergence = 1.801
+round = 5
+convergence = 2.825
+round = 6
+convergence = 2.758
+round = 7
+convergence = 1.056
+round = 8
+convergence = 2.180
+round = 9
+convergence = 0.8469
+round = 10
+convergence = 0.8738
+round = 11
+convergence = 0.9712
+round = 12
+convergence = 0.6056
+round = 13
+convergence = 0.6200
+round = 14
+convergence = 0.3782
+round = 15
+convergence = 0.2753
+round = 16
+convergence = 0.2844
+round = 17
+convergence = 0.2551
+round = 18
+convergence = 0.2006
+round = 19
+convergence = 0.2491
+round = 20
+convergence = 0.1806
+round = 21
+convergence = 0.1144
+round = 22
+convergence = 0.1275
+round = 23
+convergence = 0.7183E-01
+round = 24
+convergence = 0.5708E-01
+round = 25
+convergence = 0.6154E-01
+round = 26
+convergence = 0.5204E-01
+round = 27
+convergence = 0.5897E-01
+round = 28
+convergence = 0.4264E-01
+round = 29
+convergence = 0.3822E-01
+round = 30
+convergence = 0.3822E-01
+round = 31
+convergence = 0.3029E-01
+round = 32
+convergence = 0.2478E-01
+round = 33
+convergence = 0.2096E-01
+round = 34
+convergence = 0.1716E-01
+round = 35
+convergence = 0.1450E-01
+round = 36
+convergence = 0.1027E-01
+round = 37
+convergence = 0.7979E-02
+round = 38
+convergence = 0.5963E-02
+round = 39
+convergence = 0.5577E-02
+round = 40
+convergence = 0.5131E-02
+round = 41
+convergence = 0.5002E-02
+round = 42
+convergence = 0.3754E-02
+round = 43
+convergence = 0.3062E-02
+round = 44
+convergence = 0.2361E-02
+round = 45
+convergence = 0.2115E-02
+round = 46
+convergence = 0.1512E-02
+round = 47
+convergence = 0.1498E-02
+round = 48
+convergence = 0.1120E-02
+round = 49
+convergence = 0.9253E-03
+round = 50
+convergence = 0.1034E-02
+round = 51
+convergence = 0.7985E-03
+round = 52
+convergence = 0.9440E-03
+round = 53
+convergence = 0.8049E-03
+round = 54
+convergence = 0.7102E-03
+round = 55
+convergence = 0.5424E-03
+round = 56
+convergence = 0.4092E-03
+round = 57
+convergence = 0.3419E-03
+round = 58
+convergence = 0.2864E-03
+round = 59
+convergence = 0.2528E-03
+round = 60
+convergence = 0.2272E-03
+round = 61
+convergence = 0.1745E-03
+round = 62
+convergence = 0.1760E-03
+round = 63
+convergence = 0.1603E-03
+round = 64
+convergence = 0.1450E-03
+round = 65
+convergence = 0.1196E-03
+round = 66
+convergence = 0.9272E-04
+round = 67
+convergence = 0.6495E-04
+round = 68
+convergence = 0.6507E-04
+round = 69
+convergence = 0.4647E-04
+round = 70
+convergence = 0.4298E-04
+round = 71
+convergence = 0.3401E-04
+round = 72
+convergence = 0.3051E-04
+round = 73
+convergence = 0.2834E-04
+round = 74
+convergence = 0.2715E-04
+round = 75
+convergence = 0.2453E-04
+round = 76
+convergence = 0.1809E-04
+round = 77
+convergence = 0.1839E-04
+round = 78
+convergence = 0.1597E-04
+round = 79
+convergence = 0.1369E-04
+round = 80
+convergence = 0.1241E-04
+round = 81
+convergence = 0.8765E-05
+round = 82
+convergence = 0.7867E-05
+round = 83
+convergence = 0.5849E-05
+round = 84
+convergence = 0.5215E-05
+round = 85
+convergence = 0.4519E-05
+round = 86
+convergence = 0.4550E-05
+round = 87
+convergence = 0.4906E-05
+round = 88
+convergence = 0.3903E-05
+round = 89
+convergence = 0.3088E-05
+round = 90
+convergence = 0.2459E-05
+round = 91
+convergence = 0.2232E-05
+round = 92
+convergence = 0.1808E-05
+round = 93
+convergence = 0.1457E-05
+round = 94
+convergence = 0.1067E-05
+round = 95
+convergence = 0.8573E-06
+round = 96
+convergence = 0.9374E-06
+round = 97
+convergence = 0.6672E-06
+round = 98
+convergence = 0.7784E-06
+round = 99
+convergence = 0.6408E-06
+round = 100
+convergence = 0.6753E-06
+round = 101
+convergence = 0.4818E-06
+round = 102
+convergence = 0.4181E-06
+round = 103
+convergence = 0.3139E-06
+round = 104
+convergence = 0.2591E-06
+round = 105
+convergence = 0.2009E-06
+round = 106
+convergence = 0.1812E-06
+round = 107
+convergence = 0.1529E-06
+round = 108
+convergence = 0.1455E-06
+round = 109
+convergence = 0.1009E-06
+round = 110
+convergence = 0.7782E-07
+round = 111
+convergence = 0.7107E-07
+round = 112
+convergence = 0.6282E-07
+round = 113
+convergence = 0.5039E-07
+round = 114
+convergence = 0.4138E-07
+round = 115
+convergence = 0.3688E-07
+round = 116
+convergence = 0.3782E-07
+round = 117
+convergence = 0.3757E-07
+round = 118
+convergence = 0.2739E-07
+round = 119
+convergence = 0.2206E-07
+round = 120
+convergence = 0.1415E-07
+round = 121
+convergence = 0.1278E-07
+round = 122
+convergence = 0.1087E-07
+round = 123
+convergence = 0.9175E-08
+round = 124
+convergence = 0.7651E-08
+round = 125
+convergence = 0.7186E-08
+round = 126
+convergence = 0.6910E-08
+round = 127
+convergence = 0.5895E-08
+round = 128
+convergence = 0.4188E-08
+round = 129
+convergence = 0.3245E-08
+round = 130
+convergence = 0.3117E-08
+round = 131
+convergence = 0.2807E-08
+round = 132
+convergence = 0.2867E-08
+round = 133
+convergence = 0.2077E-08
+round = 134
+convergence = 0.1778E-08
+round = 135
+convergence = 0.1326E-08
+round = 136
+convergence = 0.1371E-08
+round = 137
+convergence = 0.1134E-08
+round = 138
+convergence = 0.1065E-08
+round = 139
+convergence = 0.7911E-09
+round = 140
+convergence = 0.6586E-09
+round = 141
+convergence = 0.4762E-09
+round = 142
+convergence = 0.4235E-09
+round = 143
+convergence = 0.3609E-09
+round = 144
+convergence = 0.3035E-09
+round = 145
+convergence = 0.2550E-09
+round = 146
+convergence = 0.2265E-09
+round = 147
+convergence = 0.1940E-09
+round = 148
+convergence = 0.1705E-09
+round = 149
+convergence = 0.1372E-09
+round = 150
+convergence = 0.1239E-09
+round = 151
+convergence = 0.8186E-10
+round = 152
+convergence = 0.7705E-10
+round = 153
+convergence = 0.7805E-10
+round = 154
+convergence = 0.5795E-10
+round = 155
+convergence = 0.4565E-10
+round = 156
+convergence = 0.3446E-10
+round = 157
+convergence = 0.3180E-10
+round = 158
+convergence = 0.3056E-10
+round = 159
+convergence = 0.2035E-10
+round = 160
+convergence = 0.1909E-10
+round = 161
+convergence = 0.1644E-10
+round = 162
+convergence = 0.1285E-10
+round = 163
+convergence = 0.9319E-11
+round = 164
+convergence = 0.1089E-10
+round = 165
+convergence = 0.9989E-11
+round = 166
+convergence = 0.9789E-11
+round = 167
+convergence = 0.5727E-11
+round = 168
+convergence = 0.4675E-11
+round = 169
+convergence = 0.3690E-11
+round = 170
+convergence = 0.3606E-11
+round = 171
+convergence = 0.3717E-11
+round = 172
+convergence = 0.3439E-11
+round = 173
+convergence = 0.2890E-11
+round = 174
+convergence = 0.2080E-11
+round = 175
+convergence = 0.1940E-11
+round = 176
+convergence = 0.1635E-11
+round = 177
+convergence = 0.1537E-11
+round = 178
+convergence = 0.1225E-11
+round = 179
+convergence = 0.9444E-12
+179
+iterations, convergence
+criterion = 0.9444E-12
+solutions
+stored in file: "solutions"
+{'ptn': 3849, 'MinusDamLact': 769, 'nrMn': 4320, 'kraveUp': 4, 'telFn': 4232,
+ 'AlphaSimDir': '/home/jana/bin/AlphaSim1.05Linux/', 'pripust2n': 0.3999999999999999, 'stNBn': 8640, 'pripustDoz': 27,
+ 'telMn': 3153, 'gEBV': True, 'pripustUp': 1.4, 'bmUp': 3,
+ 'genotyped': [('potomciNP', 100.0, 'random', 'M'), ('pb', 100.0, 'random', 'M')], 'pozitivnoTestDoz': 400,
+ 'StBurnInGen': 20, 'NumberOfDams': 3500, 'mladiDoz': 250, 'bik12n': 378, 'nrFn': 4275, 'mladin': 8, 'NumberOfSires': 4,
+ 'bmn': 129, 'genpripust1n': 41, 'pripust1n': 19, 'potomciNPn': 45, 'vhlevljenin': 27, 'StSelGen': 40,
+ 'BurnInYN': False, 'telFnTotal': 4277, 'bmOdbira': 2, 'kn': 10782, 'cak': 3, 'EBV': False, 'pbn': 4, 'genpbn': 5,
+ 'pbUp': 5}
+izl
+331532
+k
+10653
+telF
+4277
+pt
+3849
+telM
+3153
+bik12
+378
+pBM
+129
+pb
+104
+genTest
+45
+bm
+43
+pripust1
+40
+cak
+24
+pripust2
+8
+gpb
+5
+Name: cat, dtype: int64
+90
+izl
+331532
+k
+10653
+nr
+8550
+telF
+4277
+pt
+3849
+telM
+3153
+bik12
+378
+pBM
+129
+pb
+104
+potomciNP
+90
+genTest
+45
+bm
+43
+pripust1
+40
+cak
+24
+pripust2
+8
+gpb
+5
+Name: cat, dtype: int64
+2
+331665
+1
+31215
+Name: active, dtype: int64
+GenTest5
+
+** ** ** ** ** ** ** ** ** ** **
+* *
+*AlphaSim *
+* *
+** ** ** ** ** ** ** ** ** ** **
+VERSION:commit - 1801
+eac
+Software
+for simulating phenotype, sequence, and SNP data
+
+No
+Liability
+Bugs
+to
+John.Hickey @ roslin.ed.ac.uk
+
+Input
+File: AlphaSimSpec.txt
+
+Modelling
+population
+history
+using
+InternalCattle
+NOTE: When
+writing
+out
+the
+full
+sequences,
         os.system("./renumf90 < renumParam")  # run renumf90
 
-        #if self.sel == 'class': #ZDJ TEGA NI, KER JE POSEBEJ FILE!
         #if self.sel == 'class': #ZDJ TEGA NI, KER JE POSEBEJ FILE!
             #os.system("head -n-3 renf90.par > tmp && mv tmp renf90.par")
             #os.system("./blupf90 blupf90_Selection")  # run blupf90

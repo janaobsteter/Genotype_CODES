@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1180</width>
+    <width>1093</width>
     <height>787</height>
    </rect>
   </property>
@@ -241,7 +241,7 @@
       <x>800</x>
       <y>240</y>
       <width>365</width>
-      <height>152</height>
+      <height>201</height>
      </rect>
     </property>
     <property name="title">
@@ -275,6 +275,23 @@
       <widget class="QLabel" name="label_27">
        <property name="text">
         <string>Dosage per natural ser. bull</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="0">
+      <widget class="QCheckBox" name="EliteDamsGenBulls">
+       <property name="text">
+        <string>EliteDams with genBulls</string>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="1">
+      <widget class="QLineEdit" name="CowsGenBullsPer"/>
+     </item>
+     <item row="5" column="0">
+      <widget class="QLabel" name="label_29">
+       <property name="text">
+        <string>%cows inseminated with genBulls</string>
        </property>
       </widget>
      </item>
@@ -920,7 +937,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1180</width>
+     <width>1093</width>
      <height>25</height>
     </rect>
    </property>

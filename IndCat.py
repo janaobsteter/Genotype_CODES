@@ -2,11 +2,10 @@ import os
 import pandas as pd
 
 
-
+os.chdir('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_GenScenario1/')
 def IndCat(ind):
-    os.chdir('/home/jana/bin/AlphaSim1.05Linux/')
     indcat = []
-    Cat = sorted([ i for i in os.listdir('/home/jana/bin/AlphaSim1.05Linux/') if i.startswith('Cat')])
+    Cat = sorted([ i for i in os.listdir(os.getcwd()) if i.startswith('Cat')])
     for i in Cat:
         catDF = pd.read_csv(i)
         for cat in catDF.columns:
@@ -16,3 +15,12 @@ def IndCat(ind):
     return indcat
 
     
+    
+potomci = list(pd.read_csv('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_Class/Categories_gen56DF.csv')['cak'].dropna().astype(int))
+sol = pd.read_table('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_Class/renumbered_Solutions_56', header=None, sep=" ", names=['rind', 'Indiv', 'EBV'])
+pot = ped.loc[ped.Indiv.isin(potomci)]
+a = pd.merge(pot, sol, on='Indiv')
+a.loc[a.sex=='M'].sort(a.columns[17], ascending=False)[:30]
+
+cak = list(pd.read_table('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_Class/Categories_gen59DF.csv', sep=",").cak.dropna().astype(int))
+sol = pd.read_table('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_Class/renumbered_Solutions_59', header=None, sep=" ", names=['rind', 'Indiv', 'EBV'])

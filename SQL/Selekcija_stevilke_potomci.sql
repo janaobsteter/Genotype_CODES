@@ -318,3 +318,39 @@ and pb.PB_ZIV_ID_SEQ = pasma.ZIV_ID_SEQ
 and pasma.PASMA_SPADA=1 group by   pb.PB_ZIV_ID_SEQ,
   pb.SIF_UPORABA_PB,  extract(YEAR FROM ziv.DAT_ROJSTVO)) poOce
   where poOce.stPot >=50  group by poOce.SIF_UPORABA_PB, poOce.letoRoj) poLetu group by poLetu.SIF_UPORABA_PB ;
+  
+  
+  
+  --koliko potomcev po genomsko testiranem biku
+select round(avg(poLetu.stePoto)), poLetu.SIF_UPORABA_PB from
+(select round(avg(poOce.stPot)) stePoto, poOce.SIF_UPORABA_PB, poOce.letoRoj from
+(SELECT count(DISTINCT ziv.ZIV_ID_SEQ) stPot,
+  extract(YEAR FROM ziv.DAT_ROJSTVO) letoRoj,
+  pb.PB_ZIV_ID_SEQ,
+  pb.SIF_UPORABA_PB
+FROM govedo.zivali ziv,
+  GOVEDO.PLEMENSKI_BIKI pb,
+  GOVEDO.ZIVALI_PASMA_SPADA pasma
+WHERE pb.PB_ZIV_ID_SEQ                  =ziv.ZIV_OCE_SEQ
+AND extract(YEAR FROM ziv.DAT_ROJSTVO) between 2005 and 2017
+and pb.PB_ZIV_ID_SEQ = pasma.ZIV_ID_SEQ
+and pb.SIF_UPORABA_PB=16
+and pasma.PASMA_SPADA=1 group by   pb.PB_ZIV_ID_SEQ,
+  pb.SIF_UPORABA_PB,  extract(YEAR FROM ziv.DAT_ROJSTVO)) poOce
+  --where poOce.stPot >=50 
+group by poOce.SIF_UPORABA_PB, poOce.letoRoj) poLetu group by poLetu.SIF_UPORABA_PB ;
+
+--koliko genomskih na leto
+SELECT count(DISTINCT ziv.ZIV_ID_SEQ) stPot,
+  extract(YEAR FROM ziv.DAT_ROJSTVO) letoRoj,
+  pb.PB_ZIV_ID_SEQ,
+  pb.SIF_UPORABA_PB
+FROM govedo.zivali ziv,
+  GOVEDO.PLEMENSKI_BIKI pb,
+  GOVEDO.ZIVALI_PASMA_SPADA pasma
+WHERE pb.PB_ZIV_ID_SEQ                  =ziv.ZIV_OCE_SEQ
+AND extract(YEAR FROM ziv.DAT_ROJSTVO) between 2005 and 2017
+and pb.PB_ZIV_ID_SEQ = pasma.ZIV_ID_SEQ
+and pb.SIF_UPORABA_PB=16
+and pasma.PASMA_SPADA=1 group by   pb.PB_ZIV_ID_SEQ,
+  pb.SIF_UPORABA_PB,  extract(YEAR FROM ziv.DAT_ROJSTVO)

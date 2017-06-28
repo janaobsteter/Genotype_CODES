@@ -8,43 +8,17 @@ from pylab import legend
 import os
 
 
-class TBVPed(object):  # to je tabela za grafiranje genetskih trendov čez populacije
-    def __init__(self, AlphaSimDir):
-        self.AlphaSimDir = AlphaSimDir
 
-    def genTrend(self, table):
-        TBVtable = pd.read_table(table, sep='\s+')
-        gens = list(set(TBVtable.Generation))
-        means = TBVtable.gvNormUnres1.groupby(TBVtable.Generation).aggregate(np.mean)
-        vars = TBVtable.gvNormUnres1.groupby(TBVtable.Generation).aggregate(np.var)
-        return gens, means, vars
-
-    def catTrend(self):
-        cat = list(
-            set(pd.read_table(self.AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues_cat.txt', sep='\s+').cat))
-        TBVtable = pd.read_table(self.AlphaSimDir + 'SimulatedData/PedigreeAndGeneticValues_cat.txt', sep='\s+')
-        gen = max(set(TBVtable.Generation))
-        means = TBVtable.gvNormUnres1.groupby(TBVtable.cat).aggregate(np.mean)
-        vars = TBVtable.gvNormUnres1.groupby(TBVtable.cat).aggregate(np.var)
-        return pd.DataFrame({'cat': cat, str(gen) + '_mean': means, str(gen) + '_vars': vars})
-
-    def GenTrend(self):
-        gens = list(
-            set(pd.read_table(self.AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues_cat.txt',
-                              sep='\s+').Generation))
-        TBVtable = pd.read_table(self.AlphaSimDir + 'SimulatedData/PedigreeAndGeneticValues_cat.txt', sep='\s+')
-        gen = max(set(TBVtable.Generation))
-        means = TBVtable.gvNormUnres1.groupby(TBVtable.Generation).aggregate(np.mean)
-        vars = TBVtable.gvNormUnres1.groupby(TBVtable.Generation).aggregate(np.var)
-        return pd.DataFrame({'Gen': gens, str(gen) + '_mean': means, str(gen) + '_vars': vars})
-
+TBV  = TBVPed(os.getcwd() + '/')
+gens, means, vars = TBV.genTrend('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_Class/SimulatedData/PedigreeAndGeneticValues.txt', 41, 61)
 
 
 TBV  = TBVPed(os.getcwd() + '/')
-gens, means, vars = TBV.genTrend('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_Class/SimulatedData/PedigreeAndGeneticValues.txt')
+gensA, meansA, varsA = TBV.genTrend('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_GenFather/SimulatedData/PedigreeAndGeneticValues.txt', 41, 61)
+
 
 TBV  = TBVPed(os.getcwd() + '/')
-gensG, meansG, varsG = TBV.genTrend('/home/jana/bin/AlphaSim1.05Linux/SimulatedData/PedigreeAndGeneticValues.txt')
+gensG, meansG, varsG = TBV.genTrend('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_GenFatherReference/SimulatedData/PedigreeAndGeneticValues.txt', 41, 61)
 #plt.errorbar(x = TBV.gens, y = TBV.means, yerr = TBV.vars)
 
 Means = pd.DataFrame()
@@ -56,15 +30,18 @@ Means.loc[:,'GenG'] = [int(x) for x in gensG]
 Means.loc[:,'MeanG'] = list(meansG)
 Means.loc[:,'VarG'] =  list(varsG)
 Means.loc[:,'StandG'] = (Means.MeanG - Means.MeanG[0]) / sqrt(Means.VarG[0])
-
+Means.loc[:,'GenA'] = [int(x) for x in gensA]
+Means.loc[:,'MeanA'] = list(meansA)
+Means.loc[:,'VarA'] =  list(varsA)
+Means.loc[:,'StandA'] = (Means.MeanA - Means.MeanA[0]) / sqrt(Means.VarA[0])
 
 
 
 plt.plot( Means.Gen, Means.Stand,  label = 'Mean Gen TBV_class')
 
+plt.plot( Means.Gen, Means.Stand,  label = 'Mean Gen TBV_genFatherRef')
 
-
-plt.plot( Means.GenG, Means.StandG,  label = 'Mean Gen TBV_gen')
+plt.plot( Means.GenG, Means.StandG,  label = 'Mean Gen TBV_genFather')
 plt.xticks(Means.Gen)
 plt.xlabel('Selected Generation')
 plt.ylabel('Mean Generation TBV')

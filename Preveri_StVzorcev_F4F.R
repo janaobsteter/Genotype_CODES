@@ -22,7 +22,7 @@ poizvedba <- paste("SELECT  ZGPT_ZGPVSN_SIFRA,ZGPT_ID_SEQ seq, zivali.ziv_id_seq
  ZGPT_KONTROLOR AS kontrolor_sif
 FROM govedo.ZIVALI_GP_TEST, govedo.zivali
 WHERE ZGPT_ZIV_ID_SEQ = ZIV_ID_SEQ
-and    ZGPT_ZGPVSN_SIFRA in (20,21)  
+and    ZGPT_ZGPVSN_SIFRA in (20,21,22,23)  
 and ZGPT_VZOREC_NAROCEN_ZIV=10
 ORDER BY rejec")
 #tabela na Govedu, kjer so vnešeni IDji prejetih živali (Andreja)
@@ -33,10 +33,9 @@ sumTabGov <- as.data.frame(table(tabela$Rejec))
 colnames(sumTabGov) <- c('Rejec', 'PrejetoStVzorcevGov')
 
 #tabela števil, prepisanih iz seznamov kontrolorjev - preverjeno s številom vzorcev
-mojaTab <- read.csv('/home/jana/Documents/F4F/OdbiraZivali/StPrejetihVzorcev_16052017.csv', na.strings='')
+mojaTab <- read.csv('/home/jana/Documents/F4F/OdbiraZivali/StPrejetihVzorcev_Skupno.csv', na.strings='')
 
 #preveri, ali se ujema število vzorcev po rejcu - Andrejina tabela na Govedu in moja - prepisane številke iz seznamov kontrolorjev (in preverjeno št. vzorcev)
-together <- merge(mojaTab, sumTabGov, by='Rejec', all = T)
 nrow(together)
 sum(together$PrejetoStVzorcev)
 sum(together$PrejetoStVzorcevGov)

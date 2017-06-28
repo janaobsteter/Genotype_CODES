@@ -39,9 +39,44 @@ ped <- data.frame(id=1:8, dam=c(NA,NA,NA,NA,2,2,5,6), sire=c(NA,NA,NA,1,3,1,4,3)
 X <- matrix (nrow = 5 , ncol = 2, c(c(1,0,0,1,1), c(0,1,1,0,0)))
 noAnObs <- 5
 y <- as.vector(c(4.5, 2.9, 3.9, 3.5, 5.0))
+blup <- function(X, Z, y, ped, alpha) {
+  XtZ = t(X)%*%Z
+  ZtX = t(XtZ)
+  Xty <- t(X) %*% y
+  Zty <- t(Z) %*% y
+  ZtZ <- t(Z) %*% Z
+  XtX <- t(X) %*% X
+
+  makeAinv(ped)
+  Ai <- read.table("Ainv.txt")
+  nInd <- nrow(ped)
+  Ainv <- matrix(0,nrow = nInd,ncol = nInd)
+  Ainv[as.matrix(Ai[,1:2])] <- Ai[,3]
+  dd <- diag(Ainv)
+  Ainv <- Ainv + t(Ainv)
+  diag(Ainv) <- dd
+  
+  AinvAlpha <- Ainv*2
+  gen <- ZtZ + AinvAlpha
+  
+  LSEU <- cbind(XtX, XtZ)
+  LSEL <- cbind(ZtX, gen)
+  LSE <- rbind(LSEU, LSEL)
+  yT <- rbind(Xty, Zty)
+
+  
+  sol <- solve(LSE) %*% yT
+  coeff <- solve(LSE)
+  
+  diagonal <- diag(coeff)[3:length(diag(coeff))]
+  accuracies <- round(c(sqrt(1 - diagonal*alpha)),3)
+  return(accuracies)
+}
+
 alpha <- 2
 
 AccDF <- data.frame(id = ped$id, basic = blupAcc(X, 5, y, ped, alpha))
+
 
 
 #####################################################################################
@@ -52,10 +87,13 @@ AccDF <- data.frame(id = ped$id, basic = blupAcc(X, 5, y, ped, alpha))
 #write.table(dat, '/home/jana/Documents/PhD/Mrode.dat', col.names=F, sep=" ", row.names=F, quote=F)
 #write.table(ped, '/home/jana/Documents/PhD/Mrode.ped', col.names=F, sep=" ", row.names=F, quote=F)
 
+
 #add full-sib to animal 5
 #ped[9,] <- c(9, 3, 2, 1)
 #female full-sib
 #dat[9,] <- c(9, 3.5, 2)
+
+
 #male full-sib
 #dat[9,] <- c(9, 3.5, 2)
 #what happens to accuracies
@@ -63,10 +101,20 @@ AccDF <- data.frame(id = ped$id, basic = blupAcc(X, 5, y, ped, alpha))
 
 #add half-sib to animal 5 - FEMALE
 X <- matrix (nrow = 6 , ncol = 2, c(c(1,0,0,1,1,0), c(0,1,1,0,0,1)))
+
 y <- as.vector(c(4.5, 2.9, 3.9, 3.5, 5.0, 3.5))
 ped <- data.frame(id=1:9, dam=c(NA,NA,NA,NA,2,2,5,6,5), sire=c(NA,NA,NA,1,3,1,4,3,1))
 
 
+
+#add male full-sib
+
+ped[9,] <- c(9, 3, 2)
+X <- matrix (nrow = 6 , ncol = 2, c(c(1,0,0,1,1,1),c(0,1,1,0,0,0)))
+Z <- matrix (nrow = 6 , ncol = 9, c(rep(0,18), 1, rep(c(rep(0, 6),1),5)))
+y <- as.vector(c(4.5, 2.9, 3.9, 3.5, 5.0, 3.5))
+
+blup(X, Z, y, ped, alpha)
 
 AccDFTemp <- data.frame(id = ped$id, FeMaleHalfSib = blupAcc(X, 6, y, ped, alpha))
 AccDF <- merge(AccDF, AccDFTemp, by='id', all=T)
@@ -170,3 +218,4 @@ AccDFTemp <- data.frame(id = ped$id, OffspringUnrelA = blupAcc(X, 13, y, ped, al
 AccDF <- merge(AccDF, AccDFTemp, by='id', all=T)
 
 write.csv(AccDF, '/home/jana/Documents/PhD/Accuracy_EBV.csv', quote=F, row.names=F)
+
