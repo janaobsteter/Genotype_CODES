@@ -444,6 +444,21 @@ class pedigree(classPed):
         for i in self.ped.loc[self.ped.cat == cat].index:
             self.ped.loc[i, 'PA'] = (float(self.ped.EBV[self.ped.Indiv == self.ped.Father[i]]) + float(self.ped.EBV[self.ped.Indiv == self.ped.Mother[i]])) / 2
 
+    def computePA_previousCat(self, oldcat, sex, prevGenDict): #therefore you have to use this at the end of the selection cycle
+        for i in self.ped.loc[(self.ped.sex == sex) & (self.ped.Indiv.isin(prevGenDict[oldcat]))].index:
+            self.ped.loc[i, 'PA'] = (float(self.ped.EBV[self.ped.Indiv == self.ped.Father[i]]) + float(self.ped.EBV[self.ped.Indiv == self.ped.Mother[i]])) / 2
+
+
+    def izberi_poEBV_top(self, sex, st, oldcat, cat, prevGenDict):
+        selRow = list(
+            self.ped.loc[(self.ped.sex == sex) & (self.ped.Indiv.isin(prevGenDict[oldcat])), 'EBV'].sort_values(
+                ascending=False)[:st].index)  # katere izbereš
+        if len(selRow) < st:
+            print("Too little animals to choose from. <{} {} > {}>".format("izberi po EBV", oldcat, cat))
+        else:
+            self.set_cat_list(selRow, cat)
+            self.set_active_list(selRow, 1)
+
     def UpdateIndCat(self, Dir):
         if not os.path.isfile(Dir + '/IndCat.csv'):
             self.IndCat = pd.DataFrame()
@@ -576,7 +591,7 @@ class pedigree(classPed):
         bmMother = (potomciNPn * 2) if len(self.catCurrent_indiv('pBM')) >= (potomciNPn * 2) else len(
             self.catCurrent_indiv('pBM'))  # the number of elite dams - they are the limiting factor
         # for classical testing - if you already have elite bulls
-        if not EliteDamsGenBulls: #whether the elite dams are inseminated with genomicaly tested or progeny tested bulls
+        if EliteDamsPTBulls: #whether the elite dams are inseminated with genomicaly tested or progeny tested bulls
             if testiraniOce:
                 elita = np.random.choice(testiraniOce, bmMother, replace=True)
                     #       pd.Series(elita).value_counts()#preveri zastopanost po bikih
@@ -586,6 +601,13 @@ class pedigree(classPed):
                 elita = np.random.choice(gentestiraniOce, bmMother, replace=True)
             else: #otherwise inseminate with progeny tested until genomically tested become proven
                 elita = np.random.choice(testiraniOce, bmMother, replace=True)
+
+        if EliteDamsPABulls:
+            self.computePA_previousCat('potomciNP', 'M', categories)
+            selRow = list(
+                self.ped.loc[(self.ped.cat == cat) & (self.ped.sex == sex), 'PA'].sort_values(
+                    ascending=False)[:number].index)  # katere izbereš
+            return list(self.ped.Indiv[selRow])
 
         self.set_father_catPotomca(elita, 'potomciNP')
 
@@ -652,6 +674,8 @@ class pedigree(classPed):
                                                                                                   int((len(self.catCurrent_indiv_sex(x, sex)) * (xP / 100.0))))
                                                                for (x, xP, xC, sex) in genotypedCat]))))}).to_csv(
                 'IndForGeno.txt', index=None, header=None)
+
+    def removeIndForGeno(self, number, sex):
 
 
 class OrigPed(object):

@@ -19,7 +19,7 @@
      <rect>
       <x>10</x>
       <y>10</y>
-      <width>301</width>
+      <width>311</width>
       <height>501</height>
      </rect>
     </property>
@@ -160,9 +160,9 @@
    <widget class="QGroupBox" name="groupBox_2">
     <property name="geometry">
      <rect>
-      <x>800</x>
-      <y>10</y>
-      <width>366</width>
+      <x>690</x>
+      <y>20</y>
+      <width>231</width>
       <height>228</height>
      </rect>
     </property>
@@ -238,10 +238,10 @@
    <widget class="QGroupBox" name="groupBox_3">
     <property name="geometry">
      <rect>
-      <x>800</x>
-      <y>240</y>
-      <width>365</width>
-      <height>201</height>
+      <x>700</x>
+      <y>250</y>
+      <width>261</width>
+      <height>221</height>
      </rect>
     </property>
     <property name="title">
@@ -255,10 +255,10 @@
        </property>
       </widget>
      </item>
-     <item row="0" column="1">
+     <item row="0" column="2">
       <widget class="QLineEdit" name="mladiDozE"/>
      </item>
-     <item row="2" column="1">
+     <item row="2" column="2">
       <widget class="QLineEdit" name="pripustDozE"/>
      </item>
      <item row="3" column="0">
@@ -268,7 +268,7 @@
        </property>
       </widget>
      </item>
-     <item row="3" column="1">
+     <item row="3" column="2">
       <widget class="QLineEdit" name="pozitivnoTestDozE"/>
      </item>
      <item row="2" column="0">
@@ -278,20 +278,44 @@
        </property>
       </widget>
      </item>
-     <item row="4" column="0">
+     <item row="5" column="0" colspan="3">
       <widget class="QCheckBox" name="EliteDamsGenBulls">
        <property name="text">
         <string>EliteDams with genBulls</string>
        </property>
       </widget>
      </item>
-     <item row="5" column="1">
+     <item row="7" column="2">
       <widget class="QLineEdit" name="CowsGenBullsPer"/>
      </item>
-     <item row="5" column="0">
+     <item row="7" column="0">
       <widget class="QLabel" name="label_29">
        <property name="text">
-        <string>%cows inseminated with genBulls</string>
+        <string>%cows with genBulls</string>
+       </property>
+      </widget>
+     </item>
+     <item row="6" column="0" colspan="3">
+      <widget class="QCheckBox" name="EliteDamsPABulls">
+       <property name="text">
+        <string>EliteDams with PABulls</string>
+       </property>
+      </widget>
+     </item>
+     <item row="8" column="0">
+      <widget class="QLabel" name="label_37">
+       <property name="text">
+        <string>%cows with PABulls</string>
+       </property>
+      </widget>
+     </item>
+     <item row="8" column="2">
+      <widget class="QLineEdit" name="CowsPABullsPer"/>
+     </item>
+     <item row="4" column="0" colspan="3">
+      <widget class="QCheckBox" name="EliteDamsPTBulls">
+       <property name="text">
+        <string>EliteDams with PTBulls</string>
        </property>
       </widget>
      </item>
