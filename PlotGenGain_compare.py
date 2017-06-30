@@ -39,9 +39,9 @@ Means.loc[:,'StandA'] = (Means.MeanA - Means.MeanA[0]) / sqrt(Means.VarA[0])
 
 plt.plot( Means.Gen, Means.Stand,  label = 'Mean Gen TBV_class')
 
-plt.plot( Means.Gen, Means.Stand,  label = 'Mean Gen TBV_genFatherRef')
+plt.plot( Means.GenA, Means.StandA,  label = 'Mean Gen TBV_genFather')
 
-plt.plot( Means.GenG, Means.StandG,  label = 'Mean Gen TBV_genFather')
+plt.plot( Means.GenG, Means.StandG,  label = 'Mean Gen TBV_genFatherRef')
 plt.xticks(Means.Gen)
 plt.xlabel('Selected Generation')
 plt.ylabel('Mean Generation TBV')

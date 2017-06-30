@@ -11,4 +11,4 @@ import os
 genInt = genInterval(os.getcwd() + '/')
 genInt.plotGenInt()
 
-print 'Created plot GenInt_PLOT.pdf'
+print 'Created plot GenInt_PLOT.png'

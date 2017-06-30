@@ -88,15 +88,17 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self.AlphaSimDir.clicked.connect(self.choose_dir)
         self.DoMagic.clicked.connect(self.selekcija)
-        #self.DoMagic.clicked.connect(self.setSelParam)
+        self.DoMagic.clicked.connect(self.setSelParam)
         self.SpecFile = AlphaSimSpec()
         # AlphaSimSpec je class iz selection, ki omogoča nastavljanje parametrov AlphaSimSpec fila
         self.setParamDict = defaultdict()
         #self.DoMagic.clicked.connect(self.setSelParam)
         #self.DoMagic.clicked.connect(self.setText)
 
-        #self.gEBV_YN.stateChanged.connect(self.disableEBV)
+        self.gEBV_YN.stateChanged.connect(self.disableEBV)
         self.EBV_YN.stateChanged.connect(self.disablegEBV)
+        self.PA_YN.stateChanged.connect(self.disablegEBVEBV)
+
         criteria = ['random', 'PA', 'EBV']
         for i in [self.potomciNP_M_genC, self.potomciNP_F_genC, self.nrM_genC, self.nrF_genC, self.telF_genC, self.k_genC, self.bm_genC, self.pb_genC]:
             i.addItems(criteria)
@@ -110,28 +112,43 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
 
     def disableEBV(self):
         if self.gEBV_YN.isChecked():
-            self.vhlevljeni.setEnabled(False)
-            self.mladi.setEnabled(False)
+            #self.vhlevljeni.setEnabled(False)
+            #self.mladi.setEnabled(False)
             #self.cakE.setEnabled(False)
-            self.mladiDozE.setEnabled(False)
+            #self.mladiDozE.setEnabled(False)
             self.EBV_YN.setEnabled(False)
+            self.PA_YN.setEnabled(False)
         if not self.gEBV_YN.isChecked():
             self.vhlevljeni.setEnabled(True)
             self.mladi.setEnabled(True)
             self.cakE.setEnabled(True)
             self.mladiDozE.setEnabled(True)
             self.EBV_YN.setEnabled(True)
+            self.PA_YN.setEnabled(True)
 
     def disablegEBV(self):
         if self.EBV_YN.isChecked():
             self.gEBV_YN.setEnabled(False)
+            self.PA_YN.setEnabled(False)
             self.genpb.setEnabled(False)
             self.genpripust1.setEnabled(False)
             self.GenotypedInd.setEnabled(False)
         if not self.EBV_YN.isChecked():
             self.gEBV_YN.setEnabled(True)
+            self.PA_YN.setEnabled(True)
+            self.GenotypedInd.setEnabled(True)
             #self.genmladi.setEnabled(True)
 
+    def disablegEBVEBV(self):
+        if self.PA_YN.isChecked():
+            self.gEBV_YN.setEnabled(False)
+            self.EBV_YN.setEnabled(False)
+            self.GenotypedInd.setEnabled(False)
+        if not self.PA_YN.isChecked():
+            self.gEBV_YN.setEnabled(True)
+            self.EBV_YN.setEnabled(True)
+            self.GenotypedInd.setEnabled(True)
+            #self.genmladi.setEnabled(True)
 
     #funkcija, ki ustvari dict in vseh vnešenih parametrov okna SelParam
     #ta dict potem daš funkciji, ki dela selekcijo oz. nastavlja kategorije
@@ -208,6 +225,9 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
         self.setParamDict['EliteDamsPABulls'] = self.EliteDamsPABulls.isChecked()
         self.setParamDict['CowsGenBulls_Per'] = int((float(self.CowsGenBullsPer.text()) / 100) * self.setParamDict['stNBn']) \
             if not self.CowsGenBullsPer.text().isEmpty() else 0
+        self.setParamDict['UpdateGenRef'] = self.UpdateGenRef.isChecked()
+        self.setParamDict['sexToUpdate'] = self.sexToUpdate.text() if not self.sexToUpdate.text().isEmpty() else ''
+        self.setParamDict['NbUpdatedGen'] = self.NbUpdatedGen.text() if not self.NbUpdatedGen.text().isEmpty() else 0
         self.setParamDict['AlphaSimDir'] = str(self.AlphaSimDirShow.text())
         pd.DataFrame.from_dict(self.setParamDict, orient='index').to_csv('/home/jana/SelectionParam.csv', header=False)
         return self.setParamDict
@@ -225,7 +245,12 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
         self.NumberOfDams = int(self.NoDams.text()) if not self.NoDams.text().isEmpty() else 0 # to je za burn in - NoDams in NoSires
         self.AlphaSimDir = str(self.AlphaSimDirShow.text())
         self.AlphaSimPed = str(self.AlphaSimDir).strip('/.') + '/SimulatedData/PedigreeAndGeneticValues.txt'
-        self.seltype = ['class' if self.EBV_YN.isChecked() else 'gen'][0]
+        if self.EBV_YN.isChecked():
+            self.seltype = 'class'
+        if self.gEBV_YN.isChecked():
+            self.seltype = 'gen'
+        if self.PA_YN.isChecked():
+            self.seltype = 'PA'
 
 
         ##############################################################################
@@ -387,7 +412,7 @@ if __name__ == "__main__":
     window.SelToGen.setText('2')
     window.AlphaSimDirShow.setText('/home/jana/bin/AlphaSim1.05Linux/')
     sys.exit(app.exec_())
-
+"""
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
     window = SelParam()
@@ -464,3 +489,4 @@ if __name__ == "__main__":
     window.pb_genP.setText('100')
     window.AlphaSimDirShow.setText('/home/jana/bin/AlphaSim1.05Linux/')
     sys.exit(app.exec_())
+"""

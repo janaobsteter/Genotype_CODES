@@ -19,8 +19,8 @@
      <rect>
       <x>10</x>
       <y>10</y>
-      <width>311</width>
-      <height>501</height>
+      <width>361</width>
+      <height>511</height>
      </rect>
     </property>
     <property name="title">
@@ -154,6 +154,13 @@
      </item>
      <item row="19" column="2">
       <widget class="QLineEdit" name="pb"/>
+     </item>
+     <item row="9" column="3">
+      <widget class="QCheckBox" name="PA_YN">
+       <property name="text">
+        <string>PA</string>
+       </property>
+      </widget>
      </item>
     </layout>
    </widget>
@@ -619,7 +626,7 @@
       <x>420</x>
       <y>240</y>
       <width>301</width>
-      <height>381</height>
+      <height>451</height>
      </rect>
     </property>
     <property name="title">
@@ -952,6 +959,65 @@
      </property>
      <property name="text">
       <string>F</string>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="UpdateGenRef">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>360</y>
+       <width>151</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>UpdateReference</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="sexToUpdate">
+     <property name="geometry">
+      <rect>
+       <x>130</x>
+       <y>380</y>
+       <width>113</width>
+       <height>27</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="NbUpdatedGen">
+     <property name="geometry">
+      <rect>
+       <x>130</x>
+       <y>410</y>
+       <width>113</width>
+       <height>27</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_38">
+     <property name="geometry">
+      <rect>
+       <x>17</x>
+       <y>390</y>
+       <width>91</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>SexToUpdate</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_39">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>410</y>
+       <width>111</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>NbUpdatedGen</string>
      </property>
     </widget>
    </widget>

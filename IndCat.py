@@ -2,7 +2,8 @@ import os
 import pandas as pd
 
 
-os.chdir('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_GenScenario1/')
+os.chdir('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_Class/')
+os.chdir("/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_GenFather")
 def IndCat(ind):
     indcat = []
     Cat = sorted([ i for i in os.listdir(os.getcwd()) if i.startswith('Cat')])
@@ -24,3 +25,4 @@ a.loc[a.sex=='M'].sort(a.columns[17], ascending=False)[:30]
 
 cak = list(pd.read_table('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_Class/Categories_gen59DF.csv', sep=",").cak.dropna().astype(int))
 sol = pd.read_table('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_Class/renumbered_Solutions_59', header=None, sep=" ", names=['rind', 'Indiv', 'EBV'])
+ped = pd.read_table('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_Class/SimulatedData/PedigreeAndGeneticValues.txt', sep='\s+')

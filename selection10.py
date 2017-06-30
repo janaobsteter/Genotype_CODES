@@ -577,7 +577,7 @@ class pedigree(classPed):
                 stNB - sTbmMother):  # če jih še ni dovolj, ne odbiraš mater, ampak uporabiš vse MINUS gosp. križanmja
                 self.set_mother_catPotomca(mother, 'nr')
 
-    def doloci_ocete(self, stNB, potomciNPn, cak, pbUp, pripustDoz, mladiDoz, pozitivnoTestDoz, NbGenTest, EliteDamsGenBulls):
+    def doloci_ocete(self, stNB, potomciNPn, cak, pbUp, pripustDoz, mladiDoz, pozitivnoTestDoz, NbGenTest, EliteDamsPTBulls, EliteDamsGenBulls, EliteDamsPABulls):
         # OČETJE
         mladiOce = self.catCurrent_indiv('mladi')
         pripustOce = self.catCurrent_indiv('pripust1') + self.catCurrent_indiv('pripust2')
@@ -675,7 +675,34 @@ class pedigree(classPed):
                                                                for (x, xP, xC, sex) in genotypedCat]))))}).to_csv(
                 'IndForGeno.txt', index=None, header=None)
 
-    def removeIndForGeno(self, number, sex):
+    def updateAndSaveIndForGeno(self, genotypedCat, rmNbGen, removesex):
+        if os.path.isfile('IndForGeno.txt'):
+            #first obtain new animals for genotypisation
+            pd.DataFrame({0: sorted(list(set
+                                         (chain.from_iterable([self.catCurrent_indiv_sex_criteria(x, sex, xC,
+                                                                                                  int((len(self.catCurrent_indiv_sex(x, sex)) * (xP / 100))))
+                                                               if xP != 100 else self.catCurrent_indiv_sex(x, sex) for (x, xP, xC, sex) in genotypedCat]))))}).to_csv(        #if self.sel == 'class': #ZDJ TEGA NI, KER JE POSEBEJ FILE!
+                'IndForGeno_new.txt', index=None, header=None)
+            #then remove old animals from the previous file
+            inds = pd.read_table('IndForGeno.txt', header=None, names=['Indiv'])
+            ped = pd.read_table('/SimulatedData/PedigreeAndGeneticValues_cat.txt', sep='\s+')
+            inds = pd.merge(inds, ped[['Indiv', 'Generation']], on='Indiv')#obtain generation of the previously genotyped Individuals
+            inds = pd.merge(inds, ped[['Indiv', 'sex']], on='Indiv')#obtain sex of the previously genotyped Individuals
+            sexDF = inds.loc[(inds.sex == removesex)]
+            pd.concat([inds.loc[inds.sex != removesex], sexDF.loc[
+                sexDF.Generation.isin(sorted(list(set(sexDF.Generation)))[rmNbGen:])]]).sort_values(by='Indiv')['Indiv'].to_csv(
+                'IndForGeno.txt', index=None, header=None)
+            os.system("grep -v -f IndForGeno.txt IndForGeno_new.txt > uniqNew && mv uniqNew IndForGeno_new.txt") #obtain only new ones - do you dont get duplicate cows - najbrž nepotrebno
+            os.system(
+                'cat IndForGeno_new.txt IndForGeno.txt | sort -n| uniq > IndGenTmp && mv IndGenTmp IndForGeno.txt')
+        else:
+            pd.DataFrame({0: sorted(list(set
+                                         (chain.from_iterable([self.catCurrent_indiv_sex_criteria(x, sex, xC,
+                                                                                                  int((len(self.catCurrent_indiv_sex(x, sex)) * (xP / 100.0))))
+                                                               for (x, xP, xC, sex) in genotypedCat]))))}).to_csv(
+                'IndForGeno.txt', index=None, header=None)
+
+
 
 
 class OrigPed(object):
@@ -1070,8 +1097,10 @@ def selekcija_total(pedFile, **kwargs):
         ped.izberi_poEBV_top("M", kwargs.get('genpbn'), "genTest", "gpb",
                              categories)  # odberi genomsko testirane bike za AI
         ped.set_active_cat('genTest', 2, categories)
-        ped.izberi_poEBV_OdDo("M", kwargs.get('genpbn'), kwargs.get('potomciNPn'), "genTest", "pripust1",
-                              categories)  # preostali vhlevljeni gredo v pripust
+        ped.izberi_poEBV_OdDo("M", kwargs.get('genpbn'), (kwargs.get('genpbn') + kwargs.get('mladin')), 'genTest', 'mladi',
+                              categories)  #naslednji najboljši gredo v test
+        ped.izberi_poEBV_OdDo("M", (kwargs.get('genpbn') + kwargs.get('mladin')), kwargs.get('potomciNPn'), 'genTest', 'pripust1',
+                              categories)  # preostali genomsko testirani gredo v pripust
 
     # prestavi jih naprej predno odbereš progeno testirane
     if 'gpb' in categories.keys():
@@ -1115,7 +1144,7 @@ def selekcija_total(pedFile, **kwargs):
     # dodaj očete
     ped.doloci_ocete(kwargs.get('stNBn'), kwargs.get('potomciNPn'), kwargs.get('cak'), kwargs.get('pbUp'),
                      kwargs.get('pripustDoz'), kwargs.get('mladiDoz'), kwargs.get('pozitivnoTestDoz'),
-                     kwargs.get('CowsGenBulls_Per'), kwargs.get('EliteDamsGenBulls'))
+                     kwargs.get('CowsGenBulls_Per'), kwargs.get('EliteDamsPTBulls'), kwargs.get('EliteDamsGenBulls'), kwargs.get('EliteDamsPABulls'))
 
     # preveri - mora biti nič!!! - oz. če mater še ni dovolj, potem še ne!
     ped.mother_nr_blank()
@@ -1126,7 +1155,10 @@ def selekcija_total(pedFile, **kwargs):
     ped.save_sex_DF()
     ped.save_active_DF()
     if kwargs.get('gEBV'):
-        ped.saveIndForGeno(kwargs.get('genotyped'))
+        if kwargs.get('UpdateGenRef'):
+            ped.updateAndSaveIndForGeno(kwargs.get('genotyped'), kwargs.get('NbUpdatedGen'), kwargs.get('sexToUpdate'))
+        if not kwargs.get('UpdateGenRef'):
+            ped.saveIndForGeno(kwargs.get('genotyped'))
     ped.write_ped("/home/jana/bin/AlphaSim1.05Linux/ExternalPedigree.txt")
     ped.write_pedTotal("/home/jana/bin/AlphaSim1.05Linux/ExternalPedigreeTotal.txt")
     ped.write_pedTotal("/home/jana/PedTotal.txt")
@@ -1344,7 +1376,7 @@ def nastavi_cat(PedFile, **kwargs):
     # dodaj očete
     ped.doloci_ocete(kwargs.get('stNBn'), kwargs.get('potomciNPn'), kwargs.get('cak'), kwargs.get('pbUp'),
                      kwargs.get('pripustDoz'), kwargs.get('mladiDoz'), kwargs.get('pozitivnoTestDoz'),
-                     kwargs.get('CowsGenBulls_Per'), kwargs.get('EliteDamsGenBulls'))
+                     kwargs.get('CowsGenBulls_Per'), kwargs.get('EliteDamsPTBulls'), kwargs.get('EliteDamsGenBulls'), kwargs.get('EliteDamsPABulls'))
 
     # ped.UpdateIndCat('/home/jana/')
     ped.save_cat_DF()
@@ -1546,7 +1578,7 @@ class genInterval():
         Gens = GenInts[['Gen', 'genInt', 'label']]
         Gens.groupby(['Gen', 'label']).sum().unstack().plot()
         legend(['dam>dam', 'dam>sire', 'sire>dam', 'sire>sire'], loc='upper left')
-        plt.savefig("GenInt_PLOT.pdf")
+        plt.savefig("GenInt_PLOT.png")
 
 
 class snpFiles:
