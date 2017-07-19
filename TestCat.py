@@ -17,7 +17,7 @@ sel = pd.read_csv('/home/jana/SelectionParamTEST.csv', header=None)
 sel = pd.read_csv('/home/jana/SelectionParam.csv', header=None)
 
 for i in range(len(sel)):
-    if (sel[0][i]) not in  ['BurnInYN','EBV','gEBV', 'AlphaSimDir', 'genotyped']:
+    if (sel[0][i]) not in  ['BurnInYN','EBV','gEBV','PA', 'AlphaSimDir', 'genotyped', 'EliteDamsPTBulls', 'EliteDamsPABulls', 'UpdateGenRef', 'sexToUpdate', 'EliteDamsGenBulls']:
         try:
             baba[sel[0][i]] = int(sel[1][i])
         except:
@@ -28,8 +28,10 @@ baba['EBV'] = False
 baba['gEBV'] = True
 baba['EBV'] = True
 baba['gEBV'] = False
-baba['genotyped'] = ['potomciNP', 'telM']
+baba['genotyped'] = [('potomciNP', 100.0, 'random', 'M'), ('pb', 100.0, 'EBV', 'M')]
 baba['AlphaSimDir'] = '/home/jana/bin/AlphaSim1.05Linux'
+baba['EliteDamsPTBulls'] = True
+baba['UpdateGenRef'] = False
 
 
 
@@ -52,9 +54,12 @@ reload(selection9)
 from selection9 import *
 Ped = pedigree('/home/jana/Genotipi/Genotipi_CODES/GenericPed_67000.txt')
 Ped = pedigree('/home/jana/Genotipi/Genotipi_CODES/GenericPed_1000.txt')
+Ped = pedigree('/home/jana/Genotipi/Genotipi_CODES/GenericPed_86400.txt')
 
 Gender = pd.DataFrame({'Generation' : list(chain.from_iterable([[i] * 8640 for i in range(1,11)])), 'Indiv': range(1, 86401), 'Gender': [1,2] * 43200})
 Gender.to_csv('/home/jana/bin/AlphaSim1.05Linux/SimulatedData/Gender.txt', index=None, sep='\t')#
+Gender = pd.DataFrame({'Generation' : list(chain.from_iterable([[i] * 100 for i in range(1,11)])), 'Indiv': range(1, 1001), 'Gender': [1,2] * 500})
+
 
 IndCat = pd.DataFrame()
 ped, c, s, a = nastavi_cat('/home/jana/Genotipi/Genotipi_CODES/GenericPed_67000.txt', **baba) #nastavi kategorije 

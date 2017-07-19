@@ -7,10 +7,18 @@ import matplotlib.pyplot as plt
 from pylab import legend
 import os
 
-os.chdir('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_GenScenario1/')
+os.chdir('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_Class/')
+os.chdir('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_Gen/')
+os.chdir('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_GenReference/')
+os.chdir('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_GenFather/')
+os.chdir('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_GenFatherReference/')
+os.chdir('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_GenBM_UpdatedRef/')
 accuraciesEBV = pd.read_table('AccuraciesEBVPA.csv', sep=",")
+cats = [i for i in ['pBM', 'pb','gpb','mladi'] if i in list(accuraciesEBV.Cat)]
 cats = [i for i in ['pBM', 'pb','gpb','genTest', 'k', 'pripust1', 'pripust2', 'mladi'] if i in list(accuraciesEBV.Cat)]
-cats =  ['pb']
+
+cats =  ['gpb']
+
 
 for cat in cats:
     accCat = accuraciesEBV.loc[accuraciesEBV.Cat == cat]

@@ -18,69 +18,15 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>10</y>
-      <width>361</width>
-      <height>511</height>
+      <y>20</y>
+      <width>381</width>
+      <height>571</height>
      </rect>
     </property>
     <property name="title">
      <string>Selection Parameters</string>
     </property>
     <layout class="QGridLayout" name="gridLayout">
-     <item row="0" column="0">
-      <widget class="QLabel" name="label">
-       <property name="text">
-        <string>No Newborns</string>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="label_2">
-       <property name="text">
-        <string>FEMALES</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="1" colspan="3">
-      <widget class="QLineEdit" name="NoNB"/>
-     </item>
-     <item row="19" column="0" colspan="2">
-      <widget class="QLabel" name="label_11">
-       <property name="text">
-        <string>% pozTest (od mladih/genTest )</string>
-       </property>
-      </widget>
-     </item>
-     <item row="20" column="2">
-      <widget class="QLineEdit" name="pripust1"/>
-     </item>
-     <item row="8" column="2">
-      <widget class="QLineEdit" name="potomciNP"/>
-     </item>
-     <item row="16" column="2">
-      <widget class="QLineEdit" name="mladi"/>
-     </item>
-     <item row="20" column="0" colspan="2">
-      <widget class="QLabel" name="label_10">
-       <property name="text">
-        <string>% pripust (od vhlevljenih/genTest)</string>
-       </property>
-      </widget>
-     </item>
-     <item row="9" column="0">
-      <widget class="QCheckBox" name="EBV_YN">
-       <property name="text">
-        <string>Classical test</string>
-       </property>
-      </widget>
-     </item>
-     <item row="8" column="0" colspan="2">
-      <widget class="QLabel" name="label_7">
-       <property name="text">
-        <string>% načrtnih parjenj (od NB)</string>
-       </property>
-      </widget>
-     </item>
      <item row="16" column="0" colspan="2">
       <widget class="QLabel" name="label_9">
        <property name="text">
@@ -92,13 +38,6 @@
       <widget class="QLabel" name="label_8">
        <property name="text">
         <string>% vhlevljeni (od NP)</string>
-       </property>
-      </widget>
-     </item>
-     <item row="6" column="0" colspan="4">
-      <widget class="QLabel" name="label_6">
-       <property name="text">
-        <string>MALES - selected population</string>
        </property>
       </widget>
      </item>
@@ -135,6 +74,57 @@
        </property>
       </widget>
      </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>No Newborns</string>
+       </property>
+      </widget>
+     </item>
+     <item row="9" column="3">
+      <widget class="QCheckBox" name="PA_YN">
+       <property name="text">
+        <string>PA</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_2">
+       <property name="text">
+        <string>FEMALES</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1" colspan="3">
+      <widget class="QLineEdit" name="NoNB"/>
+     </item>
+     <item row="19" column="0" colspan="2">
+      <widget class="QLabel" name="label_11">
+       <property name="text">
+        <string>% pozTest (od mladih/genTest )</string>
+       </property>
+      </widget>
+     </item>
+     <item row="20" column="2">
+      <widget class="QLineEdit" name="pripust1"/>
+     </item>
+     <item row="16" column="2">
+      <widget class="QLineEdit" name="mladi"/>
+     </item>
+     <item row="20" column="0" colspan="2">
+      <widget class="QLabel" name="label_10">
+       <property name="text">
+        <string>% pripust (od vhlevljenih/genTest)</string>
+       </property>
+      </widget>
+     </item>
+     <item row="9" column="0">
+      <widget class="QCheckBox" name="EBV_YN">
+       <property name="text">
+        <string>Classical test</string>
+       </property>
+      </widget>
+     </item>
      <item row="9" column="1" colspan="2">
       <widget class="QCheckBox" name="gEBV_YN">
        <property name="text">
@@ -155,10 +145,47 @@
      <item row="19" column="2">
       <widget class="QLineEdit" name="pb"/>
      </item>
-     <item row="9" column="3">
-      <widget class="QCheckBox" name="PA_YN">
+     <item row="7" column="2">
+      <widget class="QLineEdit" name="potomciNP"/>
+     </item>
+     <item row="7" column="0">
+      <widget class="QLabel" name="label_7">
        <property name="text">
-        <string>PA</string>
+        <string>% načrtnih parjenj (od NB)</string>
+       </property>
+      </widget>
+     </item>
+     <item row="19" column="3">
+      <widget class="QLineEdit" name="genpb"/>
+     </item>
+     <item row="6" column="0" colspan="4">
+      <widget class="QLabel" name="label_6">
+       <property name="text">
+        <string>MALES - selected population</string>
+       </property>
+      </widget>
+     </item>
+     <item row="20" column="3">
+      <widget class="QLineEdit" name="genpripust1"/>
+     </item>
+     <item row="17" column="0" colspan="2">
+      <widget class="QCheckBox" name="genTest_mladi">
+       <property name="text">
+        <string>genTest &gt; mladi</string>
+       </property>
+      </widget>
+     </item>
+     <item row="18" column="2">
+      <widget class="QCheckBox" name="gpb_pb">
+       <property name="text">
+        <string>gpb &gt; pb</string>
+       </property>
+      </widget>
+     </item>
+     <item row="17" column="2" colspan="2">
+      <widget class="QCheckBox" name="genTest_gpb">
+       <property name="text">
+        <string>genTest &gt; gpb</string>
        </property>
       </widget>
      </item>
@@ -332,7 +359,7 @@
     <property name="geometry">
      <rect>
       <x>230</x>
-      <y>560</y>
+      <y>660</y>
       <width>146</width>
       <height>27</height>
      </rect>
@@ -342,7 +369,7 @@
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>560</y>
+      <y>660</y>
       <width>184</width>
       <height>27</height>
      </rect>
@@ -355,7 +382,7 @@
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>590</y>
+      <y>690</y>
       <width>184</width>
       <height>27</height>
      </rect>
@@ -368,7 +395,7 @@
     <property name="geometry">
      <rect>
       <x>230</x>
-      <y>590</y>
+      <y>690</y>
       <width>146</width>
       <height>27</height>
      </rect>
@@ -591,33 +618,13 @@
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>530</y>
+      <y>630</y>
       <width>330</width>
       <height>21</height>
      </rect>
     </property>
     <property name="text">
      <string>MALES - nonselected population</string>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="genpb">
-    <property name="geometry">
-     <rect>
-      <x>310</x>
-      <y>440</y>
-      <width>91</width>
-      <height>27</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="genpripust1">
-    <property name="geometry">
-     <rect>
-      <x>310</x>
-      <y>470</y>
-      <width>91</width>
-      <height>27</height>
-     </rect>
     </property>
    </widget>
    <widget class="QGroupBox" name="GenotypedInd">

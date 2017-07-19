@@ -1,9 +1,9 @@
 import os
 import pandas as pd
 
-
+os.chdir(AlphaSimDir)
 os.chdir('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_Class/')
-os.chdir("/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_GenFather")
+os.chdir("/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_GenBM_UpdatedRef")
 def IndCat(ind):
     indcat = []
     Cat = sorted([ i for i in os.listdir(os.getcwd()) if i.startswith('Cat')])

@@ -9,7 +9,8 @@ genA = genA.drop('cat', axis=1)
 tgenA = np.transpose(genA)
 tgenA.loc[:, 'Cycle'] = list(tgenA.index)
 
-cats = [i for i in ['pBM', 'pb','gpb','genTest', 'k', 'pripust1', 'pripust2', 'mladi'] if i in tT_mean.columns]
+#cats = [i for i in ['pBM', 'pb','gpb','genTest', 'k', 'pripust1', 'pripust2', 'mladi'] if i in tT_mean.columns]
+cats = ['mladi']
 
 for cat in cats:
     tgenAP = tgenA[[cat, 'Cycle']]

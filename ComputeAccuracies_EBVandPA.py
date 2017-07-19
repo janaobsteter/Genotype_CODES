@@ -4,14 +4,15 @@ import numpy as np
 from collections import defaultdict
 import math
 
-os.chdir(AlphaSimDir + 'REAL20GenSel_Gen/')
+#os.chdir(AlphaSimDir)
+os.chdir(AlphaSimDir + 'REAL20GenSel_GenSLO/')
 TBVs_all = pd.read_table('SimulatedData/PedigreeAndGeneticValues.txt', sep="\s+").loc[:, ['Generation', 'Indiv', 'Father', 'Mother', 'gvNormUnres1']]
 accuraciesEBV = pd.DataFrame(columns = ['Cycle', 'Cat', 'corEBV', 'corPA', 'meanEBV', 'meanTBV', 'meanPA'])
 
-for i in range(21, 61):
+for i in range(41, 61):
     TBVs = TBVs_all.loc[TBVs_all.Generation.isin(range(i-11,i+1))]
     accuraciesEBV_temp = pd.DataFrame(columns = ['Cycle', 'Cat', 'corEBV', 'corPA', 'meanEBV', 'meanTBV', 'meanPA'])
-    solution = pd.read_table("renumbered_Solutions_" + str(i), header=None, sep=" ", names = ['renID', 'Indiv', 'EBV']).loc[:, ['Indiv', 'EBV']]
+    solution = pd.read_table("renumbered_Solutions_" + str(i), header=None, sep="\s+", names = ['renID', 'Indiv', 'EBV', 'Cycle']).loc[:, ['Indiv', 'EBV']]
     corDF = pd.merge(TBVs, solution, on='Indiv')
     corDF.loc[:, 'PA'] = ""
 
@@ -43,3 +44,4 @@ accuraciesEBV.to_csv('AccuraciesEBVPA.csv', index=None, sep=",")
 
 
 print 'Create Data Frame: AccuraciesEBVPA.csv'
+

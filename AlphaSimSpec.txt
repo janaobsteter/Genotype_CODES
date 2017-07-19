@@ -33,13 +33,13 @@ MergeFiles                                        ,none
 ###############################################################
 BOX 5 - CHROMOSOMES
 UserMaCSHaplotypesYesNo                           ,no
-PopulationHistoryMaCS                             ,InternalTest
+PopulationHistoryMaCS                             ,InternalCattle
 EffectivePopulationSizeBaseMaCs                   ,Internal,0
 MutationRateMaCS                                  ,Internal,0
 ChromosomeLengthBasesMaCS                         ,External,100E+6
 ChromosomeLengthMorgansMaCS                       ,Internal,0
 ChromosomeLengthMorgansAlphaSim                   ,Internal,0
-NumberOfChromosomes                               ,1
+NumberOfChromosomes                               ,10
 NumberOfHaplotypes                                ,2000
 RecombinationHotspotsOnOff                        ,Off
 ###############################################################

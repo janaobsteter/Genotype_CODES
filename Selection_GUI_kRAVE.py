@@ -98,6 +98,8 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
         self.gEBV_YN.stateChanged.connect(self.disableEBV)
         self.EBV_YN.stateChanged.connect(self.disablegEBV)
         self.PA_YN.stateChanged.connect(self.disablegEBVEBV)
+        self.genTest_mladi.stateChanged.connect(self.disable_genTest_mladi)
+        self.genTest_gpb.stateChanged.connect(self.disable_genTest_gpb)
 
         criteria = ['random', 'PA', 'EBV']
         for i in [self.potomciNP_M_genC, self.potomciNP_F_genC, self.nrM_genC, self.nrF_genC, self.telF_genC, self.k_genC, self.bm_genC, self.pb_genC]:
@@ -109,6 +111,24 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
         AlphaSimDirPath = QtGui.QFileDialog.getExistingDirectory(self, 'Save Directory')
         if AlphaSimDirPath:
             self.AlphaSimDirShow.setText(AlphaSimDirPath)
+
+    def disable_genTest_mladi(self):
+        if self.genTest_mladi.isChecked():
+            self.genTest_gpb.setEnabled(False)
+            self.gpb_pb.setEnabled(False)
+            self.EliteDamsGenBulls.setEnabled(False)
+        if not self.genTest_mladi.isChecked():
+            self.genTest_gpb.setEnabled(True)
+            self.gpb_pb.setEnabled(True)
+            self.EliteDamsGenBulls.setEnabled(True)
+
+
+
+    def disable_genTest_gpb(self):
+        if self.genTest_gpb.isChecked():
+            self.genTest_mladi.setEnabled(False)
+        if not self.genTest_gpb.isChecked():
+            self.genTest_mladi.setEnabled(True)
 
     def disableEBV(self):
         if self.gEBV_YN.isChecked():
@@ -225,9 +245,12 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
         self.setParamDict['EliteDamsPABulls'] = self.EliteDamsPABulls.isChecked()
         self.setParamDict['CowsGenBulls_Per'] = int((float(self.CowsGenBullsPer.text()) / 100) * self.setParamDict['stNBn']) \
             if not self.CowsGenBullsPer.text().isEmpty() else 0
+        self.setParamDict['genTest_mladi'] = self.genTest_mladi.isChecked()
+        self.setParamDict['genTest_gpb'] = self.genTest_gpb.isChecked()
+        self.setParamDict['gpb_pb'] = self.gpb_pb.isChecked()
         self.setParamDict['UpdateGenRef'] = self.UpdateGenRef.isChecked()
-        self.setParamDict['sexToUpdate'] = self.sexToUpdate.text() if not self.sexToUpdate.text().isEmpty() else ''
-        self.setParamDict['NbUpdatedGen'] = self.NbUpdatedGen.text() if not self.NbUpdatedGen.text().isEmpty() else 0
+        self.setParamDict['sexToUpdate'] = str(self.sexToUpdate.text()) if not self.sexToUpdate.text().isEmpty() else ''
+        self.setParamDict['NbUpdatedGen'] = int(self.NbUpdatedGen.text()) if not self.NbUpdatedGen.text().isEmpty() else 0
         self.setParamDict['AlphaSimDir'] = str(self.AlphaSimDirShow.text())
         pd.DataFrame.from_dict(self.setParamDict, orient='index').to_csv('/home/jana/SelectionParam.csv', header=False)
         return self.setParamDict
@@ -287,7 +310,8 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
             for roundNo in range(self.StartSelGen, (self.StopSelGen + 1)): #za vsak krog selekcije
                 # prestavi se v AlphaSim Dir
                 os.chdir(self.AlphaSimDir)
-
+                if not os.path.isfile(self.AlphaSimDir + 'ReferenceSize.txt') and os.path.isfile(self.AlphaSimDir + "IndForGeno.txt"):
+                    os.system("less IndForGeno.txt | wc -l > ReferenceSize.txt")
 
                 # USTVARI EXTERNAL PEDIGREE
                 # doloci kategorije zivalim v pedigreju - če je to prvi krog, nastavi kategorije,
@@ -412,7 +436,7 @@ if __name__ == "__main__":
     window.SelToGen.setText('2')
     window.AlphaSimDirShow.setText('/home/jana/bin/AlphaSim1.05Linux/')
     sys.exit(app.exec_())
-"""
+
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
     window = SelParam()
@@ -489,4 +513,3 @@ if __name__ == "__main__":
     window.pb_genP.setText('100')
     window.AlphaSimDirShow.setText('/home/jana/bin/AlphaSim1.05Linux/')
     sys.exit(app.exec_())
-"""

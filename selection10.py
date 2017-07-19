@@ -104,7 +104,7 @@ class pedigree(classPed):
     def set_sex_AlphaSim(self, AlphaSimDir):
         # določi spol
         #       gender = pd.read_table(AlphaSimDir + '/Gender_BURNIN.txt', sep='\s+')
-        gender = pd.read_table('/home/jana/Gender.txt', sep='\s+')
+        gender = pd.read_table(AlphaSimDir + '/SimulatedData/Gender.txt', sep='\s+')
         females = list(gender[gender.Gender == 2]['Indiv'])
         males = list(gender[gender.Gender == 1]['Indiv'])
         self.set_sex_list(self.ped[self.ped.Indiv.isin(females)].index.tolist(), "F")
@@ -613,14 +613,22 @@ class pedigree(classPed):
 
 
         # this if for the rest of the new born population - 'mix' semen of all potential fathers
-        GenOcetje = list(np.random.choice(gentestiraniOce, NbGenTest, replace=True)) if 'gpb' in self.cat() else []#number of cows inseminated with genomically tested bulls, percentages set by the user
-        ClassOcetje = list(pripustOce * pripustDoz + testiraniOce * pozitivnoTestDoz + mladiOce * mladiDoz) if 'pb' in self.cat() else [] #progeny teste fathers - keep the ratios between young / natural service / PT
-        lenOce = len(GenOcetje) + len(ClassOcetje) #combined number of semen
-        if lenOce >= (stNB - potomciNPn * 2):  # če imaš dovolj DOZ za vse NB - random select the realised fathers
-            ocetjeNB = random.sample(ClassOcetje, (stNB - potomciNPn * 2 - NbGenTest)) + GenOcetje  # tukaj izbereš očete za vse krave  - razen BM!
-            self.set_father_catPotomca(ocetjeNB, 'nr')
-        if lenOce < (stNB - potomciNPn * 2): #if you dont have enought semen use all of it (no random choice)
-            self.set_father_catPotomca(GenOcetje + ClassOcetje, 'nr')
+        #first - according to the given % - how many offsprign will be produced by genomically tested bulls
+        GenPotomcev = (NbGenTest - potomciNPn*2 - len(pripustDoz*pripustOce)) if NbGenTest != 0 else 0
+        #here choose the classically tested bulls --> get the doses
+        ClassOcetje = list(testiraniOce * pozitivnoTestDoz + mladiOce * mladiDoz) if 'pb' in self.cat() else [] #progeny teste fathers - keep the ratios between young / natural service / PT
+        PripustOcetje = list(pripustOce * pripustDoz)
+        if len(gentestiraniOce) * pozitivnoTestDoz <= GenPotomcev: #if there is not enough genomically tested bulls
+            GenOcetje = list(gentestiraniOce * pozitivnoTestDoz) if 'gpb' in self.cat() else [] #take as many dosages as you have
+            if len(ClassOcetje + GenOcetje + PripustOcetje) >= (stNB - potomciNPn * 2): #if there is enought dosage to inseminate the entire population - then random sample from it
+                Ocetje = random.sample(ClassOcetje + GenOcetje, stNB - potomciNPn*2)
+            else: #if not - use everything
+                Ocetje = ClassOcetje + GenOcetje + PripustOcetje
+        else: #if there is enough dosages of genomically tested bulls to inseminate the desired percetnage
+            GenOcetje = list(np.random.choice(gentestiraniOce, GenPotomcev, replace=True)) if 'gpb' in self.cat() else []#number of cows inseminated with genomically tested bulls, percentages set by the user
+            Ocetje = random.sample(ClassOcetje, (stNB - GenPotomcev - len(PripustOcetje) - potomciNPn*2)) + GenOcetje + PripustOcetje #use all natural service plus all genomically tested plus sample from progeni tested
+
+        self.set_father_catPotomca(Ocetje, 'nr')
 
     def save_cat_DF(self):
         categoriesDF = pd.DataFrame.from_dict(self.save_cat(), orient='index').transpose()
@@ -675,7 +683,7 @@ class pedigree(classPed):
                                                                for (x, xP, xC, sex) in genotypedCat]))))}).to_csv(
                 'IndForGeno.txt', index=None, header=None)
 
-    def updateAndSaveIndForGeno(self, genotypedCat, rmNbGen, removesex):
+    def updateAndSaveIndForGeno(self, genotypedCat, rmNbGen, removesex, AlphaSimDir):
         if os.path.isfile('IndForGeno.txt'):
             #first obtain new animals for genotypisation
             pd.DataFrame({0: sorted(list(set
@@ -685,14 +693,14 @@ class pedigree(classPed):
                 'IndForGeno_new.txt', index=None, header=None)
             #then remove old animals from the previous file
             inds = pd.read_table('IndForGeno.txt', header=None, names=['Indiv'])
-            ped = pd.read_table('/SimulatedData/PedigreeAndGeneticValues_cat.txt', sep='\s+')
+            ped = pd.read_table(AlphaSimDir +'/SimulatedData/PedigreeAndGeneticValues_cat.txt', sep='\s+')
             inds = pd.merge(inds, ped[['Indiv', 'Generation']], on='Indiv')#obtain generation of the previously genotyped Individuals
             inds = pd.merge(inds, ped[['Indiv', 'sex']], on='Indiv')#obtain sex of the previously genotyped Individuals
             sexDF = inds.loc[(inds.sex == removesex)]
             pd.concat([inds.loc[inds.sex != removesex], sexDF.loc[
                 sexDF.Generation.isin(sorted(list(set(sexDF.Generation)))[rmNbGen:])]]).sort_values(by='Indiv')['Indiv'].to_csv(
                 'IndForGeno.txt', index=None, header=None)
-            os.system("grep -v -f IndForGeno.txt IndForGeno_new.txt > uniqNew && mv uniqNew IndForGeno_new.txt") #obtain only new ones - do you dont get duplicate cows - najbrž nepotrebno
+            os.system("grep -v -f IndForGeno.txt IndForGeno_new.txt > uniqNew && mv uniqNew IndForGeno_new.txt") #obtain only new ones - do you dont get duplicate cows - ni nepotrebno - to zato, da ti potegne le nove genotipe za GenoFiel
             os.system(
                 'cat IndForGeno_new.txt IndForGeno.txt | sort -n| uniq > IndGenTmp && mv IndGenTmp IndForGeno.txt')
         else:
@@ -1094,12 +1102,17 @@ def selekcija_total(pedFile, **kwargs):
         ped.set_active_cat('potomciNP', 1, categories)
 
     if 'genTest' in categories.keys():  # če imaš genomsko testirane bike
-        ped.izberi_poEBV_top("M", kwargs.get('genpbn'), "genTest", "gpb",
-                             categories)  # odberi genomsko testirane bike za AI
-        ped.set_active_cat('genTest', 2, categories)
-        ped.izberi_poEBV_OdDo("M", kwargs.get('genpbn'), (kwargs.get('genpbn') + kwargs.get('mladin')), 'genTest', 'mladi',
+        if kwargs.get('genTest_mladi'):
+            ped.set_active_cat('genTest', 2, categories)
+            ped.izberi_poEBV_top("M", kwargs.get('mladin'), 'genTest', 'mladi',
                               categories)  #naslednji najboljši gredo v test
-        ped.izberi_poEBV_OdDo("M", (kwargs.get('genpbn') + kwargs.get('mladin')), kwargs.get('potomciNPn'), 'genTest', 'pripust1',
+            ped.izberi_poEBV_OdDo("M", kwargs.get('mladin'), kwargs.get('potomciNPn'), 'genTest', 'pripust1',
+                              categories)  # preostali genomsko testirani gredo v pripust
+
+        if kwargs.get('genTest_gpb'):
+            ped.izberi_poEBV_top("M", kwargs.get('genpbn'), "genTest", "gpb",
+                             categories)  # odberi genomsko testirane bike za AI
+            ped.izberi_poEBV_OdDo("M", kwargs.get('genpbn'), kwargs.get('potomciNPn'), 'genTest', 'pripust1',
                               categories)  # preostali genomsko testirani gredo v pripust
 
     # prestavi jih naprej predno odbereš progeno testirane
@@ -1108,9 +1121,10 @@ def selekcija_total(pedFile, **kwargs):
         ped.set_active_cat('gpb', 2, categories)
 
     # to je OK, ker ta vleče kategorije iz slovarja prejšnje generacije, ne direkt iz pedigreja
-    if 'gpb' in categories.keys() and ((kwargs.get(
-            'cak') + 2) in ped.age()):  # če imaš genomsko testirane bike, po x letih postanejo progeno testirani
-        ped.set_cat_age_old((kwargs.get('cak') + 2), 'gpb', 'pb', categories)
+    #Tukaj glede na to, ali je označeno, da gredo gpb v pb, izvedi ta korak
+    if kwargs.get('gpb_pb'): #ali naj gredo gpb v progeno testirane
+        if 'gpb' in categories.keys() and ((kwargs.get('cak') + 2) in ped.age()):# če da, prestavi, ko so dovolj stari
+            ped.set_cat_age_old((kwargs.get('cak') + 2), 'gpb', 'pb', categories)
 
     # pripust in pb so spet enaki pri obeh testiranjih
     # povprečna doba v pripustu - glede na to odberi bike, ki preživijo še eno leto
@@ -1156,9 +1170,10 @@ def selekcija_total(pedFile, **kwargs):
     ped.save_active_DF()
     if kwargs.get('gEBV'):
         if kwargs.get('UpdateGenRef'):
-            ped.updateAndSaveIndForGeno(kwargs.get('genotyped'), kwargs.get('NbUpdatedGen'), kwargs.get('sexToUpdate'))
+            ped.updateAndSaveIndForGeno(kwargs.get('genotyped'), kwargs.get('NbUpdatedGen'), kwargs.get('sexToUpdate'), kwargs.get('AlphaSimDir'))
         if not kwargs.get('UpdateGenRef'):
             ped.saveIndForGeno(kwargs.get('genotyped'))
+        os.system('less IndForGeno.txt | wc -l > ReferenceSize_new.txt && cat ReferenceSize_new.txt ReferenceSize.txt > Reftmp && mv Reftmp ReferenceSize.txt')
     ped.write_ped("/home/jana/bin/AlphaSim1.05Linux/ExternalPedigree.txt")
     ped.write_pedTotal("/home/jana/bin/AlphaSim1.05Linux/ExternalPedigreeTotal.txt")
     ped.write_pedTotal("/home/jana/PedTotal.txt")
@@ -1589,15 +1604,17 @@ class snpFiles:
     def createBlupf90SNPFile(self):
         if os.path.isfile(self.AlphaSimDir + 'GenoFile.txt'): #if GenoFile.txt exists, only add the newIndividuals for genotypisation
             os.system(
-                'grep -Fwf IndForGeno.txt ' + self.chipFile + ' > ChosenInd.txt')  # only individuals chosen for genotypisation - ONLY NEW - LAST GEN!
+                'grep -Fwf IndForGeno_new.txt ' + self.chipFile + ' > ChosenInd.txt')  # only individuals chosen for genotypisation - ONLY NEW - LAST GEN!
             os.system("sed 's/^ *//' ChosenInd.txt > ChipFile.txt")  # Remove blank spaces at the beginning
             os.system("cut -f1 -d ' ' ChipFile.txt > Individuals.txt")  # obtain IDs
             os.system('''awk '{$1=""; print $0}' ChipFile.txt | sed 's/ //g' > Snps.txt''')  # obtain SNP genotypes
             os.system(
                 r'''paste Individuals.txt Snps.txt | awk '{printf "%- 10s %+ 15s\n",$1,$2}' > GenoFile_new.txt''')  # obtain SNP genotypes of the last generation
+            os.system(
+                'grep -Fwf IndForGeno.txt GenoFile.txt  > GenoFile_Oldtmp && mv GenoFile_Oldtmp GenoFile.txt')  # here obtain updated old reference - removed one generation
             os.system("cat GenoFile.txt GenoFile_new.txt > GenoFileTmp && mv GenoFileTmp GenoFile.txt")
             os.system("less GenoFile.txt | sort -n | uniq > Genotmp && mv Genotmp GenoFile.txt")
-        else:
+        else: #else create a new GenoFile containg all the individuals in the IndForGeno.txt
             os.system(
                 'grep -Fwf IndForGeno.txt ' + self.chipFile + ' > ChosenInd.txt')  # only individuals chosen for genotypisation - ALL
             os.system("sed 's/^ *//' ChosenInd.txt > ChipFile.txt")  # Remove blank spaces at the beginning
