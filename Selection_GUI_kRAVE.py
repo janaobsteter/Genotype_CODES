@@ -116,11 +116,10 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
         if self.genTest_mladi.isChecked():
             self.genTest_gpb.setEnabled(False)
             self.gpb_pb.setEnabled(False)
-            self.EliteDamsGenBulls.setEnabled(False)
         if not self.genTest_mladi.isChecked():
             self.genTest_gpb.setEnabled(True)
             self.gpb_pb.setEnabled(True)
-            self.EliteDamsGenBulls.setEnabled(True)
+
 
 
 

@@ -177,6 +177,12 @@ class pedigree(classPed):
                 ascending=False)[:number].index)  # katere izbereš
         return list(self.ped.Indiv[selRow])
 
+    def catCurrent_indiv_age_CriteriaEBV(self, cat, age, number):
+        selRow = list(
+            self.ped.loc[(self.ped.cat == cat) & (self.ped.age == age), 'EBV'].sort_values(
+                ascending=False)[:number].index)  # katere izbereš
+        return list(self.ped.Indiv[selRow])
+
     def catCurrent_indiv_sex_CriteriaPA(self, cat, sex, number):
         self.computePA_currentCat(cat)
         selRow = list(
@@ -577,7 +583,7 @@ class pedigree(classPed):
                 stNB - sTbmMother):  # če jih še ni dovolj, ne odbiraš mater, ampak uporabiš vse MINUS gosp. križanmja
                 self.set_mother_catPotomca(mother, 'nr')
 
-    def doloci_ocete(self, stNB, potomciNPn, cak, pbUp, pripustDoz, mladiDoz, pozitivnoTestDoz, NbGenTest, EliteDamsPTBulls, EliteDamsGenBulls, EliteDamsPABulls):
+    def doloci_ocete(self, stNB, potomciNPn, cak, pbUp, pripustDoz, mladiDoz, pozitivnoTestDoz, NbGenTest, EliteDamsPTBulls, EliteDamsGenBulls, EliteDamsPABulls, gen_mladi, gen_gpb):
         # OČETJE
         mladiOce = self.catCurrent_indiv('mladi')
         pripustOce = self.catCurrent_indiv('pripust1') + self.catCurrent_indiv('pripust2')
@@ -585,6 +591,8 @@ class pedigree(classPed):
                                                                                                                pbUp + 1)]))  # v času, ko določaš potomce, so že eno leto starjši!!!
         gentestiraniOce = list(chain.from_iterable([self.catCurrent_indiv_age('gpb', x) for x in range(1,
                                                                                                        pbUp + 1)]))  # v času, ko določaš potomce, so že eno leto starjši!!!
+        mladiOceBest = self.catCurrent_indiv_sex_CriteriaEBV('mladi', 'M', 4)
+        cakOcetjeBest = list(chain.from_iterable([self.catCurrent_indiv_age_CriteriaEBV('cak', (2 + x), 4) for x in range(1, cak + 1)]))
         print 'GenTest{0}'.format(str(len(gentestiraniOce)))
 
         # set fathers for offspring of contracted mating
@@ -597,10 +605,14 @@ class pedigree(classPed):
                     #       pd.Series(elita).value_counts()#preveri zastopanost po bikih
                 # naštimaj očete elite --> BM
         if EliteDamsGenBulls: #if with genomically tested
-            if gentestiraniOce: #if you already have genomically proven bulls
-                elita = np.random.choice(gentestiraniOce, bmMother, replace=True)
-            else: #otherwise inseminate with progeny tested until genomically tested become proven
-                elita = np.random.choice(testiraniOce, bmMother, replace=True)
+            if gen_mladi:
+                genMladiOcetje = mladiOceBest + cakOcetjeBest
+                elita = np.random.choice(genMladiOcetje, bmMother, replace=True)
+            if gen_gpb:
+                if gentestiraniOce: #if you already have genomically proven bulls
+                    elita = np.random.choice(gentestiraniOce, bmMother, replace=True)
+                else: #otherwise inseminate with progeny tested until genomically tested become proven
+                    elita = np.random.choice(testiraniOce, bmMother, replace=True)
 
         if EliteDamsPABulls:
             self.computePA_previousCat('potomciNP', 'M', categories)
@@ -1158,7 +1170,8 @@ def selekcija_total(pedFile, **kwargs):
     # dodaj očete
     ped.doloci_ocete(kwargs.get('stNBn'), kwargs.get('potomciNPn'), kwargs.get('cak'), kwargs.get('pbUp'),
                      kwargs.get('pripustDoz'), kwargs.get('mladiDoz'), kwargs.get('pozitivnoTestDoz'),
-                     kwargs.get('CowsGenBulls_Per'), kwargs.get('EliteDamsPTBulls'), kwargs.get('EliteDamsGenBulls'), kwargs.get('EliteDamsPABulls'))
+                     kwargs.get('CowsGenBulls_Per'), kwargs.get('EliteDamsPTBulls'), kwargs.get('EliteDamsGenBulls'), kwargs.get('EliteDamsPABulls'),
+                     kwargs.get('genTest_mladi'), kwargs.get('genTest_gpb'))
 
     # preveri - mora biti nič!!! - oz. če mater še ni dovolj, potem še ne!
     ped.mother_nr_blank()
@@ -1391,7 +1404,8 @@ def nastavi_cat(PedFile, **kwargs):
     # dodaj očete
     ped.doloci_ocete(kwargs.get('stNBn'), kwargs.get('potomciNPn'), kwargs.get('cak'), kwargs.get('pbUp'),
                      kwargs.get('pripustDoz'), kwargs.get('mladiDoz'), kwargs.get('pozitivnoTestDoz'),
-                     kwargs.get('CowsGenBulls_Per'), kwargs.get('EliteDamsPTBulls'), kwargs.get('EliteDamsGenBulls'), kwargs.get('EliteDamsPABulls'))
+                     kwargs.get('CowsGenBulls_Per'), kwargs.get('EliteDamsPTBulls'), kwargs.get('EliteDamsGenBulls'), kwargs.get('EliteDamsPABulls'),
+                     kwargs.get('genTest_mladi'), kwargs.get('genTest_gpb'))
 
     # ped.UpdateIndCat('/home/jana/')
     ped.save_cat_DF()

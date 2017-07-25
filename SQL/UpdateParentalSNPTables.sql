@@ -13,6 +13,7 @@ truncate table PARENTAL_SNP800_TEMP;
 
 
 
+
 insert into PARENTAL_SNP800 par
 (par.ZGP_ZIV_ID_SEQ,par.ZGP_SGPL_SIFRA,par.ZGP_vrednost)
 select partemp.ZGP_ZIV_ID_SEQ, partemp.ZGP_SGPL_SIFRA, partemp.ZGP_VREDNOST 
@@ -33,12 +34,15 @@ select * from govedo.zivali ziv where ziv.ZIV_ID_SEQ=4516927;
 select distinct ziv.ZIV_ID_SEQ, ziv.DRZ_ORIG_ZIVAL  || ziv.STEV_ORIG_ZIVAL, mat.SIF_USMER_BM, pasma.PASMA_SPADA from GOVEDO.BIKOVSKE_MATERE mat, govedo.zivali ziv, GOVEDO.ZIVALI_PASMA_SPADA pasma where ziv.ZIV_ID_SEQ=mat.BM_ziv_ID_SEQ and pasma.ZIV_ID_SEQ=ziv.ZIV_ID_SEQ and (pasma.PASMA_SPADA=2 OR pasma.PASMA_SPADA=3 OR pasma.PASMA_SPADA=1);
 
 DELETE FROM PARENTAL_SNP800 snp
-WHERE snp.ZGP_ZIV_ID_SEQ IN (SELECT temp.ZGP_ZIV_ID_SEQ FROM PARENTAL_SNP800_TEMP temp );
+WHERE snp.ZGP_ZIV_ID_SEQ IN ( SELECT gen.ZIV_ID_SEQ  FROM GENOTIPIZIRANE_ZIVALI gen, GOVEDO.ZIVALI ziv where ziv.ziv_id_seq=gen.ZIV_ID_SEQ and ziv.SP1_SIFRA_PASMA=1 and gen.GEN_CHIP='50Kv02'  );
+
+DELETE FROM PARENTAL_SNP800_TEMP snp
+WHERE snp.ZGP_ZIV_ID_SEQ IN ( SELECT gen.ZIV_ID_SEQ  FROM GENOTIPIZIRANE_ZIVALI gen where gen.GEN_CHIP='HDv02'  );
 
 DELETE FROM GENOTIPIZIRANE_ZIVALI gen
-WHERE gen.ZIV_ID_SEQ IN (SELECT temp.ZIV_ID_SEQ FROM GENOTIPIZIRANE_ZIVALI_TEMP temp );
+WHERE gen.ZIV_ID_SEQ IN (SELECT gen.ZIV_ID_SEQ FROM GENOTIPIZIRANE_ZIVALI gen where gen.GEN_CHIP='IDBv03' );
 
-
+SELECT count(distinct ziv.ziv_id_seq), ziv.SP1_SIFRA_PASMA  FROM PARENTAL_SNP800 gen, GOVEDO.ZIVALI ziv where ziv.ziv_id_seq=gen.ZGP_ZIV_ID_SEQ group by  ziv.SP1_SIFRA_PASMA; 
 
 select * from SNP_PREVERJANJE_STARSEVSTVO por where por.ZIVAL_SEQ=4516927;
 select * from GENOTIPIZIRANE_ZIVALI por where por.ZIV_ID_SEQ=4516927;
@@ -49,7 +53,8 @@ select count(*) from PARENTAL_SNP800 par,
 (select distinct gen.ZIV_ID_SEQ zival, gen.GEN_DATUM from GENOTIPIZIRANE_ZIVALI gen, govedo.zivali ziv, GOVEDO.ZIVALI_PASMA_SPADA pasma where gen.ZIV_ID_SEQ=ziv.ZIV_ID_SEQ and ziv.ZIV_ID_SEQ=pasma.ZIV_ID_SEQ and pasma.PASMA_SPADA=1) rjava where rjava.zival=par.ZGP_ZIV_ID_SEQ;
 
 
-select * from govedo.zivali ziv where ziv.ZIV_ID_SEQ=003933473;
+select * from govedo.zivali ziv where ziv.ZIV_ID_SEQ=2981337;
+select ziv.ZIV_ID_SEQ, ziv.ZIV_OCE_SEQ from govedo.zivali ziv where ziv.ZIV_ID_SEQ=3035500;
 
 select gen.ZIV_ID_SEQ from GENOTIPIZIRANE_ZIVALI gen
 minus
@@ -61,3 +66,18 @@ select count(distinct (gen.ZIV_ID_SEQ)) from GENOTIPIZIRANE_ZIVALI gen;
 
 
 select count(*) from SNP_PREVERJANJE_STARSEVSTVO por where por.STEVILO_NEUJEMANJ_KONCNO=0;
+select * from SNP_PREVERJANJE_STARSEVSTVO por where por.STEVILO_NEUJEMANJ_KONCNO not in 0;
+
+select distinct * from GENOTIPIZIRANE_ZIVALI gen where gen.ZIV_ID_SEQ in (4516927,	3707327,4516933,	3746055 );
+
+select * from GENOTIPIZIRANE_ZIVALI gen where gen.ZIV_ID_SEQ in 
+(select distinct st.MATI_SEQ from SNP_PREVERJANJE_STARSEVSTVO st where st.STEVILO_NEUJEMANJ_KONCNO=0);
+
+select * from PARENTAL_SNP800 par, GENOTIPIZIRANE_ZIVALI gen where par.ZGP_ZIV_ID_SEQ=gen.ZIV_ID_SEQ and gen.ZIV_ID_SEQ;
+
+--izbriši podvojene iz tabele
+DELETE FROM PARENTAL_SNP800 snp
+WHERE snp.ZGP_ZIV_ID_SEQ IN (select NoGen.ZIV_ID_SEQ  from 
+(select count(distinct gen.GEN_CHIP) NumberGen, gen.ZIV_ID_SEQ from GENOTIPIZIRANE_ZIVALI gen group by gen.ZIV_ID_SEQ) NoGen where NoGen.NumberGen not in 1);
+
+select * from GENOTIPIZIRANE_ZIVALI gen where gen.ZIV_ID_SEQ=421600;

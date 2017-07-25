@@ -18,15 +18,15 @@ gensA, meansA, varsA = TBV.genTrend('/home/jana/bin/AlphaSim1.05Linux//Simulated
 
 
 TBV  = TBVPed(os.getcwd() + '/')
-gensG, meansG, varsG = TBV.genTrend('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_GenFatherReference/SimulatedData/PedigreeAndGeneticValues.txt', 41, 61)
+gensG, meansG, varsG = TBV.genTrend('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_GenSLO/SimulatedData/PedigreeAndGeneticValues.txt', 41, 61)
 #plt.errorbar(x = TBV.gens, y = TBV.means, yerr = TBV.vars)
 
 TBV  = TBVPed(os.getcwd() + '/')
-gensS, meansS, varsS = TBV.genTrend('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_Gen/SimulatedData/PedigreeAndGeneticValues.txt', 41, 61)
+gensS, meansS, varsS = TBV.genTrend('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_GenSplosnaPop/SimulatedData/PedigreeAndGeneticValues.txt', 41, 61)
 
 
 TBV  = TBVPed(os.getcwd() + '/')
-gensD, meansD, varsD = TBV.genTrend('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_GenReference/SimulatedData/PedigreeAndGeneticValues.txt', 41, 61)
+gensD, meansD, varsD = TBV.genTrend('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_GenSLO_BmGen/SimulatedData/PedigreeAndGeneticValues.txt', 41, 61)
 #plt.errorbar(x = TBV.gens, y = TBV.means, yerr = TBV.vars)
 
 
@@ -66,8 +66,8 @@ Means.loc[:,'StandD'] = (Means.MeanD - Means.MeanD[0]) / sqrt(Means.VarD[0])
 plt.plot( Means.Gen, Means.Stand,  label = 'Mean Gen TBV_class')
 plt.plot( Means.GenS, Means.StandS,  label = 'Mean Gen TBV_gen')
 plt.plot( Means.GenD, Means.StandD,  label = 'Mean Gen TBV_genRef')
-plt.plot( Means.GenA, Means.StandA,  label = 'Mean Gen TBV_genFather')
-plt.plot( Means.GenG, Means.StandG,  label = 'Mean Gen TBV_genFatherRef')
+plt.plot( Means.GenA, Means.StandA,  label = 'Mean Gen TBV_genSLO_bmGen')
+plt.plot( Means.GenG, Means.StandG,  label = 'Mean Gen TBV_genSLO')
 plt.xticks(Means.Gen)
 plt.xlabel('Selected Generation')
 plt.ylabel('Mean Generation TBV')
@@ -93,7 +93,11 @@ legend(loc='upper left')
 
 
 plt.plot(gens, means, label='EBV')
-plt.plot(gensA, meansA, label='EBV')
+plt.plot(gensA, meansA, label='genSLO_gen')
+plt.plot(gensG, meansG, label='genSLO')
+plt.plot(gensS, meansS, label='genSplosna')
+plt.plot(gensD, meansD, label='gen_SLO_BmGen')
+
 
 
 

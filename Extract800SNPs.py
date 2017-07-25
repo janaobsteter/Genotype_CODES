@@ -9,9 +9,11 @@ import commands
 import tempfile
 import pandas as pd
 import os
+import sys
 
-PLINK_name = raw_input("The name of the PLINK ped and map files, without extensions!")
 
+os.chdir("/home/jana/Mreza/JanaO/Genotipi/Genotipi_latest/Rjava/GGPv03")
+PLINK_name = "PLINK_MERGED_GGPv03_CleanIndsMarkers"
 #PEDDAROW directory
 peddarow="/home/jana/Genotipi/Genotipi_CODES/SNPchimpRepo/source_codes/PEDDA_ROW"
 #File with a list of 800 SNPs for parentage verification
