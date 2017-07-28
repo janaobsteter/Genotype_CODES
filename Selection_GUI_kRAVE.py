@@ -102,7 +102,7 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
         self.genTest_gpb.stateChanged.connect(self.disable_genTest_gpb)
 
         criteria = ['random', 'PA', 'EBV']
-        for i in [self.potomciNP_M_genC, self.potomciNP_F_genC, self.nrM_genC, self.nrF_genC, self.telF_genC, self.k_genC, self.bm_genC, self.pb_genC]:
+        for i in [self.potomciNP_M_genC, self.potomciNP_F_genC, self.vhlevljeni_genC, self.mladi_genC, self.cak_genC, self.nrM_genC, self.nrF_genC, self.telF_genC, self.k_genC, self.bm_genC, self.pb_genC]:
             i.addItems(criteria)
 
 
@@ -180,6 +180,9 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
                                            (self.telF_gen, self.telF_genP, self.telF_genC, 'F'),
                                            (self.k_gen, self.k_genP, self.k_genC, 'F'),
                                            (self.bm_gen, self.bm_genP, self.bm_genC, 'F'),
+                                           (self.cak_gen, self.cak_genP, self.cak_genC, 'M'),
+                                           (self.vhlevljeni_gen, self.vhlevljeni_genP, self.vhlevljeni_genC, 'M'),
+                                           (self.mladi_gen, self.mladi_genP, self.mladi_genC, 'M'),
                                            (self.pb_gen, self.pb_genP, self.pb_genC, 'M')] if x.isChecked()]
         self.setParamDict['EBV'] = self.EBV_YN.isChecked()
         self.setParamDict['gEBV'] = self.gEBV_YN.isChecked()
@@ -252,6 +255,7 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
         self.setParamDict['NbUpdatedGen'] = int(self.NbUpdatedGen.text()) if not self.NbUpdatedGen.text().isEmpty() else 0
         self.setParamDict['AlphaSimDir'] = str(self.AlphaSimDirShow.text())
         pd.DataFrame.from_dict(self.setParamDict, orient='index').to_csv('/home/jana/SelectionParam.csv', header=False)
+        pd.DataFrame.from_dict(self.setParamDict, orient='index').to_csv(self.AlphaSimDir + '/SelectionParam.csv', header=False)
         return self.setParamDict
 
     #funkcija selekcija

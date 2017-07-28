@@ -626,19 +626,19 @@ class pedigree(classPed):
 
         # this if for the rest of the new born population - 'mix' semen of all potential fathers
         #first - according to the given % - how many offsprign will be produced by genomically tested bulls
-        GenPotomcev = (NbGenTest - potomciNPn*2 - len(pripustDoz*pripustOce)) if NbGenTest != 0 else 0
+
         #here choose the classically tested bulls --> get the doses
-        ClassOcetje = list(testiraniOce * pozitivnoTestDoz + mladiOce * mladiDoz) if 'pb' in self.cat() else [] #progeny teste fathers - keep the ratios between young / natural service / PT
+        ClassOcetje = list(testiraniOce * pozitivnoTestDoz + mladiOce * mladiDoz) if testiraniOce else [] #progeny teste fathers - keep the ratios between young / natural service / PT
         PripustOcetje = list(pripustOce * pripustDoz)
-        if len(gentestiraniOce) * pozitivnoTestDoz <= GenPotomcev: #if there is not enough genomically tested bulls
-            GenOcetje = list(gentestiraniOce * pozitivnoTestDoz) if 'gpb' in self.cat() else [] #take as many dosages as you have
-            if len(ClassOcetje + GenOcetje + PripustOcetje) >= (stNB - potomciNPn * 2): #if there is enought dosage to inseminate the entire population - then random sample from it
-                Ocetje = random.sample(ClassOcetje + GenOcetje, stNB - potomciNPn*2)
-            else: #if not - use everything
-                Ocetje = ClassOcetje + GenOcetje + PripustOcetje
-        else: #if there is enough dosages of genomically tested bulls to inseminate the desired percetnage
-            GenOcetje = list(np.random.choice(gentestiraniOce, GenPotomcev, replace=True)) if 'gpb' in self.cat() else []#number of cows inseminated with genomically tested bulls, percentages set by the user
-            Ocetje = random.sample(ClassOcetje, (stNB - GenPotomcev - len(PripustOcetje) - potomciNPn*2)) + GenOcetje + PripustOcetje #use all natural service plus all genomically tested plus sample from progeni tested
+        if NbGenTest == stNB: #če naj bo kompletna splošna populacija semenjena samo z genomskimi (mlade, čakajoče si tako dala v gpb)
+            GenOcetje = list(gentestiraniOce * pozitivnoTestDoz) if 'gpb' in self.cat() else [] #dokler še imaš progene, uporabljaj mešano seme, potem ostanejo tako samo genomsko
+            Ocetje = random.sample(ClassOcetje + GenOcetje + PripustOcetje, stNB - potomciNPn * 2)
+        if NbGenTest == 0: #če je % semenjenih z genomskimi 0, semeni samo z pb, mladimi in pripustom
+            Ocetje = random.sample(ClassOcetje + PripustOcetje, stNB - potomciNPn * 2)
+        if NbGenTest > 0 and NbGenTest < stNB: #če je odstotek nekje med 0 in 100, semeni točno določen del z genomskimi, preostalo mix klasike in pripusta
+            GenOcetje = list(np.random.choice(gentestiraniOce, (NbGenTest), replace=True)) if 'gpb' in self.cat() else []
+            ClassOcetje = random.sample(ClassOcetje + PripustOcetje, stNB - NbGenTest - potomciNPn*2)
+            Ocetje = GenOcetje + ClassOcetje
 
         self.set_father_catPotomca(Ocetje, 'nr')
 
@@ -1080,28 +1080,51 @@ def selekcija_total(pedFile, **kwargs):
 
         # age1: tukaj odbereš mlade iz vhlevljenih bikov in bike, ki preživijo do drugega leta
     if 'vhlevljeni' in categories.keys():  # če imaš vhlevljene bike (samo v progenem testu)
-        ped.izberi_poEBV_top("M", kwargs.get('mladin'), "vhlevljeni", "mladi", categories)  # odberi mlade
-        ped.izberi_poEBV_OdDo("M", kwargs.get('mladin'), kwargs.get('vhlevljenin'), "vhlevljeni", "pripust1",
+        #############################
+        #to je za potrebe prehoda
+        if kwargs.get("genTest_gpb") and 'vhlevljeni' in [i[0] for i in kwargs['genotyped']]: #če se greš genomsko shemo, jih takoj pogenotipiziraj in prestavi v gpb (5)
+            ped.izberi_poEBV_top("M", kwargs.get('genpbn'), "vhlevljeni", "gpb", categories)  # odberi gpb
+            ped.izberi_poEBV_OdDo("M", kwargs.get('genpbn'), (kwargs.get('genpbn') + kwargs.get('pripust1n')), 'vhlevljeni','pripust1',
+                              categories)  # preostali genomsko testirani gredo v pripust
+            ped.izloci_poEBV("M", (kwargs.get("vhlevljenin") - (kwargs.get('genpbn') + kwargs.get('pripust1n'))), "vhlevljeni", categories)
+        #############################
+        else: #drugače 8 v mlade
+            ped.izberi_poEBV_top("M", kwargs.get('mladin'), "vhlevljeni", "mladi", categories)  # odberi mlade
+            ped.izberi_poEBV_OdDo("M", kwargs.get('mladin'), kwargs.get('vhlevljenin'), "vhlevljeni", "pripust1",
                               categories)  # preostali vhlevljeni gredo v pripust
 
     # age > 2: tukaj mladi biki postanejo cakajoci in cakajo v testu
     # po koncanem testu odberes pozitivno testirane PB
     # mladi biki postanejo čakajoči (~1 leto, da se osemeni krave s semenom oz. malo po 2. letu)
     if 'mladi' in categories.keys():
-        ped.set_cat_old('mladi', 'cak', categories)  # mlade prestavi v cakajoce in jih izloci iz populacije
-        ped.set_active_cat('mladi', 2, categories)
+        #############################
+        # to je za potrebe prehoda
+        if kwargs.get("genTest_gpb") and 'mladi' in [i[0] for i in kwargs['genotyped']]: #če se greš genomsko shemo, jih takoj pogenotipiziraj in prestavi v gpb (5)
+            ped.izberi_poEBV_top("M", kwargs.get('genpbn'), "mladi", "gpb", categories)
+            ped.izloci_poEBV("M", (kwargs.get("genpbn") - kwargs.get("mladin")), "mladi", categories)
+        ###########################
+        else:
+            ped.set_cat_old('mladi', 'cak', categories)  # mlade prestavi v cakajoce in jih izloci iz populacije
+            ped.set_active_cat('mladi', 2, categories)
 
     # čakajočim bikov podaljšaj status (do starosti 5 let oz. kolikor let v testu)
     # hkrati jim tudi nastavi status izl
     # ped.set_cat_age_old(2, 'cak', 'cak', categories)
     if 'cak' in categories.keys():
-        for i in range((2 + 1), (2 + kwargs.get(
-                'cak'))):  # 1 leto, ko začnejo semenit in so mladi biki, 3 so čakajoči, +1 da začneš prestavlajt
-            ped.set_cat_age_old(i, 'cak', 'cak', categories)
+        #############################
+        # to je za potrebe prehoda
+        if kwargs.get("genTest_gpb") and 'cak' in [i[0] for i in kwargs['genotyped']]:  # če se greš genomsko shemo, jih takoj pogenotipiziraj in prestavi v gpb (5)
+            ped.izberi_poEBV_top("M", kwargs.get('genpbn') * kwargs.get("cak"), "cak", "gpb", categories)
+            ped.izloci_poEBV("M", ((kwargs.get("mladin") - kwargs.get('genpbn')) * kwargs.get("cak")), "cak", categories)
+        ##########################
+        else:
+            for i in range((2 + 1), (2 + kwargs.get(
+                    'cak'))):  # 1 leto, ko začnejo semenit in so mladi biki, 3 so čakajoči, +1 da začneš prestavlajt
+                ped.set_cat_age_old(i, 'cak', 'cak', categories)
 
     # če že imaš bike dovolj dolgo v testu, odberi pozitivno testirane bike
     if ('cak' in categories.keys()) and (
-        (kwargs.get('cak') + 2) in ped.age()):  # +2 - eno leto so teleta, eno leto mladi biki
+        (kwargs.get('cak') + 2) in ped.age()) and not kwargs.get("genTest_gpb"):  # +2 - eno leto so teleta, eno leto mladi biki, če imaš genomsko, gredo že pred do gpb
         ped.izberi_poEBV_top_age("M", (kwargs.get('cak') + 2), kwargs.get('pbn'), 'cak', 'pb', categories)
         ped.set_active_cat('cak', 2,
                            categories)  # tukaj moraš to nastaviti, zato ker fja izberi avtomatsko nastavi na active=1, vsi cakajoci so izloceni
@@ -1118,14 +1141,16 @@ def selekcija_total(pedFile, **kwargs):
             ped.set_active_cat('genTest', 2, categories)
             ped.izberi_poEBV_top("M", kwargs.get('mladin'), 'genTest', 'mladi',
                               categories)  #naslednji najboljši gredo v test
-            ped.izberi_poEBV_OdDo("M", kwargs.get('mladin'), kwargs.get('potomciNPn'), 'genTest', 'pripust1',
+            ped.izberi_poEBV_OdDo("M", kwargs.get('mladin'), kwargs.get('vhlevljenin'), 'genTest', 'pripust1',
                               categories)  # preostali genomsko testirani gredo v pripust
+            ped.izloci_poEBV("M", (kwargs.get('potomciNPn') - kwargs.get('vhlevljenin')), "genTest", categories)
 
         if kwargs.get('genTest_gpb'):
             ped.izberi_poEBV_top("M", kwargs.get('genpbn'), "genTest", "gpb",
                              categories)  # odberi genomsko testirane bike za AI
-            ped.izberi_poEBV_OdDo("M", kwargs.get('genpbn'), kwargs.get('potomciNPn'), 'genTest', 'pripust1',
+            ped.izberi_poEBV_OdDo("M", kwargs.get('genpbn'), kwargs.get('vhlevljenin'), 'genTest', 'pripust1',
                               categories)  # preostali genomsko testirani gredo v pripust
+            ped.izloci_poEBV("M", (kwargs.get('potomciNPn') - kwargs.get('vhlevljenin')), "genTest", categories)
 
     # prestavi jih naprej predno odbereš progeno testirane
     if 'gpb' in categories.keys():
@@ -1343,7 +1368,7 @@ def nastavi_cat(PedFile, **kwargs):
         ped.izberi_poEBV_top_age_naive('M', 0, kwargs.get('potomciNPn'), 'genTest')
 
         # določi pripust - 1. leto
-        ped.izberi_poEBV_OdDo_age_naive('M', 1, kwargs.get('genpbn'), kwargs.get('potomciNPn'),
+        ped.izberi_poEBV_OdDo_age_naive('M', 1, kwargs.get('genpbn'), kwargs.get('vhlevljenin'),
                                         'pripust1')  # kateri niso odbrani po genomskih, gredo za pripust
 
         # od 1-2 leta v pripustu

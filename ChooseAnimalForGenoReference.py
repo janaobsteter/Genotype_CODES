@@ -5,8 +5,7 @@ import os
 from itertools import chain
 
 os.chdir('/home/jana/bin/AlphaSim1.05Linux/REALFillIn20BurnIn20/')
-ks = pd.DataFrame({'Indiv': sorted(list(set(chain.from_iterable([random.sample((list(pd.read_table('Categories_gen' + str(i) + 'DF.csv', sep=",")['k'].
-dropna().astype(int))), 2500) for i in range(35, 41)]))))})
+ks = pd.DataFrame({'Indiv': sorted(list(set(chain.from_iterable([random.sample((list(pd.read_table('Categories_gen' + str(i) + 'DF.csv', sep=",")['k'].dropna().astype(int))), 2500) for i in range(35, 41)]))))})
 ped = pd.read_table(AlphaSimDir +'/SimulatedData/PedigreeAndGeneticValues_cat.txt', sep='\s+')
 ks = pd.merge(ks, ped, on='Indiv')
 ks.loc[ks.Generation.isin(range(max(ks.Generation)-6, max(ks.Generation)+1)), 'Indiv'].to_csv('//home/jana/bin/AlphaSim1.05Linux/IndForGeno.txt', index=None, header=None, sep='\n')

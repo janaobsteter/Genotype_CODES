@@ -1,27 +1,99 @@
-ped <- read.table('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_Gen/SimulatedData/PedigreeAndGeneticValues.txt', header=T)[2:4]
-ped$Father[pedO$Father == 0] <- NA
-ped$Mother[pedO$Mother == 0] <- NA
 
 library(pedigreemm)
+F <- data.frame(Generation=41:60)
+#################################################
+scenario = "Class"
+dir = paste0('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_', scenario, '/SimulatedData/')
+ped <- read.table(paste0(dir,'/PedigreeAndGeneticValues_cat.txt'), header=T)[2:4]
+ped$Father[ped$Father == 0] <- NA
+ped$Mother[ped$Mother == 0] <- NA
+
 
 pedE <- editPed(sire = ped$Father, dam = ped$Mother, label=ped$Indiv)
 pede<- with(pedE, pedigree(label=label, sire=sire, dam=dam))
 
-pedO <- read.table('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_Gen/SimulatedData/PedigreeAndGeneticValues.txt', header=T)[1:4]
-pedO$Inbreeding <- inbreeding(pede)
-genF <- aggregate(pedO$Inbreeding ~pedO$Generation, FUN=mean)
-plot(genF$`pedO$Inbreeding` ~ genF$`pedO$Generation`, type='line')
+ped$Inbreeding <- inbreeding(pede)
+genF <- aggregate(ped$Inbreeding ~ped$Generation, FUN=mean)
+colnames(genF) <- c("Generation", paste0("Inbreeding_", scenario))
+F <- merge(F, genF, by="Generation")
+
+write.table(ped, paste0(dir, '/PedigreeAndGeneticValues_CatInbreeding.txt'), quote=F, row.names=F)
+#plot(genF$`pedO$Inbreeding` ~ genF$`pedO$Generation`, type='line')
+
 ######################################
-pedC <- read.table('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_Class//SimulatedData/PedigreeAndGeneticValues.txt', header=T)[2:4]
-pedC$Father[pedC$Father == 0] <- NA
-pedC$Mother[pedC$Mother == 0] <- NA
+scenario = "GenSLO"
+dir = paste0('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_', scenario, '/SimulatedData/')
+ped <- read.table(paste0(dir,'/PedigreeAndGeneticValues_cat.txt'), header=T)[2:4]
+ped$Father[ped$Father == 0] <- NA
+ped$Mother[ped$Mother == 0] <- NA
 
-pedCe <- editPed(sire = pedC$Father, dam = pedC$Mother, label=pedC$Indiv)
-pedeC<- with(pedCe, pedigree(label=label, sire=sire, dam=dam))
 
-pedOC <- read.table('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_Class/SimulatedData/PedigreeAndGeneticValues.txt', header=T)[1:4]
-pedOC$Inbreeding <- inbreeding(pedeC)
-genF <- aggregate(pedOC$Inbreeding ~pedOC$Generation, FUN=mean)
-lines(genF$`pedOC$Inbreeding` ~ genF$`pedOC$Generation`, col="red")
+pedE <- editPed(sire = ped$Father, dam = ped$Mother, label=ped$Indiv)
+pede<- with(pedE, pedigree(label=label, sire=sire, dam=dam))
+
+ped$Inbreeding <- inbreeding(pede)
+genF <- aggregate(ped$Inbreeding ~ped$Generation, FUN=mean)
+colnames(genF) <- c("Generation", paste0("Inbreeding_", scenario))
+F <- merge(F, genF, by="Generation")
+
+write.table(ped, paste0(dir, '/PedigreeAndGeneticValues_CatInbreeding.txt'), quote=F, row.names=F)
+#plot(genF$`pedO$Inbreeding` ~ genF$`pedO$Generation`, type='line')
+######################################
+scenario = "Gen_SplosnaPop"
+dir = paste0('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_', scenario, '/SimulatedData/')
+ped <- read.table(paste0(dir,'/PedigreeAndGeneticValues_cat.txt'), header=T)[2:4]
+ped$Father[ped$Father == 0] <- NA
+ped$Mother[ped$Mother == 0] <- NA
+
+
+pedE <- editPed(sire = ped$Father, dam = ped$Mother, label=ped$Indiv)
+pede<- with(pedE, pedigree(label=label, sire=sire, dam=dam))
+
+ped$Inbreeding <- inbreeding(pede)
+genF <- aggregate(ped$Inbreeding ~ped$Generation, FUN=mean)
+colnames(genF) <- c("Generation", paste0("Inbreeding_", scenario))
+F <- merge(F, genF, by="Generation")
+
+write.table(ped, paste0(dir, '/PedigreeAndGeneticValues_CatInbreeding.txt'), quote=F, row.names=F)
+#plot(genF$`pedO$Inbreeding` ~ genF$`pedO$Generation`, type='line')
+######################################
+scenario = "GenSLO_BmGen"
+dir = paste0('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_', scenario, '/SimulatedData/')
+ped <- read.table(paste0(dir,'/PedigreeAndGeneticValues_cat.txt'), header=T)[2:4]
+ped$Father[ped$Father == 0] <- NA
+ped$Mother[ped$Mother == 0] <- NA
+
+
+pedE <- editPed(sire = ped$Father, dam = ped$Mother, label=ped$Indiv)
+pede<- with(pedE, pedigree(label=label, sire=sire, dam=dam))
+
+ped$Inbreeding <- inbreeding(pede)
+genF <- aggregate(ped$Inbreeding ~ped$Generation, FUN=mean)
+colnames(genF) <- c("Generation", paste0("Inbreeding_", scenario))
+F <- merge(F, genF, by="Generation")
+
+write.table(ped, paste0(dir, '/PedigreeAndGeneticValues_CatInbreeding.txt'), quote=F, row.names=F)
+#plot(genF$`pedO$Inbreeding` ~ genF$`pedO$Generation`, type='line')
+######################################
+scenario = "Gen"
+dir = paste0('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_', scenario, '/SimulatedData/')
+dir = paste0('/home/jana/bin/AlphaSim1.05Linux/SimulatedData/')
+ped <- read.table(paste0(dir,'/PedigreeAndGeneticValues_cat.txt'), header=T)[2:4]
+ped$Father[ped$Father == 0] <- NA
+ped$Mother[ped$Mother == 0] <- NA
+
+
+pedE <- editPed(sire = ped$Father, dam = ped$Mother, label=ped$Indiv)
+pede<- with(pedE, pedigree(label=label, sire=sire, dam=dam))
+
+ped$Inbreeding <- inbreeding(pede)
+genF <- aggregate(ped$Inbreeding ~ped$Generation, FUN=mean)
+colnames(genF) <- c("Generation", paste0("Inbreeding_", scenario))
+F <- merge(F, genF, by="Generation")
+
+write.table(ped, paste0(dir, '/PedigreeAndGeneticValues_CatInbreeding.txt'), quote=F, row.names=F)
+#plot(genF$`pedO$Inbreeding` ~ genF$`pedO$Generation`, type='line')
+
+write.csv(F, "/home/jana/bin/AlphaSim1.05Linux/Inbreeding_Scenarios.csv", quote=F, row.names=F)
 
 

@@ -11,10 +11,13 @@ import os
 
 TBV  = TBVPed(os.getcwd() + '/')
 gens, means, vars = TBV.genTrend('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_Class/SimulatedData/PedigreeAndGeneticValues.txt', 41, 61)
+TBV  = TBVPed(os.getcwd() + '/')
+gens1, means1, vars1 = TBV.genTrend('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_Class2/SimulatedData/PedigreeAndGeneticValues.txt', 41, 61)
+
 
 
 TBV  = TBVPed(os.getcwd() + '/')
-gensA, meansA, varsA = TBV.genTrend('/home/jana/bin/AlphaSim1.05Linux//SimulatedData/PedigreeAndGeneticValues.txt', 41, 61)
+gensA, meansA, varsA = TBV.genTrend('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_Gen/SimulatedData/PedigreeAndGeneticValues.txt', 41, 61)
 
 
 TBV  = TBVPed(os.getcwd() + '/')
@@ -31,7 +34,7 @@ gensD, meansD, varsD = TBV.genTrend('/home/jana/bin/AlphaSim1.05Linux/REAL20GenS
 
 
 TBV  = TBVPed(os.getcwd() + '/')
-gensD, meansD, varsD = TBV.genTrend('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_GenReference/SimulatedData/PedigreeAndGeneticValues.txt', 41, 61)
+gensE, meansE, varsE = TBV.genTrend('/home/jana/bin/AlphaSim1.05Linux//SimulatedData/PedigreeAndGeneticValues.txt', 41, 61)
 #plt.errorbar(x = TBV.gens, y = TBV.means, yerr = TBV.vars)
 
 
@@ -63,12 +66,14 @@ Means.loc[:,'VarD'] =  list(varsD)
 Means.loc[:,'StandD'] = (Means.MeanD - Means.MeanD[0]) / sqrt(Means.VarD[0])
 
 
-plt.plot( Means.Gen, Means.Stand,  label = 'Mean Gen TBV_class')
-plt.plot( Means.GenS, Means.StandS,  label = 'Mean Gen TBV_gen')
-plt.plot( Means.GenD, Means.StandD,  label = 'Mean Gen TBV_genRef')
-plt.plot( Means.GenA, Means.StandA,  label = 'Mean Gen TBV_genSLO_bmGen')
-plt.plot( Means.GenG, Means.StandG,  label = 'Mean Gen TBV_genSLO')
+plt.plot( Means.Gen, Means.Stand,  label = 'Conventional')
+plt.plot( Means.GenG, Means.StandG,  label = 'Conventional_SLO')
+plt.plot( Means.GenS, Means.StandS,  label = 'GenBulls on Other Cows')
+plt.plot( Means.GenD, Means.StandD,  label = 'GenBulls on Bull Dams')
+plt.plot( Means.GenA, Means.StandA,  label = 'GenBulls on All Cows')
+plt.plot( Means.GenE, Means.StandE,  label = 'GenBulls on All Cows1')
 plt.xticks(Means.Gen)
+
 plt.xlabel('Selected Generation')
 plt.ylabel('Mean Generation TBV')
 legend(loc='upper left')
@@ -92,11 +97,16 @@ plt.ylabel('Mean Generation TBV')
 legend(loc='upper left')
 
 
-plt.plot(gens, means, label='EBV')
-plt.plot(gensA, meansA, label='genSLO_gen')
-plt.plot(gensG, meansG, label='genSLO')
-plt.plot(gensS, meansS, label='genSplosna')
-plt.plot(gensD, meansD, label='gen_SLO_BmGen')
+plt.plot(gens, means, label='Conventional')
+plt.plot(gens1, means1, label='Conventional_rep1')
+plt.plot(gensG, meansG, label='Conventional_SLO')
+plt.plot(gensS, meansS, label='GenBulls on Other Cows')
+plt.plot(gensD, meansD, label='GenBulls on Bull Dams')
+plt.plot(gensE, meansE, label='GenBulls on all cows')
+#plt.plot(gensA, meansA, label='GenBulls on all cows BitWrong')
+plt.xlabel('Selected Generation')
+plt.ylabel('Mean Generation TBV')
+legend(loc='upper left')
 
 
 

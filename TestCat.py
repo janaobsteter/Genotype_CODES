@@ -28,13 +28,14 @@ baba['EBV'] = False
 baba['gEBV'] = True
 baba['EBV'] = True
 baba['gEBV'] = False
-baba['genotyped'] = [('potomciNP', 100.0, 'random', 'M'), ('pb', 100.0, 'EBV', 'M')]
+baba['genotyped'] = [('potomciNP', 100.0, 'random', 'M'), ('pb', 100.0, 'EBV', 'M'), ('cak', 100.0, 'EBV', 'M'), ('vhlevljeni', 100.0, 'EBV', 'M'), ('mladi', 100.0, 'EBV', 'M')]
 baba['AlphaSimDir'] = '/home/jana/bin/AlphaSim1.05Linux'
-baba['EliteDamsPTBulls'] = True
+baba['EliteDamsGenBulls'] = True
 baba['UpdateGenRef'] = False
 baba['genTest_mladi'] = False
 baba['genTest_gpb'] = True
-baba['gpb_pb'] = True
+baba['gpb_pb'] = False
+baba['CowsGenBulls_Per'] = 8640
 
 
 
@@ -91,9 +92,9 @@ ped = pd.read_csv(AlphaSimDir +"/SimulatedData/PedigreeAndGeneticValues_cat.txt"
 
 
  #check fathers cat and number of offspring
-counts =  pd.DataFrame({'Father': list(ped.loc[ped.cat=='nr', "Father"].value_counts().index), 'Offspring': list(ped.loc[ped.cat=='nr', "Father"].value_counts())})
+counts =  pd.DataFrame({'Father': list(ped.loc[ped.cat.isin(["telF", "telM"]), "Father"].value_counts().index), 'Offspring': list(ped.loc[ped.cat.isin(["telF", "telM"]), "Father"].value_counts())})
 counts.loc[:, 'FatherCat']  = list(chain.from_iterable([ped.cat[ped.Indiv == i] for i in counts.Father]))
-counts[counts.FatherCat=='pb']
+counts[counts.FatherCat=='gpb']
 
 
  #check fathers cat and number of offspring 'nr'
@@ -107,7 +108,7 @@ except:
 set(counts.FatherCat)
 counts[counts.FatherCat=='pb']
 
-genInd = pd.read_csv(AlphaSimDir + "REAL20GenSel_GenSplosnaPop/IndForGeno.txt", header=None)
+genInd = pd.read_csv(AlphaSimDir + "/IndForGeno.txt", header=None)
 genInd.columns = ["Indiv"]
 gpb = ped.loc[ped.cat=='gpb', 'Indiv']
 pb = ped.loc[ped.cat=='pb', 'Indiv']
