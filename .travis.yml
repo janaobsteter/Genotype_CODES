@@ -1,0 +1,112 @@
+language: c
+sudo: required
+addons:
+    apt:
+        sources:
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-precise-3.7
+        packages:
+            - cmake
+            - gcc-4.8
+            - lcov
+            - clang-3.7
+            - valgrind
+            - libev-dev
+            - libc-ares-dev
+            - g++-4.8
+            - libstdc++-4.8-dev
+            - stunnel4
+            - libidn2-0-dev
+            - libssh2-1-dev
+
+matrix:
+    include:
+        - os: linux
+          compiler: gcc
+          env: BUILD_TYPE=normal
+        - os: linux
+          compiler: clang
+          env: BUILD_TYPE=debug
+        - os: osx
+          compiler: gcc
+          env: BUILD_TYPE=debug
+        - os: osx
+          compiler: clang
+          env: BUILD_TYPE=normal
+        - os: linux
+          compiler: gcc
+          dist: trusty
+          env: BUILD_TYPE=cmake
+        - os: linux
+          compiler: clang
+          dist: trusty
+          env: BUILD_TYPE=cmake
+        - os: linux
+          compiler: gcc
+          env: BUILD_TYPE=coverage
+        - os: linux
+          compiler: gcc
+          env: BUILD_TYPE=distcheck
+
+install:
+  - pip install --user cpp-coveralls
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update > /dev/null; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew reinstall libtool > /dev/null; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install openssl libidn rtmpdump libssh2 c-ares libmetalink libressl nghttp2; fi
+  - if [ $TRAVIS_OS_NAME = linux ]; then
+      curl -L https://github.com/nghttp2/nghttp2/releases/download/v1.24.0/nghttp2-1.24.0.tar.gz |
+         tar xzf - &&
+         (cd nghttp2-1.24.0 && CXX="g++-4.8" ./configure --prefix=/usr --disable-threads --enable-app && make && sudo make install);
+    fi
+
+before_script:
+    - ./buildconf
+
+script:
+    - |
+        if [ "$BUILD_TYPE" = "coverage" ]; then
+             export CC="gcc-4.8"
+             ./configure --enable-debug --disable-shared --enable-code-coverage
+             make
+             make TFLAGS=-n test-nonflaky
+             tests="1 2 3 4 5 6 7 8 9 10 200 201 202 300 301 302 500 501 502 503 504 506 507 508 509 510 511 512 513 514 515 516 517 518 519 600 601 800 801 802 803 900 901 902 903 1000 1001 1002 1004 1302 1303 1304 1305 1306 1308 1400 1401 1402 1404 1450 1451 1452 1502 1507 1508 1600 1602 1603 1605"
+             make "TFLAGS=-n -e $tests" test-nonflaky
+             make "TFLAGS=-n -t $tests" test-nonflaky
+             coveralls --gcov /usr/bin/gcov-4.8 --gcov-options '\-lp' -i src -i lib -i lib/vtls -i lib/vauth -e tests -e docs
+        fi
+    - |
+        if [ "$BUILD_TYPE" = "debug" ]; then
+             ./configure --enable-debug --enable-werror
+             make
+             make TFLAGS=-n test-nonflaky
+        fi
+    - |
+        if [ "$BUILD_TYPE" = "normal" ]; then
+             ./configure --enable-warnings --enable-werror
+             make
+             make test-nonflaky
+        fi
+    - |
+        if [ "$BUILD_TYPE" = "cmake" ]; then
+             mkdir build
+             cd build
+             cmake ..
+             make
+        fi
+    - |
+        if [ "$BUILD_TYPE" = "distcheck" ]; then
+            ./configure
+            make
+            ./maketgz 99.98.97
+            (tar xf curl-99.98.97.tar.gz && cd curl-99.98.97 && ./configure && make && make TFLAGS=1 test)
+            rm -rf curl-99.98.97
+            (tar xf curl-99.98.97.tar.gz && mkdir build && cd build && ../curl-99.98.97/configure && make && make TFLAGS=1 test)
+        fi
+
+# whitelist branches to avoid testing feature branches twice (as branch and as pull request)
+branches:
+    only:
+        - master
+
+notifications:
+  email: false

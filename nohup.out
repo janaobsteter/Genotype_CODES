@@ -1,0 +1,27 @@
+Loading required package: lme4
+Loading required package: Matrix
+Loading required package: methods
+Error in model.frame.default(formula = ped$Inbreeding ~ ped$Generation) : 
+  invalid type (NULL) for variable 'ped$Generation'
+Calls: aggregate ... aggregate.formula -> eval -> eval -> <Anonymous> -> model.frame.default
+Execution halted
+Loading required package: lme4
+Loading required package: Matrix
+Loading required package: methods
+Error in model.frame.default(formula = pedO$Inbreeding ~ pedO$Generation) : 
+  invalid type (NULL) for variable 'pedO$Generation'
+Calls: aggregate ... aggregate.formula -> eval -> eval -> <Anonymous> -> model.frame.default
+Execution halted
+Loading required package: lme4
+Loading required package: Matrix
+Loading required package: methods
+Error in model.frame.default(formula = pedO$Inbreeding ~ pedO$Generation) : 
+  invalid type (NULL) for variable 'pedO$Generation'
+Calls: aggregate ... aggregate.formula -> eval -> eval -> <Anonymous> -> model.frame.default
+Execution halted
+Loading required package: lme4
+Loading required package: Matrix
+Loading required package: methods
+Error in write.table(pedO, paste0(dir, "/PedigreeAndGeneticValues_CatInbreeding.txt"),  : 
+  invalid 'quote' specification
+Execution halted

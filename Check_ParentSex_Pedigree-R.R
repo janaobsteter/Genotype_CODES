@@ -95,3 +95,11 @@ pb = ped$Indiv[ped$cat=='pb']
 intersect(gpb, pb)
 length(gpb)
 length(pb)
+
+
+###################################
+#izpadle živali po QC
+#####################################
+izpadle <- read.table("~/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/IDBv03/IDsWithCallRateLessThan0.90F4F_11072017_IDBv03.txt")
+mastitis <- c("SI14209918", "SI53803319", "SI54208298", "SI34343353", "SI94342428", "SI84342429", "SI23284447", "SI04073118", "SI74073128", "SI54097232", "SI64073112", "SI94370708", "SI03226265",
+              "SI83080364", "SI83513194")
