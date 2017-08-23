@@ -24,14 +24,15 @@ Ui_MainWindow, QtBaseClass = uic.loadUiType(qtCreatorFile)
 
 
 class estimateBV:
-    def __init__(self, AlphaSimDir, way, sel):
+    def __init__(self, AlphaSimDir, codeDir, way, sel):
         self.AlphaSimDir = AlphaSimDir
         self.way = way
         self.sel = sel
+        self.codeDir = codeDir
 
-    def computeEBV(self, nbIndGen):
+    def computeEBV(self):
         # pripravi fajle za blupf90
-        blupFiles = blupf90(self.AlphaSimDir, way=self.way, sel=self.sel)
+        blupFiles = blupf90(self.AlphaSimDir, self.codeDir, way=self.way)
         # listUnphenotyped = ['potomciNP', 'nr', 'telF', 'telM', 'pt', 'mladi', 'vhlevljeni', 'cak'] #list of unphenotyped categories (better ages?)
         # blupFiles.preparePedDat_cat(listUnphenotyped) #pripravi ped, dat file za blup #skopiraj generičen paramfile v AlphaSim Directory
         if self.way == 'milk':
@@ -89,7 +90,7 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
         self.AlphaSimDir.clicked.connect(self.choose_dir)
         self.DoMagic.clicked.connect(self.selekcija)
         self.DoMagic.clicked.connect(self.setSelParam)
-        self.SpecFile = AlphaSimSpec()
+        self.SpecFile = AlphaSimSpec('/home/jana/bin/AlphaSim1.05Linux/', '/home/jana/Genotipi/Genotipi_CODES/')
         # AlphaSimSpec je class iz selection, ki omogoča nastavljanje parametrov AlphaSimSpec fila
         self.setParamDict = defaultdict()
         #self.DoMagic.clicked.connect(self.setSelParam)
@@ -255,7 +256,7 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
         self.setParamDict['NbUpdatedGen'] = int(self.NbUpdatedGen.text()) if not self.NbUpdatedGen.text().isEmpty() else 0
         self.setParamDict['AlphaSimDir'] = str(self.AlphaSimDirShow.text())
         pd.DataFrame.from_dict(self.setParamDict, orient='index').to_csv('/home/jana/SelectionParam.csv', header=False)
-        pd.DataFrame.from_dict(self.setParamDict, orient='index').to_csv(self.AlphaSimDir + '/SelectionParam.csv', header=False)
+        pd.DataFrame.from_dict(self.setParamDict, orient='index').to_csv(self.setParamDict.get('AlphaSimDir') + '/SelectionParam.csv', header=False)
         return self.setParamDict
 
     #funkcija selekcija
@@ -270,6 +271,7 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
         self.NumberOfSires = int(self.NoSires.text()) if not self.NoSires.text().isEmpty() else 0#number of sires in the population
         self.NumberOfDams = int(self.NoDams.text()) if not self.NoDams.text().isEmpty() else 0 # to je za burn in - NoDams in NoSires
         self.AlphaSimDir = str(self.AlphaSimDirShow.text())
+        self.codeDir = '/home/jana/Genotipi/Genotipi_CODES/'
         self.AlphaSimPed = str(self.AlphaSimDir).strip('/.') + '/SimulatedData/PedigreeAndGeneticValues.txt'
         if self.EBV_YN.isChecked():
             self.seltype = 'class'
@@ -346,7 +348,7 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
                     Acc = accuracies(self.AlphaSimDir) #nastavi
                     GenTrends = TBVCat(self.AlphaSimDir)
                     #nimaš GenPed_EBV.txt
-                    blups = estimateBV(self.AlphaSimDir, way='burnin_milk', sel=self.seltype)
+                    blups = estimateBV(self.AlphaSimDir, self.codeDir, way='burnin_milk', sel=self.seltype)
                     blups.computeEBV(self.StNB) #tukaj izbriši samo fenotipe moških - ne morš po kategorijah, ker jih nimaš
                     #Acc.saveAcc()
                     nastavi_cat('GenPed_EBV.txt', **self.setSelParam())
@@ -383,7 +385,7 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
                 os.system('./AlphaSim1.05')
 
                 # tukaj dodaj kategorije k PedigreeAndGeneticValues (AlphaSim File)
-                PedCat = OrigPed(self.AlphaSimDir)
+                PedCat = OrigPed(self.AlphaSimDir, '/home/jana/Genotipi/Genotipi_CODES')
                 PedCat.addInfo() #to ti zapiše PedigreeAndGeneticValues_cat.txt v AlphaSim/SimualatedData
 
                 #tukaj pridobi podatke za generacijske intervale

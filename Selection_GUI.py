@@ -27,7 +27,7 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
         Ui_MainWindow.__init__(self)
         self.setupUi(self)
         self.AlphaSimDir.clicked.connect(self.choose_dir)
-        self.DoMagic.clicked.connect(self.selekcija)
+        #self.DoMagic.clicked.connect(self.selekcija)
         self.DoMagic.clicked.connect(self.setSelParam)
         self.SpecFile = AlphaSimSpec()
         # AlphaSimSpec je class iz selection, ki omogoča nastavljanje parametrov AlphaSimSpec fila

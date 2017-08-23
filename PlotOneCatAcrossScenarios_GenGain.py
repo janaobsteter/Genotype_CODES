@@ -57,7 +57,7 @@ for cat in cats:
 x = 0
 y = 0
 r=0
-os.chdir('/home/jana/bin/AlphaSim1.05Linux/')
+os.chdir('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_Gen')
 accuraciesEBV = pd.read_table('AccuraciesEBVPA.csv', sep=",")
 accuraciesEBV = accuraciesEBV[accuraciesEBV.Cycle.isin(range(40, 57))]
 for cat in cats:
@@ -138,7 +138,7 @@ for cat in cats:
 x = 0
 y = 0
 r=0
-os.chdir('/home/jana/bin/AlphaSim1.05Linux//')
+os.chdir('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_Gen/')
 accuraciesEBV = pd.read_table('AccuraciesEBVPA.csv', sep=",")
 accuraciesEBV = accuraciesEBV[accuraciesEBV.Cycle.isin(range(40, 57))]
 for cat in cats:

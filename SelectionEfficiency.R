@@ -21,7 +21,7 @@ geom_segment(data=tmp5, mapping=aes(x=zSdGenicMax, xend=zSdGenicMin,
 efficiency = function(x, f) {
   ret = NA
   if (nrow(x) > 5) {
-    x = arrange_(x, "time")
+    x = arrange_(x, "Generation")
     # fit = lm(formula=f, data=x)
     fit = MASS:::rlm(formula=f, data=x, maxit=1000)
     # fit = MASS:::lqs(formula=f, data=x)
@@ -32,9 +32,9 @@ efficiency = function(x, f) {
 datByRunStage = dat %>%
   group_by(run, rep, scenario, sel, self, size, scaled, crit, nCycles, target, stage) %>%
   nest()
-
+data <- TGVsAll
 datByRunStage = datByRunStage %>%
-  mutate(efficiencyG=map(data, efficiency, f=zMean      ~ zSdG),
+  mutate(efficiencyG=map(data, efficiency, f=zMean      ~ zSdGenic),
          efficiencyGenic=map(data, efficiency, f=zMeanGenic ~ zSdGenic))
 # zMean je standardiziran genetski napredek (TBV - mean(TBV_gen_start)) / sd(TBV_gen_start)
 # zMeanGenic je standardiziran genetski napredek (TBV - mean(TBV_gen_start)) / sqrt(2*sum(p*q*alpha)_gen_start
@@ -96,14 +96,26 @@ for (scenario in c("Class", "GenSLO", "GenSplosnaPop", "GenSLO_BmGen", "Gen")) {
   Var <- Var[Var$QtnModel==1,c(1,3)]
   TGVs <- merge(TGVs, Var, by="Generation")
   TGVs$zMeanGenic <- (TGVs$gvNormUnres1 - TGVs$gvNormUnres1[1]) / TGVs$AdditGenicVar1[1]
+  #TGVsAll$zSdGenic <- (sqrt(TGVsAll$AdditGenicVar1) - sqrt(TGVsAll$))
   TGVs$scenario <- scenario
   #colnames(TGVs) < c("Generation", paste0("TGV_mean", scenario), paste0("TGV_sd", scenario), paste0("zMean_", scenario), paste0("GenicVar_", scenario), paste0("zMeanGenic_", scenario))
-  TGVsAll <- rbind(TGVsAll, TGVs, by="Generation")
+  TGVsAll <- rbind(TGVsAll, TGVs)
 }
 
-TGVsAll -
-TGVsAll$AdditGenicVar1 <- as.numeric(TGVsAll$AdditGenicVar1)
-TGVsAll$zSdGenic <- sqrt(TGVsAll$AdditGenicVar1) / sqrt(TGVsAll$AdditGenicVar1)[1] 
+#TGVsAll$AdditGenicVar1 <- as.numeric(TGVsAll$AdditGenicVar1)
+TGVsAll$zSdGenic <- (sqrt(TGVsAll$AdditGenicVar1)) 
 
-
-ggplot(data = TGVsAll, aes(x=TGVsAll$zSdGenic, y=TGVsAll$zMeanGenic, colour=TGVsAll$scenario)) + geom_path() + scale_x_reverse()
+library(MASS)
+library(ggplot2)
+lm <- ggplot(data = TGVsAll, aes(x=TGVsAll$zSdGenic, y=TGVsAll$zMeanGenic, colour=TGVsAll$scenario)) + geom_path() + scale_x_reverse() + 
+  geom_smooth(method='lm', se=FALSE) + 
+  scale_color_hue("Shema", labels=c("Conventional", "GenomicSLO", "GenBulls on Other Cows", "GenBulls on Bull Dams", "GenBulls on All Cows")) + 
+  xlab("Genic sd") + ylab("Mean genetic gain") + ggtitle("Genic variance standardisation")
+lm2 <- ggplot(data = TGVsAll, aes(x=TGVsAll$zSdGenic, y=TGVsAll$zMean, colour=TGVsAll$scenario)) + geom_path() + scale_x_reverse() + 
+  geom_smooth(method='lm', se=FALSE) + 
+  scale_color_hue("Shema", labels=c("Conventional", "GenomicSLO", "GenBulls on Other Cows", "GenBulls on Bull Dams", "GenBulls on All Cows")) + 
+  xlab("Genic sd") + ylab("Mean genetic gain") + ggtitle("Genetic variance standardisation")
+rlm <- ggplot(data = TGVsAll, aes(x=TGVsAll$zSdGenic, y=TGVsAll$zMeanGenic, colour=TGVsAll$scenario)) + geom_path() + scale_x_reverse() + geom_smooth(method='rlm', se=FALSE)
+library(Rmisc)
+multiplot(lm, rlm, cols=2)
+multiplot(lm, lm2, cols=2)

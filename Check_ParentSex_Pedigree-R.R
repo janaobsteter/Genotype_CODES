@@ -1,7 +1,7 @@
 ped = read.table('~/bin/AlphaSim1.05Linux/REAL20GenSel_GenBM_UpdatedRef//SimulatedData/PedigreeAndGeneticValues_cat.txt', header=T)
 sex = read.table('~/bin/AlphaSim1.05Linux/REAL20GenSel_GenBM_UpdatedRef//SimulatedData/Gender.txt', header=T)
-ped = read.table('~/bin/AlphaSim1.05Linux//SimulatedData/PedigreeAndGeneticValues_cat.txt', header=T)
-sex = read.table('~/bin/AlphaSim1.05Linux//SimulatedData/Gender.txt', header=T)
+ped = read.table('~/bin/AlphaSim1.05Linux//REAL20GenSel_Gen/SimulatedData/PedigreeAndGeneticValues_cat.txt', header=T)
+sex = read.table('~/bin/AlphaSim1.05Linux/REAL20GenSel_Gen/SimulatedData/Gender.txt', header=T)
 pedsex <- merge(ped, sex, by='Indiv')
 #prvih 20 generacij mora štimat, ker jih vleče iz burn-ina
 pedsex20 <- pedsex[pedsex$Generation.x %in% 1:20,]
@@ -22,6 +22,17 @@ length(intersect(females$Indiv, fathers))
 #########################################################################################
 #splotaj število potomcev po očetu
 father <- as.data.frame(table(ped$Father))
+colnames(father) <- c("Indiv", "NoOff" )
+father <- merge(father, ped, by="Indiv")
+genFather <- aggregate(father$NoOff[father$cat=='gpb'] ~ father$Generation[father$cat=='gpb'], FUN="mean")
+pbFather <- aggregate(father$NoOff[father$cat=='pripust1'] ~ father$Generation[father$cat=='pripust1'], FUN="mean")
+colnames(genFather) <- c("Gen", "NoOff" )
+colnames(pbFather) <- c("Gen", "NoOff" )
+plot(genFather$NoOff ~genFather$Gen)
+plot(pbFather$NoOff ~pbFather$Gen)
+plot(father$NoOff[father$cat=='gpb'] ~father$Generation[father$cat=='gpb'])
+plot(father$NoOff[father$cat=='pb'] ~father$Generation[father$cat=='pb'])
+
 hist(as.data.frame(table(ped$Father))$Freq, breaks=100)
 mean(table(ped$Father))
 tail(table(ped$Father, ped$cat))
@@ -36,7 +47,7 @@ tail(table(ped$Mother, ped$cat))
 #preveri povprečno število potomcev po kategoriji očeta (in generaciji)
 mean = 0
 number = 0
-for (father in intersect(ped$Father, ped$Indiv[ped$cat == 'mladi'])) {
+for (father in intersect(ped$Father, ped$Indiv[ped$cat == 'gpb'])) {
   mean = mean + length(ped$Indiv[ped$Father==father])
   number = number + 1
 }
@@ -44,9 +55,9 @@ mean / number
 
 
 #na koliko potomcih so testirani pb
-unique(ped$Generation[ped$cat=='pb'])
+unique(ped$Generation[ped$cat=='gpb'])
 mean = 0
-for (pb in ped$Indiv[ped$cat=='pb']) {
+for (pb in ped$Indiv[ped$cat=='gpb']) {
   Generation = ped$Generation[ped$Indiv == pb]
   mean = mean + length(ped$Indiv[ped$Father==pb & ped$Generation %in% Generation: (Generation+5)])
   print(c(pb, length(ped$Indiv[ped$Father==pb & ped$Generation %in% Generation: (Generation+5)]), Generation))
@@ -89,7 +100,7 @@ plot(genMean$`ped$gvNormUnres1` ~ genMean$`ped$Generation`, type='line')
 
 ##########################3
 #preveri intersect med gpb in pb -should be none!
-ped = read.table('~/bin/AlphaSim1.05Linux//SimulatedData/PedigreeAndGeneticValues_cat.txt', header=T)
+ped = read.table('~/bin/AlphaSim1.05Linux/REAL20GenSel_Gen/SimulatedData/PedigreeAndGeneticValues_cat.txt', header=T)
 gpb = ped$Indiv[ped$cat=='gpb']
 pb = ped$Indiv[ped$cat=='pb']
 intersect(gpb, pb)
@@ -97,9 +108,7 @@ length(gpb)
 length(pb)
 
 
-###################################
-#izpadle živali po QC
-#####################################
-izpadle <- read.table("~/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/IDBv03/IDsWithCallRateLessThan0.90F4F_11072017_IDBv03.txt")
-mastitis <- c("SI14209918", "SI53803319", "SI54208298", "SI34343353", "SI94342428", "SI84342429", "SI23284447", "SI04073118", "SI74073128", "SI54097232", "SI64073112", "SI94370708", "SI03226265",
-              "SI83080364", "SI83513194")
+
+################################################
+gpb <- ped[ped$cat=='gpb',]
+gF <- subset(father)

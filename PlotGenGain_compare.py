@@ -31,10 +31,12 @@ gensS, meansS, varsS = TBV.genTrend('/home/jana/bin/AlphaSim1.05Linux/REAL20GenS
 TBV  = TBVPed(os.getcwd() + '/')
 gensD, meansD, varsD = TBV.genTrend('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_GenSLO_BmGen/SimulatedData/PedigreeAndGeneticValues.txt', 41, 61)
 #plt.errorbar(x = TBV.gens, y = TBV.means, yerr = TBV.vars)
-
+TBV  = TBVPed(os.getcwd() + '/')
+gens2, means2, vars2 = TBV.genTrend('/home/jana/bin/AlphaSim1.05Linux//SimulatedData/PedigreeAndGeneticValues.txt', 41, 61)
+#plt.errorbar(x = TBV.gens, y = TBV.means, yerr = TBV.vars)
 
 TBV  = TBVPed(os.getcwd() + '/')
-gensE, meansE, varsE = TBV.genTrend('/home/jana/bin/AlphaSim1.05Linux//SimulatedData/PedigreeAndGeneticValues.txt', 41, 61)
+gensE, meansE, varsE = TBV.genTrend('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_Gen/SimulatedData/PedigreeAndGeneticValues.txt', 41, 61)
 #plt.errorbar(x = TBV.gens, y = TBV.means, yerr = TBV.vars)
 
 
@@ -103,6 +105,8 @@ plt.plot(gensG, meansG, label='Conventional_SLO')
 plt.plot(gensS, meansS, label='GenBulls on Other Cows')
 plt.plot(gensD, meansD, label='GenBulls on Bull Dams')
 plt.plot(gensE, meansE, label='GenBulls on all cows')
+plt.plot(gens2, means2, label='GenBulls on Bull Dams2')
+
 #plt.plot(gensA, meansA, label='GenBulls on all cows BitWrong')
 plt.xlabel('Selected Generation')
 plt.ylabel('Mean Generation TBV')
