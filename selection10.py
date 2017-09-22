@@ -726,10 +726,11 @@ class pedigree(classPed):
 
 
 class OrigPed(object):
-    def __init__(self, AlphaSimDir):
+    def __init__(self, AlphaSimDir, codeDir):
         self.name = AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues.txt'
         self.pdPed = pd.read_table(self.name, sep='\s+')
         self.AlphaSimDir = AlphaSimDir
+        self.codeDir = codeDir
 
     def addInfo(self):
         pedTotal = pd.read_csv(self.AlphaSimDir + 'ExternalPedigreeTotal.txt')
@@ -741,16 +742,16 @@ class OrigPed(object):
 
     def computeEBV(self, cor):
         # precacunas EBV v Ru in zapises PEDIGRE
-        shutil.copy("/home/jana/Genotipi/Genotipi_CODES/Rcorr_PedEBV.R", "Rcorr_PedEBV_ThisGen.R")
+        shutil.copy(self.codeDir + "/Rcorr_PedEBV.R", "Rcorr_PedEBV_ThisGen.R")
         os.system('sed -i "s|AlphaSimPed|' + self.name + '|g" Rcorr_PedEBV_ThisGen.R')
         os.system('sed -i "s|setCor|' + str(cor) + '|g" Rcorr_PedEBV_ThisGen.R')
         call('Rscript Rcorr_PedEBV_ThisGen.R', shell=True)
 
 
 class blupf90:
-    def __init__(self, AlphaSimDir, way=None, sel=None):
-        self.blupgenParamFile = '/home/jana/Genotipi/Genotipi_CODES/renumf90.par'
-        self.blupgenParamFile_Clas = '/home/jana/Genotipi/Genotipi_CODES/renumf90_Clas.par'
+    def __init__(self, AlphaSimDir, codeDir, way=None):
+        self.blupgenParamFile = codeDir + '/renumf90.par'
+        self.blupgenParamFile_Clas = codeDir + '/renumf90_Clas.par'
         # self.blupgenParamFile = '/home/jana/Genotipi/Genotipi_CODES/blupf90_Selection'
         # self.blupParamFile = AlphaSimDir + 'blupf90_Selection'
         if way == 'milk':
@@ -1212,9 +1213,9 @@ def selekcija_total(pedFile, **kwargs):
         if not kwargs.get('UpdateGenRef'):
             ped.saveIndForGeno(kwargs.get('genotyped'))
         os.system('less IndForGeno.txt | wc -l > ReferenceSize_new.txt && cat ReferenceSize_new.txt ReferenceSize.txt > Reftmp && mv Reftmp ReferenceSize.txt')
-    ped.write_ped("/home/jana/bin/AlphaSim1.05Linux/ExternalPedigree.txt")
-    ped.write_pedTotal("/home/jana/bin/AlphaSim1.05Linux/ExternalPedigreeTotal.txt")
-    ped.write_pedTotal("/home/jana/PedTotal.txt")
+    ped.write_ped(kwargs.get('AlphaSimDir') + "/ExternalPedigree.txt")
+    ped.write_pedTotal(kwargs.get('AlphaSimDir') + "/ExternalPedigreeTotal.txt")
+    #ped.write_pedTotal("/home/jana/PedTotal.txt")
 
     return ped, ped.save_cat(), ped.save_sex(), ped.save_active()
 
@@ -1319,7 +1320,7 @@ def selekcija_ena_gen(pedFile, categories=None, sex=None, active=None, stNB=None
 
         categories.clear()  # sprazni slovar od prejšnjega leta
 
-    ped.write_ped("/home/jana/bin/AlphaSim1.05Linux/ExternalPedigree.txt")
+    ped.write_ped(kwargs.get('AlphaSimDir')  + "/ExternalPedigree.txt")
 
     return ped, ped.save_cat(), ped.save_sex(), ped.save_active()
 
@@ -1438,9 +1439,9 @@ def nastavi_cat(PedFile, **kwargs):
     ped.save_active_DF()
     if kwargs.get('gEBV'):
         ped.saveIndForGeno(kwargs.get('genotyped'))
-    ped.write_ped("/home/jana/bin/AlphaSim1.05Linux/ExternalPedigree.txt")
-    ped.write_pedTotal("/home/jana/bin/AlphaSim1.05Linux/ExternalPedigreeTotal.txt")
-    ped.write_pedTotal("/home/jana/PedTotal.txt")
+    ped.write_ped(kwargs.get('AlphaSimDir') + "/ExternalPedigree.txt")
+    ped.write_pedTotal(kwargs.get('AlphaSimDir') + "/ExternalPedigreeTotal.txt")
+    #ped.write_pedTotal("/home/jana/PedTotal.txt")
 
     return ped, ped.save_cat(), ped.save_sex(), ped.save_active()
 
@@ -1521,9 +1522,11 @@ class TBVCat(TBVPed):
 
 
 class AlphaSimSpec:
-    def __init__(self):
-        self.SpecFile = '/home/jana/bin/AlphaSim1.05Linux/AlphaSimSpec.txt'
-        self.genSpecFile = '/home/jana/Genotipi/Genotipi_CODES/AlphaSimSpec.txt'
+    def __init__(self, AlphaSimDir, CodeDir):
+        self.genSpecFile = CodeDir + "/AlphaSimSpec.txt"
+        shutil.copy(self.genSpecFile,  AlphaSimDir)
+        self.SpecFile = AlphaSimDir + "/AlphaSimSpec.txt"
+
 
     def setPedType(self, pedType):
         os.system('sed -i "s|PedigreeType|' + pedType + '|g" ' + self.SpecFile)
@@ -1563,6 +1566,7 @@ class AlphaSimSpec:
 
     def setNB(self, stNB):
         os.system('sed -i "s|EnterIndividualInPopulation|' + str(stNB) + '|g" ' + self.SpecFile)
+
 
 
 class test:
@@ -1642,27 +1646,4 @@ class snpFiles:
 
     def createBlupf90SNPFile(self):
         if os.path.isfile(self.AlphaSimDir + 'GenoFile.txt'): #if GenoFile.txt exists, only add the newIndividuals for genotypisation
-            os.system(
-                'grep -Fwf IndForGeno_new.txt ' + self.chipFile + ' > ChosenInd.txt')  # only individuals chosen for genotypisation - ONLY NEW - LAST GEN!
-            os.system("sed 's/^ *//' ChosenInd.txt > ChipFile.txt")  # Remove blank spaces at the beginning
-            os.system("cut -f1 -d ' ' ChipFile.txt > Individuals.txt")  # obtain IDs
-            os.system('''awk '{$1=""; print $0}' ChipFile.txt | sed 's/ //g' > Snps.txt''')  # obtain SNP genotypes
-            os.system(
-                r'''paste Individuals.txt Snps.txt | awk '{printf "%- 10s %+ 15s\n",$1,$2}' > GenoFile_new.txt''')  # obtain SNP genotypes of the last generation
-            os.system(
-                'grep -Fwf IndForGeno.txt GenoFile.txt  > GenoFile_Oldtmp && mv GenoFile_Oldtmp GenoFile.txt')  # here obtain updated old reference - removed one generation
-            os.system("cat GenoFile.txt GenoFile_new.txt > GenoFileTmp && mv GenoFileTmp GenoFile.txt")
-            os.system("less GenoFile.txt | sort -n | uniq > Genotmp && mv Genotmp GenoFile.txt")
-        else: #else create a new GenoFile containg all the individuals in the IndForGeno.txt
-            os.system(
-                'grep -Fwf IndForGeno.txt ' + self.chipFile + ' > ChosenInd.txt')  # only individuals chosen for genotypisation - ALL
-            os.system("sed 's/^ *//' ChosenInd.txt > ChipFile.txt")  # Remove blank spaces at the beginning
-            os.system("cut -f1 -d ' ' ChipFile.txt > Individuals.txt")  # obtain IDs
-            os.system('''awk '{$1=""; print $0}' ChipFile.txt | sed 's/ //g' > Snps.txt''')  # obtain SNP genotypes
-            os.system(
-                r'''paste Individuals.txt Snps.txt | awk '{printf "%- 10s %+ 15s\n",$1,$2}' > GenoFile.txt''')  # obtain SNP genotypes of the last generation
-        pd.read_csv(self.AlphaSimDir + '/SimulatedData/Chip1SnpInformation.txt', sep='\s+')[[0, 1, 2]].to_csv(
-            self.AlphaSimDir + 'SnpMap.txt', index=None, sep=" ", header=None)
-
-
-
+            os
