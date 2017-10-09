@@ -3,7 +3,6 @@ from __future__ import division
 import sys
 import os
 import math
-import selection10
 from selection10 import *
 from selection10 import nastavi_cat, selekcija_total
 from collections import defaultdict
@@ -11,6 +10,7 @@ import shutil
 import pandas as pd
 import numpy as np
 import resource
+import ast
 WorkingDir = os.getcwd()
 
 
@@ -87,12 +87,13 @@ for rep in range(replicates):
     os.makedirs("FillInBurnIn" + str(rep))
     os.chdir("FillInBurnIn" + str(rep)) #prestavi se v FillInBurnin za ta replikat
     os.system('cp -r ' + WorkingDir + '/Essentials/* .') # skopiraj vse iz Esentials
+    os.system('cp -r ' + WorkingDir + '/CodeDir/* .') # skopiraj vse iz CodeDir
 
     #first make a FILLIN
     #nastavi AlphaSimSpec
     print(os.getcwd())
-    SpecFile = AlphaSimSpec(os.getcwd(),
-                            WorkingDir + "/CodeDir")  # AlphaSimSpec je class iz selection, ki omogoča nastavljanje parametrov AlphaSimSpec fila
+
+    SpecFile = AlphaSimSpec(os.getcwd(), WorkingDir + "/CodeDir")  # AlphaSimSpec je class iz selection, ki omogoča nastavljanje parametrov AlphaSimSpec fila
     SpecFile.setPedType("Internal")  # pedigree je za burn in internal
     SpecFile.setNB(8640)  # stevilo novorojenih
     SpecFile.setBurnInGen(20)  # stevilo burnINGen
@@ -121,13 +122,15 @@ for rep in range(replicates):
                 selPar[key] = int(val)
             except:
                 selPar[key] = float(val)
-        if key in ['BurnInYN', 'EBV', 'gEBV', 'PA', 'AlphaSimDir', 'genotyped', 'EliteDamsPTBulls',
+        if key in ['BurnInYN', 'EBV', 'gEBV', 'PA', 'AlphaSimDir', 'EliteDamsPTBulls',
                    'EliteDamsPABulls', 'UpdateGenRef', 'sexToUpdate', 'EliteDamsGenBulls', 'gpb_pb',
                    'genTest_mladi', 'genTest_gpb']:
             if val in ['False', 'True']:
                 selPar[key] = bool(val == 'True')
             else:
                 selPar[key] = val
+        if key == 'genotyped':
+            selPar[key] = ast.literal_eval(val)
 
 
     BurnInYN = "False"  # ali izvedeš tudi BurnIn
@@ -154,8 +157,8 @@ for rep in range(replicates):
     # SELEKCIJA - 20 krogov klasične selekcije
     ##############################################################################
 
-    for roundNo in range(20):  # za vsak krog selekcije
-        if roundNo == 0:  # če je to prvi krog - nimaš še kategorij od prej, nimaš niti EBV-jev
+    for roundNo in range(1,21):  # za vsak krog selekcije
+        if roundNo == 1:  # če je to prvi krog - nimaš še kategorij od prej, nimaš niti EBV-jev
             # odstrani Blupf90 fajle iz prejšnjih runov - ker se merge-a
             # enako tudi za generacijski interval in file z genotipi
             if os.path.isfile(AlphaSimDir + 'Blupf90.dat'):
@@ -178,7 +181,7 @@ for rep in range(replicates):
                 # os.remove(self.AlphaSimDir + 'AccuraciesBV.csv')
 
             Acc = accuracies(AlphaSimDir)  # nastavi
-            GenTrends = TBVCat(AlphaSimDir)
+            #GenTrends = TBVCat(AlphaSimDir)
             # nimaš GenPed_EBV.txt
             blups = estimateBV(AlphaSimDir, WorkingDir + "/CodeDir", way='burnin_milk', sel='clas')
             blups.computeEBV()  # tukaj izbriši samo fenotipe moških - ne morš po kategorijah, ker jih nimaš
@@ -230,10 +233,10 @@ for rep in range(replicates):
         blupNextGen = estimateBV(AlphaSimDir, WorkingDir + "/CodeDir", way='milk', sel=seltype)
         blupNextGen.computeEBV()  # estimate EBV with added phenotypes only of animals of certain category (here = milk)
         Acc.saveAcc()
-        GenTrends.saveTrends()
+        #GenTrends.saveTrends()
         # zdaj za vsako zapiši, ker vsakič na novo prebereš
         Acc.writeAcc()
-        GenTrends.writeTrends()
+        #GenTrends.writeTrends()
 
 
 
@@ -242,10 +245,11 @@ for rep in range(replicates):
 ######################################################################################################
 #potem se prestavi nazaj v working directory
     os.chdir(WorkingDir)
+    os.chdir(WorkingDir)
 
 
     for scenario in scenarios:
-        os.system('cp -r' + WorkingDir +  '/Essentials/* . && cp -r "FillInBurnIn' + str(rep) + '/* .')
+        os.system('cp -r ' + WorkingDir + '/Essentials/* . && cp -r FillInBurnIn' + str(rep) + '/* .')
         os.system('mv IndForGeno_Gen.txt IndForGen.txt')
 
         par = pd.read_csv(WorkingDir + "/Essentials/SelectionParam_" + scenario + ".csv", header=None, names=["Keys", "Vals"])
@@ -259,13 +263,15 @@ for rep in range(replicates):
                     selPar[key] = int(val)
                 except:
                     selPar[key] = float(val)
-            if key in ['BurnInYN', 'EBV', 'gEBV', 'PA', 'AlphaSimDir', 'genotyped', 'EliteDamsPTBulls',
+            if key in ['BurnInYN', 'EBV', 'gEBV', 'PA', 'AlphaSimDir', 'EliteDamsPTBulls',
                        'EliteDamsPABulls', 'UpdateGenRef', 'sexToUpdate', 'EliteDamsGenBulls', 'gpb_pb',
                        'genTest_mladi', 'genTest_gpb']:
                 if val in ['False', 'True']:
                     selPar[key] = bool(val == 'True')
                 else:
                     selPar[key] = val
+            if key == 'genotyped':
+                selPar[key] = ast.literal_eval(val)
 
 
         BurnInYN = "False" #ali izvedeš tudi BurnIn
@@ -291,14 +297,14 @@ for rep in range(replicates):
         #SELEKCIJA
         ##############################################################################
 
-        for roundNo in range(20): #za vsak krog selekcije
+        for roundNo in range(1,21): #za vsak krog selekcije
             # prestavi se v AlphaSim Dir
             if not os.path.isfile(AlphaSimDir + 'ReferenceSize.txt') and os.path.isfile(AlphaSimDir + "IndForGeno.txt"):
                 os.system("less IndForGeno.txt | wc -l > ReferenceSize.txt")
 
             # Štartaj že po 20 gen kalsične selekcije
             Acc = accuracies(AlphaSimDir)
-            GenTrends = TBVCat(AlphaSimDir)
+            #GenTrends = TBVCat(AlphaSimDir)
             # izvedi selekcijo, doloci kategorije zivali, dodaj novo generacijo in dodeli starse
             # pedigre se zapise v AlphaSimDir/SelectionFolder/ExternalPedigree.txt
             selekcija_total('GenPed_EBV.txt', **selPar)
@@ -339,10 +345,10 @@ for rep in range(replicates):
             blupNextGen = estimateBV(AlphaSimDir, WorkingDir + "/CodeDir",  way='milk', sel=seltype)
             blupNextGen.computeEBV() #estimate EBV with added phenotypes only of animals of certain category (here = milk)
             Acc.saveAcc()
-            GenTrends.saveTrends()
+            #GenTrends.saveTrends()
             #zdaj za vsako zapiši, ker vsakič na novo prebereš
             Acc.writeAcc()
-            GenTrends.writeTrends()
+            #GenTrends.writeTrends()
 
         os.makedirs(scenario + str(rep))
         os.system('rm -rf Chromosomes Selection && cp * ' + scenario + str(rep))

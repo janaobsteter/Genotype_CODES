@@ -957,7 +957,7 @@ class pedFile:
     def extractSNP(self, SNP):
         os.system("plink --file " + self.name + " --cow --extract-snp "+ SNP + " --recode --out " + SNP)
         
-    def extractSNPList(self, SNPList):
+    def extractSNPList(self, SNPList, outName):
         if "SNPList.txt" in os.listdir(os.getcwd()):
             overwrite=raw_input("Existing SNPList.txt file in the current working directory.\
  Do you want to overwrite and proceed? \n Ped and Map files will also be overwritten. [Y/N] ")
@@ -968,7 +968,23 @@ class pedFile:
         with open("SNPList.txt", "w") as f:
             for snp in SNPList:
                 f.write(snp + "\n")
-        os.system("plink --file " + self.name + " --cow --extract SNPList.txt --recode --out SNPList")
+        os.system("plink --file " + self.name + " --cow --extract SNPList.txt --recode --out " + outName)
+
+    def extractSNPTxt(self, SNPFile, outName):
+        os.system("plink --file " + self.name + " --cow --extract " + SNPFile + " --recode --out " + outName)
+
+    def extractSNPList_Binary(self, SNPList, outName):
+        if "SNPList.txt" in os.listdir(os.getcwd()):
+            overwrite=raw_input("Existing SNPList.txt file in the current working directory.\
+ Do you want to overwrite and proceed? \n Ped and Map files will also be overwritten. [Y/N] ")
+            if overwrite=='N':
+                return None
+            if overwrite == 'Y':
+                pass
+        with open("SNPList.txt", "w") as f:
+            for snp in SNPList:
+                f.write(snp + "\n")
+        os.system("plink --file " + self.name + " --cow --extract SNPList.txt --make-bed --out " + outName)
 
     def extractTraitSNPs(self, Trait):
         SNPonChip = [x for x in TraitSNPs[Trait] if x in self.snps]
@@ -998,11 +1014,21 @@ class pedFile:
         position=[i for i,x in enumerate(self.samples) if x == sampleID][0]
         return self.pedContent[position].split(" ")[6:]
         
-        
-        
-    
-    
-    
+class Concordance():
+    def __init__(self, RefPed, CompPed):
+        self.RefPed = pedFile(RefPed)
+        self.CompPed = pedFile(CompPed)
+
+    def concSNPs(self, SNPlist, outConcName):
+        self.RefPed.extractSNPTxt(SNPlist, 'Ref_current')
+        self.CompPed.extractSNPTxt(SNPlist, 'Comp_current')
+        os.system(
+            'plink --file Ref_current --merge Comp_current.ped Comp_current.map --merge-mode 7 --cow --out ' + outConcName)
+        os.system('grep "for a concordance rate" ' + outConcName + '.log > '+outConcName+'.txt')
+
+    def extractConc(self, ConcFile):
+        return float(open(ConcFile, 'r').read().strip('.\n').split(" ")[-1])
+
 class mapFile:
     def __init__(self, mapDatoteka):
         self.mapname=mapDatoteka
@@ -1052,4 +1078,16 @@ class mapFileMerged:
             
     def posSNP(self, chromosome, pos):
         return self.mapContent[(self.mapContent.chr==str(chromosome)) & (self.mapContent.stop==pos)]
-       
+
+
+def mergeList(RefFile, List):
+   with open("MergeLIST.txt", "w") as f:
+       for i in List:
+           f.write(i + "\n")
+   os.system("plink --file " + RefFile + " --cow --merge-list MergeLIST.txt --recode --out MERGEDforImputation")
+
+def mergeList_autosomes(RefFile, List):
+   with open("MergeLIST.txt", "w") as f:
+       for i in List:
+           f.write(i + "\n")
+   os.system("plink --file " + RefFile + " --cow --chr 1-29 --merge-list MergeLIST.txt --recode --out MERGEDforImputation")

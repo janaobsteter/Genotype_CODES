@@ -47,7 +47,7 @@ nrow(vseRjavePDF)
 genCrede <- genTabela[,c("ID_ZIVALI", "CRE_SIFRA_CREDA")]
 beforeCrede <- vseRjavePDF[,c("ID_ZIVALI", "CRE_SIFRA_CREDA")]
 colnames(beforeCrede)[2] <- "CREDA_PREJ"
-crede <- merge(genCrede, beforeCrede, by="ID_ZIVALI", all.x=T)
+crede <- merge(genCrede, beforeCrede, by="ID_ZIVALI", all.x=T) # pridobi le živali, ki so šle na genotipizacijo
 crede <- unique(crede)
 crede[which(crede$CRE_SIFRA_CREDA != crede$CREDA_PREJ),]
 
@@ -97,22 +97,69 @@ for (tNo in c(10, 11, 13, 14, 15, 32)) {
   #ggplot(as.data.frame(alleles)) +  geom_bar(aes(x = alleles, fill = as.factor(alleles)), position = "dodge", stat = "count") + ggtitle(namesSNP$Full.Trait.Name[namesSNP$TraitNo==tNo])
 }
 
+
+###################################
+#preberi še kapa in beta casein
+###################################
+kapaCSN <- read.csv('/home/jana/Documents/F4F/MlecniProteini/KappaCaseinGenotype_python.csv', header=TRUE)[,c(2,8)]
+colnames(kapaCSN) <- c("ID", "KapaCSN")
+betaCSN <- read.csv('/home/jana/Documents/F4F/MlecniProteini/BetaCaseinGenotype_python.csv', header=TRUE)[,c(2,5)]
+colnames(betaCSN) <- c("ID", "BetaCSN")
 ######################################
 #sutvari tabele po čredah
 #############################
 colnames(crede)[1] <- "ID"
 snpi <- merge(snpTable, crede, by="ID")
+write.csv(snpi, '/home/jana/Documents/F4F/TabelaMonogenskeBolezniSNPi.csv', quote=FALSE, row.names=FALSE)
+snpi <- read.csv('/home/jana/Documents/F4F/TabelaMonogenskeBolezniSNPi.csv')
 
 for (c in unique(snpi$CRE_SIFRA_CREDA)) {
   credaTable <- subset(snpi, snpi$CRE_SIFRA_CREDA==c)
   credaGen <- credaTable[,c(1,seq(5, ncol(credaTable), by=3))]
-  colnames(credaGen) <- c("IDg", "Weaverg", "Arahnomelijag", "ABCG2g", "KappaCasein Bg", "KappaCasein Eg", "SMAg")
+  colnames(credaGen) <- c("ID", "Weaverg", "Arahnomelijag", "ABCG2g", "KappaCasein Bg", "KappaCasein Eg", "SMAg")
   credaGen$Weaver <- ifelse( credaGen$Weaverg == "BB", "Zdrava", ifelse( credaGen$Weaverg == "AB"| credaGen$Weaverg=="BA",  "Prenašalka", NA) )
   credaGen$Arahnomelija <- ifelse( credaGen$Arahnomelijag == "AA", "Zdrava", ifelse( credaGen$Arahnomelijag == "AB"| credaGen$Arahnomelijag =="BA",  "Prenašalka", NA) )
   credaGen$ABCG2 <- ifelse( credaGen$ABCG2g == "AA", "Dve kopiji alela A", ifelse( credaGen$ABCG2g == "AB"| credaGen$ABCG2g == "BA",  "Ena kopija alela A", NA) )
   credaGen$SMA <- ifelse( credaGen$SMAg == "BB", "Zdrava", ifelse( credaGen$SMAg == "AB"| credaGen$SMAg == "BA",  "Prenašalka", NA) )
+  credaGen <- merge(credaGen, kapaCSN, by="ID", all.x=TRUE)
+  credaGen <- merge(credaGen, betaCSN, by="ID", all.x=TRUE)
+  credaGen <- credaGen[,c(1,8,9,10,11,12,13)]
 }
 
 
 ######################################
+#TUKAJ DOBI PLEMENSKE!
+#########################################
 
+#za naslednje lastnosti
+
+for (creda in unique(snpi$CRE_SIFRA_CREDA)) {
+  PVs <- data.frame(ID=NA, IME=NA, CRE_SIFRA_CREDA=NA)
+  for (sifra in c(164, 168)) {
+  
+    PVklas <- paste0("SELECT ZIV.drz_orig_Zival || ziv.STEV_ORIG_ZIVAL ID, ziv.ime_zival IME, ziv.CRE_SIFRA_CREDA, pv.VREDNOST_12_PV PVKlas",sifra,
+    " FROM govedo.zivali ziv,
+      ARHIV.PLEMENSKE_VREDNOSTI pv
+    WHERE ziv.SP1_SIFRA_PASMA = 1
+    AND ziv.ZIV_ID_SEQ        =pv.PV_ZIV_ID_SEQ
+    AND ziv.CRE_Sifra_creda=",creda,
+    " AND pv.SIFRA_LAST         =",sifra, 
+    " and pv.sif_izv_vr_last = 1
+    AND ziv.STEV_ORIG_ZIVAL  in (select ziv.STEV_ORIG_ZIVAL from GENOTIPIZIRANE_ZIVALI gen, zivali ziv where ziv.ZIV_ID_SEQ=gen.ZIV_ID_SEQ and gen.GEN_CHIP='IDBv03')")
+      
+    PVgen <- paste0("SELECT ZIV.drz_orig_Zival || ziv.STEV_ORIG_ZIVAL ID, ziv.ime_zival IME, ziv.CRE_SIFRA_CREDA, pv.VREDNOST_12_PV PVGen",sifra,
+    " FROM govedo.zivali ziv,
+      ARHIV.PLEMENSKE_VREDNOSTI pv
+    WHERE ziv.SP1_SIFRA_PASMA = 1
+    AND ziv.CRE_Sifra_creda=",creda,
+    " AND ziv.ZIV_ID_SEQ        =pv.PV_ZIV_ID_SEQ
+    AND pv.SIFRA_LAST         =", sifra, 
+    " and pv.sif_izv_vr_last = 4
+    AND ziv.STEV_ORIG_ZIVAL  in (select ziv.STEV_ORIG_ZIVAL from GENOTIPIZIRANE_ZIVALI gen, zivali ziv where ziv.ZIV_ID_SEQ=gen.ZIV_ID_SEQ and gen.GEN_CHIP='IDBv03')")
+      
+    PVKlas <- fetch(dbSendQuery(con,PVklas))
+    PVGen <- fetch(dbSendQuery(con,PVgen))
+    PVCreda <- merge(PVKlas, PVGen, by=c('ID', 'CRE_SIFRA_CREDA', 'IME'))
+    PVs <- merge(PVs, PVCreda, by=c('ID', 'CRE_SIFRA_CREDA', 'IME'), all.y=T)
+    }
+}
