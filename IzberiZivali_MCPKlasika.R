@@ -108,7 +108,7 @@ FROM govedo.zivali ziv
 WHERE ziv.SP1_SIFRA_PASMA = 1
 AND ziv.STEV_ORIG_ZIVAL  in (select ziv.STEV_ORIG_ZIVAL from GENOTIPIZIRANE_ZIVALI gen, zivali ziv where ziv.ZIV_ID_SEQ=gen.ZIV_ID_SEQ and gen.GEN_CHIP='IDBv03')")
 
-
+Crede <- fetch(dbSendQuery(con, crede))
 kapaCSN <- merge(kapaCSN, Crede, by="ID")
 library(dplyr)
 library(AggregateR)
@@ -127,19 +127,34 @@ AND ziv.STEV_ORIG_ZIVAL  in (select ziv.STEV_ORIG_ZIVAL from GENOTIPIZIRANE_ZIVA
 group by ziv.STEV_ORIG_ZIVAL, ziv.CRE_SIFRA_CREDA, ziv.SIF_SPOL")
 
 Prireja <- fetch(dbSendQuery(con, prireja))
+Prireja$OdsBelj <- round(Prireja$BELJAVG / Prireja$MLEKOAVG * 100,2)
+Prireja$OdsMsc <- round(Prireja$MASCAVG / Prireja$MLEKOAVG * 100, 2)
 
 
+MlekoA <- aggregate(Prireja$MLEKOAVG ~ Prireja$CRE_SIFRA_CREDA, FUN=function(x) {sd(x)})
+colnames(MlekoA) <- c("Creda", "MLEKOSD")
+SD <- merge(SD, MlekoA, by="Creda")
+BeljA <- aggregate(Prireja$OdsBelj ~ Prireja$CRE_SIFRA_CREDA, FUN=function(x) {sd(x)})
+colnames(BeljA) <- c("Creda", "BeljOdsSD")
+SD <- merge(SD, BeljA, by="Creda")
 #SEDAJ POBERI TISTE Z NAJVEČJIMI SD_JI i VARIANCAMI za vse kriterije
-#1) po PV
+#) po PV
 PVMlekoTop <- SD[order(-SD$MlekoSD),"Creda"][1:10]
 PVBeljTop <- SD[order(-SD$BeljSD),"Creda"][1:10]
 PVMascTop <- SD[order(-SD$MascSD),"Creda"][1:10]
 Inter <- intersect(intersect(PVMlekoTop, PVBeljTop), PVMascTop)
 
-ZapLaktTop <- SD[order(-SD$ZaplaktSD),"Creda"][1:10]
+ZapLaktTop <- SD[order(-SD$ZaplaktSD),"Creda"]#[1:10]
+ZapLaktTop <- data.frame(ORderZapLakt = SD[order(-SD$ZaplaktSD),"Creda"])#[1:10]
 DIMTop <- SD[order(-SD$DIMSD),"Creda"][1:10]
 intersect(PVBeljTop, ZapLaktTop)
 
+DIMOrder <- data.frame(ORderDIM =SD[order(-SD$DIMSD),"Creda"])
+MlekoOrder <- data.frame(OrderMleko =SD[order(-SD$MLEKOSD),"Creda"])
+BeljOrder <- data.frame(OrderBeljOds =SD[order(-SD$BeljOdsSD),"Creda"])
+
+Orders <- cbind(ZapLaktTop, MlekoOrder, DIMOrder,BeljOrder)
+write.table(Orders, '/home/jana/Genotipi/Genotipi_CODES/F4FKraveCrede_ORDERPrirejaDIM.csv', quote=FALSE, row.names=FALSE)
 
 PVs <- merge(mleko[,c(1,4)], belj[,c(1,4)], by="ID")
 PVs <- merge(PVs, masc[,c(1,4)], by="ID")
@@ -205,12 +220,18 @@ Top8Cred <- rbind(Izbira1, Izbira2, Izbira3, Izbira4, Izbira5, Izbira6, Izbira7,
 write.csv(Top8Cred, '/home/jana/Documents/F4F/Top8Cred_MCPklasika.csv', quote=FALSE, row.names=FALSE)
 as.vector(unique(Top8Cred$CRE_SIFRA_CREDA))
 
-credaPV(8180)
+AllCrede <- matrix(ncol=14)
+colnames(AllCrede) <- colnames(credaPV(86))
+for (creda in unique(Crede$CRE_SIFRA_CREDA)) {
+  AllCrede <- rbind(AllCrede, credaPV(creda))
+}
+
+write.table(AllCrede, '/home/jana/Genotipi/Genotipi_CODES/F4FKraveCrede_PrirejaDIM.csv', quote=FALSE, row.names=FALSE)
 credaPV <- function (creda) {
   CredaPV <- zapLaktAll[zapLaktAll$CRE_SIFRA_CREDA==creda,]
   CredaPV <- merge(CredaPV, DIM[,c("ID", "DIM")], by="ID", all.x=TRUE)
   CredaPV <- merge(CredaPV, PVs, by="ID", all.x=TRUE)
   CredaPV <- merge(CredaPV, kazeini, by="ID", all.x=TRUE)
-  CredaPV <- merge(CredaPV, Prireja[,c(1,4,5,6)], by="ID", all.x=TRUE)
+  CredaPV <- merge(CredaPV, Prireja[,c(1,4,5,6,7,8)], by="ID", all.x=TRUE)
   return(CredaPV)
 }
