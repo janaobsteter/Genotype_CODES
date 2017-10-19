@@ -21,8 +21,7 @@ AND ziv.ZIV_ID_SEQ        =pv.PV_ZIV_ID_SEQ
 AND pv.SIFRA_LAST         =164
 AND ziv.DRZ_ORIG_ZIVAL    ='SI'")
 
-tabela <- fetch(dbSendQuery(con,poizvedba))
-means <- aggregate(tabela$VREDNOST_12_PV ~ tabela$`EXTRACT(YEARFROMPV.DAT_OCENA_PV)`, FUN=mean)
+
 
 
 

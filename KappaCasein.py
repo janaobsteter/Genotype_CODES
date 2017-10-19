@@ -10,10 +10,19 @@ def makeGen(row):
 #kapa kazein A
 ##################################################################################
 AB1 = pd.read_table('/home/jana/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/IDBv03/KapaAB_1.ped', header=None, sep=" ")
+<<<<<<< HEAD
 AB1 = AB1[[1,6,7,8,9,10,11,12,13]]
 
 #tukaj združi sosednja dva alela v genotipe
 for al in [i for i in range(6,13) if i % 2 == 0]:
+=======
+KappaCSN = pd.DataFrame({'ID': list(AB1[1]) })
+cols = len(AB1.columns)
+AB1 = AB1[[1] + range(6,cols)]
+
+#tukaj združi sosednja dva alela v genotipe
+for al in [i for i in range(6,cols) if i % 2 == 0]:
+>>>>>>> 1b8d6b61038ae92f43525513dcd93532f3369678
     AB1.loc[:,str(al)+'g'] = AB1.apply(makeGen, axis=1)
 
 #tukaj pridobi napogostejši genotip
@@ -28,15 +37,28 @@ AB1.loc[:, 'finalGeno'] = ""
 for row in AB1.index:
     AB1['finalGeno'][row] =  next(x for x in (list(AB1.ix[row][genoCol])) if x  != '00')
     genoCol.append(str(al) + 'g')
+<<<<<<< HEAD
     
 KapaCSN.loc[:, 'AB1'] = AB1['finalGeno']
+=======
+   
+    
+AB1.rename(columns={1:'ID', 'finalGeno':'AB1'}, inplace=True)
+KappaCSN = pd.merge(KappaCSN, AB1[['ID','AB1']], on='ID') 
+
+>>>>>>> 1b8d6b61038ae92f43525513dcd93532f3369678
 
 
 ##########################################################################
 #Kappa-CSN AB SNP2
 ##########################################################################
 AB2 = pd.read_table('/home/jana/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/IDBv03/KapaAB_2.ped', header=None, sep=" ")
+<<<<<<< HEAD
 AB2 = AB2[[1] + range(6,26)]
+=======
+cols = len(AB2.columns)
+AB2 = AB2[[1] + range(6,cols)]
+>>>>>>> 1b8d6b61038ae92f43525513dcd93532f3369678
 
 #tukaj združi sosednja dva alela v genotipe
 genoCol = []
@@ -50,7 +72,12 @@ for row in AB2.index:
     AB2['finalGeno'][row] =  next(x for x in (list(AB2.ix[row][genoCol])) if x  != '00')
     
     
+<<<<<<< HEAD
 KapaCSN.loc[:, 'AB2'] = AB2['finalGeno']
+=======
+AB2.rename(columns={1:'ID', 'finalGeno':'AB2'}, inplace=True)
+KappaCSN = pd.merge(KappaCSN, AB2[['ID','AB2']], on='ID') 
+>>>>>>> 1b8d6b61038ae92f43525513dcd93532f3369678
 
 ##########################################################################
 #Kappa-CSN E
@@ -70,8 +97,13 @@ C.loc[:, 'finalGeno'] = ""
 for row in C.index:
     C['finalGeno'][row] =  next(x for x in (list(C.ix[row][genoCol])) if x  != '00')
     
+<<<<<<< HEAD
     
 KapaCSN.loc[:, 'C'] = C['finalGeno']
+=======
+C.rename(columns={1:'ID', 'finalGeno':'C'}, inplace=True)
+KappaCSN = pd.merge(KappaCSN, C[['ID','C']], on='ID') 
+>>>>>>> 1b8d6b61038ae92f43525513dcd93532f3369678
 
 
 ##########################################################################
@@ -93,7 +125,12 @@ for row in E.index:
     E['finalGeno'][row] =  next(x for x in (list(E.ix[row][genoCol])) if x  != '00')
     
     
+<<<<<<< HEAD
 KapaCSN.loc[:, 'E'] = E['finalGeno']
+=======
+E.rename(columns={1:'ID', 'finalGeno':'E'}, inplace=True)
+KappaCSN = pd.merge(KappaCSN, E[['ID','E']], on='ID') 
+>>>>>>> 1b8d6b61038ae92f43525513dcd93532f3369678
 
 ##########################################################################
 #Kappa-CSN E
@@ -114,7 +151,12 @@ for row in I.index:
     I['finalGeno'][row] = next(x for x in (list(I.ix[row][genoCol])) if x  != '00')
     
     
+<<<<<<< HEAD
 KapaCSN.loc[:, 'I'] = I['finalGeno']
+=======
+I.rename(columns={1:'ID', 'finalGeno':'I'}, inplace=True)
+KappaCSN = pd.merge(KappaCSN, I[['ID','I']], on='ID') 
+>>>>>>> 1b8d6b61038ae92f43525513dcd93532f3369678
 
 ###############################################################################
 #SKUPNI
@@ -135,5 +177,10 @@ def skupniKCSN(row):
         val = 'BE'
     return val
 
+<<<<<<< HEAD
 KapaCSN.loc[:, 'SKUPEN'] = KapaCSN.apply(skupniKCSN, axis=1)
 
+=======
+KappaCSN.loc[:, 'SKUPEN'] = KappaCSN.apply(skupniKCSN, axis=1)
+KappaCSN.to_csv('/home/jana/Documents/F4F/MlecniProteini/KappaCaseinGenotype_python.csv')
+>>>>>>> 1b8d6b61038ae92f43525513dcd93532f3369678

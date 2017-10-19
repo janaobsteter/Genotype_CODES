@@ -16,7 +16,9 @@ chips = {19720: "GGPv02",
 138892: "HDv02", 
 139376: "HDv02", 
 54001:"50Kv01" , 
-54609: "50Kv02"}
+54609: "50Kv02",
+51274: "IDBv03"
+         }
 
 TraitSNPs = {
 'Caseins':['BCNAB', 'BCNAB_2', 'BCNAB_3','GNSC319','GNSC319_3','GNSC319_B1','GNSC355','GNSC355_3','GNSC355_B1','KappaCasein12951_1','KappaCasein12951_2','KappaCasein12951_3'],
@@ -938,8 +940,7 @@ class pedFile:
     def __init__(self, pedDatoteka):
         self.pedname=pedDatoteka
         self.name=pedDatoteka.strip(".ped")
-        self.sernum=pedDatoteka.strip(".ped").strip("Matija_Rigler_")
-        self.genodate=pedDatoteka.strip(".ped").strip("Matija_Rigler_")[-9:].strip("_")
+        self.pedContent=open(pedDatoteka).read().strip("\n").split("\n") #here don't read it in as panda table since it takes much longer
         self.pedContent=open(pedDatoteka).read().strip("\n").split("\n") #here don't read it in as panda table since it takes much longer
         self.samples=[line.split(" ")[1] for line in self.pedContent]
         self.mapContent=open(pedDatoteka.strip(".ped") + ".map").read().strip("\n").split("\n")
@@ -968,7 +969,7 @@ class pedFile:
             for snp in SNPList:
                 f.write(snp + "\n")
         os.system("plink --file " + self.name + " --cow --extract SNPList.txt --recode --out SNPList")
-        
+
     def extractTraitSNPs(self, Trait):
         SNPonChip = [x for x in TraitSNPs[Trait] if x in self.snps]
         if SNPonChip:

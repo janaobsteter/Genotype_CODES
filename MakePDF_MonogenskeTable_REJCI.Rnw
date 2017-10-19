@@ -1,0 +1,85 @@
+\documentclass[10pt]{article}
+\usepackage[margin=0.8 in]{geometry}
+\usepackage{booktabs}
+\usepackage{color}
+\usepackage{xcolor, colortbl}
+\definecolor{Gray}{gray}{0.85}
+\newcolumntype{a}{>{\columncolor{Gray}}c}
+\usepackage[utf8]{inputenc} 
+\usepackage{longtable}
+\usepackage[width=.75\textwidth]{caption}
+\addtolength{\topmargin}{-.3in}
+\usepackage{pdflscape}
+\usepackage{caption}
+\setlength{\LTleft}{0pt}
+\captionsetup{justification=raggedright,singlelinecheck=false}
+<<loaddata, echo=FALSE, message=FALSE>>=
+
+credaTable <- subset(snpi, snpi$CRE_SIFRA_CREDA==c)
+credaGen <- credaTable[,c(1,seq(5, ncol(credaTable), by=3))]
+colnames(credaGen) <- c("ID", "Weaverg", "Arahnomelijag", "ABCG2g", "KappaCasein Bg", "KappaCasein Eg", "SMAg")
+credaGen$Weaver <- ifelse( credaGen$Weaverg == "BB", "Zdrava", ifelse( credaGen$Weaverg == "AB"| credaGen$Weaverg=="BA",  "Prenašalka", NA) )
+credaGen$Arahnomelija <- ifelse( credaGen$Arahnomelijag == "AA", "Zdrava", ifelse( credaGen$Arahnomelijag == "AB"| credaGen$Arahnomelijag =="BA",  "Prenašalka", NA) )
+credaGen$ABCG2 <- ifelse( credaGen$ABCG2g == "AA", "Dve kopiji alela A", ifelse( credaGen$ABCG2g == "AB"| credaGen$ABCG2g == "BA",  "Ena kopija alela A", NA) )
+credaGen$SMA <- ifelse( credaGen$SMAg == "BB", "Zdrava", ifelse( credaGen$SMAg == "AB"| credaGen$SMAg == "BA",  "Prenašalka", NA) )
+credaGen <- merge(credaGen, kapaCSN, by="ID", all.x=TRUE)
+credaGen <- merge(credaGen, betaCSN, by="ID", all.x=TRUE)
+credaGen <- credaGen[,c(1,8,9,11,10,12,13)]
+
+rejci <- read.csv('~/Documents/F4F/OdbiraZivali/RejciImena_15032017.csv')
+colnames(rejci) <- c('Naslov', 'Sifra')
+rejec <- rejci$Naslov[rejci$Sifra==c]
+
+library(Cairo)
+@
+
+\begin{document}
+\begin{landscape}
+\includegraphics{KIS_logotip_SLO_vodoravni_barvni}
+\includegraphics[width=2cm,height=1.3cm]{logotip1}
+\\
+\\
+
+{\raggedleft\Large Rejec \textbf{\Sexpr{rejec}}.} 
+\\
+
+{\raggedleft\Large {Preglednica 1: Podatki o monogenskih lastnostih za živali genotipizirane v okviru projekta Funkcionalna živila prihodnosti.}}
+
+<<PrimarniSeznam, results='asis', echo=FALSE>>=
+
+# apply coloring function to each column you want
+#credaTable$ID_ZIVALI <- color_cells(df = credaTable, var= "ID_ZIVALI")
+#credaTable$ID_ZIVALI <- paste0("\\textbf{", credaTable$ID_ZIVALI, "}")  
+
+
+
+xcredaTable <- xtable(credaGen, digits=2)
+align(xcredaTable) <- "l|l|l|l|l|l|l|l|" 
+   
+  
+print(xcredaTable, 
+tabular.environment="longtable",
+floating=FALSE,
+      size="Large", #Change size; useful for bigger tables
+      include.rownames=FALSE, #Don't print rownames
+      include.colnames=FALSE, #We create them ourselves
+      booktabs=TRUE,
+      caption.placement="top",
+       #table.placement="h",
+      #sanitize.text.function=identity,
+    latex.environments = "flushleft",
+     # sanitize.text.function = function(x) x,
+      hline.after = getOption("xtable.hline.after", c(-1:nrow(credaGen))),
+      add.to.row = list(pos = list(-1, 
+                                   nrow(credaGen)),
+                        command = c(paste("\\toprule \n","Žival & Weaver &Arahnomelija& SMA & ABCG2 &  Kapa-kazein & Beta-kazein \\\\\n", 
+                        "\\midrule \n"),
+                        "\\bottomrule \n")))
+                        
+@
+{\raggedleft {* alel A1 ali B na beta-kazeinu}}
+
+
+
+\end{landscape}
+\end{document}

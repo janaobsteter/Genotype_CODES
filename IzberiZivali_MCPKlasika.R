@@ -118,13 +118,21 @@ SD <- merge(SD, kapaByHerd, by="Creda")
 
 
 #Pridobi še mlečnosti, izplen beljakovin in maščob
+<<<<<<< HEAD
 prireja <- paste0("SELECT ziv.STEV_ORIG_ZIVAL ID,ziv.DRZ_ORIG_ZIVAL || ziv.STEV_ORIG_ZIVAL celID, ziv.IME_ZIVAL, ziv.CRE_SIFRA_CREDA, ziv.SIF_SPOL, round(avg(lak.KG_MLEKO_305),0) mlekoAvg,round( avg(lak.KG_BELJAK_305),0) beljAvg, round(avg(lak.KG_MAST_305),0) mascAvg
+=======
+prireja <- paste0("SELECT ziv.STEV_ORIG_ZIVAL ID, ziv.CRE_SIFRA_CREDA, ziv.SIF_SPOL, round(avg(lak.KG_MLEKO_305),0) mlekoAvg,round( avg(lak.KG_BELJAK_305),0) beljAvg, round(avg(lak.KG_MAST_305),0) mascAvg
+>>>>>>> 1b8d6b61038ae92f43525513dcd93532f3369678
 FROM govedo.zivali ziv, GOVEDO.TELITVE tel , GOVEDO.LAKTACIJE lak
 WHERE ziv.SP1_SIFRA_PASMA = 1
 AND ziv.ZIV_ID_SEQ        =tel.tel_ziv_id_seq
 and tel.TEL_ID_SEQ=lak.LAK_TEL_ID_SEQ
 AND ziv.STEV_ORIG_ZIVAL  in (select ziv.STEV_ORIG_ZIVAL from GENOTIPIZIRANE_ZIVALI gen, zivali ziv where ziv.ZIV_ID_SEQ=gen.ZIV_ID_SEQ and gen.GEN_CHIP='IDBv03')
+<<<<<<< HEAD
 group by ziv.STEV_ORIG_ZIVAL, ziv.CRE_SIFRA_CREDA, ziv.SIF_SPOL, ziv.DRZ_ORIG_ZIVAL || ziv.STEV_ORIG_ZIVAL, ziv.IME_ZIVAL")
+=======
+group by ziv.STEV_ORIG_ZIVAL, ziv.CRE_SIFRA_CREDA, ziv.SIF_SPOL")
+>>>>>>> 1b8d6b61038ae92f43525513dcd93532f3369678
 
 Prireja <- fetch(dbSendQuery(con, prireja))
 Prireja$OdsBelj <- round(Prireja$BELJAVG / Prireja$MLEKOAVG * 100,2)
@@ -232,8 +240,14 @@ credaPV <- function (creda) {
   CredaPV <- merge(CredaPV, DIM[,c("ID", "DIM")], by="ID", all.x=TRUE)
   CredaPV <- merge(CredaPV, PVs, by="ID", all.x=TRUE)
   CredaPV <- merge(CredaPV, kazeini, by="ID", all.x=TRUE)
+<<<<<<< HEAD
   CredaPV <- merge(CredaPV, Prireja[,c(1,2,3,6,7,8,9,10)], by="ID", all.x=TRUE)
   return(CredaPV[,c(10,11,4,5,6,7,8,9,12,13,14,15,16)])
 }
 write.table(credaPV(5825), '/home/jana/Documents/F4F/KlasikaAnaliza/Marolt.csv', quote=FALSE, row.names=FALSE)
 
+=======
+  CredaPV <- merge(CredaPV, Prireja[,c(1,4,5,6,7,8)], by="ID", all.x=TRUE)
+  return(CredaPV)
+}
+>>>>>>> 1b8d6b61038ae92f43525513dcd93532f3369678

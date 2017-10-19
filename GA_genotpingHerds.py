@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
+from __future__ import division
 from pyevolve import G1DList, GSimpleGA, Selectors, Statistics
+
 from pyevolve import Initializators, Mutators, Consts, DBAdapters
 import os
 from math import log, log1p, exp
@@ -9,6 +11,7 @@ from pyevolve import Selectors
 from pyevolve import Statistics
 from pyevolve import DBAdapters
 import pandas as pd
+
 
 os.chdir("/home/jana/Documents/")
 #evaluation functions for genetic algorithm
@@ -50,7 +53,7 @@ genome.mutator.set(Mutators.G1DListMutatorIntegerRange)
 
 # Genetic Algorithm Instance
 ga = GSimpleGA.GSimpleGA(genome)
-#ga.setGenerations(500)
+ga.setGenerations(500)
 ga.selector.set(Selectors.GTournamentSelector)
 ga.setMutationRate(0.09)
 ga.setCrossoverRate(0.05)

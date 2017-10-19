@@ -300,7 +300,7 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
             self.SpecFile.setExtPedForGen(self.StBurnInGen + 1) #za katero generacijo uvozi external pedigre  - ena po burn in
             self.SpecFile.setTBVComp(1) #skomputiraj TBV
             # pozenes ALPHASIM
-            os.system('./AlphaSim1.05')
+            os.system('./AlphaSim1.08')
 ##############################################################################
         if self.SelYN: #če naj izvedem tudi selekcijo
             #ko si ustvaril burn in - ali pa ga imaš od prej - imaš torej PEdigreeAndGeneticValues
@@ -382,7 +382,7 @@ class SelParam(QtGui.QMainWindow, Ui_MainWindow):
                 self.SpecFile.setTBVComp(2)
                 self.SpecFile.setNB(self.StNB)
                 # pozenes ALPHASIM
-                os.system('./AlphaSim1.05')
+                os.system('./AlphaSim1.08')
 
                 # tukaj dodaj kategorije k PedigreeAndGeneticValues (AlphaSim File)
                 PedCat = OrigPed(self.AlphaSimDir, '/home/jana/Genotipi/Genotipi_CODES')
