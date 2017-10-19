@@ -1,0 +1,4 @@
+select GOVEDO.GOVEDO_SPLOSNE_PROCEDURE.PREBERI_NASLOV_REJCA (kmaz.id_lok),kmaz.ID_LOK, max(kmaz.DAT_MLECNE_KONTROLE)--, max(kmaz.DAT_PREJEM_ZAPISNIKA )
+from kon_mle_adm_zap kmaz, janao.F4F_REJE fr
+where fr.F4F_CRE_SIFRA_CREDA=kmaz.ID_LOK
+group by kmaz.ID_LOK;

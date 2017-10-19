@@ -87,6 +87,7 @@ for rep in range(replicates):
     os.makedirs("FillInBurnIn" + str(rep))
     os.chdir("FillInBurnIn" + str(rep)) #prestavi se v FillInBurnin za ta replikat
     os.system('cp -r ' + WorkingDir + '/Essentials/* .') # skopiraj vse iz Esentials
+    os.system('cp -r ' + WorkingDir + '/CodeDir/* .') # skopiraj vse iz CodeDir
 
     #first make a FILLIN
     #nastavi AlphaSimSpec
@@ -154,8 +155,8 @@ for rep in range(replicates):
     # SELEKCIJA - 20 krogov klasične selekcije
     ##############################################################################
 
-    for roundNo in range(20):  # za vsak krog selekcije
-        if roundNo == 0:  # če je to prvi krog - nimaš še kategorij od prej, nimaš niti EBV-jev
+    for roundNo in range(1,21):  # za vsak krog selekcije
+        if roundNo == 1:  # če je to prvi krog - nimaš še kategorij od prej, nimaš niti EBV-jev
             # odstrani Blupf90 fajle iz prejšnjih runov - ker se merge-a
             # enako tudi za generacijski interval in file z genotipi
             if os.path.isfile(AlphaSimDir + 'Blupf90.dat'):
@@ -242,10 +243,11 @@ for rep in range(replicates):
 ######################################################################################################
 #potem se prestavi nazaj v working directory
     os.chdir(WorkingDir)
+    os.chdir(WorkingDir)
 
 
     for scenario in scenarios:
-        os.system('cp -r' + WorkingDir +  '/Essentials/* . && cp -r "FillInBurnIn' + str(rep) + '/* .')
+        os.system('cp -r ' + WorkingDir + '/Essentials/* . && cp -r FillInBurnIn' + str(rep) + '/* .')
         os.system('mv IndForGeno_Gen.txt IndForGen.txt')
 
         par = pd.read_csv(WorkingDir + "/Essentials/SelectionParam_" + scenario + ".csv", header=None, names=["Keys", "Vals"])
@@ -291,7 +293,7 @@ for rep in range(replicates):
         #SELEKCIJA
         ##############################################################################
 
-        for roundNo in range(20): #za vsak krog selekcije
+        for roundNo in range(1,21): #za vsak krog selekcije
             # prestavi se v AlphaSim Dir
             if not os.path.isfile(AlphaSimDir + 'ReferenceSize.txt') and os.path.isfile(AlphaSimDir + "IndForGeno.txt"):
                 os.system("less IndForGeno.txt | wc -l > ReferenceSize.txt")
