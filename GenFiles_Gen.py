@@ -1014,7 +1014,7 @@ class pedFile:
         position=[i for i,x in enumerate(self.samples) if x == sampleID][0]
         return self.pedContent[position].split(" ")[6:]
         
-class Concordance():
+class AllelicConcordance():
     def __init__(self, RefPed, CompPed):
         self.RefPed = pedFile(RefPed)
         self.CompPed = pedFile(CompPed)
@@ -1028,6 +1028,20 @@ class Concordance():
 
     def extractConc(self, ConcFile):
         return float(open(ConcFile, 'r').read().strip('.\n').split(" ")[-1])
+
+
+class GenotypicConcordance(): #reffile bo merged For imputation, compPed pa imputiran file v OUTPUT dir
+    def __init__(self, RefPed, CompPed):
+        self.RefName = RefPed.strip('.ped')
+        self.CompName = CompPed.strip('.ped')
+        self.RefPed = pedFile(RefPed)
+        self.CompPed = pedFile(CompPed)
+
+    def recodeA(self):
+        os.system('plink --file ' + self.RefName + ' --cow --recodeA --out ' + self.RefName + 'A')
+        os.system('plink --file ' + self.CompName + ' --cow --recodeA --out ' + self.CompName + 'A')
+
+
 
 class mapFile:
     def __init__(self, mapDatoteka):

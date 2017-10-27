@@ -29,14 +29,17 @@ def eval_func(chromosome):
     for index, vals in HerdsA.iterrows():
        if (chromosome[int(vals.num1)-1] == 1 and chromosome[int(vals.num2)-1] == 1): 
            withinA.append(vals.rel)
+           
     betweenA = []
     for index, vals in HerdsA.iterrows():
        if (chromosome[int(vals.num1)-1] == 1 and chromosome[int(vals.num2)-1] == 0) or (chromosome[int(vals.num1)-1] == 0 and chromosome[int(vals.num2)-1] == 1): 
            betweenA.append(vals.rel)
-   
+
+
     #and also the number of animals 
-    deviation = 1/((abs(NoAnimals - cowsGen + 0.0000001)))
-    return (sum(betweenA) - sum(withinA)) * deviation * 100000
+    score = (sum(betweenA) - sum(withinA))
+    penalty = [-score if (NoAnimals > 1.5*cowsGen or NoAnimals < 0.85*cowsGen) else 0]
+    return score+penalty[0]
 
     
     

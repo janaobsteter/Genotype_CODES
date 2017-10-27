@@ -852,31 +852,39 @@ class genZipPackage:
         self.sernum=zipDatoteka.strip(".zip").strip('Matija_Rigler_')
         self.genodate=zipDatoteka.strip(".zip").strip("Matija_Rigler_")[-9:].strip("_").strip('/')
         self.infiles=self.zipFile.namelist()
-        self.finalreportname=filter(lambda x: x.endswith ("FinalReport.zip"), self.infiles)
-            
+        self.finalreportname=[s for s in self.infiles if "final" in s.lower()][0] if len([s for s in self.infiles if "final" in s.lower()]) == 1 else [s for s in self.infiles if "final" in s.lower()]
+        self.samplemapname = [s for s in self.infiles if "sample_map" in s.lower()][0] if len([s for s in self.infiles if "sample_map" in s.lower()]) == 1 else [s for s in self.infiles if "sample_map" in s.lower()]
+        self.snpmapname = [s for s in self.infiles if "snp_map" in s.lower()][0] if len([s for s in self.infiles if "snp_map" in s.lower()]) == 1 else [s for s in self.infiles if "snp_map" in s.lower()]
+
     def unzip(self):
         self.zipFile.extractall()
     
     def extractFinalReport(self): #extracts all FinalReports and extracts them / if there is no FinalReport, it returns notice
         if self.finalreportname:
-            for i in self.finalreportname:
-                self.zipFile.extract(i) 
-                zipfile.ZipFile(i).extractall()
-                os.remove(os.getcwd()+'/'+i)
+            if self.finalreportname.endswith('zip'):
+                self.zipFile.extract(self.finalreportname)
+                zipfile.ZipFile(self.finalreportname).extractall()
+                os.remove(os.getcwd()+'/'+self.finalreportname)
+            else:
+                self.zipFile.extract(self.finalreportname)
         else:
             return 'No FinalReport infile in ' + self.name
         
     def extractSampleMap(self):
-        if 'Sample_Map.zip' in self.infiles:
-            self.zipFile.extract("Sample_Map.zip")           
-            zipfile.ZipFile("Sample_Map.zip").extractall()
-            os.remove('Sample_Map.zip')
-            shutil.move('Sample_Map.txt', self.name+'_Sample_Map.txt')
+        if self.samplemapname:
+            if self.samplemapname.endswith('zip'):
+                self.zipFile.extract(self.samplemapname)
+                zipfile.ZipFile(self.samplemapname).extractall()
+                os.remove(self.samplemapname)
+                shutil.move('Sample_Map.txt', self.name+'_Sample_Map.txt')
+            else:
+                self.zipFile.extract(self.samplemapname)
+                shutil.move(self.samplemapname, self.name + '_Sample_Map.txt')
         else:
             return 'No Sample_Map.zip in {} infiles'.format(self.name)
         
     def extractSampleNames(self):
-        if 'Sample_Map.zip' in self.infiles: 
+        if self.samplemapname:
             self.extractSampleMap()
             #os.system('sed -i "s|SI  |SI|g" ' + self.name+'_Sample_Map.txt') #remove double spacing
             #os.system('sed -i "s|SI |SI|g" ' + self.name+'_Sample_Map.txt') #remove space in sample IDs
@@ -910,11 +918,15 @@ class genZipPackage:
                     
                   
     def extractSNPMap(self):
-        if 'SNP_Map.zip' in self.infiles:
-            self.zipFile.extract("SNP_Map.zip")            
-            zipfile.ZipFile("SNP_Map.zip").extractall()
-            os.remove('SNP_Map.zip')
-            shutil.move('SNP_Map.txt', self.name+'_SNP_Map.txt')
+        if self.snpmapname:
+            if self.snpmapname.endswith('zip'):
+                self.zipFile.extract(self.snpmapname)
+                zipfile.ZipFile(self.snpmapname).extractall()
+                os.remove(self.snpmapname)
+                shutil.move('SNP_Map.txt', self.name + '_SNP_Map.txt')
+            else:
+                self.zipFile.extract(self.snpmapname)
+                shutil.move(self.snpmapname, self.name + '_SNP_Map.txt')
         else:
             return 'No SNP_Map.zip in {} infiles'.format(self.name)
 

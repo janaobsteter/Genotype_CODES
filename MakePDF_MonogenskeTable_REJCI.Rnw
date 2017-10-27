@@ -24,7 +24,7 @@ credaGen$ABCG2 <- ifelse( credaGen$ABCG2g == "AA", "Dve kopiji alela A", ifelse(
 credaGen$SMA <- ifelse( credaGen$SMAg == "BB", "Zdrava", ifelse( credaGen$SMAg == "AB"| credaGen$SMAg == "BA",  "Prenašalka", NA) )
 credaGen <- merge(credaGen, kapaCSN, by="ID", all.x=TRUE)
 credaGen <- merge(credaGen, betaCSN, by="ID", all.x=TRUE)
-credaGen <- credaGen[,c(1,8,9,11,10,12,13)]
+credaGen <- credaGen[,c(1,8,9,11,10,12)]
 
 rejci <- read.csv('~/Documents/F4F/OdbiraZivali/RejciImena_15032017.csv')
 colnames(rejci) <- c('Naslov', 'Sifra')
@@ -54,7 +54,7 @@ library(Cairo)
 
 
 xcredaTable <- xtable(credaGen, digits=2)
-align(xcredaTable) <- "l|l|l|l|l|l|l|l|" 
+align(xcredaTable) <- "l|l|l|l|l|l|l|" 
    
   
 print(xcredaTable, 
@@ -72,12 +72,12 @@ floating=FALSE,
       hline.after = getOption("xtable.hline.after", c(-1:nrow(credaGen))),
       add.to.row = list(pos = list(-1, 
                                    nrow(credaGen)),
-                        command = c(paste("\\toprule \n","Žival & Weaver &Arahnomelija& SMA & ABCG2 &  Kapa-kazein & Beta-kazein \\\\\n", 
+                        command = c(paste("\\toprule \n","Žival & Weaver &Arahnomelija& SMA & ABCG2 &  Kapa-kazein  \\\\\n", 
                         "\\midrule \n"),
                         "\\bottomrule \n")))
                         
 @
-{\raggedleft {* alel A1 ali B na beta-kazeinu}}
+
 
 
 

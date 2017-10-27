@@ -127,11 +127,13 @@ for (c in unique(snpi$CRE_SIFRA_CREDA)) {
 }
 
 setwd('/home/jana/Documents/F4F/MonogenskePorocila')
-for (c in 86){ #unique(vseRjavePDF$CRE_SIFRA_CREDA)
+for (c in unique(snpi$CRE_SIFRA_CREDA)){ #unique(vseRjavePDF$CRE_SIFRA_CREDA)
   knit2pdf("~/Genotipi/Genotipi_CODES/MakePDF_MonogenskeTable_REJCI.Rnw", output=paste0('PDF_Rejci_', creda, '.tex'))
 }
 
 
+
+'
 ######################################
 #TUKAJ DOBI PLEMENSKE!
 #########################################
@@ -168,3 +170,4 @@ for (creda in unique(snpi$CRE_SIFRA_CREDA)) {
     PVs <- merge(PVs, PVCreda, by=c('ID', 'CRE_SIFRA_CREDA', 'IME'), all.y=T)
     }
 }
+'

@@ -84,10 +84,10 @@ TGVsAll <- data.frame()
 
 
 for (scenario in c("Class1", "GenSLO", "GenSplosnaPop", "GenSLO_BmGen", "Gen2")) {
-  TGVs <- data.frame(Generation=40:60)
+  TGVs <- data.frame(Generation=1:60)
   dir = paste0('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_', scenario, '/SimulatedData/')
   ped <- read.table(paste0(dir,'/PedigreeAndGeneticValues_cat.txt'), header=T)
-  ped <- ped[ped$Generation %in% 40:60,]
+  ped <- ped[ped$Generation %in% 1:60,]
   TGV <- summarySE(ped, measurevar = "gvNormUnres1", groupvars = "Generation")[,c(1,3,4)]
   colnames(TGV)[1] <- c("Generation")
   TGV$zMean <- (TGV$gvNormUnres1 - TGV$gvNormUnres1[1]) / TGV$sd[1]
@@ -155,3 +155,18 @@ ggplot(data = TGVsAll, aes(x=Generation, y=AdditGenicVar1, colour=scenario, line
 
 library(lme4)
 lmList(zMean ~ SDGenicSt | scenario, data=TGVsAll)
+
+
+#################
+#plot genic and genetic variance through 60 generations
+#################
+TGVsAll <- TGVsAll[,c("Generation", "sd", "zSdGenic")]
+a <- melt(TGVsAll, id.vars = 'Generation')
+ggplot(data = a, aes(x=Generation, y=value, group = variable, colour=variable)) + geom_point() + geom_smooth() + 
+  scale_colour_discrete("Variance", labels=c("Genetic", "Genic"))
+Genetic <- ggplot(data = TGVsAll, aes(x=Generation, y=sd, group = scenario, colour=scenario)) + geom_point() + geom_smooth(se=FALSE) +
+  scale_colour_discrete("Variance", labels=c("Class1", "Gen for all cows", "Gen for selection for progeny testing","Gen for bull dams",  "Gen for other cows")) + 
+  ylab("Genetic variance")
+Genic <- ggplot(data = TGVsAll, aes(x=Generation, y=zSdGenic, group = scenario, colour=scenario)) + geom_point() + geom_smooth(se=FALSE) +
+  scale_colour_discrete("Variance", labels=c("Class1", "Gen for all cows", "Gen for selection for progeny testing","Gen for bull dams",  "Gen for other cows")) + 
+  ylab("Genic variance")

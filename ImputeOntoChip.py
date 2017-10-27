@@ -76,6 +76,8 @@ pd.DataFrame({'Inds': RefPed.samples}).to_csv(WorkingDir + 'RefInds.txt', header
 
 
 
+#compute allelic concordance!
+Concordance = []
 #from here if masking and imputation to obtain accuracies of imputation
 for masking in range(10):
     os.system('plink --file MERGEDforImputation --cow --chr 1-29 --zero-cluster ' + WorkingDir + 'ClusterSNPs_' + str(masking) + '.txt --within ' + WorkingDir + 'ImputeInds.txt --make-bed --out Masked' + str(masking))
@@ -90,3 +92,20 @@ for masking in range(10):
     except:
         os.system('cut -f1 OUTPUT/Error_SNP_position.txt -d";"| tail -n +2 > tmp && mv tmp ErrorSNPs.txt')
         os.system('plink --file MERGEDforImputation --cow --exclude ErrorSNPs.txt --recode --out MERGEDforImputation')
+        os.system('python Zanardi.py --fimpute --save')
+
+    #Now extract only reference individuals from the imputed file
+    os.system('plink --file ' + WorkingDir + '/OUTPUT/FIMPUTE_Imputed' + str(
+        masking) + ' --cow --keep ImputedIndsConc.txt --recode --out ImputedMasking' + str(masking))
+    os.system(
+        'plink --file ' + WorkingDir + '/MERGEDforImputation --cow --keep ImputedIndsConc.txt --recode --out OrigMasking' + str(
+            masking))
+
+    # Now compute the allelic concordance
+    chkConc = AllelicConcordance('OrigMasking' + str(masking) + '.ped', 'ImputedMasking' + str(masking) + '.ped')
+    os.system('cut -f1 ClusterSNPs_' + str(masking) + '.txt -d " " > ClusterList' + str(masking) + '.txt')
+    chkConc.concSNPs('ClusterList' + str(masking) + '.txt', 'Concordance' + str(masking))
+    Concordance.append(chkConc.extractConc('Concordance' + str(masking) + '.txt'))
+
+Concordance.append(mean(Concordance))
+pd.DataFrame({"Conc": Concordance}).to_csv(WorkingDir + "FinalAllelicConcordance.txt", index=None)
