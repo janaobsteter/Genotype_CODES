@@ -1,0 +1,1 @@
+import py2exe

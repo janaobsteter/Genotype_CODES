@@ -1646,4 +1646,24 @@ class snpFiles:
 
     def createBlupf90SNPFile(self):
         if os.path.isfile(self.AlphaSimDir + 'GenoFile.txt'): #if GenoFile.txt exists, only add the newIndividuals for genotypisation
-            os
+            os.system(
+                'grep -Fwf IndForGeno_new.txt ' + self.chipFile + ' > ChosenInd.txt')  # only individuals chosen for genotypisation - ONLY NEW - LAST GEN!
+            os.system("sed 's/^ *//' ChosenInd.txt > ChipFile.txt")  # Remove blank spaces at the beginning
+            os.system("cut -f1 -d ' ' ChipFile.txt > Individuals.txt")  # obtain IDs
+            os.system('''awk '{$1=""; print $0}' ChipFile.txt | sed 's/ //g' > Snps.txt''')  # obtain SNP genotypes
+            os.system(
+                r'''paste Individuals.txt Snps.txt | awk '{printf "%- 10s %+ 15s\n",$1,$2}' > GenoFile_new.txt''')  # obtain SNP genotypes of the last generation
+            os.system(
+                'grep -Fwf IndForGeno.txt GenoFile.txt  > GenoFile_Oldtmp && mv GenoFile_Oldtmp GenoFile.txt')  # here obtain updated old reference - removed one generation
+            os.system("cat GenoFile.txt GenoFile_new.txt > GenoFileTmp && mv GenoFileTmp GenoFile.txt")
+            os.system("less GenoFile.txt | sort -n | uniq > Genotmp && mv Genotmp GenoFile.txt")
+        else: #else create a new GenoFile containg all the individuals in the IndForGeno.txt
+            os.system(
+                'grep -Fwf IndForGeno.txt ' + self.chipFile + ' > ChosenInd.txt')  # only individuals chosen for genotypisation - ALL
+            os.system("sed 's/^ *//' ChosenInd.txt > ChipFile.txt")  # Remove blank spaces at the beginning
+            os.system("cut -f1 -d ' ' ChipFile.txt > Individuals.txt")  # obtain IDs
+            os.system('''awk '{$1=""; print $0}' ChipFile.txt | sed 's/ //g' > Snps.txt''')  # obtain SNP genotypes
+            os.system(
+                r'''paste Individuals.txt Snps.txt | awk '{printf "%- 10s %+ 15s\n",$1,$2}' > GenoFile.txt''')  # obtain SNP genotypes of the last generation
+        pd.read_csv(self.AlphaSimDir + '/SimulatedData/Chip1SnpInformation.txt', sep='\s+')[[0, 1, 2]].to_csv(
+            self.AlphaSimDir + 'SnpMap.txt', index=None, sep=" ", header=None)

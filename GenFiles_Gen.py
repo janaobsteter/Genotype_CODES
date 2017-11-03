@@ -1030,7 +1030,7 @@ class AllelicConcordance():
         return float(open(ConcFile, 'r').read().strip('.\n').split(" ")[-1])
 
 
-class GenotypicConcordance(): #reffile bo merged For imputation, compPed pa imputiran file v OUTPUT dir
+class GenotypicCorrelation(): #reffile bo merged For imputation, compPed pa imputiran file v OUTPUT dir
     def __init__(self, RefPed, CompPed):
         self.RefName = RefPed.strip('.ped')
         self.CompName = CompPed.strip('.ped')
@@ -1041,7 +1041,20 @@ class GenotypicConcordance(): #reffile bo merged For imputation, compPed pa impu
         os.system('plink --file ' + self.RefName + ' --cow --recodeA --out ' + self.RefName + 'A')
         os.system('plink --file ' + self.CompName + ' --cow --recodeA --out ' + self.CompName + 'A')
 
+class blupf90:
+    def __init__ (self, PedFile):
+        self.ped = PedFile
+        self.pedName = self.ped.strip(".ped")
+        self.map = self.pedName + '.map'
 
+    def createBlupGeno(self, outName):
+        os.system("plink --file " + self.pedName + " --cow --recodeA --out " + outName)
+        os.system('cut -f1,3,4,5,6 -d" " --complement ' + outName + '.raw | tail -n +2 > ChipFile.txt')
+        os.system("cut -f1 -d ' ' ChipFile.txt > Individuals.txt")
+        os.system('''awk '{$1=""; print $0}' ChipFile.txt | sed 's/ //g' > Snps.txt''')  # obtain SNP genotypes
+        os.system(r'''paste Individuals.txt Snps.txt | awk '{printf "%- 20s %+ 15s\n",$1,$2}' > GenoFile.txt''')
+        mapFile = pd.read_table(self.map, sep=" ", header=None)
+        pd.DataFrame({0: [i + 1 for i in list(mapFile.index)], 1: list(mapFile[0]), 2: list(mapFile[3])}).to_csv("BlupSNPs.txt", index=None, sep=" ", header=None)
 
 class mapFile:
     def __init__(self, mapDatoteka):

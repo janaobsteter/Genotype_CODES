@@ -1,13 +1,14 @@
 WorkingDir = "/home/jana/Genotipi/Genotipi_WORK/ImputationOntoIDBv03"
-imputed <- read.table("/home/jana/Genotipi/Genotipi_WORK/ImputationOntoIDBv03/IMPUTEDRAWFILE.raw", header=TRUE)
-imputed <- imputed[,-c(1,3,4,5,6)]
+imputedO <- read.table("/home/jana/Genotipi/Genotipi_WORK/ImputationOntoIDBv03/IMPUTEDRAWFILE.raw", header=TRUE)
+imputedO <- imputedO[,-c(1,3,4,5,6)]
 
 orig <- read.table("/home/jana/Genotipi/Genotipi_WORK/ImputationOntoIDBv03/ORIGINALRAWFILE.raw", header=TRUE)
 orig <- orig[,-c(1,3,4,5,6)]
 
-cor <- c()
-for (row in 1:nrow(imputed)) {
-  imp <- as.data.frame(t(imputed[row,]))
+corSamples <- data.frame(matrix(ncol= 2, nrow=nrow(imputedO)))
+colnames(corSamples) <- c("Sample", "cor")
+for (row in 1:nrow(imputedO)) {
+  imp <- as.data.frame(t(imputedO[row,]))
   imp$snps <- row.names(imp)
   sample <- as.character(imp[1,1])
   colnames(imp) <- c(as.character(imp[1,1]), "Snps")
@@ -20,13 +21,14 @@ for (row in 1:nrow(imputed)) {
   or[,1] <- as.numeric(or[,1])  
   comp <- merge(imp, or, by="Snps")
   corC <- cor(comp[,2], comp[,3], use="pairwise.complete.obs")
-  cor <- c(cor, c(sample, corC))
+  corSamples$Sample[row] <- sample
+  corSamples$cor[row] <- corC
 }
 
 write.table(cor, paste0(WorkingDir, "/GenCorr_samples", "NUMBEROFMASKING.txt"), row.names=FALSE, quote=FALSE, col.names=FALSE)
 
 
-imputed <- imputed[,-1]
+imputed <- imputedO[,-1]
 orig <- orig[,-1]
 corSNP <- data.frame(matrix(ncol= 2, nrow=ncol(imputed)))
 colnames(corSNP) <- c("SNP", "cor")

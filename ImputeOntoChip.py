@@ -109,3 +109,16 @@ for masking in range(10):
 
 Concordance.append(mean(Concordance))
 pd.DataFrame({"Conc": Concordance}).to_csv(WorkingDir + "FinalAllelicConcordance.txt", index=None)
+
+#get genotypic concordance - bash skript
+os.system ("bash ~/Genotipi/Genotipi_CODES/OneMaskingGenCor.sh")
+#output files are names GenCorr_samples and GenCorr_snps
+os.system("cat GenCorr_samples* > GenCorr_SAMPLES.txt")
+print("Genetic Samples Correlation is " + str(mean(pd.read_table(WorkingDir + "GenCorr_SAMPLES.txt", sep=" ", header=None)[1])))
+os.system("cat GenCorr_snps* > GenCorr_SNPS.txt")
+print("Genetic SNP Correlation is " + str(mean(pd.read_table(WorkingDir + "GenCorr_snps.txt", sep=" ", header=None)[1])))
+
+
+#potem pa pripravi še blupf90 files
+blupFile = blupf90(WorkingDir + 'OUTPUT/FIMPUTE_ImputedFULL.ped')
+blupFile.createBlupGeno("BlupIMPUTED")

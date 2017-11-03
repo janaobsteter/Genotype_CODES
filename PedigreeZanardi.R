@@ -56,6 +56,13 @@ pedigre_Z <- pedigre_Z[order(pedigre_Z$DAT_ROJSTVO),]
 pedigre_Z$dam[which(pedigre_Z$dam=="")] <- "UUUUUUUU" #tudi če vrže vn opozorilo, je to OK, ker nardi NA in potem te NA zapišeš v UUUUUUUUUUUUUUU
 pedigre_Z$sire[which(pedigre_Z$sire=="")] <- "UUUUUUUU"
 write.table(pedigre_Z, "~/Genotipi/Genotipi_DATA/RJPedigre_ZANARDI", sep=";", row.names=F, col.names = F, quote=F, na="UUUUUUUUUUUUUU")
+
+#za blupf90
+pedigreZ <- read.csv("~/Genotipi/Genotipi_DATA/RJPedigre_ZANARDI", sep=";", header=FALSE)
+colnames(pedigreZ) <- c("ZIVAL", "OCE", "MATI")
+pedigreZ$OCE <- gsub("UUUUUUUUUUUUUU", 0, pedigreZ$OCE)
+pedigreZ$MATI <- gsub("UUUUUUUUUUUUUU", 0, pedigreZ$MATI)
+write.table(pedigreZ[,c(1,2,3)], "/home/jana/Genotipi/Genotipi_WORK/PedigreIMPUTED_blup.txt", sep=" ", quote=FALSE, row.names=FALSE, col.names=FALSE)
 ############################################
 
 pedigreLS <- read.csv("~/Genotipi/Genotipi_DATA/Lisaste/Pedigree.csv", header=T)

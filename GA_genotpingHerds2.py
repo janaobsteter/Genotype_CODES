@@ -55,7 +55,7 @@ genome.mutator.set(Mutators.G1DListMutatorIntegerRange)
 
 # Genetic Algorithm Instance
 ga = GSimpleGA.GSimpleGA(genome)
-ga.setGenerations(100)
+ga.setGenerations(500)
 ga.selector.set(Selectors.GTournamentSelector)
 ga.setMutationRate(0.09)
 ga.setCrossoverRate(0.05)
