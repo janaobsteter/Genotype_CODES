@@ -239,6 +239,15 @@ credaPV <- function (creda) {
   colnames(CredaPV) <- c("ID", "IME", "Zaporedna lakt", "DIM", "PVMleko", "PVBelj", "PVMasc", "Kapa-kazein", "Povprecna st. lakt.", "Povprecne belj 305", "Povprecne masc 305", "Ods Belj", "Ods Masc")
   return(CredaPV)
 }
-write.table(credaPV(32749), '/home/jana/Documents/F4F/KlasikaAnaliza/Tekavc.csv', quote=FALSE, row.names=FALSE, sep=",")
+write.table(credaPV(4950), '/home/jana/Documents/F4F/KlasikaAnaliza/Kuhar.csv', quote=FALSE, row.names=FALSE, sep=",")
 
+
+CredaPV <- zapLaktAll
+CredaPV <- merge(CredaPV, DIM[,c("ID", "DIM")], by="ID", all.x=TRUE)
+CredaPV <- merge(CredaPV, PVs, by="ID", all.x=TRUE)
+CredaPV <- merge(CredaPV, kazeini, by="ID", all.x=TRUE)
+CredaPV <- merge(CredaPV, Prireja[,c(1,2,3,6,7,8,9,10)], by="ID", all.x=TRUE)
+CredaPV <- CredaPV[,c(10,11,4,5,6,7,8,9,12,13,14,15,16)]
+colnames(CredaPV) <- c("ID", "IME", "Zaporedna lakt", "DIM", "PVMleko", "PVBelj", "PVMasc", "Kapa-kazein", "Povprecna st. lakt.", "Povprecne belj 305", "Povprecne masc 305", "Ods Belj", "Ods Masc")
+write.table(CredaPV, '/home/jana/Documents/F4F/Rezultati_MCPKlasiak/Prireja_Krave.csv', quote=FALSE, row.names=FALSE)
 

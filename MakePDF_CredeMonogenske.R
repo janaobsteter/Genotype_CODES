@@ -102,6 +102,12 @@ for (tNo in c(10, 11, 13, 14, 15, 32)) {
 #preberi še kapa in beta casein
 ###################################
 kapaCSN <- read.csv('/home/jana/Documents/F4F/MlecniProteini/KappaCaseinGenotype_python.csv', header=TRUE)[,c(2,8)]
+kapaCSN$KapaCSN <- gsub("BB", "B/B", kapaCSN$KapaCSN)
+kapaCSN$KapaCSN <- gsub("AA", "A/A", kapaCSN$KapaCSN)
+kapaCSN$KapaCSN <- gsub("AB", "A/B", kapaCSN$KapaCSN)
+kapaCSN$KapaCSN <- gsub("AC", "A/C", kapaCSN$KapaCSN)
+kapaCSN$KapaCSN <- gsub("BC", "B/C", kapaCSN$KapaCSN)
+kapaCSN$KapaCSN <- gsub("BE", "B/E", kapaCSN$KapaCSN)
 colnames(kapaCSN) <- c("ID", "KapaCSN")
 betaCSN <- read.csv('/home/jana/Documents/F4F/MlecniProteini/BetaCaseinGenotype_python.csv', header=TRUE)[,c(2,5)]
 colnames(betaCSN) <- c("ID", "BetaCSN")
@@ -126,9 +132,10 @@ for (c in unique(snpi$CRE_SIFRA_CREDA)) {
   credaGen <- credaGen[,c(1,8,9,11,10,12,13)]
 }
 
+library(xtable)
 setwd('/home/jana/Documents/F4F/MonogenskePorocila')
 for (c in unique(snpi$CRE_SIFRA_CREDA)){ #unique(vseRjavePDF$CRE_SIFRA_CREDA)
-  knit2pdf("~/Genotipi/Genotipi_CODES/MakePDF_MonogenskeTable_REJCI.Rnw", output=paste0('PDF_Rejci_', creda, '.tex'))
+  knit2pdf("~/Genotipi/Genotipi_CODES/MakePDF_MonogenskeTable_REJCI.Rnw", output=paste0('PDF_Rejci_', c, '.tex'))
 }
 
 

@@ -6,23 +6,26 @@ import operator
 KapaCSN = pd.DataFrame()
 def makeGen(row):
     return min(row[al], row[al+1]) + max(row[al], row[al+1])
-#################################################################################
-#kapa kazein A
-##################################################################################
-AB1 = pd.read_table('/home/jana/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/IDBv03/KapaAB_1.ped', header=None, sep=" ")
-AB1 = AB1[[1,6,7,8,9,10,11,12,13]]
-
-#tukaj združi sosednja dva alela v genotipe
-for al in [i for i in range(6,13) if i % 2 == 0]:
-    AB1.loc[:,str(al)+'g'] = AB1.apply(makeGen, axis=1)
-
-#tukaj pridobi napogostejši genotip
+    
 def countOcc_max(alleles):   
     Count = defaultdict()    
     for geno in unique(alleles):
         if geno != '00':
             Count[geno] = alleles.count(geno)   
     return max(Count.iteritems(), key=operator.itemgetter(1))[0]
+#################################################################################
+#kapa kazein A
+##################################################################################
+AB1 = pd.read_table('/home/jana/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/IDBv03/KapaAB_1.ped', header=None, sep=" ")
+cols = len(AB1.columns)
+AB1 = AB1[[1] + range(6,cols-1)]
+
+#tukaj združi sosednja dva alela v genotipe
+genoCol = []
+for al in [i for i in range(6,cols) if i % 2 == 0]:
+    C.loc[:,str(al)+'g'] = C.apply(makeGen, axis=1)
+    genoCol.append(str(al) + 'g')
+
     
 AB1.loc[:, 'finalGeno'] = ""
 for row in AB1.index:

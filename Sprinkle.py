@@ -23,7 +23,6 @@ class MoviePlayer(QWidget):
 
         self.entered = QLineEdit()
         self.entered.returnPressed.connect(self.start)
-        self.entered.textChanged.connect(self.stop)
 
 
         main_layout = QVBoxLayout()
