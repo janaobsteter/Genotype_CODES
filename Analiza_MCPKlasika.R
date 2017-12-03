@@ -35,11 +35,40 @@ ZapL <- fetch(dbSendQuery(con,ZapLakt))
 KraveLakt$ID <- gsub("SI", "", KraveLakt$ID)
 
 #DIM
-DIMs <- paste0("SELECT ziv.STEV_ORIG_ZIVAL ID, max(tel.DAT_TELITEV) Dat_Telitve
-FROM govedo.zivali ziv, GOVEDO.TELITVE tel  where ziv.ziv_id_seq = tel.tel_ziv_id_seq 
-AND ziv.STEV_ORIG_ZIVAL  in ('", paste(MCP$ID,collapse = "','"), "') group by ziv.STEV_ORIG_ZIVAL")
+DIMs <- paste0("SELECT distinct  ziv.ZIV_ID_SEQ, ziv.stev_orig_zival,
+  ziv.SP1_SIFRA_PASMA pasma,
+  ziv.DAT_ROJSTVO,
+  mleko.mlekoPV,
+  beljKg.beljKgPV,
+  mascKg.mascKgPV,
+  beljOds.beljOdsPV,
+  mascOds.mascOdsPV,
+  COUNT(DISTINCT tel.TEL_ID_SEQ) ZapTel,
+  MAX(tel.DAT_TELITEV) DatTel
+FROM  zivali ziv, GENOTIPIZIRANE_ZIVALI gen,
+ telitve tel,
+ (  select pv.PV_ZIV_ID_SEQ ZIV_ID_SEQ, pv.VREDNOST_12_PV mlekoPV from ARHIV.PLEMENSKE_VREDNOSTI pv where pv.SIFRA_LAST=164 and pv.SIF_IZV_VR_LAST=4) mleko,
+ (  select pv.PV_ZIV_ID_SEQ ZIV_ID_SEQ, pv.VREDNOST_12_PV beljKGPV from ARHIV.PLEMENSKE_VREDNOSTI pv where pv.SIFRA_LAST=168 and pv.SIF_IZV_VR_LAST=4 ) beljKg,
+ (  select pv.PV_ZIV_ID_SEQ ZIV_ID_SEQ, pv.VREDNOST_12_PV mascKgPV from ARHIV.PLEMENSKE_VREDNOSTI pv where pv.SIFRA_LAST=166 and pv.SIF_IZV_VR_LAST=4) mascKg,
+ (  select pv.PV_ZIV_ID_SEQ ZIV_ID_SEQ, pv.VREDNOST_12_PV beljOdsPV from ARHIV.PLEMENSKE_VREDNOSTI pv where pv.SIFRA_LAST=167 and pv.SIF_IZV_VR_LAST=4) beljOds,
+ (  select pv.PV_ZIV_ID_SEQ ZIV_ID_SEQ, pv.VREDNOST_12_PV mascOdsPV from ARHIV.PLEMENSKE_VREDNOSTI pv where pv.SIFRA_LAST=165 and pv.SIF_IZV_VR_LAST=4) mascOds
+ WHERE ziv.ZIV_ID_SEQ    =tel.TEL_ZIV_ID_SEQ
+AND ziv.stev_orig_zival in  ('", paste(MCP$ID,collapse = "','"), "') 
+and mleko.ZIV_ID_SEQ(+) = ziv.ZIV_ID_SEQ
+and beljKg.ZIV_ID_SEQ(+) = ziv.ZIV_ID_SEQ
+and mascKg.ZIV_ID_SEQ(+) = ziv.ZIV_ID_SEQ
+and beljOds.ZIV_ID_SEQ(+) = ziv.ZIV_ID_SEQ
+and mascOds.ZIV_ID_SEQ(+) = ziv.ZIV_ID_SEQ
+GROUP BY ziv.ZIV_ID_SEQ,
+  ziv.SP1_SIFRA_PASMA, ziv.stev_orig_zival,
+  ziv.DAT_ROJSTVO, mleko.mlekoPV, beljKg.beljKgPV,
+  mascKg.mascKgPV,
+  beljOds.beljOdsPV,
+  mascOds.mascOdsPV")
+
 
 DIM <- fetch(dbSendQuery(con,DIMs))
+colnames(DIM)[2] <- "ID"
 #NO MORE DUPLICATED IN 28112017 VERZIJI!
 #duplicated IDs MCP Rodica
 #Dupl <- MCP[MCP$ID %in% MCP$ID[duplicated(MCP$ID)],]
@@ -52,9 +81,15 @@ DIM <- fetch(dbSendQuery(con,DIMs))
 Data <- merge(MCP, ZapL, by="ID")
 Data <- merge(Data, DIM, by="ID")
 #sedaj zračunaj DIM
-Data$DIM <- round(as.numeric(gsub(" days", "", difftime(Data$Datum, Data$DAT_TELITVE)), 1))
+Data$DATTEL <- as.Date(Data$DATTEL, format="%Y-%d-%m")
+Data$Datum <- as.Date(Data$Datum, format="%Y-%d-%m")
+Data$DIM <- round(as.numeric(gsub(" days", "", difftime(Data$Datum, Data$DATTEL)), 1))
+#tu dodaj še plemenske vrednosti
+
+
 
 write.table(Data, '/home/jana/Documents/F4F/Rezultati_MCPKlasiak/TabelaRezultati_01122017.csv', quote=FALSE, sep="\t", row.names=FALSE)
+write.table(Data, '/home/jana/Genotipi/Genotipi_CODES//Rezultati_MCPKlasiak/TabelaRezultati_01122017.csv', quote=FALSE, sep="\t", row.names=FALSE)
 ###################################################################
 ###################################################################
 nrow(MCP)
