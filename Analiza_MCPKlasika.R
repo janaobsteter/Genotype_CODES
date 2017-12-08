@@ -86,7 +86,11 @@ Data$Datum <- as.Date(Data$Datum, format="%Y-%d-%m")
 Data$DIM <- round(as.numeric(gsub(" days", "", difftime(Data$Datum, Data$DATTEL)), 1))
 #tu dodaj še plemenske vrednosti
 
-
+#Dodaj še genotipe
+genotipi <- read.csv("/home/jana/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/AB/IDBv03/Genotipi_F4F/MonogenicGenotypes_Table.csv")
+genotipi$ID <- gsub("SI", "", genotipi$ID)
+length(intersect(Data$ID, genotipi$ID))
+Data <- merge(Data, genotipi, by="ID", all.x=TRUE)
 
 write.table(Data, '/home/jana/Documents/F4F/Rezultati_MCPKlasiak/TabelaRezultati_01122017.csv', quote=FALSE, sep="\t", row.names=FALSE)
 write.table(Data, '/home/jana/Genotipi/Genotipi_CODES//Rezultati_MCPKlasiak/TabelaRezultati_01122017.csv', quote=FALSE, sep="\t", row.names=FALSE)
