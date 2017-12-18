@@ -10,14 +10,14 @@ import os
 
 
 TBV  = TBVPed(os.getcwd() + '/')
-gens, means, vars = TBV.genTrend('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_Class/SimulatedData/PedigreeAndGeneticValues.txt', 41, 61)
+gens, means, vars = TBV.genTrend('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_Gen/SimulatedData/PedigreeAndGeneticValues.txt', 41, 60)
 TBV  = TBVPed(os.getcwd() + '/')
-gens1, means1, vars1 = TBV.genTrend('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_Class2/SimulatedData/PedigreeAndGeneticValues.txt', 41, 61)
+gens1, means1, vars1 = TBV.genTrend('/home/jana/compareSel/PedigreeAndGeneticValues.txt', 41, 60)
 
 
 
 TBV  = TBVPed(os.getcwd() + '/')
-gensA, meansA, varsA = TBV.genTrend('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_Gen/SimulatedData/PedigreeAndGeneticValues.txt', 41, 61)
+gensA, meansA, varsA = TBV.genTrend('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_Gen/SimulatedData/PedigreeAndGeneticValues.txt', 41, 6)
 
 
 TBV  = TBVPed(os.getcwd() + '/')
@@ -46,6 +46,14 @@ Means.loc[:,'Mean'] = list(means)
 Means.loc[:,'Var'] =  list(vars)
 Means.loc[:,'Stand'] = (Means.Mean - Means.Mean[0]) / sqrt(Means.Var[0])
 
+
+
+Means.loc[:,'Gen1'] = [int(x) for x in gens1]
+Means.loc[:,'Mean1'] = list(means1)
+Means.loc[:,'Var1'] =  list(vars1)
+Means.loc[:,'Stand1'] = (Means.Mean1 - Means.Mean1[0]) / sqrt(Means.Var1[0])
+
+
 Means.loc[:,'GenA'] = [int(x) for x in gensA]
 Means.loc[:,'MeanA'] = list(meansA)
 Means.loc[:,'VarA'] =  list(varsA)
@@ -68,7 +76,11 @@ Means.loc[:,'VarD'] =  list(varsD)
 Means.loc[:,'StandD'] = (Means.MeanD - Means.MeanD[0]) / sqrt(Means.VarD[0])
 
 
+
+
+
 plt.plot( Means.Gen, Means.Stand,  label = 'Conventional')
+plt.plot( Means.Gen1, Means.Stand1,  label = 'genEddie')
 plt.plot( Means.GenG, Means.StandG,  label = 'Conventional_SLO')
 plt.plot( Means.GenS, Means.StandS,  label = 'GenBulls on Other Cows')
 plt.plot( Means.GenD, Means.StandD,  label = 'GenBulls on Bull Dams')

@@ -44,7 +44,7 @@ snpTable <- data.frame(FID=tsPed$V1, ID=tsPed$V2)
 #10 = Weaver, 11 = Arachnomelia, 13 = ABCG2, 32 = SMA 
 traitNames <- c()
 namesSNP$Full.Trait.Name <- as.character(namesSNP$Full.Trait.Name)
-for (tNo in c(10, 11, 13, 14, 15, 31)) {
+for (tNo in c(10, 11, 13, 14, 15, 32)) { #(tNo in c(10, 11, 13, 14, 15, 31)) - if you have 39 SNPs
   snpTable_new <- as.data.frame(t(Tts[Tts$TraitNo %in% c(0,tNo),]))
   colnames(snpTable_new) <- c("FID", "ID", "A1", "A2")
   snpTable_new <- snpTable_new[rownames(snpTable_new) != "TraitNo",]

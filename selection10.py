@@ -55,6 +55,15 @@ class pedigree(classPed):
     def displayCat_prevGen(self, cat, prevGenDict):
         return self.ped.loc[(self.ped.Indiv.isin(prevGenDict[cat]))]
 
+    def displayInd_prevGen(self, cat, prevGenDict):
+        catInd = self.catCurrent_indiv(cat)
+        categories = []
+        for ind in catInd:
+           for (key, value) in prevGenDict.iteritems():
+                if ind in value:
+                    categories.append(key)
+        return categories
+
     def rows(self):
         return len(self.ped)
 
@@ -1125,7 +1134,7 @@ def selekcija_total(pedFile, **kwargs):
 
     # če že imaš bike dovolj dolgo v testu, odberi pozitivno testirane bike
     if ('cak' in categories.keys()) and (
-        (kwargs.get('cak') + 2) in ped.age()) and not kwargs.get("genTest_gpb"):  # +2 - eno leto so teleta, eno leto mladi biki, če imaš genomsko, gredo že pred do gpb
+        (kwargs.get('cak') + 2) in ped.age()) and (kwargs.get("gpb_pb") or kwargs.get("genTest_mladi")) and 'cak' not in [i[0] for i in kwargs['genotyped']]:  # +2 - eno leto so teleta, eno leto mladi biki, če imaš genomsko, gredo že pred do gpb
         ped.izberi_poEBV_top_age("M", (kwargs.get('cak') + 2), kwargs.get('pbn'), 'cak', 'pb', categories)
         ped.set_active_cat('cak', 2,
                            categories)  # tukaj moraš to nastaviti, zato ker fja izberi avtomatsko nastavi na active=1, vsi cakajoci so izloceni
@@ -1665,5 +1674,5 @@ class snpFiles:
             os.system('''awk '{$1=""; print $0}' ChipFile.txt | sed 's/ //g' > Snps.txt''')  # obtain SNP genotypes
             os.system(
                 r'''paste Individuals.txt Snps.txt | awk '{printf "%- 10s %+ 15s\n",$1,$2}' > GenoFile.txt''')  # obtain SNP genotypes of the last generation
-        pd.read_csv(self.AlphaSimDir + '/SimulatedData/Chip1SnpInformation.txt', sep='\s+')[[0, 1, 2]].to_csv(
+        pd.read_csv(self.AlphaSimDir + '/SimulatedData/Chip1SnpInformation.txt', sep='\s+')[["SnpId", "ChromId", "SnpSeqIdOnChrom"]].to_csv(
             self.AlphaSimDir + 'SnpMap.txt', index=None, sep=" ", header=None)

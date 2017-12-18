@@ -3,7 +3,7 @@ outersect <- function(x, y) {
          setdiff(y, x)))
 }
 
-MCP <- read.csv("/home/jana/Documents/F4F/Rezultati_MCPKlasiak/Zbirnik rezultatov_28112017.csv", header=TRUE, colClasses = 'character')
+MCP <- read.csv("/home/jana/Documents/F4F/Rezultati_MCPKlasiak/Skupni rezultati_popravljeni_11122017.csv", header=TRUE, colClasses = 'character')
 KontroleReje <- read.csv('/home/jana/Documents/F4F/Rezultati_MCPKlasiak/Rejci_kontrole.csv')
 intersect(KontroleReje$Rejec, MCP$Rejec)
 outersect(KontroleReje$Rejec, MCP$Rejec)
@@ -30,14 +30,14 @@ where ziv.ZIV_ID_SEQ(+)        =tel.tel_ziv_id_seq
 AND ziv.STEV_ORIG_ZIVAL  in ('", paste(MCP$ID,collapse = "','"), "') group by ziv.STEV_ORIG_ZIVAL, ziv.CRE_SIFRA_CREDA, ziv.SIF_SPOL")
 
 ZapL <- fetch(dbSendQuery(con,ZapLakt))
-#KraveLakt <- read.csv('/home/jana/Documents/F4F/Rezultati_MCPKlasiak/Prireja_Krave.csv')
+KraveLakt <- read.csv('/home/jana/Documents/F4F/Rezultati_MCPKlasiak/Prireja_Krave.csv')
 #KraveLakt <- CredaPV
 KraveLakt$ID <- gsub("SI", "", KraveLakt$ID)
 
 #DIM
 DIMs <- paste0("SELECT distinct  ziv.ZIV_ID_SEQ, ziv.stev_orig_zival,
   ziv.SP1_SIFRA_PASMA pasma,
-  ziv.DAT_ROJSTVO,
+  extract (year from ziv.DAT_ROJSTVO) datRoj,
   mleko.mlekoPV,
   beljKg.beljKgPV,
   mascKg.mascKgPV,
@@ -91,9 +91,13 @@ genotipi <- read.csv("/home/jana/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/AB
 genotipi$ID <- gsub("SI", "", genotipi$ID)
 length(intersect(Data$ID, genotipi$ID))
 Data <- merge(Data, genotipi, by="ID", all.x=TRUE)
+Data <- Data[Data$PASMA %in% 1:3,]
+Data$PASMA <- gsub(3, "Holstein", Data$PASMA)
+Data$PASMA <- gsub(1, "Rjava", Data$PASMA)
+Data$PASMA <- gsub(2, "Lisasta", Data$PASMA)
 
-write.table(Data, '/home/jana/Documents/F4F/Rezultati_MCPKlasiak/TabelaRezultati_01122017.csv', quote=FALSE, sep="\t", row.names=FALSE)
-write.table(Data, '/home/jana/Genotipi/Genotipi_CODES//Rezultati_MCPKlasiak/TabelaRezultati_01122017.csv', quote=FALSE, sep="\t", row.names=FALSE)
+write.table(Data, '/home/jana/Documents/F4F/Rezultati_MCPKlasiak/TabelaRezultati_1122017.csv', quote=FALSE, sep="\t", row.names=FALSE)
+write.table(Data, '/home/jana/Genotipi/Genotipi_CODES//Rezultati_MCPKlasiak/TabelaRezultati_11122017.csv', quote=FALSE, sep="\t", row.names=FALSE)
 ###################################################################
 ###################################################################
 nrow(MCP)
