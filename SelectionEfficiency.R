@@ -82,17 +82,16 @@ summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
 
 TGVsAll <- data.frame()
 
-
-for (scenario in c("Class1", "GenSLO", "GenSplosnaPop", "GenSLO_BmGen", "Gen2")) {
-  TGVs <- data.frame(Generation=1:60)
-  dir = paste0('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_', scenario, '/SimulatedData/')
-  ped <- read.table(paste0(dir,'/PedigreeAndGeneticValues_cat.txt'), header=T)
-  ped <- ped[ped$Generation %in% 1:60,]
+WorkingDir = '/home/jana/Simulation_Rep1/'
+for (scenario in c("Class", "GenSLO", "OtherCowsGen", "BmGen", "Gen")) {
+  TGVs <- data.frame(Generation=40:60)
+  ped <- read.table(paste0(WorkingDir,'/Pedigree', scenario, '.txt'), header=T)
+  ped <- ped[ped$Generation %in% 40:60,]
   TGV <- summarySE(ped, measurevar = "gvNormUnres1", groupvars = "Generation")[,c(1,3,4)]
   colnames(TGV)[1] <- c("Generation")
   TGV$zMean <- (TGV$gvNormUnres1 - TGV$gvNormUnres1[1]) / TGV$sd[1]
   TGVs <- merge(TGVs, TGV, by="Generation")
-  Var <- read.table(paste0(dir,'/TotalGenicAndGeneticVariancesPerGeneration.txt'), header=T)
+  Var <- read.table(paste0(WorkingDir,'/Variance', scenario, '.txt'), header=T)
   Var <- Var[Var$QtnModel==1,c(1,3)]
   TGVs <- merge(TGVs, Var, by="Generation")
   TGVs$zSdGenic <- (sqrt(TGVs$AdditGenicVar1)) 
@@ -123,8 +122,8 @@ multiplot(lm, rlm, cols=2)
 multiplot(lm, lm2, cols=2)
 
 x <- factor(TGVsAll$scenario)
-levels(x) <- list("Class1" = "Conventional", "GenSLO" = "Genomic A", "GenSplosnaPop" = "Genomic B", "GenSLO_BmGen" = "Genomic C", "Gen2" = "Genomic D")
-mapvalues(TGVsAll$scenario, from = c("Class1", "GenSLO", "GenSplosnaPop","GenSLO_BmGen",  "Gen2"), to = c("Conventional", "Genomic A", "Genomic B", "Genomic C", "Genomic D"))
+levels(x) <- list("Class" = "Conventional", "GenSLO" = "Genomic A", "OtherCowsGen" = "Genomic B", "BmGen" = "Genomic C", "Gen" = "Genomic D")
+mapvalues(TGVsAll$scenario, from = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), to = c("Conventional", "Genomic A", "Genomic B", "Genomic C", "Genomic D"))
 
 maxmin <- data.frame(scenario=NA, minGenicSD=NA, maxGenicSD=NA, minTGV=NA, maxTGV=NA)
 row = 1
@@ -133,29 +132,47 @@ for (scenario in unique(TGVsAll$scenario)) {
   row <- row +1
   }
 
-write.table(TGVsAll, "~/Documents/WCGALP/TGVsAll.csv", quote=FALSE, row.names=FALSE)
+
+
+maxmin$minGenicSD <- as.numeric(maxmin$minGenicSD)
+maxmin$maxGenicSD <- as.numeric(maxmin$maxGenicSD)
+maxmin$minTGV <- as.numeric(maxmin$minTGV)
+maxmin$maxTGV <- as.numeric(maxmin$maxTGV)
+
+
+write.table(TGVsAll, "~/Simulation_Rep0/TGVsAll.csv", quote=FALSE, row.names=FALSE)
 TGVsAll <- read.table("~/Documents/WCGALP/TGVsAll.csv", header=TRUE)
 #To je plot zMean (standardizirana na gensko variacno) na genetsko varianco
 ggplot(data = TGVsAll, aes(x=SDGenicSt, y=zMeanGenic, group=scenario, colour=scenario, linetype=scenario)) + geom_line(aes(linetype=TGVsAll$scenario), size=0.5, alpha=0.6) + scale_x_reverse() +
-  geom_smooth( se=FALSE, formula=y~x+1, method="lm") + xlab("Generation") + ylab("True genetic value")  + 
-  scale_linetype_manual(breaks = c("Class1", "GenSLO", "GenSplosnaPop","GenSLO_BmGen",  "Gen2"), labels= c("Conventional", "Genomic A", "Genomic B", "Genomic C", "Genomic D"), "Scenario", values=c("solid", "dotted","dashed", "dotdash", "twodash")) + 
-  scale_colour_manual(breaks = c("Class1", "GenSLO", "GenSplosnaPop","GenSLO_BmGen",  "Gen2"), labels= c("Conventional", "Genomic A", "Genomic B", "Genomic C", "Genomic D"), "Scenario", values=c("forestgreen", "dodgerblue2", "purple", "red3", "orange1")) + 
-  xlab("Genic standard deviation") + ylab("True Genetic Value") #+
+  #geom_smooth( se=FALSE, formula=y~x+1, method="lm") + 
+  xlab("Generation") + ylab("True genetic value")  + 
+  scale_linetype_manual(breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), labels= c("Conventional", "Genomic A", "Genomic B", "Genomic C", "Genomic D"), "Scenario", values=c("solid", "dotted","dashed", "dotdash", "twodash")) + 
+  scale_colour_manual(breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), labels= c("Conventional", "Genomic A", "Genomic B", "Genomic C", "Genomic D"), "Scenario", values=c("forestgreen", "dodgerblue2", "purple", "red3", "orange1")) + 
+  xlab("Genic standard deviation") + ylab("True Genetic Value") +
   geom_segment(data=maxmin, mapping=aes(x=maxGenicSD, xend=minGenicSD,
-                                        y=TGVsAll$zMeanGenic,  yend=maxTGV,                                    
-                                        color=scenario, linetype=scenario, group=scenario),      arrow=arrow(), show.legend=FALSE)
+                                        y=minTGV,  yend=maxTGV,                                    
+                                        color=scenario, linetype=scenario, group=scenario), arrow=arrow(), show.legend=FALSE, size=1)
 #To je plot genske variance po generaijch po scenariih
 ggplot(data = TGVsAll, aes(x=Generation, y=AdditGenicVar1, colour=scenario, linetype=scenario)) +  geom_line(aes(linetype=scenario), size=1) + 
   xlab("Generation") + ylab("True genetic value")  + 
-  scale_linetype_manual("Scenario", breaks = c("Class1", "GenSLO", "GenSplosnaPop","GenSLO_BmGen",  "Gen2"), values=c("solid", "dashed", "dotted", "dotdash", "twodash"), labels=c("Conventional", "Genomic A", "Genomic B", "Genomic C", "Genomic D")) + 
-  scale_colour_manual("Scenario", breaks = c("Class1", "GenSLO", "GenSplosnaPop","GenSLO_BmGen",  "Gen2"), values=c("forestgreen", "dodgerblue2", "purple", "red3", "orange1"), labels=c("Conventional", "Genomic A", "Genomic B", "Genomic C", "Genomic D")) + 
-  xlab("Generation") + ylab("Genic SD") 
-#+
+  scale_linetype_manual("Scenario", breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), values=c("solid", "dashed", "dotted", "dotdash", "twodash"), labels=c("Conventional", "Genomic A", "Genomic B", "Genomic C", "Genomic D")) + 
+  scale_colour_manual("Scenario", breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), values=c("forestgreen", "dodgerblue2", "purple", "red3", "orange1"), labels=c("Conventional", "Genomic A", "Genomic B", "Genomic C", "Genomic D")) + 
+  xlab("Generation") + ylab("Genic SD")  #+
   geom_segment(data=maxmin, mapping=aes(x=maxGenicSD, xend=minGenicSD,
-                                        y=TGVsAll$zMeanGenic,  yend=maxTGV,                                    
+                                        y=minGenicSD,  yend=maxTGV,                                    
                                         color=scenario, linetype=scenario, group=scenario),      arrow=arrow(), show.legend=FALSE)
 
 
+  
+  #############
+  geom_segment(data=tmp5, mapping=aes(x=zSdGenicMax, xend=zSdGenicMin,                                      
+                                      y=zMeanStartSdGenic, yend=zMeanEndSdGenic,                                      
+                                      color=scenario3, linetype=scenario3)) +  
+    geom_segment(data=tmp5, mapping=aes(x=zSdGenicMax, xend=zSdGenicMin,                                      
+                                        y=zMeanStartSdGenic, yend=zMeanEndSdGenic,                                      
+                                        color=scenario3, linetype=scenario3),               
+                 arrow=arrow(), show.legend=FALSE)
+  ###############
 
 library(lme4)
 lmList(zMean ~ SDGenicSt | scenario, data=TGVsAll)

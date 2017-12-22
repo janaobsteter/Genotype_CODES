@@ -1134,7 +1134,7 @@ def selekcija_total(pedFile, **kwargs):
 
     # če že imaš bike dovolj dolgo v testu, odberi pozitivno testirane bike
     if ('cak' in categories.keys()) and (
-        (kwargs.get('cak') + 2) in ped.age()) and (kwargs.get("gpb_pb") or kwargs.get("genTest_mladi")) and 'cak' not in [i[0] for i in kwargs['genotyped']]:  # +2 - eno leto so teleta, eno leto mladi biki, če imaš genomsko, gredo že pred do gpb
+        (kwargs.get('cak') + 2) in ped.age()) and (kwargs.get("EBV") or kwargs.get("gpb_pb") or kwargs.get("genTest_mladi")) and 'cak' not in [i[0] for i in kwargs['genotyped']]:  # +2 - eno leto so teleta, eno leto mladi biki, če imaš genomsko, gredo že pred do gpb
         ped.izberi_poEBV_top_age("M", (kwargs.get('cak') + 2), kwargs.get('pbn'), 'cak', 'pb', categories)
         ped.set_active_cat('cak', 2,
                            categories)  # tukaj moraš to nastaviti, zato ker fja izberi avtomatsko nastavi na active=1, vsi cakajoci so izloceni
