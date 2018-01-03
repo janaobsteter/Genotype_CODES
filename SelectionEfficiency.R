@@ -82,7 +82,7 @@ summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
 
 TGVsAll <- data.frame()
 
-WorkingDir = '/home/jana/Simulation_Rep1/'
+WorkingDir = '/home/jana/Simulation_Rep3'
 for (scenario in c("Class", "GenSLO", "OtherCowsGen", "BmGen", "Gen")) {
   TGVs <- data.frame(Generation=40:60)
   ped <- read.table(paste0(WorkingDir,'/Pedigree', scenario, '.txt'), header=T)

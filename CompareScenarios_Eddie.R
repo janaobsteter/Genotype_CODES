@@ -1,4 +1,4 @@
-setwd("~/Simulation_Rep1/")
+setwd("~/Simulation_Rep3/")
 pedC = read.table("PedigreeClass.txt", header=TRUE)
 pedB = read.table("PedigreeBmGen.txt", header=TRUE)
 pedO = read.table("PedigreeOtherCowsGen.txt", header=TRUE)
@@ -38,28 +38,15 @@ library(ggplot2)
 ggplot(data=PEDm, aes(x=Generation, y=value, group=variable, colour=variable)) + geom_path() + ylab("Mean genetic value")
 
 
-#standardizacia na generacijo 20
-PEDs <- PED[PED$Generation %in% 40:60,]
-PEDs$ClassSt <-  (PEDs$Class - PEDs$Class[PEDs$Generation == 40]) / genVar$Class[genVar$Generation==40]
-PEDs$GenSLOSt <-  (PEDs$GenSLO - PEDs$GenSLO[PEDs$Generation == 40]) / genVar$GenSLO[genVar$Generation==40]
-PEDs$OtherCowsGenSt <-  (PEDs$OtherCowsGen - PEDs$OtherCowsGen[PEDs$Generation == 40]) / genVar$OtherCowsGen[genVar$Generation==40]
-PEDs$BmGenSt <- (PEDs$BmGen - PEDs$BmGen[PEDs$Generation == 40]) / genVar$BmGen[genVar$Generation==40]
-PEDs$GenSt <- (PEDs$Gen - PEDs$Gen[PEDs$Generation == 40]) / genVar$Gen[genVar$Generation==40]
-
-
-
-PEDst <- PEDs[,c(1,7,8,9,10,11)]
-PEDstM <- melt(PEDst, id.vars = "Generation")
-stGainplot <- ggplot(data=PEDstM, aes(x=Generation, y=value, group=variable, colour=variable)) + geom_path() + ylab("Standardised mean genetic value") + scale_color_hue("Scenario", labels=c("Conventional", "Genomic A", "Genomic B", "Genomic C", "Genomic D"))
 
 ######
 #Variance
 ######
-genVarC <- read.table("~/VarianceClass.txt", header=TRUE)
-genVarB <- read.table("~/VarianceBmGen.txt", header=TRUE)
-genVarO <- read.table("~/VarianceOtherCowsGen.txt", header=TRUE)
-genVarG <- read.table("~/VarianceGen.txt", header=TRUE)
-genVarS <- read.table("~/VarianceGenSLO.txt", header=TRUE)
+genVarC <- read.table("VarianceClass.txt", header=TRUE)
+genVarB <- read.table("VarianceBmGen.txt", header=TRUE)
+genVarO <- read.table("VarianceOtherCowsGen.txt", header=TRUE)
+genVarG <- read.table("VarianceGen.txt", header=TRUE)
+genVarS <- read.table("VarianceGenSLO.txt", header=TRUE)
 
 genVarC <- genVarC[genVarC$QtnModel==1,c("Generation", "AdditGeneticVar1")]
 genVarS <- genVarS[genVarS$QtnModel==1,c("Generation", "AdditGeneticVar1")]
@@ -80,10 +67,24 @@ genVar <- merge(genVar, genVarB, by="Generation")
 genVar <- merge(genVar, genVarG, by="Generation")
 
 genM <- melt(genVar, id.vars = "Generation")
-varPlot <- ggplot(data=genM[genM$Generation %in% 40:60,], aes(x=Generation, y=value, group=variable, colour=variable)) + 
+varPlot <- ggplot(data=genM[genM$Generation %in% 1:60,], aes(x=Generation, y=value, group=variable, colour=variable)) + 
   geom_path() + ylab("Genetic variance") +
   scale_color_hue("Scenario", labels=c("Conventional", "Genomic A", "Genomic B", "Genomic C", "Genomic D"))
 
+
+#standardizacia na generacijo 20
+PEDs <- PED[PED$Generation %in% 40:60,]
+PEDs$ClassSt <-  (PEDs$Class - PEDs$Class[PEDs$Generation == 40]) / genVar$Class[genVar$Generation==40]
+PEDs$GenSLOSt <-  (PEDs$GenSLO - PEDs$GenSLO[PEDs$Generation == 40]) / genVar$GenSLO[genVar$Generation==40]
+PEDs$OtherCowsGenSt <-  (PEDs$OtherCowsGen - PEDs$OtherCowsGen[PEDs$Generation == 40]) / genVar$OtherCowsGen[genVar$Generation==40]
+PEDs$BmGenSt <- (PEDs$BmGen - PEDs$BmGen[PEDs$Generation == 40]) / genVar$BmGen[genVar$Generation==40]
+PEDs$GenSt <- (PEDs$Gen - PEDs$Gen[PEDs$Generation == 40]) / genVar$Gen[genVar$Generation==40]
+
+
+
+PEDst <- PEDs[,c(1,7,8,9,10,11)]
+PEDstM <- melt(PEDst, id.vars = "Generation")
+stGainplot <- ggplot(data=PEDstM, aes(x=Generation, y=value, group=variable, colour=variable)) + geom_path() + ylab("Standardised mean genetic value") + scale_color_hue("Scenario", labels=c("Conventional", "Genomic A", "Genomic B", "Genomic C", "Genomic D"))
 
 library(Rmisc)
 multiplot(stGainplot, varPlot)
