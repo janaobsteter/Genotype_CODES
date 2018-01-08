@@ -142,11 +142,7 @@ ggplot(data = genGain, aes(x=genGain$Gen, y=genGain$stSD, colour=genGain$scenari
 ########################################################
 ########################################################
 GI <- data.frame()
-<<<<<<< HEAD
-genInt <- read.csv("~/bin/AlphaSim1.05Linux/REAL20GenSel_Class/GenInts.txt", sep=" ")
-=======
 genInt <- read.csv("~/bin/AlphaSim1.05Linux/REAL20GenSel_Class1/GenInts.txt", sep=" ")
->>>>>>> 1b8d6b61038ae92f43525513dcd93532f3369678
 genInt$label <- paste0(genInt$line, genInt$sex)
 theme_set(theme_gray(base_size = 14))
 plotClas <- ggplot(genInt, aes(x=Gen, y=genInt, group=label, colour=label)) + geom_path() + xlab("Generation") + ylab("Generation interval [years]") + 
