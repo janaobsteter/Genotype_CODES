@@ -1,0 +1,47 @@
+<?xml version='1.0' encoding='utf-8'?>
+<scheme description="" title="Homework5" version="2.0">
+	<nodes>
+		<node id="0" name="Import Images" position="(251.0, 136.0)" project_name="Orange3-ImageAnalytics" qualified_name="orangecontrib.imageanalytics.widgets.owimageimport.OWImportImages" title="Import Images" version="" />
+		<node id="1" name="Data Table" position="(452.0, 149.0)" project_name="Orange3" qualified_name="Orange.widgets.data.owtable.OWDataTable" title="Data Table" version="" />
+		<node id="2" name="Image Embedding" position="(405.0, 345.0)" project_name="Orange3-ImageAnalytics" qualified_name="orangecontrib.imageanalytics.widgets.owimageembedding.OWImageEmbedding" title="Image Embedding" version="" />
+		<node id="3" name="Data Table" position="(564.0, 346.0)" project_name="Orange3" qualified_name="Orange.widgets.data.owtable.OWDataTable" title="Data Table (1)" version="" />
+		<node id="4" name="Distances" position="(551.0, 490.0)" project_name="Orange3" qualified_name="Orange.widgets.unsupervised.owdistances.OWDistances" title="Distances" version="" />
+		<node id="5" name="Image Viewer" position="(352.0, 46.0)" project_name="Orange3" qualified_name="Orange.widgets.data.owimageviewer.OWImageViewer" title="Image Viewer" version="" />
+		<node id="6" name="Hierarchical Clustering" position="(671.0, 495.0)" project_name="Orange3" qualified_name="Orange.widgets.unsupervised.owhierarchicalclustering.OWHierarchicalClustering" title="Hierarchical Clustering" version="" />
+		<node id="7" name="Image Viewer" position="(800.0, 502.0)" project_name="Orange3" qualified_name="Orange.widgets.data.owimageviewer.OWImageViewer" title="Image Viewer (1)" version="" />
+		<node id="8" name="MDS" position="(657.0, 650.0)" project_name="Orange3" qualified_name="Orange.widgets.unsupervised.owmds.OWMDS" title="MDS" version="" />
+	</nodes>
+	<links>
+		<link enabled="true" id="0" sink_channel="Data" sink_node_id="1" source_channel="Data" source_node_id="0" />
+		<link enabled="true" id="1" sink_channel="Images" sink_node_id="2" source_channel="Data" source_node_id="0" />
+		<link enabled="true" id="2" sink_channel="Data" sink_node_id="3" source_channel="Embeddings" source_node_id="2" />
+		<link enabled="true" id="3" sink_channel="Data" sink_node_id="4" source_channel="Embeddings" source_node_id="2" />
+		<link enabled="true" id="4" sink_channel="Data" sink_node_id="5" source_channel="Data" source_node_id="0" />
+		<link enabled="true" id="5" sink_channel="Distances" sink_node_id="6" source_channel="Distances" source_node_id="4" />
+		<link enabled="true" id="6" sink_channel="Data" sink_node_id="7" source_channel="Selected Data" source_node_id="6" />
+		<link enabled="true" id="7" sink_channel="Distances" sink_node_id="8" source_channel="Distances" source_node_id="4" />
+	</links>
+	<annotations />
+	<thumbnail />
+	<node_properties>
+		<properties format="literal" node_id="0">{'currentPath': None, 'recent_paths': [], 'savedWidgetGeometry': None, '__version__': 1}</properties>
+		<properties format="literal" node_id="1">{'auto_commit': True, 'color_by_class': True, 'dist_color_RGB': (220, 220, 220, 255), 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x02\x00\x00\x00\x00\x00x\x00\x00\x00j\x00\x00\x04\xd6\x00\x00\x02y\x00\x00\x00x\x00\x00\x00\x86\x00\x00\x04\xd6\x00\x00\x02y\x00\x00\x00\x00\x00\x00\x00\x00\x05V', 'select_rows': True, 'show_attribute_labels': True, 'show_distributions': False, '__version__': 1, 'context_settings': []}</properties>
+		<properties format="literal" node_id="2">{'_auto_apply': True, 'cb_embedder_current_id': 0, 'cb_image_attr_current_id': 0, 'savedWidgetGeometry': None, '__version__': 1}</properties>
+		<properties format="literal" node_id="3">{'auto_commit': True, 'color_by_class': True, 'dist_color_RGB': (220, 220, 220, 255), 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x02\x00\x00\x00\x00\x00x\x00\x00\x00j\x00\x00\x04\xd6\x00\x00\x02y\x00\x00\x00x\x00\x00\x00\x86\x00\x00\x04\xd6\x00\x00\x02y\x00\x00\x00\x00\x00\x00\x00\x00\x05V', 'select_rows': True, 'show_attribute_labels': True, 'show_distributions': False, '__version__': 1, 'context_settings': []}</properties>
+		<properties format="literal" node_id="4">{'autocommit': True, 'axis': 0, 'metric_idx': 3, 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x02\x00\x00\x00\x00\x02E\x00\x00\x00\xe6\x00\x00\x03&lt;\x00\x00\x01\xfd\x00\x00\x02E\x00\x00\x01\x02\x00\x00\x03&lt;\x00\x00\x01\xfd\x00\x00\x00\x00\x00\x00\x00\x00\x05V', '__version__': 1}</properties>
+		<properties format="literal" node_id="5">{'autoCommit': True, 'imageSize': 100, 'savedWidgetGeometry': None, '__version__': 1, 'context_settings': []}</properties>
+		<properties format="pickle" node_id="6">gAN9cQAoWBcAAABhbm5vdGF0aW9uX2lmX2VudW1lcmF0ZXEBWAsAAABFbnVtZXJhdGlvbnECWBMA
+AABhbm5vdGF0aW9uX2lmX25hbWVzcQNYBAAAAE5hbWVxBFgPAAAAYXBwZW5kX2NsdXN0ZXJzcQWI
+WAoAAABhdXRvY29tbWl0cQaIWAwAAABjbHVzdGVyX25hbWVxB1gHAAAAQ2x1c3RlcnEIWAwAAABj
+bHVzdGVyX3JvbGVxCUsCWAkAAABjdXRfcmF0aW9xCmNudW1weS5jb3JlLm11bHRpYXJyYXkKc2Nh
+bGFyCnELY251bXB5CmR0eXBlCnEMWAIAAABmOHENSwBLAYdxDlJxDyhLA1gBAAAAPHEQTk5OSv//
+//9K/////0sAdHERYkMItDmCEJmoMEBxEoZxE1JxFFgHAAAAbGlua2FnZXEVSwRYCQAAAG1heF9k
+ZXB0aHEWSwpYBwAAAHBydW5pbmdxF0sAWBMAAABzYXZlZFdpZGdldEdlb21ldHJ5cRhDMgHZ0MsA
+AgAAAAAAngAAAD4AAATQAAACxQAAAJ4AAABaAAAE0AAAAsUAAAAAAAAAAAVWcRlYEAAAAHNlbGVj
+dGlvbl9tZXRob2RxGksBWAUAAAB0b3BfbnEbSwNYCwAAAHpvb21fZmFjdG9ycRxK/P///1gLAAAA
+X192ZXJzaW9uX19xHUsBWBAAAABjb250ZXh0X3NldHRpbmdzcR5dcR91Lg==
+</properties>
+		<properties format="literal" node_id="7">{'autoCommit': True, 'imageSize': 100, 'savedWidgetGeometry': None, '__version__': 1, 'context_settings': []}</properties>
+		<properties format="literal" node_id="8">{'auto_commit': True, 'connected_pairs': 2, 'initialization': 0, 'legend_anchor': ((1, 0), (1, 0)), 'max_iter': 300, 'refresh_rate': 3, 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x02\x00\x00\x00\x00\x00\x90\x00\x00\x00\x18\x00\x00\x04\x83\x00\x00\x03U\x00\x00\x00\x90\x00\x00\x004\x00\x00\x04\x83\x00\x00\x03U\x00\x00\x00\x00\x00\x00\x00\x00\x05V', 'selection_indices': None, 'graph': {'alpha_value': 128, 'class_density': False, 'jitter_continuous': True, 'jitter_size': 0, 'label_only_selected': False, 'point_width': 10, 'show_grid': False, 'show_legend': True, 'show_reg_line': False, 'tooltip_shows_all': False}, '__version__': 2, 'context_settings': []}</properties>
+	</node_properties>
+</scheme>

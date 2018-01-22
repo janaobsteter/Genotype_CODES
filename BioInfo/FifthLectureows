@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='utf-8'?>
+<scheme description="" title="Lecture5" version="2.0">
+	<nodes>
+		<node id="0" name="Paint Data" position="(287.0, 259.0)" project_name="Orange3" qualified_name="Orange.widgets.data.owpaintdata.OWPaintData" title="Paint Data" version="" />
+		<node id="1" name="Polynomial Regression" position="(443.0, 269.0)" project_name="Orange3-Educational" qualified_name="orangecontrib.educational.widgets.owpolynomialregression.OWUnivariateRegression" title="Polynomial Regression" version="" />
+		<node id="2" name="Data Table" position="(579.0, 288.0)" project_name="Orange3" qualified_name="Orange.widgets.data.owtable.OWDataTable" title="Data Table" version="" />
+	</nodes>
+	<links>
+		<link enabled="true" id="0" sink_channel="Data" sink_node_id="1" source_channel="Data" source_node_id="0" />
+		<link enabled="true" id="1" sink_channel="Data" sink_node_id="2" source_channel="Coefficients" source_node_id="1" />
+	</links>
+	<annotations />
+	<thumbnail />
+	<node_properties>
+		<properties format="literal" node_id="0">{'attr1': 'x', 'attr2': 'y', 'autocommit': True, 'brushRadius': 47, 'data': [[0.02545023696682467, 0.06691803278688524, 0.0], [0.19303317535545025, 0.19399999999999995, 0.0], [0.0770142180094787, 0.43980327868852453, 0.0], [0.15436018957345973, 0.6438032786885246, 0.0], [0.3283886255924171, 0.5668852459016394, 0.0], [0.5185308056872038, 0.8227213114754098, 0.0], [0.7263981042654029, 0.6722295081967213, 0.0], [0.9229857819905213, 0.5217377049180327, 0.0], [0.3122748815165877, 0.8126885245901639, 0.0], [0.5862085308056872, 0.5300983606557377, 0.0]], 'density': 7, 'hasAttr2': True, 'labels': ['C1', 'C2'], 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x02\x00\x00\x00\x00\x01m\x00\x00\x00\x1b\x00\x00\x05\x13\x00\x00\x02\xe8\x00\x00\x01m\x00\x00\x007\x00\x00\x05\x13\x00\x00\x02\xe8\x00\x00\x00\x00\x00\x00\x00\x00\x05V', 'table_name': 'Painted data', '__version__': 1}</properties>
+		<properties format="literal" node_id="1">{'auto_apply': True, 'error_bars_enabled': False, 'learner_name': 'Univariate Regression', 'polynomialexpansion': 1, 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x02\x00\x00\x00\x00\x01u\x00\x00\x00\xa9\x00\x00\x04\xf6\x00\x00\x02\xca\x00\x00\x01u\x00\x00\x00\xc5\x00\x00\x04\xf6\x00\x00\x02\xca\x00\x00\x00\x00\x00\x00\x00\x00\x05V', '__version__': 1}</properties>
+		<properties format="pickle" node_id="2">gAN9cQAoWAsAAABhdXRvX2NvbW1pdHEBiFgOAAAAY29sb3JfYnlfY2xhc3NxAohYDgAAAGRpc3Rf
+Y29sb3JfUkdCcQMoS9xL3EvcS/90cQRYEwAAAHNhdmVkV2lkZ2V0R2VvbWV0cnlxBUMyAdnQywAC
+AAAAAAB4AAAAagAABNYAAAJ5AAAAeAAAAIYAAATWAAACeQAAAAAAAAAABVZxBlgLAAAAc2VsZWN0
+X3Jvd3NxB4hYFQAAAHNob3dfYXR0cmlidXRlX2xhYmVsc3EIiFgSAAAAc2hvd19kaXN0cmlidXRp
+b25zcQmJWAsAAABfX3ZlcnNpb25fX3EKSwFYEAAAAGNvbnRleHRfc2V0dGluZ3NxC11xDGNPcmFu
+Z2Uud2lkZ2V0cy5zZXR0aW5ncwpDb250ZXh0CnENKYFxDn1xDyhYBAAAAHRpbWVxEEdB1pgyp70Y
+T1gGAAAAdmFsdWVzcRF9cRIoWA0AAABzZWxlY3RlZF9jb2xzcRNdcRRYDQAAAHNlbGVjdGVkX3Jv
+d3NxFV1xFmgKSwF1WAoAAABhdHRyaWJ1dGVzcRd9cRhYBAAAAGNvZWZxGUsCc1gFAAAAbWV0YXNx
+Gn1xG1gEAAAAbmFtZXEcSwNzdWJhdS4=
+</properties>
+	</node_properties>
+</scheme>
