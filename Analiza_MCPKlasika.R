@@ -3,7 +3,7 @@ outersect <- function(x, y) {
          setdiff(y, x)))
 }
 
-MCP <- read.csv("/home/jana/Documents/F4F/Rezultati_MCPKlasiak/Skupni rezultati_popravljeni_11122017.csv", header=TRUE, colClasses = 'character')
+MCP <- read.csv("/home/jana/Documents/F4F/Rezultati_MCPKlasiak/Skupni_rezultati_popravljeni_11122017.csv", header=TRUE, colClasses = 'character')
 KontroleReje <- read.csv('/home/jana/Documents/F4F/Rezultati_MCPKlasiak/Rejci_kontrole.csv')
 intersect(KontroleReje$Rejec, MCP$Rejec)
 outersect(KontroleReje$Rejec, MCP$Rejec)
@@ -96,7 +96,20 @@ Data$PASMA <- gsub(3, "Holstein", Data$PASMA)
 Data$PASMA <- gsub(1, "Rjava", Data$PASMA)
 Data$PASMA <- gsub(2, "Lisasta", Data$PASMA)
 
-write.table(Data, '/home/jana/Documents/F4F/Rezultati_MCPKlasiak/TabelaRezultati_1122017.csv', quote=FALSE, sep="\t", row.names=FALSE)
+
+#pridobi celotne ID-je
+IDs <- paste0("SELECT ziv.drz_ORIG_ZIVAL || ziv.STEV_ORIG_ZIVAL ID, ziv.STEV_ORIG_ZIVAL
+FROM govedo.zivali ziv
+where ziv.STEV_ORIG_ZIVAL  in ('", paste(MCP$ID,collapse = "','"), "')")
+
+IDd <- fetch(dbSendQuery(con,IDs))
+colnames(IDd) <- c("CompleteID", "ID")
+length(intersect(IDd$ID, Data$ID)) == nrow(Data)
+
+Data <- read.table('/home/jana/Documents/F4F/Rezultati_MCPKlasiak/TabelaRezultati_11122017.csv', sep="\t", header=TRUE)
+Data <- merge(Data, IDd, by="ID")
+
+write.table(Data, '/home/jana/Documents/F4F/Rezultati_MCPKlasiak/TabelaRezultati_11122017.csv', quote=FALSE, sep="\t", row.names=FALSE)
 write.table(Data, '/home/jana/Genotipi/Genotipi_CODES//Rezultati_MCPKlasiak/TabelaRezultati_11122017.csv', quote=FALSE, sep="\t", row.names=FALSE)
 ###################################################################
 ###################################################################

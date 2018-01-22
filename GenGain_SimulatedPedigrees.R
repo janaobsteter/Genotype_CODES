@@ -194,6 +194,7 @@ ggplot(GI, aes(x=Gen, y=genInt, colour=label)) + geom_path() +
 
 
 =======
+
 GIPlot <- ggplot(GI, aes(x=Gen, y=genInt, colour=label, linetype =label, group=label)) + geom_line(aes(linetype=label), size=1) + 
  scale_linetype_manual("", values=c("solid", "dashed", "dotted", "dotdash"), labels=c("dam>dam", "dam>sire", "sire>dam", "sire>sire")) + 
   scale_colour_manual("", values=c("palevioletred2", "purple2", "royalblue3", "darkolivegreen4"), labels=c("dam>dam", "dam>sire", "sire>dam", "sire>sire"))+ ggtitle("b") +

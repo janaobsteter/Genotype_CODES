@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+import ast
+WorkingDir = "/home/jana/"
+os.chdir(WorkingDir)
 scenario = "Class"
 par = pd.read_csv(WorkingDir + "/Essentials/SelectionParam_" + scenario + ".csv", header=None, names=["Keys", "Vals"])
 par.to_dict()
@@ -40,6 +43,8 @@ if selPar['EBV']:
 if selPar['gEBV']:
     seltype = 'gen'
 
+selPar['pbn'] = 1
+selPar['pozitivnoTestDoz'] = 1200
 
 
 IndCat = pd.DataFrame()

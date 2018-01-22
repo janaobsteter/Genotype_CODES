@@ -37,7 +37,7 @@ def remove_from_zip(zipfname, *filenames):
 ########################################################
 #set directories and file names
 ########################################################
-date=23102017
+date=15012018
 pasma="Rjava"
 AlleleFormat="top"
 zip_file=""
@@ -57,17 +57,20 @@ if action == 'Y':
 #ask whether you want to remove original zip
 rmOriginalZip=raw_input('Remove original zip? [Y/N] ')
 #create directory path to hold current temp genotype files within Genotipi_DATA and breed directory
-tempDir = "/home/jana/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/Top/ZipGenoFiles/"
+tempDir = "/home/jana/Genotipi/Genotipi_DATA/Rjava_TEMP/Genotipi_" + str(date) + "/"
 #PEDDAROW directory
 peddarow="/home/jana/Genotipi/Genotipi_CODES/SNPchimpRepo/source_codes/PEDDA_ROW/"
 #Zip latest
-#Zip_lat="/run/user/1000/gvfs/smb-share:server=kis-h2.si,share=kisdfs/ZIV/vol1/ZIV/VSI/jana/"+pasma+"/ZipGenoFiles/"
-Zip_lat="/home/jana/Genotipi/TEST/"
-PLINKDIR = '/home/jana/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/Top/Top_PLINK/'
-#Genotipi_latest directory
-Gen_lat = "/home/jana/Genotipi/Genotipi_DATA/Genotipi_latest/"+pasma+"/"
+Zip_lat="/home/jana/Genotipi/Genotipi_DATA/Genotipi_latest/" + pasma + "/Top/ZipGenoFiles/"
+#Zip_lat="/home/jana/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/Zip/"
+#PLINKDIR = '/home/jana/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/Top/Top_PLINK/'
+PLINKDIR="/home/jana/Genotipi/Genotipi_DATA/Genotipi_latest/" + pasma + "/Top/"
+#Genotipi_latest directory - sploh ni v uporabi kasneje v skriptu
+#Gen_lat = "/home/jana/Genotipi/Genotipi_DATA/Genotipi_latest/"+pasma+"/"
+PLINKDIR = "/run/user/1000/gvfs/smb-share:server=kis-h2.si,share=kisdfs/ZIV/vol1/ZIV/VSI/JanaO/Genotipi/TopPLINK/"
 #path to Zanardi
 ZanDir="/home/jana/Genotipi/Genotipi_CODES/Zanardi/"
+CodeDir = "/home/jana/Genotipi/Genotipi_CODES/"
 
 #File with a list of 800 SNPs for parentage verification
 SNP800="/home/jana/Genotipi/ParentalVerification_SNPSNP/Names_800SNPs.txt"
@@ -76,6 +79,9 @@ RJ_IDSeq="/home/jana/Genotipi/Genotipi_CODES/Rjave_seq_ID.csv"
 #SNP coding
 SNPSifrant="/home/jana/Genotipi/ParentalVerification_SNPSNP/Sifrant_SNP.csv"
 
+
+#name of the file
+zipPackage="we_bl_12012018.zip"
 #########################################################################################################
 ##########################################################################################################
 ##########################################################################################################
@@ -91,6 +97,8 @@ GenoFile = defaultdict(set)
 SampleIDs = defaultdict(list)
 PedFiles = defaultdict(list)
 MapFiles = defaultdict(list)
+PedFilesQC = defaultdict(list)
+MapFilesQC = defaultdict(list)
 AllInfo = []
 #dictionary to hold downlaod date of the genotype package   
 DateDownloaded = defaultdict(list)
@@ -121,68 +129,76 @@ if not os.path.exists(tempDir):
 os.chdir(tempDir)
 
 
-
+shutil.copy(Zip_lat + "/" + zipPackage, tempDir)
     
     
-zipPackages = (filter(lambda x: x.endswith('.zip'), os.listdir(tempDir)))
+#zipPackages = (filter(lambda x: x.endswith('.zip'), os.listdir(tempDir)))
 
 #now you have all the files in the same format (the six files zipped)
 #extract the FinalReport from each of them and SNPMap
   
-try:
-    zipPackages.remove(zip_file) #remove original zipfile (zipfolder) from the list
-except:
-    pass
+#try:
+#    zipPackages.remove(zip_file) #remove original zipfile (zipfolder) from the list
+#except:
+#    pass
 
-for zipPackage in zipPackages:
-    onePackage=GenFiles.genZipPackage(zipPackage)
-    onePackage.extractFinalReport()
-    onePackage.extractSNPMap()
-    onePackage.extractSampleMap()
+
+onePackage=GenFiles.genZipPackage(zipPackage)
+onePackage.extractFinalReport()
+onePackage.extractSNPMap()
+onePackage.extractSampleMap()
     
-    #check for error IDs and replace the prior identified errouneous IDs
-    replaceIDs = [('SI4574059','SI04574059'),('SI84048801','SI84048802'),('SI4384195','SI04384195'),('Si24289407','SI24289407')]
-    errorIDs = onePackage.extractErrorNames() #extract Sample Names if they exist - they shouldnt be in the file
-    if errorIDs:
-        print (onePackage.name, errorIDs)
-        for i in errorIDs:
-            os.system('sed -i  "s|' +str(i[0])+ '|' + i[1] + '|g" ' + onePackage.name+"_FinalReport.txt") #errorIDs are tuples, replace first element witht the second
-            os.system('sed -i  "s|' +str(i[0])+ '|' + i[1] + '|g" '+onePackage.name+'_Sample_Map.txt') 
-    for i in replaceIDs:
-        os.system('sed -i  "s|' +i[0]+ '|' + i[1] + '|g" ' + onePackage.finalreportname.strip('zip') + 'txt') #errorIDs are tuples, replace first element witht the second
-        os.system('sed -i  "s|' +i[0]+ '|' + i[1] + '|g" '+onePackage.name + '_Sample_Map.txt')
-                 
-                    
-    #copy pedda.param and python script to the current directory
-    shutil.copy((peddarow+"/peddar.param"), "peddar.param")
-    shutil.copy((peddarow+"/pedda_row.py"), "pedda_row.py")
-    #replace strings with shell command
-    os.system('sed -i "s/test_FinalReport.txt/'+ onePackage.finalreportname.strip('zip') + 'txt/g" peddar.param') #insert FinalReport name into peddar.param
-    os.system('sed -i "s|Dominant |Dominant_|g" ' + onePackage.finalreportname.strip('zip') + 'txt') #problem Dominant Red with a space
-    os.system('sed -i "s|Dominant |Dominant_|g" ' + onePackage.name+'_SNP_Map.txt') ##problem Dominant Red with a space
-    os.system('sed -i "s/test_outputfile/"'+onePackage.name+'"/g" peddar.param') #insert OutPut name into peddar.param
-    os.system('sed -i "s/test_SNPMap.txt/"'+onePackage.name+'_SNP_Map.txt'+'"/g" peddar.param') #insert SNPMap name into peddar.param
-    os.system('sed -i "s/AlleleFormat/"'+AlleleFormat+'"/g" peddar.param') #insert desired AlleleFormat name into peddar.param
-    os.system('sed -i "s/TEST/"'+pasma+'"/g" peddar.param')
-    os.system("python pedda_row.py") #transform into ped and map file
-    
-    
-    #make pedfile a GenFiles pedFile object
-    pedfile=GenFiles.pedFile(onePackage.name +  '.ped')
-    mapfile=GenFiles.mapFile(onePackage.name +  '.map')
-    
-    #add file to the dictionary of chip files
-    PedFiles[pedfile.chip].append(tempDir+pedfile.pedname)
-    MapFiles[pedfile.chip].append(tempDir+mapfile.mapname)
-    GenoFile[pedfile.chip].add(pedfile.name)
-    DateDownloaded[date] += (pedfile.name)
-    DateGenotyped[onePackage.genodate] += [(x, pedfile.chip) for x in (pedfile.samples)]
-    AllInfo += [(x, pedfile.chip, pedfile.name, onePackage.genodate) for x in (pedfile.samples)]
-    for i in pedfile.samples:
-        if i in Rj_IDSeq_Dict:
-            SampleIDs[i] = [Rj_IDSeq_Dict.get(i)[0], onePackage.genodate, pedfile.chip, date]
-        else: 
-            print "Sample ID " + i + " not found!!!"
+#check for error IDs and replace the prior identified errouneous IDs
+replaceIDs = [('SI4574059','SI04574059'),('SI84048801','SI84048802'),('SI4384195','SI04384195'),('Si24289407','SI24289407'), ('SI53595706_201851770050_R08C02', 'SI53595706'), 
+('SI53595706_201851770081_R03C02', 'SI53595706')]
+errorIDs = onePackage.extractErrorNames() #extract Sample Names if they exist - they shouldnt be in the file
+if errorIDs:
+    print (onePackage.name, errorIDs)
+    for i in errorIDs:
+        os.system('sed -i  "s|' +str(i[0])+ '|' + i[1] + '|g" ' + onePackage.name+"_FinalReport.txt") #errorIDs are tuples, replace first element witht the second
+        os.system('sed -i  "s|' +str(i[0])+ '|' + i[1] + '|g" '+onePackage.name+'_Sample_Map.txt') 
+for i in replaceIDs:
+    os.system('sed -i  "s|' +i[0]+ '|' + i[1] + '|g" ' + onePackage.finalreportname) #errorIDs are tuples, replace first element witht the second
+    os.system('sed -i  "s|' +i[0]+ '|' + i[1] + '|g" '+onePackage.name + '_Sample_Map.txt')
+                
+                
+#copy pedda.param and python script to the current directory
+shutil.copy((peddarow+"/peddar.param"), "peddar.param")
+shutil.copy((peddarow+"/pedda_row.py"), "pedda_row.py")
+#replace strings with shell command
+os.system('sed -i "s|test_FinalReport.txt|'+ onePackage.finalreportname + '|g" peddar.param') #insert FinalReport name into peddar.param
+os.system('sed -i "s|Dominant |Dominant_|g" ' + onePackage.finalreportname) #problem Dominant Red with a space
+os.system('sed -i "s|Dominant |Dominant_|g" ' + onePackage.name+'_SNP_Map.txt') ##problem Dominant Red with a space
+os.system('sed -i "s/test_outputfile/"'+onePackage.name+'"/g" peddar.param') #insert OutPut name into peddar.param
+os.system('sed -i "s/test_SNPMap.txt/"'+onePackage.name+'_SNP_Map.txt'+'"/g" peddar.param') #insert SNPMap name into peddar.param
+os.system('sed -i "s/AlleleFormat/"'+AlleleFormat+'"/g" peddar.param') #insert desired AlleleFormat name into peddar.param
+os.system('sed -i "s/TEST/"'+pasma+'"/g" peddar.param')
+os.system("python pedda_row.py") #transform into ped and map file
+
+
+#make pedfile a GenFiles pedFile object
+pedfile=GenFiles.pedFile(onePackage.name +  '.ped')
+mapfile=GenFiles.mapFile(onePackage.name +  '.map')
+
+
+
+#Perform QC!
+os.system("bash " + CodeDir + "/1_QC_FileArgs.sh " + pedfile.name + " " + pedfile.chip)
+PedFilesQC[pedfile.chip].append(tempDir+pedfile.name + "_" + pedfile.chip + "_CleanIndsMarkers.ped")
+MapFilesQC[pedfile.chip].append(tempDir+pedfile.name + "_" + pedfile.chip + "_CleanIndsMarkers.map")
+
+#add file to the dictionary of chip files
+PedFiles[pedfile.chip].append(tempDir+pedfile.pedname)
+MapFiles[pedfile.chip].append(tempDir+mapfile.mapname)
+GenoFile[pedfile.chip].add(pedfile.name)
+DateDownloaded[date] += (pedfile.name)
+DateGenotyped[onePackage.genodate] += [(x, pedfile.chip) for x in (pedfile.samples)]
+AllInfo += [(x, pedfile.chip, pedfile.name, onePackage.genodate) for x in (pedfile.samples)]
+for i in pedfile.samples:
+    if i in Rj_IDSeq_Dict:
+        SampleIDs[i] = [Rj_IDSeq_Dict.get(i)[0], onePackage.genodate, pedfile.chip, date]
+    else: 
+        print "Sample ID " + i + " in " + pedfile.name +" not found!!!"
    
 
 
@@ -200,6 +216,8 @@ print "The number of genotyped animals is {}.".format(len(SampleIDs))
 print "The number of genotype packages (different date of genotyping) is {}.".format(len(DateGenotyped))
 print "The number of different genotyping chips is {0}: {1}.".format(len(PedFiles), PedFiles.keys())
 
+
+#Perform QC!!!
 
 #create a table of individuals for govedo   
 #columns are seq, chip, date genotyped  
@@ -236,9 +254,9 @@ for i in PedFiles:
     status, output = commands.getstatusoutput(mergeChipCommand) #merge with plink
     
     if status == 0:
-        print "Successfully merged " + str(i)
-    else:
-        print "Merging went wrong, error: " + str(status)
+        print "Successfully merged " + str(i) + " " + PLINKDIR + " " + i
+    else: 
+        print "Merging went wrong, error: " + str(status) 
 
 for chip in PedFiles:
     PedFiles[chip] = [i.replace("ZipGenoFiles", "ZipGenoFiles/") for i in PedFiles[chip]]
@@ -248,3 +266,34 @@ for chip in MapFiles:
     MapFiles[chip] = [i.replace("ZipGenoFiles", "ZipGenoFiles/") for i in MapFiles[chip]]
     
     
+    
+    
+#MERGE FOR QC-ed data!!!!
+
+for i in PedFiles:
+    if not os.path.exists(PLINKDIR+str(i)):
+        os.makedirs(PLINKDIR+str(i))
+    for pedfile, mapfile in zip (PedFilesQC[i], MapFilesQC[i]):
+        shutil.copy(pedfile, PLINKDIR+str(i))
+        shutil.copy(mapfile, PLINKDIR+str(i))
+    os.chdir(PLINKDIR+str(i))
+    shutil.copy("/home/jana/Genotipi/Genotipi_CODES/PARAMFILE.txt", PLINKDIR+i)
+    pedToMerge = ",".join(PedFilesQC[i]).strip("'")
+    mapToMerge = ",".join(MapFilesQC[i]).strip("'")
+    if not os.path.isfile(PLINKDIR+i+'/PLINK_MERGED_' + i + '_CleanIndsMarkers.ped'):
+        mergeChipCommand = "plink --file {0} --cow --merge-list {1} --recode --out {2}".format((PedFilesQC[i][0].strip(".ped")), 'MergeChip.txt', "PLINK_MERGED_" + i + "_CleanIndsMarkers")
+        with open('MergeChip.txt', 'w') as csvfile:
+            writer = csv.writer(csvfile, delimiter=" ")
+            [writer.writerow(r) for r in zip(PedFilesQC[i][1:], MapFilesQC[i][1:])] #leave the first one out - that goes in the plink command line
+    if os.path.isfile(PLINKDIR+i+'/PLINK_MERGED_' + i + '_CleanIndsMarkers.ped'):
+        mergeChipCommand = 'plink --file PLINK_MERGED_{0}_CleanIndsMarkers --cow --merge-list {1} --recode --out PLINK_MERGED_{0}_CleanIndsMarkers'.format(i, 'MergeChip.txt')
+        with open('MergeChip.txt', 'w') as csvfile:
+            writer = csv.writer(csvfile, delimiter=" ")
+            [writer.writerow(r) for r in zip(PedFilesQC[i], MapFilesQC[i])] 
+        
+    status, output = commands.getstatusoutput(mergeChipCommand) #merge with plink
+    
+    if status == 0:
+        print "Successfully merged " + str(i) + " " + PLINKDIR + " " + i + "_CleanIndsMarkers"
+    else: 
+        print "Merging went wrong, error: " + str(status) 
