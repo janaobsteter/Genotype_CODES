@@ -596,9 +596,9 @@ class pedigree(classPed):
         # OČETJE
         mladiOce = self.catCurrent_indiv('mladi')
         pripustOce = self.catCurrent_indiv('pripust1') + self.catCurrent_indiv('pripust2')
-        testiraniOce = list(chain.from_iterable([self.catCurrent_indiv_age('pb', (2 + cak + x)) for x in range(1,
+        testiraniOce = list(chain.from_iterable([self.catCurrent_indiv_age('pb', (2 + cak + 1 + x)) for x in range(1,
                                                                                                                pbUp + 1)]))  # v času, ko določaš potomce, so že eno leto starjši!!!
-        gentestiraniOce = list(chain.from_iterable([self.catCurrent_indiv_age('gpb', x) for x in range(1,
+        gentestiraniOce = list(chain.from_iterable([self.catCurrent_indiv_age('gpb', x + 1) for x in range(1,
                                                                                                        pbUp + 1)]))  # v času, ko določaš potomce, so že eno leto starjši!!!
         mladiOceBest = self.catCurrent_indiv_sex_CriteriaEBV('mladi', 'M', 4)
         cakOcetjeBest = list(chain.from_iterable([self.catCurrent_indiv_age_CriteriaEBV('cak', (2 + x), 4) for x in range(1, cak + 1)]))
@@ -1111,7 +1111,7 @@ def selekcija_total(pedFile, **kwargs):
         # to je za potrebe prehoda
         if kwargs.get("genTest_gpb") and 'mladi' in [i[0] for i in kwargs['genotyped']]: #če se greš genomsko shemo, jih takoj pogenotipiziraj in prestavi v gpb (5)
             ped.izberi_poEBV_top("M", kwargs.get('genpbn'), "mladi", "gpb", categories)
-            ped.izloci_poEBV("M", (kwargs.get("genpbn") - kwargs.get("mladin")), "mladi", categories)
+            ped.izloci_poEBV("M", (kwargs.get("mladin") - kwargs.get("genpbn")), "mladi", categories)
         ###########################
         else:
             ped.set_cat_old('mladi', 'cak', categories)  # mlade prestavi v cakajoce in jih izloci iz populacije
@@ -1224,7 +1224,7 @@ def selekcija_total(pedFile, **kwargs):
         os.system('less IndForGeno.txt | wc -l > ReferenceSize_new.txt && cat ReferenceSize_new.txt ReferenceSize.txt > Reftmp && mv Reftmp ReferenceSize.txt')
     ped.write_ped(kwargs.get('AlphaSimDir') + "/ExternalPedigree.txt")
     ped.write_pedTotal(kwargs.get('AlphaSimDir') + "/ExternalPedigreeTotal.txt")
-    #ped.write_pedTotal("/home/jana/PedTotal.txt")
+    ped.write_pedTotal("/home/jana/PedTotal.txt")
 
     return ped, ped.save_cat(), ped.save_sex(), ped.save_active()
 
@@ -1450,7 +1450,7 @@ def nastavi_cat(PedFile, **kwargs):
         ped.saveIndForGeno(kwargs.get('genotyped'))
     ped.write_ped(kwargs.get('AlphaSimDir') + "/ExternalPedigree.txt")
     ped.write_pedTotal(kwargs.get('AlphaSimDir') + "/ExternalPedigreeTotal.txt")
-    #ped.write_pedTotal("/home/jana/PedTotal.txt")
+    ped.write_pedTotal("/home/jana/PedTotal.txt")
 
     return ped, ped.save_cat(), ped.save_sex(), ped.save_active()
 

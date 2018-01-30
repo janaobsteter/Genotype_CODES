@@ -109,6 +109,8 @@ TGVsAll <- read.table("~/Documents/PhD/Simulaton/RefPopSize/TGVsAll_10KRef_20Gen
 TGVsAll <- read.table("~/Documents/PhD/Simulaton/RefPopSize/TGVsAll_10KRef_new.csv", header=TRUE) # to je stara OtherCowsGen - napačen GI
 TGVsAll <- read.table("TGVsAll.csv", header=TRUE)
 TGVsAll <- read.table("~/Documents/PhD/Simulaton/RefPopSize/TGVsAll_1KRef_20Gen.csv", header=TRUE)
+TGVsAll <- read.table("~/Documents/PhD/Simulaton/RefPopSize/TGVsAll_10KRef_30Rep.csv", header=TRUE)
+TGVsAll <- read.table("~/Documents/PhD/Simulaton//TGVsAll_10KRef_2501.csv", header=TRUE) #če imaš 60 generacij, je standardizirano na 1. generacijo!!!
 #1 - 60 generacije
 TGVsAll <- read.table("~/Documents/PhD/Simulaton/RefPopSize/TGVsAll_10KRef_60Gen.csv", header=TRUE)
 TGVsAll$Group <- paste(TGVsAll$scenario, TGVsAll$Rep)
@@ -141,9 +143,23 @@ multiplot(lm, rlm, cols=2)
 multiplot(lm, lm2, cols=2)
 '''
 
+#standadise onto the 40 generation
+st40 <- data.frame()
+for (rep in 0:20) {
+  for (scenario in c("Class", "GenSLO", "OtherCowsGen", "BmGen", "Gen")) {
+    repScenario <- TGVsAll[(TGVsAll$Rep==rep) & (TGVsAll$scenario==scenario) & (TGVsAll$Generation %in% 40:60),]
+    repScenario$zMean <- (repScenario$gvNormUnres1 - repScenario$gvNormUnres1[1]) / repScenario$sd[1]
+    repScenario$SDGenicSt <- repScenario$AdditGenicVar1 / repScenario$AdditGenicVar1[1] 
+    repScenario$SDSt <- repScenario$sd / repScenario$sd[1] 
+    repScenario$zMeanGenic <- (repScenario$gvNormUnres1 - repScenario$gvNormUnres1[1]) / repScenario$AdditGenicVar1[1]
+    repScenario$SDGenicStNeg <- 1- repScenario$AdditGenicVar1 / repScenario$AdditGenicVar1[1]
+    #TGVsAll$zSdGenic <- (sqrt(TGVsAll$AdditGenicVar1) - sqrt(TGVsAll$))
+    #colnames(TGVs) < c("Generation", paste0("TGV_mean", scenario), paste0("TGV_sd", scenario), paste0("zMean_", scenario), paste0("GenicVar_", scenario), paste0("zMeanGenic_", scenario))
+    st40 <- rbind(st40, repScenario)
+  }
+}
 
-
-
+TGVsAll <- st40
 #naredi povprečja replik
 Averages1 <- aggregate(TGVsAll$SDGenicSt ~TGVsAll$scenario + TGVsAll$Generation, FUN="mean")
 Averages2 <- aggregate(TGVsAll$zMeanGenic ~TGVsAll$scenario + TGVsAll$Generation, FUN="mean")
@@ -341,7 +357,7 @@ m1 <- lm(Slope~Scenario,data=regRep)
 m1.grid <- ref.grid(m1)
 anova(m1)
 m1S <- lsmeans(m1.grid, "Scenario")
-contrast(m1.grid, method="eff")
+contrast(m1.grid, method="pairwise")
 contrast(m1S, method="eff")
 summary(lm(Slope~Scenario,data=regRep1))
 
@@ -368,7 +384,7 @@ genGainPlot <- ggplot() + geom_line(data = TGVsAll, aes(x=Generation, y=zMean, g
 #Tukaj oceni efektivno velikost populacije - z gensko varianco
 TGVs1 <- TGVsAll
 TGVsAll <- TGVsAll[TGVsAll$Generation %in% 30:40,]
-Variances <- read.table("~/GenicVARIANCE.txt", header=TRUE)
+Variances <- read.table("~/GenicVARIANCE.txt", header=TRUE) #to je samo zato, dasi preverila, če dela ok
 Variances <- Variances[Variances$QtnModel==1,]
 colnames(Variances)[9:10] <- c("Rep", "Scenario")
 Variances <- Variances[Variances$Generation != "Generation",]
@@ -387,6 +403,27 @@ for (group in unique(TGVsAll$Group)) {
   tmp <- data.frame(Scenario=unique(df$scenario), rep = unique(df$Rep), Intercept=coef(fit)[1], Slope=coef(fit)[2], check.names=FALSE)
   Nes <- rbind(Nes, tmp)
 }
+
+
+#po intervalih
+Nes <- data.frame()
+for (group in unique(TGVsAll$Group)) {
+  for (int in c(0,20,40)) {
+    TGVsAll1 <- TGVsAll
+    df <- TGVsAll[(TGVsAll$Group == group) & (TGVsAll$Generation %in% int:(int+20)),]
+    fit = glm(df$zSdGenic ~ df$Generation, family = Gamma(link = "log"))
+    tmp <- data.frame(Scenario=unique(df$scenario), Interval = paste0(int, ":", int+20), rep = unique(df$Rep), method="GenicVar", Intercept=coef(fit)[1], Slope=coef(fit)[2], check.names=FALSE)
+    Nes <- rbind(Nes, tmp)
+    }
+}
+
+Nes$dC = 1 - exp(Nes$Slope)
+Nes$Ne = 1 / (2 * Nes$dC)
+
+NEs <- aggregate(Nes$Ne ~Nes$Scenario + Nes$Interval + Nes$method, FUN="mean")
+colnames(NEs) <- c("Scenario", "Interval[gen]", "Method", "Ne")
+
+###############
 #for Variances
 for (group in unique(Variances$Group)) {
   df <- subset(Variances[Variances$Group==group,])
@@ -401,17 +438,31 @@ Nes$Ne = 1 / (2 * Nes$dC)
 NEs <- aggregate(Nes$Ne ~Nes$Scenario, FUN="mean")
 TGVsAll <- TGVs1
 Variances <- VAR
-#Tukaj oceni efektivno velikost populacije - z GENETSKO varianco
-Nes <- data.frame()
-for (sc in target) {
-  df <- subset(Averages[Averages$scenario==sc,])
-  fit = glm(df$SDGenetic_noSt ~ df$Generation, family = Gamma(link = "log"))
-  tmp <- data.frame(Scenario=sc, Intercept=coef(fit)[1], Slope=coef(fit)[2], check.names=FALSE)
-  Nes <- rbind(Nes, tmp)
-}
-Nes$dC = 1 - exp(Nes$Slope)
-Nes$Ne = 1 / (2 * Nes$dC)
 
+#############################################3
+#Tukaj oceni efektivno velikost populacije - z GENETSKO varianco
+Nes1 <- data.frame()
+for (group in unique(TGVsAll$Group)) {
+  for (int in c(0,20,40)) {
+    TGVsAll1 <- TGVsAll
+    df <- TGVsAll[(TGVsAll$Group == group) & (TGVsAll$Generation %in% int:(int+20)),]
+    fit = glm(df$sd ~ df$Generation, family = Gamma(link = "log"))
+    tmp <- data.frame(Scenario=unique(df$scenario), Interval = paste0(int, ":", int+20), rep = unique(df$Rep), method="GeneticVar", Intercept=coef(fit)[1], Slope=coef(fit)[2], check.names=FALSE)
+    Nes1 <- rbind(Nes1, tmp)
+  }
+}
+
+Nes1$dC = 1 - exp(Nes1$Slope)
+Nes1$Ne = 1 / (2 * Nes1$dC)
+
+NEs1 <- aggregate(Nes1$Ne ~Nes1$Scenario + Nes1$Interval + Nes1$method, FUN="mean")
+colnames(NEs1) <- c("Scenario", "Interval[gen]", "Method", "Ne")
+
+NES <- rbind(NEs, NEs1)
+
+#what is happening with CLass genetic variance??????
+Class0 <- TGVsAll[TGVsAll$Group=="Class 0",]
+ggplot(data=Class0, aes(x=Generation, y=sd)) + geom_path()
 ####################################################3
 #tukaj preveri značilnost razlik med TGV v zadnji generaciji
 gen60 <- TGVsAll[TGVsAll$Generation==60,]

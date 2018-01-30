@@ -31,9 +31,9 @@ for (rep in 0:10)) {
                       labels= c("Conventional", "Genomic A", "Genomic B", "Genomic C", "Genomic D"), "Scenario", 
                       values=c("forestgreen", "dodgerblue2", "purple", "red3", "orange1")) + 
   xlab("Genic standard deviation") + ylab("Average True Genetic Value") + guides(linetype = guide_legend(override.aes = list(size=10))) +
-  geom_segment(data=maxmin[maxmin$rep==rep,], mapping=aes(x=maxGenicSD, xend=minGenicSD,
-                                        y=minTGV,  yend=maxTGV,                                    
-                                        color=scenario, linetype=scenario, group=scenario), arrow=arrow(), show.legend=FALSE, size=1.5)
+    geom_segment(data=maxmin[maxmin$rep==rep,], mapping=aes(x=maxGenicSD, xend=minGenicSD,
+                                                            y=minTGV,  yend=maxTGV,                                    
+                                                            color=scenario, linetype=scenario, group=scenario), arrow=arrow(), show.legend=FALSE, size=1.5)
 }
 
 multiplot(plotList[[1]], plotList[[2]], plotList[[3]], plotList[[7]], plotList[[8]],  cols=2)
@@ -41,7 +41,7 @@ multiplot(plotList[[1]], plotList[[2]], plotList[[3]], plotList[[7]], plotList[[
 plotListGenGain <- list()
 #polot genetic gain pot replikah
 for (rep in 0:10) {
-    plotListGenGain[[rep+1]] <- ggplot() + geom_line(data = TGVsAll[TGVsAll$Rep==rep,], aes(x=Generation, y=zMean, group=Group, colour=scenario, linetype=scenario), size=1) + # geom_line(aes(linetype=scenario), size=0.5, alpha=0.4) + 
+  plotListGenGain[[rep+1]] <- ggplot() + geom_line(data = TGVsAll[TGVsAll$Rep==rep,], aes(x=Generation, y=zMean, group=Group, colour=scenario, linetype=scenario), size=1) + # geom_line(aes(linetype=scenario), size=0.5, alpha=0.4) + 
     xlab("Generation") + ylab("True genetic value")  + 
     scale_linetype_manual("Scenario", breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), values=c("solid", "dashed", "dotted", "dotdash", "twodash"), labels=c("Conventional", "Genomic A", "Genomic B", "Genomic C", "Genomic D")) + 
     scale_colour_manual("Scenario", breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), values=c("forestgreen", "dodgerblue2", "purple", "red3", "orange1"), labels=c("Conventional", "Genomic A", "Genomic B", "Genomic C", "Genomic D")) + 

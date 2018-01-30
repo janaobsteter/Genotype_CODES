@@ -1,7 +1,7 @@
 library(pedigreemm)
-F <- data.frame(Generation=41:60)
+F <- data.frame(Generation=1:60)
 #################################################
-for (scenario in c("Class", "GenSLO", "GenSplosnaPop", "GenSLO_BmGen", "Gen")) {
+for (scenario in c("Class1")) {
     dir = paste0('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_', scenario, '/SimulatedData/')
     pedO <- read.table(paste0(dir,'/PedigreeAndGeneticValues_cat.txt'), header=T)
     ped <- pedO[,2:4]

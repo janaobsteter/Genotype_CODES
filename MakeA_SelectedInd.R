@@ -4,6 +4,7 @@ ped <- read.table("/home/jana/Documents/PhD/CompBio/TestingGBLUP/PedigreeAndGene
 pedC <- read.table("/home/jana/Documents/PhD/CompBio/TestingGBLUP/Ped", sep=" ", header=TRUE)
 dataG <- ped$cat %in% c("k", "potomciNP", "nr")
 dataGI <- ped[ped$cat %in% c("k", "potomciNP", "nr"), "Indiv"]
+#trimPed - tukaj izubereš, koliko generacij nazaj
 pedT <- ped[trimPed(ped[,c(2,3,4)], data=dataG, ngenback = 5),]
 
 makeA(pedT[,c(2,3,4)], which=c(pedT$Indiv %in% dataGI))
