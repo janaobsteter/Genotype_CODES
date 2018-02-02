@@ -2,7 +2,7 @@
 import ast
 WorkingDir = "/home/jana/"
 os.chdir(WorkingDir)
-scenario = "Class"
+scenario = "GenSLO"
 par = pd.read_csv(WorkingDir + "/Essentials/SelectionParam_" + scenario + ".csv", header=None, names=["Keys", "Vals"])
 par.to_dict()
 selPar = defaultdict()
@@ -44,8 +44,11 @@ if selPar['gEBV']:
     seltype = 'gen'
 
 selPar['pbn'] = 1
-selPar['pozitivnoTestDoz'] = 1200
 
+selPar['genpbn'] = 1
+selPar['pozitivnoTestDoz'] = 2000
+
+selPar['pbUp'] = 1
 
 IndCat = pd.DataFrame()
 ped0, c0, s0, a0 = selekcija_total("/home/jana/GenPed_EBV.txt", **selPar)
@@ -72,3 +75,5 @@ for krog in range(krogov): #ponavljaj kolikor krogov selekcije hočeš
     ped, c, s, a = selekcija_total("/home/jana/PedTotal.txt", **selPar)
     IndCat[str('cat' + str(krog))] = ped.ped.cat
     
+    
+    eclf1 = VotingClassifier(estimators=[('lr1', CellWall), ('lr2', Vacuoles)],voting='hard'))

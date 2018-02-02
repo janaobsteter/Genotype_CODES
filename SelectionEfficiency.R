@@ -116,7 +116,7 @@ TGVsAll <- read.table("~/Documents/PhD/Simulaton//TGVsAll_10KRef_2801_1Year.csv"
 #1 - 60 generacije
 TGVsAll <- read.table("~/Documents/PhD/Simulaton/RefPopSize/TGVsAll_10KRef_60Gen.csv", header=TRUE)
 TGVsAll$Group <- paste(TGVsAll$scenario, TGVsAll$Rep)
-TGVsAll <- TGVsAll[TGVsAll$Rep %in% c(0,1,2,3,5,6,7,8,9,10),]
+#TGVsAll <- TGVsAll[TGVsAll$Rep %in% c(0,1,2,3,5,6,7,8,9,10),]
 TGVsAll <- TGVsAll[TGVsAll$Generation %in% 40:60,]
 
 
@@ -128,38 +128,6 @@ for (group in unique(TGVsAll$Group)) {
   groupT$SDGenicStNeg <- 1- groupT$AdditGenicVar1 / groupT$AdditGenicVar1[1]
   groupDF <- rbind(groupDF, groupT)
 }
-
-varDF <- data.frame()
-for (group in unique(TGVsAll$Group)) {
-  groupT <- subset(TGVsAll[TGVsAll$Group==group,])
-  groupT$var <- (groupT$sd)^2
-  koef <- groupT$var[1] / groupT$AdditGenicVar1[1]
-  groupT$GenicVAR_genetic <- groupT$AdditGenicVar1 * koef
-  groupT$GenicSD_genetic <- sqrt(groupT$GenicVAR_genetic)
-  groupT$zMeanGenic <- (groupT$gvNormUnres1 - groupT$gvNormUnres1[1]) / groupT$zSdGenic[1]
-  groupT$SDGenicSt <- groupT$zSdGenic / groupT$zSdGenic[1] 
-  groupT$MeanGENIC_genetic <- (groupT$gvNormUnres1 - groupT$gvNormUnres1[1]) / groupT$GenicSD_genetic[1]
-  groupT$GENICSd_St <- groupT$GenicSD_genetic / groupT$GenicSD_genetic[1] 
-  
-  varDF <- rbind(varDF, groupT)
-}
-
-'''
-library(MASS)
-library(ggplot2)
-lm <- ggplot(data = TGVsAll, aes(x=TGVsAll$zSdGenic, y=TGVsAll$zMeanGenic, colour=TGVsAll$scenario)) + geom_path() + scale_x_reverse() + 
-  geom_smooth(method='lm', se=FALSE) + 
-  scale_color_hue("Shema", labels=c("Conventional", "GenomicSLO", "GenBulls on Other Cows", "GenBulls on Bull Dams", "GenBulls on All Cows")) + 
-  xlab("Genic sd") + ylab("Mean genetic gain") + ggtitle("Genic variance standardisation")
-lm2 <- ggplot(data = TGVsAll, aes(x=TGVsAll$zSdGenic, y=TGVsAll$zMean, colour=TGVsAll$scenario)) + geom_path() + scale_x_reverse() + 
-  geom_smooth(method='lm', se=FALSE) + 
-  scale_color_hue("Shema", labels=c("Conventional", "GenomicSLO", "GenBulls on Other Cows", "GenBulls on Bull Dams", "GenBulls on All Cows")) + 
-  xlab("Genic sd") + ylab("Mean genetic gain") + ggtitle("Genetic variance standardisation")
-rlm <- ggplot(data = TGVsAll, aes(x=TGVsAll$zSdGenic, y=TGVsAll$zMeanGenic, colour=TGVsAll$scenario)) + geom_path() + scale_x_reverse() + geom_smooth(method='rlm', se=FALSE)
-library(Rmisc)
-multiplot(lm, rlm, cols=2)
-multiplot(lm, lm2, cols=2)
-'''
 
 #standadise onto the 40 generation
 st40 <- data.frame()
@@ -178,8 +146,41 @@ for (rep in 0:20) {
 }
 
 TGVsAll <- st40
-
+varDF <- data.frame()
+for (group in unique(TGVsAll$Group)) {
+  groupT <- subset(TGVsAll[TGVsAll$Group==group,])
+  groupT$var <- (groupT$sd)^2
+  koef <- groupT$var[1] / groupT$AdditGenicVar1[1]
+  groupT$GenicVAR_genetic <- groupT$AdditGenicVar1 * koef
+  groupT$GenicSD_genetic <- sqrt(groupT$GenicVAR_genetic)
+  groupT$zMeanGenic <- (groupT$gvNormUnres1 - groupT$gvNormUnres1[1]) / groupT$zSdGenic[1]
+  groupT$SDGenicSt <- groupT$zSdGenic / groupT$zSdGenic[1] 
+  groupT$MeanGENIC_genetic <- (groupT$gvNormUnres1 - groupT$gvNormUnres1[1]) / groupT$GenicSD_genetic[1]
+  groupT$GENICSd_St <- groupT$GenicSD_genetic / groupT$GenicSD_genetic[1] 
+  
+  varDF <- rbind(varDF, groupT)
+}
 TGVsAll <- varDF
+'''
+library(MASS)
+library(ggplot2)
+lm <- ggplot(data = TGVsAll, aes(x=TGVsAll$zSdGenic, y=TGVsAll$zMeanGenic, colour=TGVsAll$scenario)) + geom_path() + scale_x_reverse() + 
+  geom_smooth(method='lm', se=FALSE) + 
+  scale_color_hue("Shema", labels=c("Conventional", "GenomicSLO", "GenBulls on Other Cows", "GenBulls on Bull Dams", "GenBulls on All Cows")) + 
+  xlab("Genic sd") + ylab("Mean genetic gain") + ggtitle("Genic variance standardisation")
+lm2 <- ggplot(data = TGVsAll, aes(x=TGVsAll$zSdGenic, y=TGVsAll$zMean, colour=TGVsAll$scenario)) + geom_path() + scale_x_reverse() + 
+  geom_smooth(method='lm', se=FALSE) + 
+  scale_color_hue("Shema", labels=c("Conventional", "GenomicSLO", "GenBulls on Other Cows", "GenBulls on Bull Dams", "GenBulls on All Cows")) + 
+  xlab("Genic sd") + ylab("Mean genetic gain") + ggtitle("Genetic variance standardisation")
+rlm <- ggplot(data = TGVsAll, aes(x=TGVsAll$zSdGenic, y=TGVsAll$zMeanGenic, colour=TGVsAll$scenario)) + geom_path() + scale_x_reverse() + geom_smooth(method='rlm', se=FALSE)
+library(Rmisc)
+multiplot(lm, rlm, cols=2)
+multiplot(lm, lm2, cols=2)
+'''
+
+
+
+
 #naredi povprečja replik
 Averages1 <- aggregate(TGVsAll$GENICSd_St ~TGVsAll$scenario + TGVsAll$Generation, FUN="mean")
 Averages2 <- aggregate(TGVsAll$zMean ~TGVsAll$scenario + TGVsAll$Generation, FUN="mean")
@@ -280,11 +281,11 @@ ggplot(data = TGVsAll, aes(x=SDGenicSt, y=zMeanGenic, group=Group, colour=scenar
                                         color=scenario, linetype=scenario, group=scenario), arrow=arrow(), show.legend=FALSE, size=1.5)
 
 #o je z na genetsko standadrizirano gensko variacno
-ggplot(data = TGVsAll, aes(x=GENICSd_St, y=MeanGENIC_genetic, group=Group, colour=scenario, linetype=scenario)) + 
+Year1Eff <- ggplot(data = TGVsAll, aes(x=GENICSd_St, y=MeanGENIC_genetic, group=Group, colour=scenario, linetype=scenario)) + 
   geom_line(aes(linetype=TGVsAll$scenario), size=0.5, alpha=0.3) + scale_x_reverse(sec.axis=sec_axis(trans=~1-.,                                   
                                                                                                      name="Converted/Lost genic standard deviation")) +
   #geom_smooth( se=FALSE, formula=y~x+1, method="lm") + 
-  xlab("Generation") + ylab("True genetic value")  + 
+  xlab("Generation") + ylab("True genetic value")  + ylim(0,7) +
   scale_linetype_manual(breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), 
                         "Scenario", 
                         values=c("solid", "dotted","dashed", "dotdash", "twodash"), labels=c("Conventional", "Genomic A", "Genomic B", "Genomic C", "Genomic D")) + 
@@ -292,7 +293,7 @@ ggplot(data = TGVsAll, aes(x=GENICSd_St, y=MeanGENIC_genetic, group=Group, colou
                       "Scenario", 
                       values=c("forestgreen", "dodgerblue2", "purple", "red3", "orange1"), labels=c("Conventional", "Genomic A", "Genomic B", "Genomic C", "Genomic D")) + 
   xlab("Genic standard deviation") + ylab("Average True Genetic Value") + guides(linetype = guide_legend(override.aes = list(size=10))) +
-  theme(axis.text=element_text(size=14),
+  theme(axis.text=element_text(size=14), legend.position = "left",
         axis.title=element_text(size=16,face="bold"), legend.text=element_text(size=14), legend.title=element_text(size=14)) +
   geom_segment(data=maxmin, mapping=aes(x=maxGenicSD, xend=minGenicSD,
                                         y=minTGV,  yend=maxTGV,                                    
@@ -378,7 +379,7 @@ avgReg$method <- "Average regression"
 library(nlme)
 regRep <- data.frame(Rep=NA, Intercept=NA, Slope=NA, Scenario=NA)
 for (sc in c("Class", "GenSLO", "OtherCowsGen", "BmGen", "Gen")) {
-  df <- groupDF[groupDF$scenario==sc,]
+  df <- varDF[varDF$scenario==sc,]
   fm1 <- lmList(zMeanGenic ~ SDGenicStNeg | Rep, data=df)
   tmp <- data.frame(Rep=rownames(coef(fm1)),coef(fm1),check.names=FALSE)
   colnames(tmp) <- c("Rep", "Intercept", "Slope")
@@ -442,9 +443,9 @@ genGainPlot <- ggplot() + geom_line(data = TGVsAll, aes(x=Generation, y=zMean, g
   scale_colour_manual("Scenario", breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), values=c("forestgreen", "dodgerblue2", "purple", "red3", "orange1"), labels=c("Conventional", "Genomic A", "Genomic B", "Genomic C", "Genomic D")) + 
   xlab("Generation") + ylab("Average True Genetic Value") +
   geom_line(data = MeanAverage, aes(x=Generation, y=MeanTGV, colour=scenario, linetype=scenario), size=1.2) + 
-  ggtitle("a") + 
+  ggtitle("a") + ylim(c(0, 7)) +
   guides(group=guide_legend(nrow=6), fill=guide_legend(nrow=6), colour=guide_legend(nrow=6), linetype=guide_legend(nrow=6)) +
-  theme(axis.text=element_text(size=14),
+  theme(axis.text=element_text(size=14), legend.position = "left",
                                          axis.title=element_text(size=16,face="bold"), legend.text=element_text(size=14), legend.title=element_text(size=14)) #legend.position="bottom", 
 
 
