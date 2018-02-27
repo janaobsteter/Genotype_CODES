@@ -111,8 +111,11 @@ TGVsAll <- read.table("TGVsAll.csv", header=TRUE)
 TGVsAll <- read.table("~/Documents/PhD/Simulaton/RefPopSize/TGVsAll_1KRef_20Gen.csv", header=TRUE)
 TGVsAll <- read.table("~/Documents/PhD/Simulaton/RefPopSize/TGVsAll_10KRef_30Rep.csv", header=TRUE)
 TGVsAll <- read.table("~/Documents/PhD/Simulaton//TGVsAll_10KRef_2501.csv", header=TRUE) #če imaš 60 generacij, je standardizirano na 1. generacijo!!!
+TGVsAll <- read.table("~/Genotipi/Genotipi_CODES//TGVsAll_10KRef_2501.csv", header=TRUE) #če imaš 60 generacij, je standardizirano na 1. generacijo!!!
+TGVsAll <- read.table("~/TGVsAll_10KRef_2801_1Pb.csv", header=TRUE) #če imaš 60 generacij, je standardizirano na 1. generacijo!!!
 TGVsAll <- read.table("~/Documents/PhD/Simulaton//TGVsAll_10KRef_2801_1Pb.csv", header=TRUE) #če imaš 60 generacij, je standardizirano na 1. generacijo!!!
 TGVsAll <- read.table("~/Documents/PhD/Simulaton//TGVsAll_10KRef_2801_1Year.csv", header=TRUE) #če imaš 60 generacij, je standardizirano na 1. generacijo!!!
+TGVsAll <- read.table("~/TGVsAll_10KRef_2801_1Year.csv", header=TRUE) #če imaš 60 generacij, je standardizirano na 1. generacijo!!!
 #1 - 60 generacije
 TGVsAll <- read.table("~/Documents/PhD/Simulaton/RefPopSize/TGVsAll_10KRef_60Gen.csv", header=TRUE)
 TGVsAll$Group <- paste(TGVsAll$scenario, TGVsAll$Rep)
@@ -254,7 +257,20 @@ maxmin$minTGV <- as.numeric(maxmin$minTGV)
 maxmin$maxTGV <- as.numeric(maxmin$maxTGV)
 
 
+TGVsAllOrig <- TGVsAll
+TGVsAllOrig$design <- "bull55"
+AveragesOrig <- Averages
+AveragesOrig$design <- "bull55"
+TGVsAll1Pb <- TGVsAll
+TGVsAll1Pb$design <- "bull15"
+Averages1Pb <- Averages
+Averages1Pb$design <- "bull15"
+TGVsAll1Year <- TGVsAll
+TGVsAll1Year$design <- "bull51"
+Averages1Year <- Averages
+Averages1Year$design <- "bull51"
 
+TGVSALL <- rbind(TGVsAllOrig, TGVsAll1Pb, TGVsAll1Year)
 #tukaj spravi gensko varianco in genetsko na isto točko
 
 library(ggplot2)
@@ -267,6 +283,8 @@ ggplot(data = TGVsAll, aes(x=SDGenicSt, y=zMeanGenic, group=Group, colour=scenar
                                                                                                      name="Converted/Lost genic standard deviation")) +
   #geom_smooth( se=FALSE, formula=y~x+1, method="lm") + 
   xlab("Generation") + ylab("True genetic value")  + 
+  coord_cartesian(xlim = c(1, 0.8)) +
+
   scale_linetype_manual(breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), 
                         "Scenario", 
                         values=c("solid", "dotted","dashed", "dotdash", "twodash"), labels=c("Conventional", "Genomic A", "Genomic B", "Genomic C", "Genomic D")) + 
@@ -282,19 +300,19 @@ ggplot(data = TGVsAll, aes(x=SDGenicSt, y=zMeanGenic, group=Group, colour=scenar
 
 #o je z na genetsko standadrizirano gensko variacno
 Year1Eff <- ggplot(data = TGVsAll, aes(x=GENICSd_St, y=MeanGENIC_genetic, group=Group, colour=scenario, linetype=scenario)) + 
-  geom_line(aes(linetype=TGVsAll$scenario), size=0.5, alpha=0.3) + scale_x_reverse(sec.axis=sec_axis(trans=~1-.,                                   
+  scale_x_reverse(sec.axis=sec_axis(trans=~1-.,                                   
                                                                                                      name="Converted/Lost genic standard deviation")) +
   #geom_smooth( se=FALSE, formula=y~x+1, method="lm") + 
-  xlab("Generation") + ylab("True genetic value")  + ylim(0,7) +
+  xlab("Generation") + ylab("True genetic value")  + ylim(0,7) +coord_cartesian(xlim = c(1, 0.85)) +
   scale_linetype_manual(breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), 
                         "Scenario", 
                         values=c("solid", "dotted","dashed", "dotdash", "twodash"), labels=c("Conventional", "Genomic A", "Genomic B", "Genomic C", "Genomic D")) + 
   scale_colour_manual(breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), 
                       "Scenario", 
                       values=c("forestgreen", "dodgerblue2", "purple", "red3", "orange1"), labels=c("Conventional", "Genomic A", "Genomic B", "Genomic C", "Genomic D")) + 
-  xlab("Genic standard deviation") + ylab("Average True Genetic Value") + guides(linetype = guide_legend(override.aes = list(size=10))) +
-  theme(axis.text=element_text(size=14), legend.position = "left",
-        axis.title=element_text(size=16,face="bold"), legend.text=element_text(size=14), legend.title=element_text(size=14)) +
+  xlab("Genic standard deviation") + ylab("Average True Genetic Value") + 
+  theme(axis.text=element_text(size=18), legend.position = "left",
+        axis.title=element_text(size=18,face="bold"), legend.text=element_text(size=18), legend.title=element_text(size=18)) +
   geom_segment(data=maxmin, mapping=aes(x=maxGenicSD, xend=minGenicSD,
                                         y=minTGV,  yend=maxTGV,                                    
                                         color=scenario, linetype=scenario, group=scenario), arrow=arrow(), show.legend=FALSE, size=1.5)
@@ -302,8 +320,8 @@ Year1Eff <- ggplot(data = TGVsAll, aes(x=GENICSd_St, y=MeanGENIC_genetic, group=
 
 #To je plot zMean (standardizirana na GENETSKO variacno) 
 ggplot(data = TGVsAll, aes(x=SDSt, y=zMean, group=Group, colour=scenario, linetype=scenario)) + 
-  geom_line(aes(linetype=TGVsAll$scenario), size=0.5, alpha=0.3) + scale_x_reverse() +
-  #geom_smooth( se=FALSE, formula=y~x+1, method="lm") + 
+  geom_line(aes(linetype=TGVsAll$scenario), size=0.5, alpha=0.3) + scale_x_reverse(sec.axis=sec_axis(trans=~1-.,                                   
+                                                                                                     name="Converted/Lost genic standard deviation")) +
   xlab("Generation") + ylab("True genetic value")  + 
   scale_linetype_manual(breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), 
                         labels= c("Conventional", "Genomic A", "Genomic B", "Genomic C", "Genomic D"), "Scenario", 
@@ -311,7 +329,7 @@ ggplot(data = TGVsAll, aes(x=SDSt, y=zMean, group=Group, colour=scenario, linety
   scale_colour_manual(breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), 
                       labels= c("Conventional", "Genomic A", "Genomic B", "Genomic C", "Genomic D"), "Scenario", 
                       values=c("forestgreen", "dodgerblue2", "purple", "red3", "orange1")) + 
-  xlab("Genic standard deviation") + ylab("Average True Genetic Value") + guides(linetype = guide_legend(override.aes = list(size=10))) #+
+  xlab("Genic standard deviation") + ylab("Average True Genetic Value") +  #+
   geom_segment(data=maxmin, mapping=aes(x=maxGeneticSD, xend=minGeneticSD,
                                         y=minTGV,  yend=maxTGV,                                    
                                         color=scenario, linetype=scenario, group=scenario), arrow=arrow(), show.legend=FALSE, size=1.5)
@@ -436,7 +454,7 @@ AllM <- melt(AllMethods, measure.vars = "Slope")
 
 
 #plot napredka po replikaj - GENETIC GAIN
-genGainPlot <- ggplot() + geom_line(data = TGVsAll, aes(x=Generation, y=zMean, group=Group, colour=scenario, linetype=scenario), size=0.5, alpha=0.3) + # geom_line(aes(linetype=scenario), size=0.5, alpha=0.4) + 
+genGainPlot <- ggplot() + 
   xlab("Generation") + ylab("True genetic value")  + 
   scale_linetype_manual("Scenario", breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), 
                         values=c("solid", "dashed", "dotted", "dotdash", "twodash"), labels=c("Conventional", "Genomic A", "Genomic B", "Genomic C", "Genomic D")) + 
@@ -445,8 +463,8 @@ genGainPlot <- ggplot() + geom_line(data = TGVsAll, aes(x=Generation, y=zMean, g
   geom_line(data = MeanAverage, aes(x=Generation, y=MeanTGV, colour=scenario, linetype=scenario), size=1.2) + 
   ggtitle("a") + ylim(c(0, 7)) +
   guides(group=guide_legend(nrow=6), fill=guide_legend(nrow=6), colour=guide_legend(nrow=6), linetype=guide_legend(nrow=6)) +
-  theme(axis.text=element_text(size=14), legend.position = "left",
-                                         axis.title=element_text(size=16,face="bold"), legend.text=element_text(size=14), legend.title=element_text(size=14)) #legend.position="bottom", 
+  theme(axis.text=element_text(size=20), legend.position = "left",
+                                         axis.title=element_text(size=20,face="bold"), legend.text=element_text(size=18), legend.title=element_text(size=20)) #legend.position="bottom", 
 
 
 ##########################
@@ -537,14 +555,16 @@ ggplot(data=Class0, aes(x=Generation, y=sd)) + geom_path()
 ####################################################3
 #tukaj preveri značilnost razlik med TGV v zadnji generaciji
 library(emmeans)
-gen60 <- TGVsAll[TGVsAll$Generation==60,]
-m2 <- lm(zMean~scenario,data=gen60)
+gen60 <- TGVSALL[TGVSALL$Generation==60,]
+m2 <- lm(zMean~scenario + design + scenario*design,data=gen60)
 m2.grid <- ref_grid(m2)
 anova(m2)
-m2S <- lsmeans(m2.grid, "scenario")
+m2S <- lsmeans(m2.grid, c("scenario","design"))
 contrast(m2.grid, method="eff")
 contrast(m2S, method="pairwise")
 summary(lm(zMean~scenario,data=gen60))
+
+write.csv(TGVSALL, "TGVSALL.csv", quote=FALSE, row.names=FALSE)
 #########################################
 #Generacijski interval
 GI <- read.table("~/GI.txt", header=TRUE) #to je sam do 59, ker za 60 ne moreš še imet GI

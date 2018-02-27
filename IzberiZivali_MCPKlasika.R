@@ -118,15 +118,13 @@ SD <- merge(SD, kapaByHerd, by="Creda")
 
 
 #Pridobi še mlečnosti, izplen beljakovin in maščob
-
-prireja <- paste0("SELECT ziv.STEV_ORIG_ZIVAL ID,ziv.DRZ_ORIG_ZIVAL || ziv.STEV_ORIG_ZIVAL celID, ziv.IME_ZIVAL, ziv.CRE_SIFRA_CREDA, ziv.SIF_SPOL, round(avg(lak.KG_MLEKO_305),0) mlekoAvg,round( avg(lak.KG_BELJAK_305),0) beljAvg, round(avg(lak.KG_MAST_305),0) mascAvg
+prireja <- paste0("SELECT ziv.STEV_ORIG_ZIVAL ID, ziv.CRE_SIFRA_CREDA, ziv.SIF_SPOL, round(avg(lak.KG_MLEKO_305),0) mlekoAvg,round( avg(lak.KG_BELJAK_305),0) beljAvg, round(avg(lak.KG_MAST_305),0) mascAvg
 FROM govedo.zivali ziv, GOVEDO.TELITVE tel , GOVEDO.LAKTACIJE lak
 WHERE ziv.SP1_SIFRA_PASMA = 1
 AND ziv.ZIV_ID_SEQ        =tel.tel_ziv_id_seq
 and tel.TEL_ID_SEQ=lak.LAK_TEL_ID_SEQ
 AND ziv.STEV_ORIG_ZIVAL  in (select ziv.STEV_ORIG_ZIVAL from GENOTIPIZIRANE_ZIVALI gen, zivali ziv where ziv.ZIV_ID_SEQ=gen.ZIV_ID_SEQ and gen.GEN_CHIP='IDBv03')
-group by ziv.STEV_ORIG_ZIVAL, ziv.CRE_SIFRA_CREDA, ziv.SIF_SPOL, ziv.DRZ_ORIG_ZIVAL || ziv.STEV_ORIG_ZIVAL, ziv.IME_ZIVAL")
-
+group by ziv.STEV_ORIG_ZIVAL, ziv.CRE_SIFRA_CREDA, ziv.SIF_SPOL")
 
 Prireja <- fetch(dbSendQuery(con, prireja))
 Prireja$OdsBelj <- round(Prireja$BELJAVG / Prireja$MLEKOAVG * 100,2)
@@ -161,7 +159,7 @@ write.table(Orders, '/home/jana/Genotipi/Genotipi_CODES/F4FKraveCrede_ORDERPrire
 PVs <- merge(mleko[,c(1,4)], belj[,c(1,4)], by="ID")
 PVs <- merge(PVs, masc[,c(1,4)], by="ID")
 colnames(PVs) <- c("ID", "PVmleko", "PVbelj", "PVmasc")
-kazeini <- kapaCSN[,c(1,8)]
+kazeini <- kapaCSN[,c(2,8)]
  kazeini$ID <- gsub("SI", "", kazeini$ID)
 #Zaporedna laktacija
 Izbira1 <- zapLaktAll[zapLaktAll$CRE_SIFRA_CREDA==ZapLaktTop[1],]
@@ -228,17 +226,15 @@ for (creda in unique(Crede$CRE_SIFRA_CREDA)) {
   AllCrede <- rbind(AllCrede, credaPV(creda))
 }
 
-write.table(AllCrede, '/home/jana/Genotipi/Genotipi_CODES/F4FKraveCrede_PrirejaDIM.csv', quote=FALSE, row.names=FALSE)
-credaPV <- function (creda) {
-  CredaPV <- zapLaktAll[zapLaktAll$CRE_SIFRA_CREDA==creda,]
-  CredaPV <- merge(CredaPV, DIM[,c("ID", "DIM")], by="ID", all.x=TRUE)
-  CredaPV <- merge(CredaPV, PVs, by="ID", all.x=TRUE)
-  CredaPV <- merge(CredaPV, kazeini, by="ID", all.x=TRUE)
-  CredaPV <- merge(CredaPV, Prireja[,c(1,2,3,6,7,8,9,10)], by="ID", all.x=TRUE)
-  CredaPV <- CredaPV[,c(10,11,4,5,6,7,8,9,12,13,14,15,16)]
-  colnames(CredaPV) <- c("ID", "IME", "Zaporedna lakt", "DIM", "PVMleko", "PVBelj", "PVMasc", "Kapa-kazein", "Povprecna st. lakt.", "Povprecne belj 305", "Povprecne masc 305", "Ods Belj", "Ods Masc")
+#write.table(AllCrede, '/home/jana/Genotipi/Genotipi_CODES/F4FKraveCrede_PrirejaDIM.csv', quote=FALSE, row.names=FALSE)
+Crede <- read.csv('/home/jana/Genotipi/Genotipi_CODES/F4FKraveCrede_PrirejaDIM.csv', sep=" ")
+Rejci <- read.csv('/home/jana/Genotipi/Genotipi_CODES/F4FRejciSifreImena.csv')
+
+
+credaPVAll <- function (creda) {
+  CredaPV <- Crede[Crede$CRE_SIFRA_CREDA==creda,]
+
   return(CredaPV)
 }
-write.table(credaPV(4950), '/home/jana/Documents/F4F/KlasikaAnaliza/Kuhar.csv', quote=FALSE, row.names=FALSE, sep=",")
 
-
+write.table(credaPVAll(7177), "/home/jana/Genotipi/Genotipi_CODES/Pececnik.csv", quote=F, row.names=F)
