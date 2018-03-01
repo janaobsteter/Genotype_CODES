@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #This is a script to add newly genotyped individuals and downloaded GeneSeek zip file (Final Reports)
 #to the existing database of the latest genotypes
 
@@ -37,7 +38,7 @@ def remove_from_zip(zipfname, *filenames):
 ########################################################
 #set directories and file names
 ########################################################
-date=15012018
+date=23022018
 pasma="Rjava"
 AlleleFormat="top"
 zip_file=""
@@ -81,7 +82,7 @@ SNPSifrant="/home/jana/Genotipi/ParentalVerification_SNPSNP/Sifrant_SNP.csv"
 
 
 #name of the file
-zipPackage="we_bl_12012018.zip"
+zipPackage="we_bl_23022018.zip"
 #########################################################################################################
 ##########################################################################################################
 ##########################################################################################################
@@ -150,15 +151,18 @@ onePackage.extractSampleMap()
     
 #check for error IDs and replace the prior identified errouneous IDs
 replaceIDs = [('SI4574059','SI04574059'),('SI84048801','SI84048802'),('SI4384195','SI04384195'),('Si24289407','SI24289407'), ('SI53595706_201851770050_R08C02', 'SI53595706'), 
-('SI53595706_201851770081_R03C02', 'SI53595706')]
+('SI53595706_201851770081_R03C02', 'SI53595706'), ('SI15036148 (COF)', 'SI15036148'), ('SI85036127 (ASUL)', 'SI85036127'), ('SI55035882 (HRABRI)', 'SI55035882'), ('SI95095002 (KINGSTON', 'SI95095002'),
+('SI45094707 (VALDEN)', 'SI45094707'), ('SI34951462 (CAFIERO)', 'SI34951462'), ('SI85026654 (VAUDEK)', 'SI85026654'), ('SI74941696 VASK', 'SI74941696')]
 errorIDs = onePackage.extractErrorNames() #extract Sample Names if they exist - they shouldnt be in the file
+#to samo, če ti samo prav popravi!!!!!!!!!!!!!
 if errorIDs:
     print (onePackage.name, errorIDs)
     for i in errorIDs:
         os.system('sed -i  "s|' +str(i[0])+ '|' + i[1] + '|g" ' + onePackage.name+"_FinalReport.txt") #errorIDs are tuples, replace first element witht the second
         os.system('sed -i  "s|' +str(i[0])+ '|' + i[1] + '|g" '+onePackage.name+'_Sample_Map.txt') 
+###############
 for i in replaceIDs:
-    os.system('sed -i  "s|' +i[0]+ '|' + i[1] + '|g" ' + onePackage.finalreportname) #errorIDs are tuples, replace first element witht the second
+    os.system('sed -i  "s|' +i[0]+ '|' + i[1] + '|g" ' + onePackage.name+"_FinalReport.txt") #errorIDs are tuples, replace first element witht the second
     os.system('sed -i  "s|' +i[0]+ '|' + i[1] + '|g" '+onePackage.name + '_Sample_Map.txt')
                 
                 
@@ -166,12 +170,26 @@ for i in replaceIDs:
 shutil.copy((peddarow+"/peddar.param"), "peddar.param")
 shutil.copy((peddarow+"/pedda_row.py"), "pedda_row.py")
 #replace strings with shell command
-os.system('sed -i "s|test_FinalReport.txt|'+ onePackage.finalreportname + '|g" peddar.param') #insert FinalReport name into peddar.param
-os.system('sed -i "s|Dominant |Dominant_|g" ' + onePackage.finalreportname) #problem Dominant Red with a space
+os.system('sed -i "s|test_FinalReport.txt|'+ onePackage.name+"_FinalReport.txt" + '|g" peddar.param') #insert FinalReport name into peddar.param
+os.system('sed -i "s|Dominant |Dominant_|g" ' + onePackage.name+"_FinalReport.txt") #problem Dominant Red with a space
 os.system('sed -i "s|Dominant |Dominant_|g" ' + onePackage.name+'_SNP_Map.txt') ##problem Dominant Red with a space
 os.system('sed -i "s/test_outputfile/"'+onePackage.name+'"/g" peddar.param') #insert OutPut name into peddar.param
 os.system('sed -i "s/test_SNPMap.txt/"'+onePackage.name+'_SNP_Map.txt'+'"/g" peddar.param') #insert SNPMap name into peddar.param
 os.system('sed -i "s/AlleleFormat/"'+AlleleFormat+'"/g" peddar.param') #insert desired AlleleFormat name into peddar.param
+os.system('sed -i "s/TEST/"'+pasma+'"/g" peddar.param')
+os.system("python pedda_row.py") #transform into ped and map file
+
+
+#ABFORMAT
+shutil.copy((peddarow+"/peddar.param"), "peddar.param")
+shutil.copy((peddarow+"/pedda_row.py"), "pedda_row.py")
+#replace strings with shell command
+os.system('sed -i "s|test_FinalReport.txt|'+ onePackage.name+"_FinalReport.txt" + '|g" peddar.param') #insert FinalReport name into peddar.param
+os.system('sed -i "s|Dominant |Dominant_|g" ' + onePackage.name+"_FinalReport.txt") #problem Dominant Red with a space
+os.system('sed -i "s|Dominant |Dominant_|g" ' + onePackage.name+'_SNP_Map.txt') ##problem Dominant Red with a space
+os.system('sed -i "s/test_outputfile/"'+onePackage.name+"_AB"+'"/g" peddar.param') #insert OutPut name into peddar.param
+os.system('sed -i "s/test_SNPMap.txt/"'+onePackage.name+'_SNP_Map.txt'+'"/g" peddar.param') #insert SNPMap name into peddar.param
+os.system('sed -i "s/AlleleFormat/"'+"ab"+'"/g" peddar.param') #insert desired AlleleFormat name into peddar.param
 os.system('sed -i "s/TEST/"'+pasma+'"/g" peddar.param')
 os.system("python pedda_row.py") #transform into ped and map file
 

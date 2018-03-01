@@ -38,9 +38,9 @@ def skupniKCSN(row):
 
 #funkcija, ki uporabi zgornje, da skreira tabelo Kapa Kazeina
 def CreateKapaGenotype(GenoDir, GenoName):
-    #GenoDir = sys.argv[1]#'/home/jana//Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/AB/IDBv03/Genotipi_13112017/'
-    #GenoName = sys.argv[2]#'AB_we_bl_03112017_IDBv03_CleanIndsMarkers_'
-    #KapaCSN = pd.DataFrame()
+    GenoDir = sys.argv[1]#'/home/jana//Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/AB/IDBv03/Genotipi_13112017/'
+    GenoName = sys.argv[2]#'AB_we_bl_03112017_IDBv03_CleanIndsMarkers_'
+    KapaCSN = pd.DataFrame()
 
     
     #################################################################################
