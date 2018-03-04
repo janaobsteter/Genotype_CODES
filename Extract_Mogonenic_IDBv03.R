@@ -96,5 +96,5 @@ GenTable <- merge(GenTable, kapaCSN, by="ID", all.x=TRUE)
 #GenTable <- GenTable[,c("1,8,9,11,10,12,13"ID)]
 
 #zapiši to tabelo
-write.csv(GenTable, paste0(WorkingDir, "MonogenicGenotypes_Table.csv"), quote=FALSE, row.names=FALSE)
+write.table(GenTable, paste0(WorkingDir, "MonogenicGenotypes_Table.csv"), quote=FALSE, row.names=FALSE, sep="\t")
 print("Successfully created MonogenicGenotypes_Table.csv")

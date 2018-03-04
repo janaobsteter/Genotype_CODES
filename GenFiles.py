@@ -923,7 +923,7 @@ class genZipPackage:
                 self.zipFile.extract(self.snpmapname)
                 zipfile.ZipFile(self.snpmapname).extractall()
                 #os.remove(self.snpmapname)
-                shutil.move('SNP_Map.txt', self.name + '_SNP_Map.txt')
+                shutil.move(self.snpmapname, self.name + '_SNP_Map.txt')
             else:
                 self.zipFile.extract(self.snpmapname)
                 shutil.move(self.snpmapname, self.name + '_SNP_Map.txt')
