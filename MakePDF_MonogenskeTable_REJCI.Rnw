@@ -15,6 +15,8 @@
 \captionsetup{justification=raggedright,singlelinecheck=false}
 <<loaddata, echo=FALSE, message=FALSE>>=
 
+snpi <- read.csv('/home/jana/Documents/F4F/TabelaMonogenskeBolezniSNPi.csv')
+
 credaTable <- subset(snpi, snpi$CRE_SIFRA_CREDA==c)
 credaGen <- credaTable[,c(1,seq(5, ncol(credaTable), by=3))]
 colnames(credaGen) <- c("ID", "Weaverg", "Arahnomelijag", "ABCG2g", "KappaCasein Bg", "KappaCasein Eg", "SMAg")
@@ -23,7 +25,7 @@ credaGen$Arahnomelija <- ifelse( credaGen$Arahnomelijag == "AA", "Zdrava", ifels
 credaGen$ABCG2 <- ifelse( credaGen$ABCG2g == "AA", "Dve kopiji alela A", ifelse( credaGen$ABCG2g == "AB"| credaGen$ABCG2g == "BA",  "Ena kopija alela A", NA) )
 credaGen$SMA <- ifelse( credaGen$SMAg == "BB", "Zdrava", ifelse( credaGen$SMAg == "AB"| credaGen$SMAg == "BA",  "Prenašalka", NA) )
 credaGen <- merge(credaGen, kapaCSN, by="ID", all.x=TRUE)
-credaGen <- merge(credaGen, betaCSN, by="ID", all.x=TRUE)
+#credaGen <- merge(credaGen, betaCSN, by="ID", all.x=TRUE)
 credaGen <- credaGen[,c(1,8,9,11,10,12)]
 
 rejci <- read.csv('~/Documents/F4F/OdbiraZivali/RejciImena_15032017.csv')
