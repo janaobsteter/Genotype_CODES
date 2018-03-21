@@ -1,5 +1,5 @@
-ped <- read.table("/home/jana/bin/AlphaSim1.05Linux/REALFillIn20BurnIn20/SimulatedData/PedigreeAndGeneticValues_cat.txt", header=TRUE)
-ped$herd <- kmeans(ped[,c("Mother", "gvNormUnres1", "phenoNormUnres1")], 100)
+ped <- read.table("/home/jana/Documents/PhD/CompBio/TestingGBLUP/PedigreeAndGeneticValues_cat.txt", header=TRUE)
+#ped$herd <- kmeans(ped[,c("Mother", "gvNormUnres1", "phenoNormUnres1")], 100)
 
 pedK <- ped[ped$cat=="k",c("Indiv", "Mother", "gvNormUnres1", "phenoNormUnres1")]
 

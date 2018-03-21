@@ -141,6 +141,27 @@ ggplot(data = genGain, aes(x=genGain$Gen, y=genGain$stSD, colour=genGain$scenari
 
 ########################################################
 ########################################################
+
+genInt <- read.csv("~/GENINT.txt", sep=" ")
+genInt$label <- paste0(genInt$line, genInt$sex)
+genInt <- genInt[genInt$Gen != "Gen",]
+colnames(genInt)[5] <- "Scenario"
+genInt$Scenario <- as.character(genInt$Scenario)
+genInt$scenario <- sapply(strsplit(genInt$Scenario, split='_', fixed=TRUE), `[`, 4)
+genInt$rep <- sapply(strsplit(genInt$Scenario, split='_', fixed=TRUE), `[`, 5)
+genInt$strategy <- sapply(strsplit(genInt$Scenario, split='_', fixed=TRUE), `[`, 3)
+
+genInt$genInt <- as.numeric(as.character(genInt$genInt))
+genIntA <- aggregate(genInt$genInt  ~ genInt$scenario + genInt$label + genInt$strategy, FUN="mean")
+write.csv(genIntA, "~/Documents/PhD/Simulaton/AllThreeSireStrategy_GenINT.txt", quote=FALSE, row.names=FALSE)
+
+theme_set(theme_gray(base_size = 14))
+plotClas <- ggplot(genInt, aes(x=Gen, y=genInt, group=label, colour=label)) + geom_path() + xlab("Generation") + ylab("Generation interval [years]") + 
+  scale_color_grey("Selection path", labels=c("dam>dam", "dam>sire", "sire>dam", "sire>sire")) + ggtitle("Conventional")
+genInt$Scenario <- "Class"
+GI <- rbind(GI, genInt)
+
+
 GI <- data.frame()
 genInt <- read.csv("~/bin/AlphaSim1.05Linux/REAL20GenSel_Class1/GenInts.txt", sep=" ")
 genInt$label <- paste0(genInt$line, genInt$sex)
