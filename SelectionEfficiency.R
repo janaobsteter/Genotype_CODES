@@ -216,7 +216,7 @@ for (scenario in unique(Averages$scenario)) {
     maxmin[row,] <- c(scenario, min(Averages$SDGenic[Averages$scenario==scenario]), max(Averages$SDGenic[Averages$scenario==scenario]), min(Averages$MeanGenic[Averages$scenario==scenario]), max(Averages$MeanGenic[Averages$scenario==scenario]))
     row <- row +1
 }
-#to je max min za gensko varianco
+#to je max min za gensko varianco st na genetsko
 maxmin <- data.frame(scenario=NA, minGenicSD=NA, maxGenicSD=NA, minTGV=NA, maxTGV=NA)
 row = 1
 for (scenario in unique(Averages$scenario)) {
@@ -299,7 +299,7 @@ ggplot(data = TGVsAll, aes(x=SDGenicSt, y=zMeanGenic, group=Group, colour=scenar
                                         color=scenario, linetype=scenario, group=scenario), arrow=arrow(), show.legend=FALSE, size=1.5)
 
 #o je z na genetsko standadrizirano gensko variacno
-Year1Eff <- ggplot(data = TGVsAll, aes(x=GENICSd_St, y=MeanGENIC_genetic, group=Group, colour=scenario, linetype=scenario)) + 
+Year1 <- ggplot(data = TGVsAll, aes(x=GENICSd_St, y=MeanGENIC_genetic, group=Group, colour=scenario, linetype=scenario)) + 
   scale_x_reverse(sec.axis=sec_axis(trans=~1-.,                                   
                                                                                                      name="Converted/Lost genic standard deviation")) +
   #geom_smooth( se=FALSE, formula=y~x+1, method="lm") + 
@@ -665,3 +665,13 @@ Genetic <- ggplot(data = TGVsAll, aes(x=Generation, y=sd, group = scenario, colo
 Genic <- ggplot(data = TGVsAll, aes(x=Generation, y=zSdGenic, group = scenario, colour=scenario)) + geom_point() + geom_smooth(se=FALSE) +
   scale_colour_discrete("Variance", labels=c("Class1", "Gen for all cows", "Gen for selection for progeny testing","Gen for bull dams",  "Gen for other cows")) + 
   ylab("Genic variance")
+
+
+
+
+
+grid.arrange(arrangeGrob(Orig + theme(legend.position="none", axis.title = element_blank(), title=element_text("a")), 
+                         Pb1 + theme(legend.position="none", axis.title=element_blank()),
+                         Year1 + theme(legend.position="none", axis.title=element_blank()), nrow=1), nrow=1)
+             
+
