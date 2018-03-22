@@ -414,7 +414,7 @@ class pedigree(classPed):
                            'cat': ['nr'] * (stNR - potomciNPn) + ['potomciNP'] * potomciNPn,
                            'sex': ['F', 'M'] * int(stNR / 2), \
                            'Generation': [(max(self.ped.Generation) + 1)] * stNR, \
-                           'EBV': list(np.random.uniform(0, 0, stNR)), \
+                           'EBV': list(np.random.uniform(0.004, 1.5, stNR)), \
                            'Mother': [0] * stNR,
                            'Father': [0] * stNR,
                            'active': [1] * stNR}, \
@@ -684,7 +684,7 @@ class pedigree(classPed):
         pripustOce = self.catCurrent_indiv('pripust1') + self.catCurrent_indiv('pripust2')
         testiraniOce = list(chain.from_iterable([self.catCurrent_indiv_age('pb', (2 + cak + 1 + x)) for x in range(1,
                                                                                                             pbUp + 1)]))  # v času, ko določaš potomce, so že eno leto starjši!!!
-        gentestiraniOce = list(chain.from_iterable([self.catCurrent_indiv_age('gpb', x + 1) for x in range(1,
+        gentestiraniOce = list(chain.from_iterable([self.catCurrent_indiv_age('gpb', x+1) for x in range(1,
                                                                                                     pbUp + 1)]))  # v času, ko določaš potomce, so že eno leto starjši!!!
         mladiOceBest = self.catCurrent_indiv_sex_CriteriaEBV('mladi', 'M', 4)
         cakOcetjeBest = list(chain.from_iterable([self.catCurrent_indiv_age_CriteriaEBV('cak', (2 + x), 4) for x in range(1, cak + 1)]))
@@ -693,20 +693,8 @@ class pedigree(classPed):
         # this if for the rest of the new born population - 'mix' semen of all potential fathers
         #first - according to the given % - how many offsprign will be produced by genomically tested bulls
 
-        #here choose the classically tested bulls --> get the doses
-        ClassOcetje = list(testiraniOce * pozitivnoTestDoz + mladiOce * mladiDoz) if testiraniOce else [] #progeny teste fathers - keep the ratios between young / natural service / PT
-        PripustOcetje = list(pripustOce * pripustDoz)
-        if NbGenTest == stNB: #če naj bo kompletna splošna populacija semenjena samo z genomskimi (mlade, čakajoče si tako dala v gpb)
-            GenOcetje = list(gentestiraniOce * pozitivnoTestDoz) if 'gpb' in self.cat() else [] #dokler še imaš progene, uporabljaj mešano seme, potem ostanejo tako samo genomsko
-            Ocetje = random.sample(ClassOcetje + GenOcetje + PripustOcetje, stNB - potomciNPn * 2)
-        if NbGenTest == 0: #če je % semenjenih z genomskimi 0, semeni samo z pb, mladimi in pripustom
-            Ocetje = random.sample(ClassOcetje + PripustOcetje, stNB - potomciNPn * 2)
-        if NbGenTest > 0 and NbGenTest < stNB: #če je odstotek nekje med 0 in 100, semeni točno določen del z genomskimi, preostalo mix klasike in pripusta
-            GenOcetje = list(np.random.choice(gentestiraniOce, (NbGenTest), replace=True)) if 'gpb' in self.cat() else []
-            ClassOcetje = random.sample(ClassOcetje + PripustOcetje, stNB - NbGenTest - potomciNPn*2)
-            Ocetje = GenOcetje + ClassOcetje
 
-        return(set(list(GenOcetje + ClassOcetje)))
+        return(testiraniOce, gentestiraniOce)
 
     def save_cat_DF(self):
         categoriesDF = pd.DataFrame.from_dict(self.save_cat(), orient='index').transpose()
@@ -1393,14 +1381,14 @@ def odbira_mater(pedFile, **kwargs):
         ped.izloci_cat('bm', categories)
 
     #tukaj določi, katere bodo matere
-    return(ped.izberi_matere(kwargs.get('stNBn'), kwargs.get('potomciNPn'), kwargs.get('ptn'), kwargs.get('kraveUp')))
+    return(ped, (ped.izberi_matere(kwargs.get('stNBn'), kwargs.get('potomciNPn'), kwargs.get('ptn'), kwargs.get('kraveUp'))))
 
 
 #odberi testirane ocete
-def odberi_testOce(pedFile, **kwargs):
+def odberi_testOce(ped, **kwargs):
     
     print kwargs
-    ped = pedigree(pedFile)
+    #ped = pedigree(pedFile)
 
     # določi spol
     # ped.set_sex_AlphaSim(kwargs.get('AlphaSimDir'))
@@ -1427,21 +1415,7 @@ def odberi_testOce(pedFile, **kwargs):
         sex = ped.create_sexDict('Sex_gen' + str(max(ped.gens())) + 'DF.csv')
         active = ped.create_activeDict('Active_gen' + str(max(ped.gens())) + 'DF.csv')
 
-        # določi spol po AlphaSIm - ampak to ni potrebno, ker je vseskozi external pedigre
-    # ped.set_sex_AlphaSim(kwargs.get('AlphaSimDir'))
 
-    ped.set_sex_prevGen(sex)  # add sex information for individuals from prevGen
-    ped.set_active_prevGen(active)  # add active information for individuals from prevGen
-
-    # remove category information from the ped itself
-    for i in ped.gens():
-        ped.set_cat_gen(i, "")
-
-    # transfer culled (izlocene) category from prevGen
-    ped.set_cat_old('izl', 'izl', categories)
-
-    # compute age of the animals in the current selection year
-    ped.compute_age()
     #################################################################
     # MALES
     #################################################################
@@ -1571,11 +1545,11 @@ def odberi_testOce(pedFile, **kwargs):
         ped.set_cat_old('pb', 'pb', categories)
         ped.set_active_cat('pb', 2, categories)
 
-
-    return(ped.izberi_ocete(kwargs.get('stNBn'), kwargs.get('potomciNPn'), kwargs.get('cak'), kwargs.get('pbUp'),
+    print ped.cat()
+    return(ped, (ped.catCurrent_indiv('genTest'), ped.izberi_ocete(kwargs.get('stNBn'), kwargs.get('potomciNPn'), kwargs.get('cak'), kwargs.get('pbUp'),
                      kwargs.get('pripustDoz'), kwargs.get('mladiDoz'), kwargs.get('pozitivnoTestDoz'),
                      kwargs.get('CowsGenBulls_Per'), kwargs.get('EliteDamsPTBulls'), kwargs.get('EliteDamsGenBulls'), kwargs.get('EliteDamsPABulls'),
-                     kwargs.get('genTest_mladi'), kwargs.get('genTest_gpb')))
+                     kwargs.get('genTest_mladi'), kwargs.get('genTest_gpb'))))
 
 
 

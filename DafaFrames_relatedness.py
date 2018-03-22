@@ -7,13 +7,13 @@ os.chdir("/home/jana/Documents/PhD/CompBio/")
 herds = pd.read_table("/home/jana/Documents/PhD/CompBio/TestingGBLUP/PedCows_HERDS.txt", sep=" ")
 IndGeno = pd.read_table("/home/jana/Documents/PhD/CompBio/IndForGeno_5gen.txt", header=None)
 
-RefAsum = defaultdict()
+RefAmean = defaultdict()
 
 
 number = 1
 
-for herd1 in range(1, 3):
-        for herd2 in range(herd1,3):
+for herd1 in range(1, 101):
+        for herd2 in range(herd1,101):
 
             ref = sorted(list(herds.Indiv[herds.cluster.isin([herd1, herd2])])) #tukaj odberi živali v obeh čredah
 
@@ -28,19 +28,24 @@ for herd1 in range(1, 3):
             refA = a.loc[:, ref]
 
 
-            sumRef = sum(refA).sum()
+            meanRef = mean(refA).mean()
 
-            RefAsum[number] = [herd1, herd2, sumRef]
+            RefAmean[number] = [herd1, herd2, meanRef]
             number = number + 1
 
 
-RefDF = pd.DataFrame.from_dict(RefAsum, orient="index")
+RefDF = pd.DataFrame.from_dict(RefAmean, orient="index")
 RefADF = RefDF.drop_duplicates()
-RefADF.to_csv("Ref)
+RefADF.columns = ["Herd1", "Herd2", "A"]
+RefADF.to_csv("RefADF_mean.csv", index=None)
 
 
-NapAsum = defaultdict()
-PbAsum = defaultdict()
+ped = pd.read_table("/home/jana/Documents/PhD/CompBio/PedigreeAndGeneticValues_cat.txt", sep=" ")
+nr = ped.Indiv[ped.cat.isin(['potomciNP'])]
+pb = ped.Indiv[ped.cat == 'pb']
+
+NapAmean = defaultdict()
+PbAmean = defaultdict()
 number = 1         
 for herd in range(1,101):
             ref = sorted(list(herds.Indiv[herds.cluster == herd])) #tukaj odberi živali v obeh čredah
@@ -54,9 +59,20 @@ for herd in range(1,101):
 
             refnapA = a.loc[:, list(nr)] # sorodstvo z napovedno populacijo
             refpbA = a.loc[:, list(pb)] # orodstvo s plemenskimi biki
-            sumRefNap = sum(refnapA).sum()
-            sumRefPb = sum(refpbA).sum()
+            meanRefNap = mean(refnapA).mean()
+            meanRefPb = mean(refpbA).mean()
 
-            NapAsum[number] = [herd, sumRefNap]
-            PbAsum[number] = [herd, sumRefPb]
+            NapAmean[number] = [herd, meanRefNap]
+            PbAmean[number] = [herd, meanRefPb]
             number = number + 1
+            
+            
+            
+NapADF = pd.DataFrame.from_dict(NapAmean, orient="index")
+NapADF.columns = ["Herd","A"]
+NapADF.to_csv("NapADF_mean.csv", index=None)
+
+
+PbADF = pd.DataFrame.from_dict(PbAmean, orient="index")
+PbADF.columns = ["Herd","A"]
+PbADF.to_csv("PbADF_mean.csv", index=None)

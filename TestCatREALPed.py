@@ -2,7 +2,7 @@
 import ast
 WorkingDir = "/home/jana/"
 os.chdir(WorkingDir)
-scenario = "GenSLO"
+scenario = "Gen"
 par = pd.read_csv(WorkingDir + "/Essentials/SelectionParam_" + scenario + ".csv", header=None, names=["Keys", "Vals"])
 par.to_dict()
 selPar = defaultdict()
@@ -51,7 +51,7 @@ selPar['pozitivnoTestDoz'] = 2000
 selPar['pbUp'] = 1
 
 IndCat = pd.DataFrame()
-ped0, c0, s0, a0 = selekcija_total("/home/jana/GenPed_EBV.txt", **selPar)
+ped0, c0, s0, a0 = selekcija_total("/home/jana/bin/AlphaMateLinux/OCSSloPop/GenPed_EBV.txt", **selPar)
 
 inds = ped0.catCurrent_indiv('')
 Cats = []
