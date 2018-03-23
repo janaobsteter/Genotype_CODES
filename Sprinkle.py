@@ -9,7 +9,7 @@ class MoviePlayer(QWidget):
         super(MoviePlayer, self).__init__(parent)
 
         self.setGeometry(200, 200, 400, 400)
-        self.setWindowTitle("KDO SI????")
+        self.setWindowTitle("A je Vid mal trmast????")
 
         self.movie_screen = QLabel()
         self.movie_screen.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -18,11 +18,12 @@ class MoviePlayer(QWidget):
         self.gif2 = gif2
 
         btn_start = QLabel()
-        btn_start.setText("Kdo si ti?")
+        btn_start.setText("A je Vid mal trmast?")
 
 
         self.entered = QLineEdit()
         self.entered.returnPressed.connect(self.start)
+        self.entered.textEdited.connect(self.stop)
 
 
         main_layout = QVBoxLayout()
@@ -40,12 +41,12 @@ class MoviePlayer(QWidget):
         """
         Start animation
         """
-        if str(self.entered.text().toUtf8()).upper() == "MAVRICNA MRVICA":
+        if str(self.entered.text().toUtf8()).upper() == "JA":
             self.movie = QMovie(self.gif1, QByteArray(), self)
             self.movie.setCacheMode(QMovie.CacheAll)
             self.movie.setSpeed(100)
             self.movie_screen.setMovie(self.movie)
-        if str(self.entered.text().toUtf8()).upper() != "MAVRICNA MRVICA":
+        if str(self.entered.text().toUtf8()).upper() == "NE":
             self.movie = QMovie(self.gif2, QByteArray(), self)
             self.movie.setCacheMode(QMovie.CacheAll)
             self.movie.setSpeed(100)
@@ -56,12 +57,12 @@ class MoviePlayer(QWidget):
         """
         Stop the animation
         """
-        if str(self.entered.text().toUtf8()).upper() == "MAVRICNA MRVICA":
+        if str(self.entered.text().toUtf8()).upper() != "JA":
             self.movie = QMovie(self.gif1, QByteArray(), self)
             self.movie.setCacheMode(QMovie.CacheAll)
             self.movie.setSpeed(100)
             self.movie_screen.setMovie(self.movie)
-        if str(self.entered.text().toUtf8()).upper() != "MAVRICNA MRVICA":
+        if str(self.entered.text().toUtf8()).upper() != "NE":
             self.movie = QMovie(self.gif2, QByteArray(), self)
             self.movie.setCacheMode(QMovie.CacheAll)
             self.movie.setSpeed(100)
@@ -70,6 +71,6 @@ class MoviePlayer(QWidget):
 
 
 app = QApplication(sys.argv)
-player = MoviePlayer("/home/jana/Genotipi/Genotipi_CODES/sprinkle.gif", "/home/jana/Genotipi/Genotipi_CODES/No.gif", )
+player = MoviePlayer("/home/jana/Downloads/giphy.gif", "/home/jana/Downloads/giphy1.gif" )
 player.show()
 sys.exit(app.exec_())
