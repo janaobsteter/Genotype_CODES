@@ -585,7 +585,7 @@ class pedigree(classPed):
 
         if 'k' in self.cat():  # TUKAJ SO DOLOČENE SEDAJ VSE MATERE!!!
             mother = self.select_mother_EBV_top('k', int(
-                (ptn * kraveUp * 0.9)))  # tukaj odberi brez tistih, ki so za gospodarsko križanje
+                round(ptn * kraveUp * 0.9)))  # tukaj odberi brez tistih, ki so za gospodarsko križanje
             if len(mother) >= (
                         stNB - sTbmMother):  # če že imaš dovolj krav, določi matere vsem novorojenim oz. odbiraš matere, saj jih imaš preveč!
                 motherOther = random.sample(mother, (stNB - sTbmMother))
@@ -608,7 +608,7 @@ class pedigree(classPed):
 
         if 'k' in self.cat():  # TUKAJ SO DOLOČENE SEDAJ VSE MATERE!!!
             mother = self.select_mother_EBV_top('k', int(
-                (ptn * kraveUp * 0.9)))  # tukaj odberi brez tistih, ki so za gospodarsko križanje
+                round(ptn * kraveUp * 0.9)))  # tukaj odberi brez tistih, ki so za gospodarsko križanje
             if len(mother) >= (
                         stNB - sTbmMother):  # če že imaš dovolj krav, določi matere vsem novorojenim oz. odbiraš matere, saj jih imaš preveč!
                 motherOther = random.sample(mother, (stNB - sTbmMother))
@@ -1468,15 +1468,34 @@ def odberi_testOce_gen(ped, **kwargs):
     if 'vhlevljeni' in categories.keys():  # če imaš vhlevljene bike (samo v progenem testu)
         #############################
         # to je za potrebe prehoda
-        ped.set_cat_old('vhlevljeni', 'kandidati', categories)
+        if kwargs.get("genTest_gpb") and 'vhlevljeni' in [i[0] for i in kwargs[
+            'genotyped']]:  # če se greš genomsko shemo, jih takoj pogenotipiziraj in prestavi v gpb (5)
+            ped.izberi_poEBV_top("M", kwargs.get('genpbn'), "vhlevljeni", "gpb", categories)  # odberi gpb
+            ped.izberi_poEBV_OdDo("M", kwargs.get('genpbn'), (kwargs.get('genpbn') + kwargs.get('pripust1n')),
+                                  'vhlevljeni', 'pripust1',
+                                  categories)  # preostali genomsko testirani gredo v pripust
+            ped.izloci_poEBV("M", (kwargs.get("vhlevljenin") - (kwargs.get('genpbn') + kwargs.get('pripust1n'))),
+                             "vhlevljeni", categories)
+        #############################
+        else:  # drugače 8 v mlade
+            ped.izberi_poEBV_top("M", kwargs.get('mladin'), "vhlevljeni", "mladi", categories)  # odberi mlade
+            ped.izberi_poEBV_OdDo("M", kwargs.get('mladin'), kwargs.get('vhlevljenin'), "vhlevljeni", "pripust1",
+                                  categories)  # preostali vhlevljeni gredo v pripust
 
     # age > 2: tukaj mladi biki postanejo cakajoci in cakajo v testu
     # po koncanem testu odberes pozitivno testirane PB
     # mladi biki postanejo čakajoči (~1 leto, da se osemeni krave s semenom oz. malo po 2. letu)
     if 'mladi' in categories.keys():
         #############################
-        ped.set_cat_old('mladi', 'kandidati', categories)
-
+        # to je za potrebe prehoda
+        if kwargs.get("genTest_gpb") and 'mladi' in [i[0] for i in kwargs[
+            'genotyped']]:  # če se greš genomsko shemo, jih takoj pogenotipiziraj in prestavi v gpb (5)
+            ped.izberi_poEBV_top("M", kwargs.get('genpbn'), "mladi", "gpb", categories)
+            ped.izloci_poEBV("M", (kwargs.get("mladin") - kwargs.get("genpbn")), "mladi", categories)
+        ###########################
+        else:
+            ped.set_cat_old('mladi', 'cak', categories)  # mlade prestavi v cakajoce in jih izloci iz populacije
+            ped.set_active_cat('mladi', 2, categories)
 
     # čakajočim bikov podaljšaj status (do starosti 5 let oz. kolikor let v testu)
     # hkrati jim tudi nastavi status izl
@@ -1484,7 +1503,28 @@ def odberi_testOce_gen(ped, **kwargs):
     if 'cak' in categories.keys():
         #############################
         # to je za potrebe prehoda
-        ped.set_cat_old('cak', 'kandidati', categories)
+        if kwargs.get("genTest_gpb") and 'cak' in [i[0] for i in kwargs[
+            'genotyped']]:  # če se greš genomsko shemo, jih takoj pogenotipiziraj in prestavi v gpb (5)
+            ped.izberi_poEBV_top("M", kwargs.get('genpbn') * kwargs.get("cak"), "cak", "gpb", categories)
+            ped.izloci_poEBV("M", ((kwargs.get("mladin") - kwargs.get('genpbn')) * kwargs.get("cak")), "cak",
+                             categories)
+        ##########################
+        else:
+            for i in range((2 + 1), (2 + kwargs.get(
+                    'cak'))):  # 1 leto, ko začnejo semenit in so mladi biki, 3 so čakajoči, +1 da začneš prestavlajt
+                ped.set_cat_age_old(i, 'cak', 'cak', categories)
+
+    # če že imaš bike dovolj dolgo v testu, odberi pozitivno testirane bike
+    if ('cak' in categories.keys()) and (
+                (kwargs.get('cak') + 2) in ped.age()) and (
+            kwargs.get("EBV") or kwargs.get("gpb_pb") or kwargs.get("genTest_mladi")) and 'cak' not in [i[0] for i in
+                                                                                                        kwargs[
+                                                                                                            'genotyped']]:  # +2 - eno leto so teleta, eno leto mladi biki, če imaš genomsko, gredo že pred do gpb
+        ped.izberi_poEBV_top_age("M", (kwargs.get('cak') + 2), kwargs.get('pbn'), 'cak', 'pb', categories)
+        ped.set_active_cat('cak', 2,
+                           categories)  # tukaj moraš to nastaviti, zato ker fja izberi avtomatsko nastavi na active=1, vsi cakajoci so izloceni
+        ped.izloci_poEBV_age("M", (kwargs.get('cak') + 2), (kwargs.get('mladin') - kwargs.get('pbn')), 'cak',
+                             categories)  # TUKAJ MORA BITI ŠE STAROST!!!!!!!!!!!
 
     # genomski test: potomciNP = genomsko testiranje -> pozitivno testirani
     if kwargs.get('gEBV'):  # v prvem letu so vsi potomciNP v genomskem testiranju oz. pridobivanju gEBV
@@ -1508,7 +1548,7 @@ def odberi_testOce_gen(ped, **kwargs):
     # pripust in pb so spet enaki pri obeh testiranjih
     # povprečna doba v pripustu - glede na to odberi bike, ki preživijo še eno leto
     if 'pripust1' in categories.keys():
-        pripust2 = int((len(categories['pripust1']) * kwargs.get('pripust2n')))
+        pripust2 = int(round(len(categories['pripust1']) * kwargs.get('pripust2n')))
         ped.izberi_random("M", pripust2, 'pripust1', 'pripust2',
                           categories)  # prestavi v 2. leto pripusta (ne vse - % glede na leta v UP)
         ped.izloci_random("M", (len(categories['pripust1']) - pripust2), 'pripust1',
@@ -1524,24 +1564,40 @@ def odberi_testOce_gen(ped, **kwargs):
 
     print ped.cat()
     return (ped, (ped.catCurrent_indiv('kandidati'),
-                  ped.izberi_ocete_gen(kwargs.get('stNBn'), kwargs.get('potomciNPn'), kwargs.get('cak'), kwargs.get('pbUp'),
+                  ped.izberi_ocete(kwargs.get('stNBn'), kwargs.get('potomciNPn'), kwargs.get('cak'), kwargs.get('pbUp'),
                                    kwargs.get('pripustDoz'), kwargs.get('mladiDoz'), kwargs.get('pozitivnoTestDoz'),
                                    kwargs.get('CowsGenBulls_Per'), kwargs.get('EliteDamsPTBulls'),
                                    kwargs.get('EliteDamsGenBulls'), kwargs.get('EliteDamsPABulls'),
                                    kwargs.get('genTest_mladi'), kwargs.get('genTest_gpb'))))
 
-def odberiStarse_OCSgen(pedigree_genEBV, AlphaRelateDir, **selPar):
+def odberiStarse_OCSgen_PrvoLeto(pedigree_cat, pedigree_genEBV):
+    # GenPed_EBV.txt in PedigreeAndGeneticValues_cat.txt sta ista pedigreja- samo z rauličnimi informacijami
+    pedCat = pd.read_table(pedigree_cat,  sep=" ")
     # tukaj odberi metere
     ped, (bm, motherOther) = odbira_mater(pedigree_genEBV, **selPar)
     # tukaj odberi random sample krav
     motherSample = random.sample(motherOther, int(len(motherOther) * 0.2)) + random.sample(bm, int(len(bm) * 0.2))
 
-    #tukaj odberi očete - kandidati so drugačni v prvem letu (mladi + vhlevljeni + čakajoči), kasneje pa so to genTest
-    ped, (kandidati, (genOce)) = odberi_testOce_gen(ped, **selPar)
+    nMating = int(len(motherOther) * 0.2 + int(len(bm) * 0.2))
 
-    pd.DataFrame({"ID": list(motherSample) + list(kandidati) + list(genOce)}).to_csv(AlphaRelateDir + "/IndOpt.txt", index=None, header=None)
+    potOce = pedCat.Indiv[pedCat.cat.isin(["vhlevljeni", "mladi", "cakajoci"])]
 
-    return ped
+    pd.DataFrame({"ID": list(motherSample) + list(potOce)}).to_csv( "IndOpt.txt", index=None, header=None)
+    #TUKAJ MANJKA ALPHAMATE KORAK
+
+def odberiStarse_OCSgen(pedigree_cat, pedigree_genEBV):
+    # GenPed_EBV.txt in PedigreeAndGeneticValues_cat.txt sta ista pedigreja- samo z rauličnimi informacijami
+    pedCat = pd.read_table(pedigree_cat,  sep=" ")
+    # tukaj odberi metere
+    ped, (bm, motherOther) = odbira_mater(pedigree_genEBV, **selPar)
+    # tukaj odberi random sample krav
+    motherSample = random.sample(motherOther, int(len(motherOther) * 0.2)) + random.sample(bm, int(len(bm) * 0.2))
+    kandidati = pedCat.Indiv[pedCat.cat.isin(["genTest", "gpb" ])]
+
+    ped, (genTest, (classOce, genOce)) = odberi_testOce(ped, **selPar)
+
+    pd.DataFrame({"ID": list(motherSample) + list(genOce) + list(kandidati)}).to_csv( "IndOpt.txt", index=None, header=None)
+    #TUKAJ MANJKA ALPHAMATE KORAK
 
 class AlphaRelate(object):
         def __init__(self, AlphaRelateDir, AlphaSimDir):

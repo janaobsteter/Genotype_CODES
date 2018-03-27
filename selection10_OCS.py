@@ -59,7 +59,7 @@ class pedigree(classPed):
         catInd = self.catCurrent_indiv(cat)
         categories = []
         for ind in catInd:
-            for (key, value) in prevGenDict.iteritems():
+           for (key, value) in prevGenDict.iteritems():
                 if ind in value:
                     categories.append(key)
         return categories
@@ -207,6 +207,7 @@ class pedigree(classPed):
         if criteria == 'PA':
             return self.catCurrent_indiv_sex_CriteriaPA(cat, sex, number)
 
+
     def cat_active(self, cat):
         return self.ped.loc[self.ped.cat == cat, 'active'].value_counts()
 
@@ -243,8 +244,7 @@ class pedigree(classPed):
 
     def izloci_poEBV_age(self, sex, age, stIzl, oldcat, prevGenDict):
         izlRow = list(self.ped.loc[(self.ped.age == age) & (self.ped.sex == sex) & (
-            self.ped.Indiv.isin(prevGenDict[oldcat])), 'EBV'].sort_values(ascending=True)[
-                      :stIzl].index)  # katere izločiš
+        self.ped.Indiv.isin(prevGenDict[oldcat])), 'EBV'].sort_values(ascending=True)[:stIzl].index)  # katere izločiš
         if len(izlRow) < stIzl:
             print("Too little animals to choose from. <{} {}>".format("izloci po EBV_age", oldcat))
         else:
@@ -284,7 +284,7 @@ class pedigree(classPed):
 
     def izberi_poEBV_top_age(self, sex, age, st, oldcat, cat, prevGenDict):
         selRow = list(self.ped.loc[(self.ped.age == age) & (self.ped.sex == sex) & (
-            self.ped.Indiv.isin(prevGenDict[oldcat])), 'EBV'].sort_values(ascending=False)[:st].index)  # katere izbereš
+        self.ped.Indiv.isin(prevGenDict[oldcat])), 'EBV'].sort_values(ascending=False)[:st].index)  # katere izbereš
         if len(selRow) < st:
             print("Too little animals to choose from. <{} {} > {}>".format("izberi po EBV_topAge", oldcat, cat))
         else:
@@ -322,7 +322,7 @@ class pedigree(classPed):
 
     def izberi_random(self, sex, st, oldcat, cat, prevGenDict):
         freeRow = list(self.ped.loc[(self.ped.sex == sex) & (self.ped.Indiv.isin(prevGenDict[oldcat])) & (
-            self.ped.cat == "")].index)  # rows with no assigned category
+        self.ped.cat == "")].index)  # rows with no assigned category
         if len(freeRow) < st:
             print("Too little animals to choose from. <{} {} > {}>".format("izberi random", oldcat, cat))
         else:
@@ -332,7 +332,7 @@ class pedigree(classPed):
 
     def izberi_random_age(self, sex, age, st, oldcat, cat, prevGenDict):
         freeRow = list(self.ped.loc[(self.ped.age == age) & (self.ped.sex == sex) & (
-            self.ped.Indiv.isin(prevGenDict[oldcat])) & (self.ped.cat == "")].index)  # rows with no assigned category
+        self.ped.Indiv.isin(prevGenDict[oldcat])) & (self.ped.cat == "")].index)  # rows with no assigned category
         if len(freeRow) < st:
             print("Too little animals to choose from. <{} {} > {}>".format("izberi random", oldcat, cat))
         else:
@@ -342,7 +342,7 @@ class pedigree(classPed):
 
     def izberi_random_age_naive(self, sex, age, st, cat):
         freeRow = list(self.ped.loc[(self.ped.sex == sex) & (self.ped.age == age) & (
-            self.ped.cat == "")].index)  # rows with no assigned category
+        self.ped.cat == "")].index)  # rows with no assigned category
         if len(freeRow) < st:
             print("Too little animals to choose from. <{} {} > {}>".format("izberi random", cat))
         else:
@@ -352,7 +352,7 @@ class pedigree(classPed):
 
     def izloci_random(self, sex, st, oldcat, prevGenDict):
         freeRow = list(self.ped.loc[(self.ped.sex == sex) & (self.ped.Indiv.isin(prevGenDict[oldcat])) & (
-            self.ped.cat == "")].index)  # rows with no assigned category
+        self.ped.cat == "")].index)  # rows with no assigned category
         if len(freeRow) < st:
             print("Too little animals to choose from. <{} {}>".format("izloči random", oldcat))
         else:
@@ -362,7 +362,7 @@ class pedigree(classPed):
 
     def izloci_random_age(self, sex, age, st, oldcat, prevGenDict):
         freeRow = list(self.ped.loc[(self.ped.age == age) & (self.ped.sex == sex) & (
-            self.ped.Indiv.isin(prevGenDict[oldcat])) & (self.ped.cat == "")].index)  # rows with no assigned category
+        self.ped.Indiv.isin(prevGenDict[oldcat])) & (self.ped.cat == "")].index)  # rows with no assigned category
         if len(freeRow) < st:
             print("Too little animals to choose from. <{} {}>".format("izloči random", oldcat))
         else:
@@ -414,7 +414,7 @@ class pedigree(classPed):
                            'cat': ['nr'] * (stNR - potomciNPn) + ['potomciNP'] * potomciNPn,
                            'sex': ['F', 'M'] * int(stNR / 2), \
                            'Generation': [(max(self.ped.Generation) + 1)] * stNR, \
-                           'EBV': list(np.random.uniform(0, 0, stNR)), \
+                           'EBV': list(np.random.uniform(0.004, 1.5, stNR)), \
                            'Mother': [0] * stNR,
                            'Father': [0] * stNR,
                            'active': [1] * stNR}, \
@@ -455,16 +455,14 @@ class pedigree(classPed):
     def write_pedTotal(self, path):
         self.ped.to_csv(path, quoting=None, index=False, header=True)
 
-    def computePA_currentCat(self, cat):  # therefore you have to use this at the end of the selection cycle
+    def computePA_currentCat(self, cat): #therefore you have to use this at the end of the selection cycle
         for i in self.ped.loc[self.ped.cat == cat].index:
-            self.ped.loc[i, 'PA'] = (float(self.ped.EBV[self.ped.Indiv == self.ped.Father[i]]) + float(
-                self.ped.EBV[self.ped.Indiv == self.ped.Mother[i]])) / 2
+            self.ped.loc[i, 'PA'] = (float(self.ped.EBV[self.ped.Indiv == self.ped.Father[i]]) + float(self.ped.EBV[self.ped.Indiv == self.ped.Mother[i]])) / 2
 
-    def computePA_previousCat(self, oldcat, sex,
-                              prevGenDict):  # therefore you have to use this at the end of the selection cycle
+    def computePA_previousCat(self, oldcat, sex, prevGenDict): #therefore you have to use this at the end of the selection cycle
         for i in self.ped.loc[(self.ped.sex == sex) & (self.ped.Indiv.isin(prevGenDict[oldcat]))].index:
-            self.ped.loc[i, 'PA'] = (float(self.ped.EBV[self.ped.Indiv == self.ped.Father[i]]) + float(
-                self.ped.EBV[self.ped.Indiv == self.ped.Mother[i]])) / 2
+            self.ped.loc[i, 'PA'] = (float(self.ped.EBV[self.ped.Indiv == self.ped.Father[i]]) + float(self.ped.EBV[self.ped.Indiv == self.ped.Mother[i]])) / 2
+
 
     def izberi_poEBV_top(self, sex, st, oldcat, cat, prevGenDict):
         selRow = list(
@@ -538,7 +536,7 @@ class pedigree(classPed):
             self.izloci_cat('bm', categories)
         # ostale BM prestavi naprej
         for i in range((1 + bmOdbira + 1), (
-                        1 + bmOdbira + bmUp)):  # 1 leto prva osemenitev, bm odbrane po 2. laktaciji, +1 da začneš prestavljat
+                1 + bmOdbira + bmUp)):  # 1 leto prva osemenitev, bm odbrane po 2. laktaciji, +1 da začneš prestavljat
             self.set_cat_age_old(i, 'pBM', 'pBM', categories)
         self.set_cat_age_old((1 + bmOdbira + bmUp), 'pBM', 'bm',
                              categories)  # spremeni kategorijo iz plemenskih BM v bm v zadnji laktaciji
@@ -552,7 +550,7 @@ class pedigree(classPed):
         # hkrati jim tudi nastavi status izl
         # ped.set_cat_age_old(2, 'cak', 'cak', categories)
         for i in range((2 + 1), (
-                    2 + cak)):  # 1 leto, ko začnejo semenit in so mladi biki, 3 so čakajoči, +1 da začneš prestavlajt
+            2 + cak)):  # 1 leto, ko začnejo semenit in so mladi biki, 3 so čakajoči, +1 da začneš prestavlajt
             self.set_cat_age_old(i, 'cak', 'cak', categories)
 
         # povprečna doba v pripustu - glede na to odberi bike, ki preživijo še eno leto
@@ -585,14 +583,15 @@ class pedigree(classPed):
 
         if 'k' in self.cat():  # TUKAJ SO DOLOČENE SEDAJ VSE MATERE!!!
             mother = self.select_mother_EBV_top('k', int(
-                (ptn * kraveUp * 0.9)))  # tukaj odberi brez tistih, ki so za gospodarsko križanje
+                round(ptn * kraveUp * 0.9)))  # tukaj odberi brez tistih, ki so za gospodarsko križanje
             if len(mother) >= (
-                        stNB - sTbmMother):  # če že imaš dovolj krav, določi matere vsem novorojenim oz. odbiraš matere, saj jih imaš preveč!
+                stNB - sTbmMother):  # če že imaš dovolj krav, določi matere vsem novorojenim oz. odbiraš matere, saj jih imaš preveč!
                 motherOther = random.sample(mother, (stNB - sTbmMother))
                 self.set_mother_catPotomca(motherOther, 'nr')  # TUKAJ SO DOLOČENE SEDAJ VSE MATERE!!!
             elif len(mother) < (
-                        stNB - sTbmMother):  # če jih še ni dovolj, ne odbiraš mater, ampak uporabiš vse MINUS gosp. križanmja
+                stNB - sTbmMother):  # če jih še ni dovolj, ne odbiraš mater, ampak uporabiš vse MINUS gosp. križanmja
                 self.set_mother_catPotomca(mother, 'nr')
+
 
     def izberi_matere(self, stNB, potomciNPn, ptn, kraveUp):
         # MATERE
@@ -603,52 +602,51 @@ class pedigree(classPed):
         print self.active()
         if sTbmMother != 0:
             bmMother = self.select_mother_random('pBM', sTbmMother)
-
+            
         #
 
         if 'k' in self.cat():  # TUKAJ SO DOLOČENE SEDAJ VSE MATERE!!!
             mother = self.select_mother_EBV_top('k', int(
-                (ptn * kraveUp * 0.9)))  # tukaj odberi brez tistih, ki so za gospodarsko križanje
+                round(ptn * kraveUp * 0.9)))  # tukaj odberi brez tistih, ki so za gospodarsko križanje
             if len(mother) >= (
-                        stNB - sTbmMother):  # če že imaš dovolj krav, določi matere vsem novorojenim oz. odbiraš matere, saj jih imaš preveč!
+                stNB - sTbmMother):  # če že imaš dovolj krav, določi matere vsem novorojenim oz. odbiraš matere, saj jih imaš preveč!
                 motherOther = random.sample(mother, (stNB - sTbmMother))
-
+                
             elif len(mother) < (
-                        stNB - sTbmMother):  # če jih še ni dovolj, ne odbiraš mater, ampak uporabiš vse MINUS gosp. križanmja
+                stNB - sTbmMother):  # če jih še ni dovolj, ne odbiraš mater, ampak uporabiš vse MINUS gosp. križanmja
                 motherOther = mother
             return (list(bmMother), list(motherOther))
 
-    def doloci_ocete(self, stNB, potomciNPn, cak, pbUp, pripustDoz, mladiDoz, pozitivnoTestDoz, NbGenTest,
-                     EliteDamsPTBulls, EliteDamsGenBulls, EliteDamsPABulls, gen_mladi, gen_gpb):
+
+    def doloci_ocete(self, stNB, potomciNPn, cak, pbUp, pripustDoz, mladiDoz, pozitivnoTestDoz, NbGenTest, EliteDamsPTBulls, EliteDamsGenBulls, EliteDamsPABulls, gen_mladi, gen_gpb):
         # OČETJE
         mladiOce = self.catCurrent_indiv('mladi')
         pripustOce = self.catCurrent_indiv('pripust1') + self.catCurrent_indiv('pripust2')
         testiraniOce = list(chain.from_iterable([self.catCurrent_indiv_age('pb', (2 + cak + 1 + x)) for x in range(1,
-                                                                                                                   pbUp + 1)]))  # v času, ko določaš potomce, so že eno leto starjši!!!
+                                                                                                               pbUp + 1)]))  # v času, ko določaš potomce, so že eno leto starjši!!!
         gentestiraniOce = list(chain.from_iterable([self.catCurrent_indiv_age('gpb', x + 1) for x in range(1,
-                                                                                                           pbUp + 1)]))  # v času, ko določaš potomce, so že eno leto starjši!!!
+                                                                                                       pbUp + 1)]))  # v času, ko določaš potomce, so že eno leto starjši!!!
         mladiOceBest = self.catCurrent_indiv_sex_CriteriaEBV('mladi', 'M', 4)
-        cakOcetjeBest = list(
-            chain.from_iterable([self.catCurrent_indiv_age_CriteriaEBV('cak', (2 + x), 4) for x in range(1, cak + 1)]))
+        cakOcetjeBest = list(chain.from_iterable([self.catCurrent_indiv_age_CriteriaEBV('cak', (2 + x), 4) for x in range(1, cak + 1)]))
         print 'GenTest{0}'.format(str(len(gentestiraniOce)))
 
         # set fathers for offspring of contracted mating
         bmMother = (potomciNPn * 2) if len(self.catCurrent_indiv('pBM')) >= (potomciNPn * 2) else len(
             self.catCurrent_indiv('pBM'))  # the number of elite dams - they are the limiting factor
         # for classical testing - if you already have elite bulls
-        if EliteDamsPTBulls:  # whether the elite dams are inseminated with genomicaly tested or progeny tested bulls
+        if EliteDamsPTBulls: #whether the elite dams are inseminated with genomicaly tested or progeny tested bulls
             if testiraniOce:
                 elita = np.random.choice(testiraniOce, bmMother, replace=True)
-                #       pd.Series(elita).value_counts()#preveri zastopanost po bikih
+                    #       pd.Series(elita).value_counts()#preveri zastopanost po bikih
                 # naštimaj očete elite --> BM
-        if EliteDamsGenBulls:  # if with genomically tested
+        if EliteDamsGenBulls: #if with genomically tested
             if gen_mladi:
                 genMladiOcetje = mladiOceBest + cakOcetjeBest
                 elita = np.random.choice(genMladiOcetje, bmMother, replace=True)
             if gen_gpb:
-                if gentestiraniOce:  # if you already have genomically proven bulls
+                if gentestiraniOce: #if you already have genomically proven bulls
                     elita = np.random.choice(gentestiraniOce, bmMother, replace=True)
-                else:  # otherwise inseminate with progeny tested until genomically tested become proven
+                else: #otherwise inseminate with progeny tested until genomically tested become proven
                     elita = np.random.choice(testiraniOce, bmMother, replace=True)
 
         if EliteDamsPABulls:
@@ -660,32 +658,43 @@ class pedigree(classPed):
 
         self.set_father_catPotomca(elita, 'potomciNP')
 
-        # this if for the rest of the new born population - 'mix' semen of all potential fathers
-        # first - according to the given % - how many offsprign will be produced by genomically tested bulls
 
-        # here choose the classically tested bulls --> get the doses
-        ClassOcetje = list(
-            testiraniOce * pozitivnoTestDoz + mladiOce * mladiDoz) if testiraniOce else []  # progeny teste fathers - keep the ratios between young / natural service / PT
+        # this if for the rest of the new born population - 'mix' semen of all potential fathers
+        #first - according to the given % - how many offsprign will be produced by genomically tested bulls
+
+        #here choose the classically tested bulls --> get the doses
+        ClassOcetje = list(testiraniOce * pozitivnoTestDoz + mladiOce * mladiDoz) if testiraniOce else [] #progeny teste fathers - keep the ratios between young / natural service / PT
         PripustOcetje = list(pripustOce * pripustDoz)
-        if NbGenTest == stNB:  # če naj bo kompletna splošna populacija semenjena samo z genomskimi (mlade, čakajoče si tako dala v gpb)
-            GenOcetje = list(
-                gentestiraniOce * pozitivnoTestDoz) if 'gpb' in self.cat() else []  # dokler še imaš progene, uporabljaj mešano seme, potem ostanejo tako samo genomsko
+        if NbGenTest == stNB: #če naj bo kompletna splošna populacija semenjena samo z genomskimi (mlade, čakajoče si tako dala v gpb)
+            GenOcetje = list(gentestiraniOce * pozitivnoTestDoz) if 'gpb' in self.cat() else [] #dokler še imaš progene, uporabljaj mešano seme, potem ostanejo tako samo genomsko
             Ocetje = random.sample(ClassOcetje + GenOcetje + PripustOcetje, stNB - potomciNPn * 2)
-        if NbGenTest == 0:  # če je % semenjenih z genomskimi 0, semeni samo z pb, mladimi in pripustom
+        if NbGenTest == 0: #če je % semenjenih z genomskimi 0, semeni samo z pb, mladimi in pripustom
             Ocetje = random.sample(ClassOcetje + PripustOcetje, stNB - potomciNPn * 2)
-        if NbGenTest > 0 and NbGenTest < stNB:  # če je odstotek nekje med 0 in 100, semeni točno določen del z genomskimi, preostalo mix klasike in pripusta
-            GenOcetje = list(
-                np.random.choice(gentestiraniOce, (NbGenTest), replace=True)) if 'gpb' in self.cat() else []
-            ClassOcetje = random.sample(ClassOcetje + PripustOcetje, stNB - NbGenTest - potomciNPn * 2)
+        if NbGenTest > 0 and NbGenTest < stNB: #če je odstotek nekje med 0 in 100, semeni točno določen del z genomskimi, preostalo mix klasike in pripusta
+            GenOcetje = list(np.random.choice(gentestiraniOce, (NbGenTest), replace=True)) if 'gpb' in self.cat() else []
+            ClassOcetje = random.sample(ClassOcetje + PripustOcetje, stNB - NbGenTest - potomciNPn*2)
             Ocetje = GenOcetje + ClassOcetje
 
         self.set_father_catPotomca(Ocetje, 'nr')
-
-    def izberi_ocete_gen(self, stNB, potomciNPn, cak, pbUp, pripustDoz, mladiDoz, pozitivnoTestDoz, NbGenTest,
-                     EliteDamsPTBulls, EliteDamsGenBulls, EliteDamsPABulls, gen_mladi, gen_gpb):
+        
+        
+    def izberi_ocete(self, stNB, potomciNPn, cak, pbUp, pripustDoz, mladiDoz, pozitivnoTestDoz, NbGenTest, EliteDamsPTBulls, EliteDamsGenBulls, EliteDamsPABulls, gen_mladi, gen_gpb):
         # OČETJE
-        gentestiraniOce = list(chain.from_iterable([self.catCurrent_indiv_age('gpb', x + 1) for x in range(1, pbUp + 1)]))  # v času, ko določaš potomce, so že eno leto starjši!!!
-        return (gentestiraniOce)
+        mladiOce = self.catCurrent_indiv('mladi')
+        pripustOce = self.catCurrent_indiv('pripust1') + self.catCurrent_indiv('pripust2')
+        testiraniOce = list(chain.from_iterable([self.catCurrent_indiv_age('pb', (2 + cak + 1 + x)) for x in range(1,
+                                                                                                            pbUp + 1)]))  # v času, ko določaš potomce, so že eno leto starjši!!!
+        gentestiraniOce = list(chain.from_iterable([self.catCurrent_indiv_age('gpb', x+1) for x in range(1,
+                                                                                                    pbUp + 1)]))  # v času, ko določaš potomce, so že eno leto starjši!!!
+        mladiOceBest = self.catCurrent_indiv_sex_CriteriaEBV('mladi', 'M', 4)
+        cakOcetjeBest = list(chain.from_iterable([self.catCurrent_indiv_age_CriteriaEBV('cak', (2 + x), 4) for x in range(1, cak + 1)]))
+
+
+        # this if for the rest of the new born population - 'mix' semen of all potential fathers
+        #first - according to the given % - how many offsprign will be produced by genomically tested bulls
+
+
+        return(testiraniOce, gentestiraniOce)
 
     def save_cat_DF(self):
         categoriesDF = pd.DataFrame.from_dict(self.save_cat(), orient='index').transpose()
@@ -727,13 +736,8 @@ class pedigree(classPed):
         if os.path.isfile('IndForGeno.txt'):
             pd.DataFrame({0: sorted(list(set
                                          (chain.from_iterable([self.catCurrent_indiv_sex_criteria(x, sex, xC,
-                                                                                                  int((len(
-                                                                                                      self.catCurrent_indiv_sex(
-                                                                                                          x, sex)) * (
-                                                                                                       xP / 100))))
-                                                               if xP != 100 else self.catCurrent_indiv_sex(x, sex) for
-                                                               (x, xP, xC, sex) in genotypedCat]))))}).to_csv(
-                # if self.sel == 'class': #ZDJ TEGA NI, KER JE POSEBEJ FILE!
+                                                                                                  int((len(self.catCurrent_indiv_sex(x, sex)) * (xP / 100))))
+                                                               if xP != 100 else self.catCurrent_indiv_sex(x, sex) for (x, xP, xC, sex) in genotypedCat]))))}).to_csv(        #if self.sel == 'class': #ZDJ TEGA NI, KER JE POSEBEJ FILE!
                 'IndForGeno_new.txt', index=None, header=None)
             os.system("grep -v -f IndForGeno.txt IndForGeno_new.txt > uniqNew && mv uniqNew IndForGeno_new.txt")
             os.system(
@@ -741,51 +745,38 @@ class pedigree(classPed):
         else:
             pd.DataFrame({0: sorted(list(set
                                          (chain.from_iterable([self.catCurrent_indiv_sex_criteria(x, sex, xC,
-                                                                                                  int((len(
-                                                                                                      self.catCurrent_indiv_sex(
-                                                                                                          x, sex)) * (
-                                                                                                       xP / 100.0))))
+                                                                                                  int((len(self.catCurrent_indiv_sex(x, sex)) * (xP / 100.0))))
                                                                for (x, xP, xC, sex) in genotypedCat]))))}).to_csv(
                 'IndForGeno.txt', index=None, header=None)
 
     def updateAndSaveIndForGeno(self, genotypedCat, rmNbGen, removesex, AlphaSimDir):
         if os.path.isfile('IndForGeno.txt'):
-            # first obtain new animals for genotypisation
+            #first obtain new animals for genotypisation
             pd.DataFrame({0: sorted(list(set
                                          (chain.from_iterable([self.catCurrent_indiv_sex_criteria(x, sex, xC,
-                                                                                                  int((len(
-                                                                                                      self.catCurrent_indiv_sex(
-                                                                                                          x, sex)) * (
-                                                                                                       xP / 100))))
-                                                               if xP != 100 else self.catCurrent_indiv_sex(x, sex) for
-                                                               (x, xP, xC, sex) in genotypedCat]))))}).to_csv(
-                # if self.sel == 'class': #ZDJ TEGA NI, KER JE POSEBEJ FILE!
+                                                                                                  int((len(self.catCurrent_indiv_sex(x, sex)) * (xP / 100))))
+                                                               if xP != 100 else self.catCurrent_indiv_sex(x, sex) for (x, xP, xC, sex) in genotypedCat]))))}).to_csv(        #if self.sel == 'class': #ZDJ TEGA NI, KER JE POSEBEJ FILE!
                 'IndForGeno_new.txt', index=None, header=None)
-            # then remove old animals from the previous file
+            #then remove old animals from the previous file
             inds = pd.read_table('IndForGeno.txt', header=None, names=['Indiv'])
-            ped = pd.read_table(AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues_cat.txt', sep='\s+')
-            inds = pd.merge(inds, ped[['Indiv', 'Generation']],
-                            on='Indiv')  # obtain generation of the previously genotyped Individuals
-            inds = pd.merge(inds, ped[['Indiv', 'sex']],
-                            on='Indiv')  # obtain sex of the previously genotyped Individuals
+            ped = pd.read_table(AlphaSimDir +'/SimulatedData/PedigreeAndGeneticValues_cat.txt', sep='\s+')
+            inds = pd.merge(inds, ped[['Indiv', 'Generation']], on='Indiv')#obtain generation of the previously genotyped Individuals
+            inds = pd.merge(inds, ped[['Indiv', 'sex']], on='Indiv')#obtain sex of the previously genotyped Individuals
             sexDF = inds.loc[(inds.sex == removesex)]
             pd.concat([inds.loc[inds.sex != removesex], sexDF.loc[
-                sexDF.Generation.isin(sorted(list(set(sexDF.Generation)))[rmNbGen:])]]).sort_values(by='Indiv')[
-                'Indiv'].to_csv(
+                sexDF.Generation.isin(sorted(list(set(sexDF.Generation)))[rmNbGen:])]]).sort_values(by='Indiv')['Indiv'].to_csv(
                 'IndForGeno.txt', index=None, header=None)
-            os.system(
-                "grep -v -f IndForGeno.txt IndForGeno_new.txt > uniqNew && mv uniqNew IndForGeno_new.txt")  # obtain only new ones - do you dont get duplicate cows - ni nepotrebno - to zato, da ti potegne le nove genotipe za GenoFiel
+            os.system("grep -v -f IndForGeno.txt IndForGeno_new.txt > uniqNew && mv uniqNew IndForGeno_new.txt") #obtain only new ones - do you dont get duplicate cows - ni nepotrebno - to zato, da ti potegne le nove genotipe za GenoFiel
             os.system(
                 'cat IndForGeno_new.txt IndForGeno.txt | sort -n| uniq > IndGenTmp && mv IndGenTmp IndForGeno.txt')
         else:
             pd.DataFrame({0: sorted(list(set
                                          (chain.from_iterable([self.catCurrent_indiv_sex_criteria(x, sex, xC,
-                                                                                                  int((len(
-                                                                                                      self.catCurrent_indiv_sex(
-                                                                                                          x, sex)) * (
-                                                                                                       xP / 100.0))))
+                                                                                                  int((len(self.catCurrent_indiv_sex(x, sex)) * (xP / 100.0))))
                                                                for (x, xP, xC, sex) in genotypedCat]))))}).to_csv(
                 'IndForGeno.txt', index=None, header=None)
+
+
 
 
 class OrigPed(object):
@@ -1101,10 +1092,9 @@ def selekcija_total(pedFile, **kwargs):
 
         # potem odberi krave - na random, vsako leto za določeno število manj krav
     for i in range(2 + 1, (
-                2 + kwargs.get('kraveUp'))):  # 2 + 1 - pri dveh letih prva laktacija, prestavljati začneš leto po tem
+        2 + kwargs.get('kraveUp'))):  # 2 + 1 - pri dveh letih prva laktacija, prestavljati začneš leto po tem
         ped.izberi_random_age('F', i, (
-            kwargs.get('ptn') - (kwargs.get('MinusDamLact') * (i - 2)) - int(kwargs.get('bmn') / kwargs.get('bmUp'))),
-                              'k',
+        kwargs.get('ptn') - (kwargs.get('MinusDamLact') * (i - 2)) - int(kwargs.get('bmn') / kwargs.get('bmUp'))), 'k',
                               'k', categories)
         ped.izloci_random_age('F', i, (kwargs.get('MinusDamLact')), 'k', categories)
 
@@ -1146,20 +1136,17 @@ def selekcija_total(pedFile, **kwargs):
         # age1: tukaj odbereš mlade iz vhlevljenih bikov in bike, ki preživijo do drugega leta
     if 'vhlevljeni' in categories.keys():  # če imaš vhlevljene bike (samo v progenem testu)
         #############################
-        # to je za potrebe prehoda
-        if kwargs.get("genTest_gpb") and 'vhlevljeni' in [i[0] for i in kwargs[
-            'genotyped']]:  # če se greš genomsko shemo, jih takoj pogenotipiziraj in prestavi v gpb (5)
+        #to je za potrebe prehoda
+        if kwargs.get("genTest_gpb") and 'vhlevljeni' in [i[0] for i in kwargs['genotyped']]: #če se greš genomsko shemo, jih takoj pogenotipiziraj in prestavi v gpb (5)
             ped.izberi_poEBV_top("M", kwargs.get('genpbn'), "vhlevljeni", "gpb", categories)  # odberi gpb
-            ped.izberi_poEBV_OdDo("M", kwargs.get('genpbn'), (kwargs.get('genpbn') + kwargs.get('pripust1n')),
-                                  'vhlevljeni', 'pripust1',
-                                  categories)  # preostali genomsko testirani gredo v pripust
-            ped.izloci_poEBV("M", (kwargs.get("vhlevljenin") - (kwargs.get('genpbn') + kwargs.get('pripust1n'))),
-                             "vhlevljeni", categories)
+            ped.izberi_poEBV_OdDo("M", kwargs.get('genpbn'), (kwargs.get('genpbn') + kwargs.get('pripust1n')), 'vhlevljeni','pripust1',
+                              categories)  # preostali genomsko testirani gredo v pripust
+            ped.izloci_poEBV("M", (kwargs.get("vhlevljenin") - (kwargs.get('genpbn') + kwargs.get('pripust1n'))), "vhlevljeni", categories)
         #############################
-        else:  # drugače 8 v mlade
+        else: #drugače 8 v mlade
             ped.izberi_poEBV_top("M", kwargs.get('mladin'), "vhlevljeni", "mladi", categories)  # odberi mlade
             ped.izberi_poEBV_OdDo("M", kwargs.get('mladin'), kwargs.get('vhlevljenin'), "vhlevljeni", "pripust1",
-                                  categories)  # preostali vhlevljeni gredo v pripust
+                              categories)  # preostali vhlevljeni gredo v pripust
 
     # age > 2: tukaj mladi biki postanejo cakajoci in cakajo v testu
     # po koncanem testu odberes pozitivno testirane PB
@@ -1167,8 +1154,7 @@ def selekcija_total(pedFile, **kwargs):
     if 'mladi' in categories.keys():
         #############################
         # to je za potrebe prehoda
-        if kwargs.get("genTest_gpb") and 'mladi' in [i[0] for i in kwargs[
-            'genotyped']]:  # če se greš genomsko shemo, jih takoj pogenotipiziraj in prestavi v gpb (5)
+        if kwargs.get("genTest_gpb") and 'mladi' in [i[0] for i in kwargs['genotyped']]: #če se greš genomsko shemo, jih takoj pogenotipiziraj in prestavi v gpb (5)
             ped.izberi_poEBV_top("M", kwargs.get('genpbn'), "mladi", "gpb", categories)
             ped.izloci_poEBV("M", (kwargs.get("mladin") - kwargs.get("genpbn")), "mladi", categories)
         ###########################
@@ -1182,11 +1168,9 @@ def selekcija_total(pedFile, **kwargs):
     if 'cak' in categories.keys():
         #############################
         # to je za potrebe prehoda
-        if kwargs.get("genTest_gpb") and 'cak' in [i[0] for i in kwargs[
-            'genotyped']]:  # če se greš genomsko shemo, jih takoj pogenotipiziraj in prestavi v gpb (5)
+        if kwargs.get("genTest_gpb") and 'cak' in [i[0] for i in kwargs['genotyped']]:  # če se greš genomsko shemo, jih takoj pogenotipiziraj in prestavi v gpb (5)
             ped.izberi_poEBV_top("M", kwargs.get('genpbn') * kwargs.get("cak"), "cak", "gpb", categories)
-            ped.izloci_poEBV("M", ((kwargs.get("mladin") - kwargs.get('genpbn')) * kwargs.get("cak")), "cak",
-                             categories)
+            ped.izloci_poEBV("M", ((kwargs.get("mladin") - kwargs.get('genpbn')) * kwargs.get("cak")), "cak", categories)
         ##########################
         else:
             for i in range((2 + 1), (2 + kwargs.get(
@@ -1195,10 +1179,7 @@ def selekcija_total(pedFile, **kwargs):
 
     # če že imaš bike dovolj dolgo v testu, odberi pozitivno testirane bike
     if ('cak' in categories.keys()) and (
-                (kwargs.get('cak') + 2) in ped.age()) and (
-            kwargs.get("EBV") or kwargs.get("gpb_pb") or kwargs.get("genTest_mladi")) and 'cak' not in [i[0] for i in
-                                                                                                        kwargs[
-                                                                                                            'genotyped']]:  # +2 - eno leto so teleta, eno leto mladi biki, če imaš genomsko, gredo že pred do gpb
+        (kwargs.get('cak') + 2) in ped.age()) and (kwargs.get("EBV") or kwargs.get("gpb_pb") or kwargs.get("genTest_mladi")) and 'cak' not in [i[0] for i in kwargs['genotyped']]:  # +2 - eno leto so teleta, eno leto mladi biki, če imaš genomsko, gredo že pred do gpb
         ped.izberi_poEBV_top_age("M", (kwargs.get('cak') + 2), kwargs.get('pbn'), 'cak', 'pb', categories)
         ped.set_active_cat('cak', 2,
                            categories)  # tukaj moraš to nastaviti, zato ker fja izberi avtomatsko nastavi na active=1, vsi cakajoci so izloceni
@@ -1214,16 +1195,16 @@ def selekcija_total(pedFile, **kwargs):
         if kwargs.get('genTest_mladi'):
             ped.set_active_cat('genTest', 2, categories)
             ped.izberi_poEBV_top("M", kwargs.get('mladin'), 'genTest', 'mladi',
-                                 categories)  # naslednji najboljši gredo v test
+                              categories)  #naslednji najboljši gredo v test
             ped.izberi_poEBV_OdDo("M", kwargs.get('mladin'), kwargs.get('vhlevljenin'), 'genTest', 'pripust1',
-                                  categories)  # preostali genomsko testirani gredo v pripust
+                              categories)  # preostali genomsko testirani gredo v pripust
             ped.izloci_poEBV("M", (kwargs.get('potomciNPn') - kwargs.get('vhlevljenin')), "genTest", categories)
 
         if kwargs.get('genTest_gpb'):
             ped.izberi_poEBV_top("M", kwargs.get('genpbn'), "genTest", "gpb",
-                                 categories)  # odberi genomsko testirane bike za AI
+                             categories)  # odberi genomsko testirane bike za AI
             ped.izberi_poEBV_OdDo("M", kwargs.get('genpbn'), kwargs.get('vhlevljenin'), 'genTest', 'pripust1',
-                                  categories)  # preostali genomsko testirani gredo v pripust
+                              categories)  # preostali genomsko testirani gredo v pripust
             ped.izloci_poEBV("M", (kwargs.get('potomciNPn') - kwargs.get('vhlevljenin')), "genTest", categories)
 
     # prestavi jih naprej predno odbereš progeno testirane
@@ -1232,9 +1213,9 @@ def selekcija_total(pedFile, **kwargs):
         ped.set_active_cat('gpb', 2, categories)
 
     # to je OK, ker ta vleče kategorije iz slovarja prejšnje generacije, ne direkt iz pedigreja
-    # Tukaj glede na to, ali je označeno, da gredo gpb v pb, izvedi ta korak
-    if kwargs.get('gpb_pb'):  # ali naj gredo gpb v progeno testirane
-        if 'gpb' in categories.keys() and ((kwargs.get('cak') + 2) in ped.age()):  # če da, prestavi, ko so dovolj stari
+    #Tukaj glede na to, ali je označeno, da gredo gpb v pb, izvedi ta korak
+    if kwargs.get('gpb_pb'): #ali naj gredo gpb v progeno testirane
+        if 'gpb' in categories.keys() and ((kwargs.get('cak') + 2) in ped.age()):# če da, prestavi, ko so dovolj stari
             ped.set_cat_age_old((kwargs.get('cak') + 2), 'gpb', 'pb', categories)
 
     # pripust in pb so spet enaki pri obeh testiranjih
@@ -1269,8 +1250,7 @@ def selekcija_total(pedFile, **kwargs):
     # dodaj očete
     ped.doloci_ocete(kwargs.get('stNBn'), kwargs.get('potomciNPn'), kwargs.get('cak'), kwargs.get('pbUp'),
                      kwargs.get('pripustDoz'), kwargs.get('mladiDoz'), kwargs.get('pozitivnoTestDoz'),
-                     kwargs.get('CowsGenBulls_Per'), kwargs.get('EliteDamsPTBulls'), kwargs.get('EliteDamsGenBulls'),
-                     kwargs.get('EliteDamsPABulls'),
+                     kwargs.get('CowsGenBulls_Per'), kwargs.get('EliteDamsPTBulls'), kwargs.get('EliteDamsGenBulls'), kwargs.get('EliteDamsPABulls'),
                      kwargs.get('genTest_mladi'), kwargs.get('genTest_gpb'))
 
     # preveri - mora biti nič!!! - oz. če mater še ni dovolj, potem še ne!
@@ -1283,12 +1263,10 @@ def selekcija_total(pedFile, **kwargs):
     ped.save_active_DF()
     if kwargs.get('gEBV'):
         if kwargs.get('UpdateGenRef'):
-            ped.updateAndSaveIndForGeno(kwargs.get('genotyped'), kwargs.get('NbUpdatedGen'), kwargs.get('sexToUpdate'),
-                                        kwargs.get('AlphaSimDir'))
+            ped.updateAndSaveIndForGeno(kwargs.get('genotyped'), kwargs.get('NbUpdatedGen'), kwargs.get('sexToUpdate'), kwargs.get('AlphaSimDir'))
         if not kwargs.get('UpdateGenRef'):
             ped.saveIndForGeno(kwargs.get('genotyped'))
-        os.system(
-            'less IndForGeno.txt | wc -l > ReferenceSize_new.txt && cat ReferenceSize_new.txt ReferenceSize.txt > Reftmp && mv Reftmp ReferenceSize.txt')
+        os.system('less IndForGeno.txt | wc -l > ReferenceSize_new.txt && cat ReferenceSize_new.txt ReferenceSize.txt > Reftmp && mv Reftmp ReferenceSize.txt')
     ped.write_ped(kwargs.get('AlphaSimDir') + "/ExternalPedigree.txt")
     ped.write_pedTotal(kwargs.get('AlphaSimDir') + "/ExternalPedigreeTotal.txt")
     ped.write_pedTotal("/home/jana/PedTotal.txt")
@@ -1296,6 +1274,7 @@ def selekcija_total(pedFile, **kwargs):
     return ped, ped.save_cat(), ped.save_sex(), ped.save_active()
 
     #################
+
 
 
 def odbira_mater(pedFile, **kwargs):
@@ -1387,10 +1366,9 @@ def odbira_mater(pedFile, **kwargs):
 
         # potem odberi krave - na random, vsako leto za določeno število manj krav
     for i in range(2 + 1, (
-                2 + kwargs.get('kraveUp'))):  # 2 + 1 - pri dveh letih prva laktacija, prestavljati začneš leto po tem
+        2 + kwargs.get('kraveUp'))):  # 2 + 1 - pri dveh letih prva laktacija, prestavljati začneš leto po tem
         ped.izberi_random_age('F', i, (
-            kwargs.get('ptn') - (kwargs.get('MinusDamLact') * (i - 2)) - int(kwargs.get('bmn') / kwargs.get('bmUp'))),
-                              'k',
+        kwargs.get('ptn') - (kwargs.get('MinusDamLact') * (i - 2)) - int(kwargs.get('bmn') / kwargs.get('bmUp'))), 'k',
                               'k', categories)
         ped.izloci_random_age('F', i, (kwargs.get('MinusDamLact')), 'k', categories)
 
@@ -1402,15 +1380,15 @@ def odbira_mater(pedFile, **kwargs):
     if ('bm' in categories.keys()):
         ped.izloci_cat('bm', categories)
 
-    # tukaj določi, katere bodo matere
-    return (
-    ped, (ped.izberi_matere(kwargs.get('stNBn'), kwargs.get('potomciNPn'), kwargs.get('ptn'), kwargs.get('kraveUp'))))
+    #tukaj določi, katere bodo matere
+    return(ped, (ped.izberi_matere(kwargs.get('stNBn'), kwargs.get('potomciNPn'), kwargs.get('ptn'), kwargs.get('kraveUp'))))
 
 
-# odberi testirane ocete
-def odberi_testOce_gen(ped, **kwargs):
+#odberi testirane ocete
+def odberi_testOce(ped, **kwargs):
+    
     print kwargs
-    # ped = pedigree(pedFile)
+    #ped = pedigree(pedFile)
 
     # določi spol
     # ped.set_sex_AlphaSim(kwargs.get('AlphaSimDir'))
@@ -1436,6 +1414,7 @@ def odberi_testOce_gen(ped, **kwargs):
         categories = ped.create_categoriesDict('Categories_gen' + str(max(ped.gens())) + 'DF.csv')
         sex = ped.create_sexDict('Sex_gen' + str(max(ped.gens())) + 'DF.csv')
         active = ped.create_activeDict('Active_gen' + str(max(ped.gens())) + 'DF.csv')
+
 
     #################################################################
     # MALES
@@ -1467,16 +1446,31 @@ def odberi_testOce_gen(ped, **kwargs):
         # age1: tukaj odbereš mlade iz vhlevljenih bikov in bike, ki preživijo do drugega leta
     if 'vhlevljeni' in categories.keys():  # če imaš vhlevljene bike (samo v progenem testu)
         #############################
-        # to je za potrebe prehoda
-        ped.set_cat_old('vhlevljeni', 'kandidati', categories)
+        #to je za potrebe prehoda
+        if kwargs.get("genTest_gpb") and 'vhlevljeni' in [i[0] for i in kwargs['genotyped']]: #če se greš genomsko shemo, jih takoj pogenotipiziraj in prestavi v gpb (5)
+            ped.izberi_poEBV_top("M", kwargs.get('genpbn'), "vhlevljeni", "gpb", categories)  # odberi gpb
+            ped.izberi_poEBV_OdDo("M", kwargs.get('genpbn'), (kwargs.get('genpbn') + kwargs.get('pripust1n')), 'vhlevljeni','pripust1',
+                              categories)  # preostali genomsko testirani gredo v pripust
+            ped.izloci_poEBV("M", (kwargs.get("vhlevljenin") - (kwargs.get('genpbn') + kwargs.get('pripust1n'))), "vhlevljeni", categories)
+        #############################
+        else: #drugače 8 v mlade
+            ped.izberi_poEBV_top("M", kwargs.get('mladin'), "vhlevljeni", "mladi", categories)  # odberi mlade
+            ped.izberi_poEBV_OdDo("M", kwargs.get('mladin'), kwargs.get('vhlevljenin'), "vhlevljeni", "pripust1",
+                              categories)  # preostali vhlevljeni gredo v pripust
 
     # age > 2: tukaj mladi biki postanejo cakajoci in cakajo v testu
     # po koncanem testu odberes pozitivno testirane PB
     # mladi biki postanejo čakajoči (~1 leto, da se osemeni krave s semenom oz. malo po 2. letu)
     if 'mladi' in categories.keys():
         #############################
-        ped.set_cat_old('mladi', 'kandidati', categories)
-
+        # to je za potrebe prehoda
+        if kwargs.get("genTest_gpb") and 'mladi' in [i[0] for i in kwargs['genotyped']]: #če se greš genomsko shemo, jih takoj pogenotipiziraj in prestavi v gpb (5)
+            ped.izberi_poEBV_top("M", kwargs.get('genpbn'), "mladi", "gpb", categories)
+            ped.izloci_poEBV("M", (kwargs.get("mladin") - kwargs.get("genpbn")), "mladi", categories)
+        ###########################
+        else:
+            ped.set_cat_old('mladi', 'cak', categories)  # mlade prestavi v cakajoce in jih izloci iz populacije
+            ped.set_active_cat('mladi', 2, categories)
 
     # čakajočim bikov podaljšaj status (do starosti 5 let oz. kolikor let v testu)
     # hkrati jim tudi nastavi status izl
@@ -1484,7 +1478,23 @@ def odberi_testOce_gen(ped, **kwargs):
     if 'cak' in categories.keys():
         #############################
         # to je za potrebe prehoda
-        ped.set_cat_old('cak', 'kandidati', categories)
+        if kwargs.get("genTest_gpb") and 'cak' in [i[0] for i in kwargs['genotyped']]:  # če se greš genomsko shemo, jih takoj pogenotipiziraj in prestavi v gpb (5)
+            ped.izberi_poEBV_top("M", kwargs.get('genpbn') * kwargs.get("cak"), "cak", "gpb", categories)
+            ped.izloci_poEBV("M", ((kwargs.get("mladin") - kwargs.get('genpbn')) * kwargs.get("cak")), "cak", categories)
+        ##########################
+        else:
+            for i in range((2 + 1), (2 + kwargs.get(
+                    'cak'))):  # 1 leto, ko začnejo semenit in so mladi biki, 3 so čakajoči, +1 da začneš prestavlajt
+                ped.set_cat_age_old(i, 'cak', 'cak', categories)
+
+    # če že imaš bike dovolj dolgo v testu, odberi pozitivno testirane bike
+    if ('cak' in categories.keys()) and (
+        (kwargs.get('cak') + 2) in ped.age()) and (kwargs.get("EBV") or kwargs.get("gpb_pb") or kwargs.get("genTest_mladi")) and 'cak' not in [i[0] for i in kwargs['genotyped']]:  # +2 - eno leto so teleta, eno leto mladi biki, če imaš genomsko, gredo že pred do gpb
+        ped.izberi_poEBV_top_age("M", (kwargs.get('cak') + 2), kwargs.get('pbn'), 'cak', 'pb', categories)
+        ped.set_active_cat('cak', 2,
+                           categories)  # tukaj moraš to nastaviti, zato ker fja izberi avtomatsko nastavi na active=1, vsi cakajoci so izloceni
+        ped.izloci_poEBV_age("M", (kwargs.get('cak') + 2), (kwargs.get('mladin') - kwargs.get('pbn')), 'cak',
+                             categories)  # TUKAJ MORA BITI ŠE STAROST!!!!!!!!!!!
 
     # genomski test: potomciNP = genomsko testiranje -> pozitivno testirani
     if kwargs.get('gEBV'):  # v prvem letu so vsi potomciNP v genomskem testiranju oz. pridobivanju gEBV
@@ -1492,7 +1502,20 @@ def odberi_testOce_gen(ped, **kwargs):
         ped.set_active_cat('potomciNP', 1, categories)
 
     if 'genTest' in categories.keys():  # če imaš genomsko testirane bike
-        ped.set_cat_old("genTest", "kandidati", categories)
+        if kwargs.get('genTest_mladi'):
+            ped.set_active_cat('genTest', 2, categories)
+            ped.izberi_poEBV_top("M", kwargs.get('mladin'), 'genTest', 'mladi',
+                              categories)  #naslednji najboljši gredo v test
+            ped.izberi_poEBV_OdDo("M", kwargs.get('mladin'), kwargs.get('vhlevljenin'), 'genTest', 'pripust1',
+                              categories)  # preostali genomsko testirani gredo v pripust
+            ped.izloci_poEBV("M", (kwargs.get('potomciNPn') - kwargs.get('vhlevljenin')), "genTest", categories)
+
+        if kwargs.get('genTest_gpb'):
+            ped.izberi_poEBV_top("M", kwargs.get('genpbn'), "genTest", "gpb",
+                             categories)  # odberi genomsko testirane bike za AI
+            ped.izberi_poEBV_OdDo("M", kwargs.get('genpbn'), kwargs.get('vhlevljenin'), 'genTest', 'pripust1',
+                              categories)  # preostali genomsko testirani gredo v pripust
+            ped.izloci_poEBV("M", (kwargs.get('potomciNPn') - kwargs.get('vhlevljenin')), "genTest", categories)
 
     # prestavi jih naprej predno odbereš progeno testirane
     if 'gpb' in categories.keys():
@@ -1500,15 +1523,15 @@ def odberi_testOce_gen(ped, **kwargs):
         ped.set_active_cat('gpb', 2, categories)
 
     # to je OK, ker ta vleče kategorije iz slovarja prejšnje generacije, ne direkt iz pedigreja
-    # Tukaj glede na to, ali je označeno, da gredo gpb v pb, izvedi ta korak
-    if kwargs.get('gpb_pb'):  # ali naj gredo gpb v progeno testirane
-        if 'gpb' in categories.keys() and ((kwargs.get('cak') + 2) in ped.age()):  # če da, prestavi, ko so dovolj stari
+    #Tukaj glede na to, ali je označeno, da gredo gpb v pb, izvedi ta korak
+    if kwargs.get('gpb_pb'): #ali naj gredo gpb v progeno testirane
+        if 'gpb' in categories.keys() and ((kwargs.get('cak') + 2) in ped.age()):# če da, prestavi, ko so dovolj stari
             ped.set_cat_age_old((kwargs.get('cak') + 2), 'gpb', 'pb', categories)
 
     # pripust in pb so spet enaki pri obeh testiranjih
     # povprečna doba v pripustu - glede na to odberi bike, ki preživijo še eno leto
     if 'pripust1' in categories.keys():
-        pripust2 = int((len(categories['pripust1']) * kwargs.get('pripust2n')))
+        pripust2 = int(round(len(categories['pripust1']) * kwargs.get('pripust2n')))
         ped.izberi_random("M", pripust2, 'pripust1', 'pripust2',
                           categories)  # prestavi v 2. leto pripusta (ne vse - % glede na leta v UP)
         ped.izloci_random("M", (len(categories['pripust1']) - pripust2), 'pripust1',
@@ -1523,107 +1546,11 @@ def odberi_testOce_gen(ped, **kwargs):
         ped.set_active_cat('pb', 2, categories)
 
     print ped.cat()
-    return (ped, (ped.catCurrent_indiv('kandidati'),
-                  ped.izberi_ocete_gen(kwargs.get('stNBn'), kwargs.get('potomciNPn'), kwargs.get('cak'), kwargs.get('pbUp'),
-                                   kwargs.get('pripustDoz'), kwargs.get('mladiDoz'), kwargs.get('pozitivnoTestDoz'),
-                                   kwargs.get('CowsGenBulls_Per'), kwargs.get('EliteDamsPTBulls'),
-                                   kwargs.get('EliteDamsGenBulls'), kwargs.get('EliteDamsPABulls'),
-                                   kwargs.get('genTest_mladi'), kwargs.get('genTest_gpb'))))
+    return(ped, (ped.catCurrent_indiv('genTest'), ped.izberi_ocete(kwargs.get('stNBn'), kwargs.get('potomciNPn'), kwargs.get('cak'), kwargs.get('pbUp'),
+                     kwargs.get('pripustDoz'), kwargs.get('mladiDoz'), kwargs.get('pozitivnoTestDoz'),
+                     kwargs.get('CowsGenBulls_Per'), kwargs.get('EliteDamsPTBulls'), kwargs.get('EliteDamsGenBulls'), kwargs.get('EliteDamsPABulls'),
+                     kwargs.get('genTest_mladi'), kwargs.get('genTest_gpb'))))
 
-def odberiStarse_OCSgen(pedigree_genEBV, AlphaRelateDir, **selPar):
-    # tukaj odberi metere
-    ped, (bm, motherOther) = odbira_mater(pedigree_genEBV, **selPar)
-    # tukaj odberi random sample krav
-    motherSample = random.sample(motherOther, int(len(motherOther) * 0.2)) + random.sample(bm, int(len(bm) * 0.2))
-
-    #tukaj odberi očete - kandidati so drugačni v prvem letu (mladi + vhlevljeni + čakajoči), kasneje pa so to genTest
-    ped, (kandidati, (genOce)) = odberi_testOce_gen(ped, **selPar)
-
-    pd.DataFrame({"ID": list(motherSample) + list(kandidati) + list(genOce)}).to_csv(AlphaRelateDir + "/IndOpt.txt", index=None, header=None)
-
-    return ped
-
-class AlphaRelate(object):
-        def __init__(self, AlphaRelateDir, AlphaSimDir):
-            self.AlphaRelateDir = AlphaRelateDir
-            self.AlphaSimDir = AlphaSimDir
-            self.AlphaRelateSpec_gen = AlphaRelateDir + '/AlphaRelateSpec_gen.txt'
-            shutil.copy(self.AlphaRelateSpec_gen, AlphaRelateDir + "/AlphaRelateSpec.txt")
-            self.AlphaRelateSpec = self.AlphaRelateDir + "/AlphaRelateSpec.txt"
-            shutil.copy(AlphaSimDir + "/IndOpt.txt", AlphaRelateDir)
-
-
-        def preparePedigree(self):
-            ped = pd.read_csv(self.AlphaSimDir + "/SimulatedData/PedigreeAndGeneticValues_cat.txt", sep="\s+")
-            ped[[1,2,3]].to_csv(self.AlphaRelateDir + "/PEDIGREE.txt", sep=",", index=None, header=None)
-            ped.loc[:, "sex1"] = [1 if x == "M" else 2 for x in ped.sex ]
-            ped[["Indiv", "sex1"]].to_csv(AlphaRelateDir + "/GENDER.txt", sep=" ", index=None, header=None)
-
-        def runAlphaRelate(self):
-            os.chdir(self.AlphaRelateDir)
-            os.system("./AlphaRelate_Linux")
-
-
-
-class AlphaMate(object):
-    def __init__(self, AlphaMateDir, AlphaSimDir):
-        self.AlphaMateDir = AlphaMateDir
-        self.AlphaSimDir = AlphaSimDir
-        self.AlphaMateSpec_gen = AlphaMateDir + "/AlphaMateSpec_gen.txt"
-        shutil.copy(self.AlphaMateSpec_gen, AlphaMateDir + "/AlphaMateSpec.txt")
-        self.AlphaMateSpec = AlphaMateDir + "/AlphaMateSpec.txt"
-        shutil.copy(AlphaSimDir + "/IndOpt.txt", AlphaMateDir)
-        self.indopt = sorted(list(pd.read_table("IndOpt.txt", header=None).loc[:, 0]))
-        self.ped = pd.read_csv(self.AlphaSimDir + "/SimulatedData/PedigreeAndGeneticValues_cat.txt", sep="\s+")
-        self.round = max(ped.Generation)
-
-
-
-
-    def prepareGender(self):
-        ped.loc[:, "sex1"] = [1 if x == "M" else 2 for x in ped.sex]
-        ped[ped.Indiv.isin(self.indopt)][["Indiv", "sex1"]].to_csv(self.AlphaMateDir + "/GENDER.txt", sep=" ", index=None, header=None)
-
-    def countFemaleSel(self):
-        gender = pd.read_table(AlphaMateDir + "/GENDER.txt", header=None, sep=" ")
-        return (int(sum(gender[[1]] == 2)))
-
-    def prepareCriterionFile(self):
-        sol = pd.read_csv(AlphaSimDir + "/renumbered_Solutions_" + str(40), header=None, sep=" ")
-        sol.columns = ["renID", "ID", "EBV"]
-        sol.loc[sol.ID.isin(indopt)][["ID", "EBV"]].to_csv(self.AlphaMateDir + "/CRITERION.txt", header=None, index=None)
-
-    def prepareSpecFile(self, NoMatings, NoMaleParents, NoFemaleParents, Degree):
-        os.system('sed -i "s|NoMatings|' + str(NoMatings) + '|g" ' + self.AlphaMateSpec)
-        os.system('sed -i "s|NoMaleParents|' + str(NoMaleParents) + '|g" ' + self.AlphaMateSpec)
-        os.system('sed -i "s|NoFemaleParents|' + str(NoFemaleParents) + '|g" ' + self.AlphaMateSpec)
-        os.system('sed -i "s|SetDegree|' + str(Degree) + '|g" ' + self.AlphaMateSpec)
-
-    def runAlphaMate(self):
-        os.chdir(self.AlphaMateDir)
-        os.system("./AlphaMate")
-
-    def obtainSelMales(self):
-        Cont = pd.read_table(self.AlphaMateDir + "/ContributionsModeOptTarget1.txt", sep="\s+")
-        selM = Cont.loc[Cont.Gender == 1]
-        selM.loc[:, "nMatingPop"] = (selM.loc[:, "nMating"] / 0.2).astype(int)
-        return list(chain.from_iterable([[int(father)] * dose for (father, dose) in zip(selM.Id, selM.nMatingPop)])) #to so očeti
-
-
-
-def finishPedigree_OCS():
-    # dodaj novo generacijo
-    ped.add_new_gen_naive(selPar['stNBn'], selPar['potomciNPn'] * 2)
-    ped.compute_age()
-    # dodaj matere
-    ped.doloci_matere(kwargs.get('stNBn'), kwargs.get('potomciNPn'), kwargs.get('ptn'), kwargs.get('kraveUp'))
-    # preveri - mora biti nič!!! - oz. če mater še ni dovolj, potem še ne!
-    ped.mother_nr_blank()
-    # dodaj očete
-    ped.ped.loc[ped.ped.cat.isin(['nr', 'potomciNP']), 'Father'] = Ocetje
-    ped.ped.Father = ped.ped.Father.astype(int)
-    ped.write_ped("/home/jana/bin/AlphaMateLinux/OCSSloPop/CowSample//ExternalPedigree.txt")
-    ped.write_pedTotal("/home/jana/bin/AlphaMateLinux/OCSSloPop/CowSample//ExternalPedigreeTotal.txt")
 
 
 
@@ -1726,7 +1653,7 @@ def selekcija_ena_gen(pedFile, categories=None, sex=None, active=None, stNB=None
 
         categories.clear()  # sprazni slovar od prejšnjega leta
 
-    ped.write_ped(kwargs.get('AlphaSimDir') + "/ExternalPedigree.txt")
+    ped.write_ped(kwargs.get('AlphaSimDir')  + "/ExternalPedigree.txt")
 
     return ped, ped.save_cat(), ped.save_sex(), ped.save_active()
 
@@ -1783,8 +1710,7 @@ def nastavi_cat(PedFile, **kwargs):
         ped.izberi_poEBV_OdDo_age_naive('M', 2, kwargs.get('genpbn'), (kwargs.get('genpbn') + pripust2), 'pripust2')
 
         for i in range(1, (
-                    2 + kwargs.get(
-                    'cak'))):  # od enega leta pa do konca progenega testa so genomsko testirani, kasneje progeno
+            2 + kwargs.get('cak'))):  # od enega leta pa do konca progenega testa so genomsko testirani, kasneje progeno
             ped.izberi_poEBV_top_age_naive('M', i, kwargs.get('genpbn'), 'gpb')  # odberi genomsko testirane bike za AI
 
         # odberi tudi tiste, ki so že tudi progeno testirani
@@ -1812,8 +1738,7 @@ def nastavi_cat(PedFile, **kwargs):
     for i in range((1 + kwargs.get('bmOdbira')), (1 + kwargs.get('bmOdbira') + kwargs.get('bmUp'))):
         ped.izberi_poEBV_top_age_naive('F', i, int(kwargs.get('bmn') / kwargs.get('bmUp')), 'pBM')
         ped.izberi_poEBV_top_age_naive('F', i, (
-            (kwargs.get('ptn') - kwargs.get('MinusDamLact') * (i - 2)) - int(kwargs.get('bmn') / kwargs.get('bmUp'))),
-                                       'k')
+        (kwargs.get('ptn') - kwargs.get('MinusDamLact') * (i - 2)) - int(kwargs.get('bmn') / kwargs.get('bmUp'))), 'k')
 
     # age 6
     # izberi odslužene bm
@@ -1838,8 +1763,7 @@ def nastavi_cat(PedFile, **kwargs):
     # dodaj očete
     ped.doloci_ocete(kwargs.get('stNBn'), kwargs.get('potomciNPn'), kwargs.get('cak'), kwargs.get('pbUp'),
                      kwargs.get('pripustDoz'), kwargs.get('mladiDoz'), kwargs.get('pozitivnoTestDoz'),
-                     kwargs.get('CowsGenBulls_Per'), kwargs.get('EliteDamsPTBulls'), kwargs.get('EliteDamsGenBulls'),
-                     kwargs.get('EliteDamsPABulls'),
+                     kwargs.get('CowsGenBulls_Per'), kwargs.get('EliteDamsPTBulls'), kwargs.get('EliteDamsGenBulls'), kwargs.get('EliteDamsPABulls'),
                      kwargs.get('genTest_mladi'), kwargs.get('genTest_gpb'))
 
     # ped.UpdateIndCat('/home/jana/')
@@ -1915,7 +1839,7 @@ class TBVCat(TBVPed):
 
         currentTrend_G = self.GenTrend()
         if not self.genTrends_gen.empty:
-            self.genTrends_gen = pd.merge(self.genTrends_gen, currentTrend_G, left_index=True, right_index=True)
+            self.genTrends_gen = pd.merge(self.genTrends_gen, currentTrend_G,  left_index=True, right_index=True)
         if self.genTrends_gen.empty:
             self.genTrends_gen = pd.concat([self.genTrends_gen, currentTrend_G])
 
@@ -1933,8 +1857,9 @@ class TBVCat(TBVPed):
 class AlphaSimSpec:
     def __init__(self, AlphaSimDir, CodeDir):
         self.genSpecFile = CodeDir + "/AlphaSimSpec.txt"
-        shutil.copy(self.genSpecFile, AlphaSimDir)
+        shutil.copy(self.genSpecFile,  AlphaSimDir)
         self.SpecFile = AlphaSimDir + "/AlphaSimSpec.txt"
+
 
     def setPedType(self, pedType):
         os.system('sed -i "s|PedigreeType|' + pedType + '|g" ' + self.SpecFile)
@@ -1974,6 +1899,7 @@ class AlphaSimSpec:
 
     def setNB(self, stNB):
         os.system('sed -i "s|EnterIndividualInPopulation|' + str(stNB) + '|g" ' + self.SpecFile)
+
 
 
 class test:
@@ -2052,8 +1978,7 @@ class snpFiles:
         self.chipFile = self.AlphaSimDir + '/SimulatedData/AllIndividualsSnpChips/Chip1Genotype.txt'
 
     def createBlupf90SNPFile(self):
-        if os.path.isfile(
-                        self.AlphaSimDir + 'GenoFile.txt'):  # if GenoFile.txt exists, only add the newIndividuals for genotypisation
+        if os.path.isfile(self.AlphaSimDir + 'GenoFile.txt'): #if GenoFile.txt exists, only add the newIndividuals for genotypisation
             os.system(
                 'grep -Fwf IndForGeno_new.txt ' + self.chipFile + ' > ChosenInd.txt')  # only individuals chosen for genotypisation - ONLY NEW - LAST GEN!
             os.system("sed 's/^ *//' ChosenInd.txt > ChipFile.txt")  # Remove blank spaces at the beginning
@@ -2065,7 +1990,7 @@ class snpFiles:
                 'grep -Fwf IndForGeno.txt GenoFile.txt  > GenoFile_Oldtmp && mv GenoFile_Oldtmp GenoFile.txt')  # here obtain updated old reference - removed one generation
             os.system("cat GenoFile.txt GenoFile_new.txt > GenoFileTmp && mv GenoFileTmp GenoFile.txt")
             os.system("less GenoFile.txt | sort -n | uniq > Genotmp && mv Genotmp GenoFile.txt")
-        else:  # else create a new GenoFile containg all the individuals in the IndForGeno.txt
+        else: #else create a new GenoFile containg all the individuals in the IndForGeno.txt
             os.system(
                 'grep -Fwf IndForGeno.txt ' + self.chipFile + ' > ChosenInd.txt')  # only individuals chosen for genotypisation - ALL
             os.system("sed 's/^ *//' ChosenInd.txt > ChipFile.txt")  # Remove blank spaces at the beginning
@@ -2073,6 +1998,5 @@ class snpFiles:
             os.system('''awk '{$1=""; print $0}' ChipFile.txt | sed 's/ //g' > Snps.txt''')  # obtain SNP genotypes
             os.system(
                 r'''paste Individuals.txt Snps.txt | awk '{printf "%- 10s %+ 15s\n",$1,$2}' > GenoFile.txt''')  # obtain SNP genotypes of the last generation
-        pd.read_csv(self.AlphaSimDir + '/SimulatedData/Chip1SnpInformation.txt', sep='\s+')[
-            ["SnpId", "ChromId", "SnpSeqIdOnChrom"]].to_csv(
+        pd.read_csv(self.AlphaSimDir + '/SimulatedData/Chip1SnpInformation.txt', sep='\s+')[["SnpId", "ChromId", "SnpSeqIdOnChrom"]].to_csv(
             self.AlphaSimDir + 'SnpMap.txt', index=None, sep=" ", header=None)
