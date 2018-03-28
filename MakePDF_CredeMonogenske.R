@@ -102,6 +102,7 @@ for (tNo in c(10, 11, 13, 14, 15, 32)) {
 #preberi še kapa in beta casein
 ###################################
 kapaCSN <- read.csv('/home/jana/Documents/F4F/MlecniProteini/KappaCaseinGenotype_python.csv', header=TRUE)[,c(2,8)]
+colnames(kapaCSN) <- c("ID", "KapaCSN")
 kapaCSN$KapaCSN <- gsub("BB", "B/B", kapaCSN$KapaCSN)
 kapaCSN$KapaCSN <- gsub("AA", "A/A", kapaCSN$KapaCSN)
 kapaCSN$KapaCSN <- gsub("AB", "A/B", kapaCSN$KapaCSN)

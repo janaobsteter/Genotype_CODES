@@ -3,6 +3,8 @@ gen <- read.table('//home/jana/bin/AlphaSim1.05Linux/IndForGeno_5gen.txt') #tuka
 colnames(gen) <- "Indiv"
 
 ped <- read.table('/home/jana/bin/AlphaSim1.05Linux/REALFillIn20BurnIn20/SimulatedData/PedigreeAndGeneticValues_cat.txt', sep=" ", header=TRUE)
+write.table(ped$Indiv[ped$cat %in% c("k", "pb", "nr")], "/home/jana/Documents/PhD/CompBio/IndForGeno.txt", quote=FALSE, col.names = FALSE, row.names=FALSE)
+
 pedCat <- merge(gen, ped, by="Indiv", all.x=TRUE)
 
 herds <- read.table("/home/jana/Documents/PhD/CompBio/TestingGBLUP/PedCows_HERDS.txt", header=TRUE)
@@ -16,24 +18,26 @@ pb <- ped$Indiv[ped$cat =="pb"]
 herdNo <- unique(herds$cluster)
 
 herdA <- data.frame("Herd1" = NA, "Herd2" = NA, "SumA" = NA)
-herdAinv <- data.frame("Herd1" = NA, "Herd2" = NA, "SumAinv" = NA)
+#herdAinv <- data.frame("Herd1" = NA, "Herd2" = NA, "SumAinv" = NA)
 herdsqA <- data.frame("Herd1" = NA, "Herd2" = NA, "SumAsq" = NA)
 herdEvaA <- data.frame("Herd1" = NA,  "SumA" = NA)
-herdEvaAinv <- data.frame("Herd1" = NA,  "SumAinv" = NA)
+#herdEvaAinv <- data.frame("Herd1" = NA,  "SumAinv" = NA)
 
 
 library(pedigreemm)
-pedC <- pedigree(sire = ped$Father, dam = ped$Mother, label=ped$Indiv)
-getAInv(pedC)
+#pedC <- pedigree(sire = ped$Father, dam = ped$Mother, label=ped$Indiv)
+#getAInv(pedC)
 
+"""
 makeAinv(ped[,c(2,3,4)])
-Ai <- read.table("Ainv.txt")
+Ai <- read.table('Ainv.txt')
 nInd <- nrow(ped)
 Ainv <- matrix(0,nrow = nInd,ncol = nInd)
 # Ainv[as.matrix(Ai[,1:2])] <- Ai[,3]
 dd <- diag(Ainv)
 Ainv <- Ainv + t(Ainv)
 diag(Ainv) <- dd
+"""
 
 for (herd1 in herdNo) {
   for (herd2 in herdNo) {
@@ -45,8 +49,8 @@ for (herd1 in herdNo) {
     A <- read.table("A.txt")
     herdA <- rbind(herdA, c(herd1, herd2, sum(A$V3)))  
     
-    AinvH <- Ainv[(Ainv$V1 %in% c(herdInd,pb)) & (Ainv$V2 %in% c(herdInd, pb)),]
-    herdAinv <- rbind(herdAinv, c(herd1, herd2, sum(Ainv$V3)))  
+    #AinvH <- Ainv[(Ainv$V1 %in% c(herdInd,pb)) & (Ainv$V2 %in% c(herdInd, pb)),]
+    #herdAinv <- rbind(herdAinv, c(herd1, herd2, sum(Ainv$V3)))  
     
     #to je med dvema čredama na kvadrat
     herdsqA <- rbind(herdsqA, c(herd1, herd2, sum(A$V3^2)))    
@@ -56,12 +60,13 @@ for (herd1 in herdNo) {
     makeA(pedT[,c(2,3,4)], which=c(pedT$Indiv %in% refEvaInd))
     A <- read.table("A.txt")
     herdEvaA <- rbind(herdEvaA, c(herd1, sum(A$V3)))     
-    makeAinv(pedT[,c(2,3,4)], which=c(pedT$Indiv %in% refEvaInd))
-    Ainv <- read.table("Ainv.txt")
-    herdEvaAinv <- rbind(herdEvaAinv, c(herd1, sum(Ainv$V3)))    
     }
 }
 
+
+write.table(herdA, "HerdA.txt", quote=FALSE)
+write.table(herdsqA, "HerdsqaA.txt", quote=FALSE)
+write.table(herdEvaA, "HerdEvaA.txt", quote=FALSE)
 
 
 

@@ -13,6 +13,8 @@ makeAinv(pedT[,c(2,3,4)])
 Ai <- read.table("Ainv.txt")
 nInd <- nrow(pedT)
 Ainv <- matrix(0,nrow = nInd,ncol = nInd)
+bigAinv <- as.big.matrix(Ainv
+                         )
 Ainv[as.matrix(Ai[,1:2])] <- Ai[,3]
 dd <- diag(Ainv)
 Ainv <- Ainv + t(Ainv)

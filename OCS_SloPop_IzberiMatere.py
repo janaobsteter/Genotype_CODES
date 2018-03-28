@@ -59,7 +59,7 @@ nMating = int(len(motherOther)*0.2 + int(len(bm)*0.2))
 
 #tukaj spusti čez skript, da ti odbere plemenske bike --> TO JE ZA PRVO LETO PO PREHODU, KO GREJO MLADI IN ČAKAJOČI V GPB
 #mora pridit nujno za mamami, ker doopolni pedigre!
-#ped, (genTest, (classOce, genOce)) = odberi_testOce(ped, **selPar)
+ped, (kandidati, (genOce)) = odberi_testOce_gen(ped, **selPar)
 #tukaj pridobi potomceNP pred odbiro
 #potomciNP = pedCat.Indiv[(pedCat.cat == "potomciNP") & (pedCat.sex == "M")] #če izbereš potomceNP, moške, tukaj --> ti gredo vsi v genomsko testiranje!
 #združi kandidate za optimizacijo
@@ -71,12 +71,12 @@ nMating = int(len(motherOther)*0.2 + int(len(bm)*0.2))
 #select bulls + candidates + random sample of cows
 
 
-
+ped = odberiStarse_OCSgen("/home/jana/bin/AlphaMateLinux/OCSSloPop/GenPed_EBV.txt","/home/jana/bin/AlphaMateLinux/OCSSloPop/CowSample")
 
 #PRVO LETO daš v optimizacijo (pred odbiro!!!) vhljevljene, mlade in čakajoče
 #naslednja leta dajes "osnovo" in genTest (pred odbiro!!!)
 #nato spremeniš kategorije v gpb in semeniš z izbranimi (= kot pa prvo VSE - brez odbire - prestaviš v gpb in potem optimiziraš gpb)
-potOce = pedCat.Indiv[pedCat.cat.isin(["vhlevljeni", "mladi", "cakajoci"])]
+potOce = pedCat.Indiv[pedCat.cat.isin(["vhlevljeni", "mladi", "cak"])]
 
 pd.DataFrame({"ID": list(motherSample) + list(potOce)}).to_csv("/home/jana/bin/AlphaMateLinux/OCSSloPop/CowSample/IndOpt.txt", index=None, header=None)
 
@@ -97,6 +97,9 @@ ped.doloci_matere(kwargs.get('stNBn'), kwargs.get('potomciNPn'), kwargs.get('ptn
 ped.mother_nr_blank()
 # dodaj očete
 ped.ped.loc[ped.ped.cat.isin(['nr', 'potomciNP']), 'Father'] = Ocetje
-ped.ped.Father = ped.ped.Father.astype(int)
+if len(Ocetje) == kwargs.get('stNBn'):
+    ped.ped.Father = ped.ped.Father.astype(int)
+else:
+    print("Not enough fathers!!!!")
 ped.write_ped("/home/jana/bin/AlphaMateLinux/OCSSloPop/CowSample//ExternalPedigree.txt")
 ped.write_pedTotal("/home/jana/bin/AlphaMateLinux/OCSSloPop/CowSample//ExternalPedigreeTotal.txt")

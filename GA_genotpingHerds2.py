@@ -11,33 +11,40 @@ from pyevolve import Selectors
 from pyevolve import Statistics
 from pyevolve import DBAdapters
 import pandas as pd
+import numpy as np
 
+def reLu(number):
+    return (0 if number < 0 else number)
+    
 
 #os.chdir("/home/jana/Documents/")
 #evaluation functions for genetic algorithm
 cowsGen = 5000
 
-HerdsA = pd.read_csv('/home/jana/Documents/PhD/CompBio/HerdsA.txt')
-HerdsAnim = pd.read_csv("/home/jana/Documents/PhD/CompBio/NoByHerd.txt")
+HerdsA = pd.read_csv('/home/jana/Documents/PhD/CompBio/RefADF_mean.csv')
+NapA = pd.read_csv('/home/jana/Documents/PhD/CompBio/NapADF_mean.csv')
+PbA = pd.read_csv('/home/jana/Documents/PhD/CompBio/PbADF_mean.csv')
+HerdsAnim = pd.read_table("/home/jana/Documents/PhD/CompBio/HerdNo.txt", sep=" ")
 
 
 
 def eval_func(chromosome):
-    NoAnimals = sum([no for (chrom, no) in zip (chromosome, HerdsAnim.NoAnimal) if chrom == 1])
-    #within
+    NoAnimals = sum([no for (chrom, no) in zip (chromosome, HerdsAnim.NoAnim) if chrom == 1])
+    chosenHerds = [herd for (chrom, herd) in zip (chromosome, HerdsAnim.Herd) if chrom == 1]
+    
     withinA = []
     for index, vals in HerdsA.iterrows():
-       if (chromosome[int(vals.num1)-1] == 1 and chromosome[int(vals.num2)-1] == 1): 
-           withinA.append(vals.rel)
-           
-    betweenA = []
-    for index, vals in HerdsA.iterrows():
-       if (chromosome[int(vals.num1)-1] == 1 and chromosome[int(vals.num2)-1] == 0) or (chromosome[int(vals.num1)-1] == 0 and chromosome[int(vals.num2)-1] == 1): 
-           betweenA.append(vals.rel)
-
+       if (int(vals.Herd1) in chosenHerds) and (int(vals.Herd2) in chosenHerds): 
+           withinA.append(vals.A)
+    
+    withPb = (PbA.A[PbA.Herd.isin(chosenHerds)])
+    withNap = (NapA.A[NapA.Herd.isin(chosenHerds)])
+                  
+    within = np.mean(list(withPb) + list(withinA))
+    between = np.mean (withNap)
 
     #and also the number of animals 
-    score = (sum(betweenA) - sum(withinA))
+    score = (reLu(between - within) * 10) ** 2
     penalty = [-score if (NoAnimals > 1.5*cowsGen or NoAnimals < 0.85*cowsGen) else 0]
     return score+penalty[0]
 
@@ -55,7 +62,7 @@ genome.mutator.set(Mutators.G1DListMutatorIntegerRange)
 
 # Genetic Algorithm Instance
 ga = GSimpleGA.GSimpleGA(genome)
-ga.setGenerations(500)
+ga.setGenerations(1000)
 ga.selector.set(Selectors.GTournamentSelector)
 ga.setMutationRate(0.09)
 ga.setCrossoverRate(0.05)

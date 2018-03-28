@@ -1,5 +1,9 @@
 ped <- read.csv("~/Class_20Rep.txt",sep=" ")
 ped <- read.csv("~/Class_1Year.txt",sep=" ")
+ped <- read.csv("~/GenSLO5_1Pb.txt",sep=" ")
+ped <- read.csv("~/GenSLO15_1Pb.txt",sep=" ")
+ped <- read.csv("~/Class_1Year.txt",sep=" ")
+ped <- read.csv("~/Class_1Year.txt",sep=" ")
 
 
 
@@ -24,8 +28,8 @@ table(FatherUse$NoOffspring)
 
 
 ped[ped$Indiv %in% FatherUse$Father[FatherUse$NoOffspring > 5],]
-table(ped$cat[ped$Indiv %in% FatherUse$Father[FatherUse$NoOffspring == 5]])
-table(ped$Generation[ped$Indiv %in% FatherUse$Father[FatherUse$NoOffspring == 5]])
+table(ped$cat[ped$Indiv %in% FatherUse$Father[FatherUse$NoOffspring > 5]])
+table(ped$Generation[ped$Indiv %in% FatherUse$Father[FatherUse$NoOffspring > 5]])
 
 ped[ped$Indiv %in% FatherUse$Father[FatherUse$NoOffspring == 0],]
 table(ped$cat[ped$Indiv %in% FatherUse$Father[FatherUse$NoOffspring == 0]])

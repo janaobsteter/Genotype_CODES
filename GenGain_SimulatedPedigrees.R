@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 pedClas <- read.csv("~/bin/AlphaSim1.05Linux/REAL20GenSel_Class/SimulatedData/PedigreeAndGeneticValues_cat.txt", sep=" ")
 =======
 pedClas <- read.csv("~/bin/AlphaSim1.05Linux/REAL20GenSel_Class1/SimulatedData/PedigreeAndGeneticValues_cat.txt", sep=" ")
