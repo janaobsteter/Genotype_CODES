@@ -15,28 +15,31 @@ WorkingDir = "/home/jana/Documents/PhD/CompBio/TestingGBLUP/"
 rounds = int(raw_input("Enter the number of repetitions"))
 Accuracies = pd.DataFrame(np.nan, index=range(rounds), columns=['Opt', 'Random'])
 #to je skript, ki vozi GA v ponovitvah
-os.chdir(WorkingDir)
+
 for rep in range(rounds):
     #1) dobi rešitev iz GA
+    os.makedirs(WorkingDir + "/Rep_" + str(rep))
+    RepDir = WorkingDir + "/Rep_" + str(rep)
+    os.chdir(RepDir)
+    os.system("cp " + WorkingDir + "/Essentials/* .")
     os.system(" python ~/Genotipi/Genotipi_CODES/GA_genotpingHerds2.py > GAherds.txt")
     
     #ekstrahiraj rešitev
-    chromosome = [int(x) for x in open(WorkingDir + "GAherds.txt").read().strip("\n")[open(WorkingDir + "GAherds.txt").read().strip("\n").find("List:"):].strip("'").strip("List:\t\t ").strip("[").strip("]").split(", ")]
+    chromosome = [int(x) for x in open(RepDir + "/GAherds.txt").read().strip("\n")[open(RepDir + "/GAherds.txt").read().strip("\n").find("List:"):].strip("'").strip("List:\t\t ").strip("[").strip("]").split(", ")]
     
     #ekstrahiraj živali
     ped = pd.read_csv("/home/jana/Documents/PhD/CompBio/TestingGBLUP/PedCows_HERDS_Total.txt", sep=" ")
     pedO = pd.read_csv(WorkingDir + "PedigreeAndGeneticValues_cat.txt", sep="\s+")
     genK = [herd for (herd, gen) in zip(sorted(list(set(ped.cluster))), chromosome) if gen ==1]  
-    pd.DataFrame({"ID": list(ped.loc[ped.cluster.isin(genK), 'Indiv']) + list(pedO.loc[pedO.cat.isin(["potomciNP", "pb"]),'Indiv']) }).to_csv(WorkingDir + '/IndForGeno.txt', index=None, header=None)
+    pd.DataFrame({"ID": list(ped.loc[ped.cluster.isin(genK), 'Indiv']) + list(pedO.loc[pedO.cat.isin(["potomciNP", "pb"]),'Indiv']) }).to_csv(RepDir + '/IndForGeno.txt', index=None, header=None)
     #tukaj zapišeš IndForGeno.txt
     
     #to je enako število random izbranih krav
     noCows = len(list(ped.loc[ped.cluster.isin(genK), 'Indiv']))
-    pd.DataFrame({"ID": list(random.sample(ped.Indiv, noCows)) + list(pedO.loc[pedO.cat.isin(["potomciNP", "pb"]),'Indiv']) }).to_csv(WorkingDir + '/IndForGeno_Random.txt', index=None, header=None)
+    pd.DataFrame({"ID": list(random.sample(ped.Indiv, noCows)) + list(pedO.loc[pedO.cat.isin(["potomciNP", "pb"]),'Indiv']) }).to_csv(RepDir + '/IndForGeno_Random.txt', index=None, header=None)
    
     
     #Tukaj skreiraj GenoFile
-    os.chdir(WorkingDir)
     os.system(
     'grep -Fwf IndForGeno.txt /home/jana/bin/AlphaSim1.05Linux/REALFillIn20BurnIn20/SimulatedData/AllIndividualsSnpChips/Chip1Genotype.txt > ChosenInd.txt')  # only individuals chosen for genotypisation - ALL
     os.system("sed 's/^ *//' ChosenInd.txt > ChipFile.txt")  # Remove blank spaces at the beginning
@@ -60,7 +63,7 @@ for rep in range(rounds):
     #dodaj rešitve in izračunaj točnost
     blupSol = pd.read_csv('renumbered_Solutions', header=None,
                         sep='\s+', names=['renID', 'ID', 'Solution'])
-    AlphaPed = pd.read_table("PedigreeAndGeneticValues_cat.txt", sep=" ")
+    AlphaPed = pd.read_table(WorkingDir + "/PedigreeAndGeneticValues_cat.txt", sep=" ")
     AlphaSelPed = AlphaPed.loc[:, ['Generation', 'Indiv', 'Father', 'Mother','cat', 'gvNormUnres1']]
     AlphaSelPed.loc[:, 'EBV'] = blupSol.Solution
     AlphaSelPed = AlphaSelPed.loc[AlphaSelPed.cat.isin(["potomciNP"])]
@@ -71,7 +74,6 @@ for rep in range(rounds):
       
     #potem pa naredi za vsako optimizacijo še eno random izbiro  
     #Tukaj skreiraj GenoFile
-    os.chdir(WorkingDir)
     os.system(
     'grep -Fwf IndForGeno_Random.txt /home/jana/bin/AlphaSim1.05Linux/REALFillIn20BurnIn20/SimulatedData/AllIndividualsSnpChips/Chip1Genotype.txt > ChosenInd.txt')  # only individuals chosen for genotypisation - ALL
     os.system("sed 's/^ *//' ChosenInd.txt > ChipFile.txt")  # Remove blank spaces at the beginning
@@ -95,7 +97,7 @@ for rep in range(rounds):
     #dodaj rešitve in izračunaj točnost
     blupSol = pd.read_csv('renumbered_Solutions', header=None,
                         sep='\s+', names=['renID', 'ID', 'Solution'])
-    AlphaPed = pd.read_table("PedigreeAndGeneticValues_cat.txt", sep=" ")
+    AlphaPed = pd.read_table(WorkingDir + "/PedigreeAndGeneticValues_cat.txt", sep=" ")
     AlphaSelPed = AlphaPed.loc[:, ['Generation', 'Indiv', 'Father', 'Mother','cat', 'gvNormUnres1']]
     AlphaSelPed.loc[:, 'EBV'] = blupSol.Solution
     AlphaSelPed = AlphaSelPed.loc[AlphaSelPed.cat.isin(["potomciNP"])]
