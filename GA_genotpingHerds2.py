@@ -44,7 +44,7 @@ def eval_func(chromosome):
     between = np.mean (withNap)
 
     #and also the number of animals 
-    score = (reLu(between - within) * 10) ** 2
+    score = (reLu(between - within) * 10000) **2
     penalty = [-score if (NoAnimals > 1.5*cowsGen or NoAnimals < 0.85*cowsGen) else 0]
     return score+penalty[0]
 

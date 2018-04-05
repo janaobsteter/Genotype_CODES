@@ -13,7 +13,7 @@ import resource
 
 WorkingDir = "/home/jana/Documents/PhD/CompBio/TestingGBLUP/"
 rounds = int(raw_input("Enter the number of repetitions"))
-Accuracies = pd.DataFrame(np.nan, index=range(rounds), columns=['Opt', 'Random'])
+Accuracies = pd.DataFrame(np.nan, index=range(rounds), columns=['Opt', 'Random', 'RandomHerd'])
 #to je skript, ki vozi GA v ponovitvah
 
 for rep in range(rounds):
@@ -38,6 +38,10 @@ for rep in range(rounds):
     noCows = len(list(ped.loc[ped.cluster.isin(genK), 'Indiv']))
     pd.DataFrame({"ID": list(random.sample(ped.Indiv, noCows)) + list(pedO.loc[pedO.cat.isin(["potomciNP", "pb"]),'Indiv']) }).to_csv(RepDir + '/IndForGeno_Random.txt', index=None, header=None)
    
+    #to je enako število random izbranih čred
+    noHerds = sum(chromosome)
+    randomHerds = sorted(random.sample(range(1, 101), noHerds))
+    pd.DataFrame({"ID": list(ped.loc[ped.cluster.isin(randomHerds), 'Indiv']) + list(pedO.loc[pedO.cat.isin(["potomciNP", "pb"]),'Indiv']) }).to_csv(RepDir + '/IndForGeno_RandomHerds.txt', index=None, header=None)   
     
     #Tukaj skreiraj GenoFile
     os.system(
@@ -74,6 +78,7 @@ for rep in range(rounds):
       
     #potem pa naredi za vsako optimizacijo še eno random izbiro  
     #Tukaj skreiraj GenoFile
+    os.system("rm GenoFile*")
     os.system(
     'grep -Fwf IndForGeno_Random.txt /home/jana/bin/AlphaSim1.05Linux/REALFillIn20BurnIn20/SimulatedData/AllIndividualsSnpChips/Chip1Genotype.txt > ChosenInd.txt')  # only individuals chosen for genotypisation - ALL
     os.system("sed 's/^ *//' ChosenInd.txt > ChipFile.txt")  # Remove blank spaces at the beginning
@@ -103,6 +108,40 @@ for rep in range(rounds):
     AlphaSelPed = AlphaSelPed.loc[AlphaSelPed.cat.isin(["potomciNP"])]
     Accuracies.Random[rep] = list(np.corrcoef(AlphaSelPed.EBV, AlphaSelPed.gvNormUnres1)[0])[1]
     AlphaSelPed.to_csv('GenPed_EBV' + str(rep) + '_Random.txt', index=None)
+    
+    
+    #potem pa naredi za vsako optimizacijo še eno random izbiro  ČRED
+    #Tukaj skreiraj GenoFile
+    os.system("rm GenoFile*")
+    os.system(
+    'grep -Fwf IndForGeno_RandomHerds.txt /home/jana/bin/AlphaSim1.05Linux/REALFillIn20BurnIn20/SimulatedData/AllIndividualsSnpChips/Chip1Genotype.txt > ChosenInd.txt')  # only individuals chosen for genotypisation - ALL
+    os.system("sed 's/^ *//' ChosenInd.txt > ChipFile.txt")  # Remove blank spaces at the beginning
+    os.system("cut -f1 -d ' ' ChipFile.txt > Individuals.txt")  # obtain IDs
+    os.system('''awk '{$1=""; print $0}' ChipFile.txt | sed 's/ //g' > Snps.txt''')  # obtain SNP genotypes
+    os.system(
+    r'''paste Individuals.txt Snps.txt | awk '{printf "%- 10s %+ 15s\n",$1,$2}' > GenoFile.txt''')  # obtain SNP genotypes of the last generation
+    pd.read_csv('/home/jana/bin/AlphaSim1.05Linux/SimulatedData/Chip1SnpInformation.txt', sep='\s+')[[0, 1, 2]].to_csv('SnpMap.txt', index=None, sep=" ", header=None)
+    print "Created Geno File for Random HERD choice"
+    
+    #sfuraj blupf90
+    os.system("./renumf90 < renumParam")  # run renumf90
+    
+    resource.setrlimit(resource.RLIMIT_STACK, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
+    os.system('./blupf90 renf90.par')
+    #renumber the solutions
+    # copy the solution in a file that does not get overwritten
+    os.system("bash Match_AFTERRenum.sh")
+    
+    
+    #dodaj rešitve in izračunaj točnost
+    blupSol = pd.read_csv('renumbered_Solutions', header=None,
+                        sep='\s+', names=['renID', 'ID', 'Solution'])
+    AlphaPed = pd.read_table(WorkingDir + "/PedigreeAndGeneticValues_cat.txt", sep=" ")
+    AlphaSelPed = AlphaPed.loc[:, ['Generation', 'Indiv', 'Father', 'Mother','cat', 'gvNormUnres1']]
+    AlphaSelPed.loc[:, 'EBV'] = blupSol.Solution
+    AlphaSelPed = AlphaSelPed.loc[AlphaSelPed.cat.isin(["potomciNP"])]
+    Accuracies.RandomHerd[rep] = list(np.corrcoef(AlphaSelPed.EBV, AlphaSelPed.gvNormUnres1)[0])[1]
+    AlphaSelPed.to_csv('GenPed_EBV' + str(rep) + '_RandomHerd.txt', index=None)
 
 Accuracies.to_csv(WorkingDir + "AccuraciesRep.txt")
     
