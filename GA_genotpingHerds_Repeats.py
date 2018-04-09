@@ -16,6 +16,10 @@ rounds = int(raw_input("Enter the number of repetitions"))
 Accuracies = pd.DataFrame(np.nan, index=range(rounds), columns=['Opt', 'Random', 'RandomHerd'])
 #to je skript, ki vozi GA v ponovitvah
 
+
+def reLu(number):
+    return (0 if number < 0 else number)
+
 for rep in range(rounds):
     #1) dobi rešitev iz GA
     os.makedirs(WorkingDir + "/Rep_" + str(rep))
@@ -144,4 +148,93 @@ for rep in range(rounds):
     AlphaSelPed.to_csv('GenPed_EBV' + str(rep) + '_RandomHerd.txt', index=None)
 
 Accuracies.to_csv(WorkingDir + "AccuraciesRep.txt")
+
+
+HerdsA = pd.read_csv('/home/jana/Documents/PhD/CompBio/RefADF_mean.csv')
+NapA = pd.read_csv('/home/jana/Documents/PhD/CompBio/NapADF_mean.csv')
+PbA = pd.read_csv('/home/jana/Documents/PhD/CompBio/PbADF_mean.csv')
+HerdsAnim = pd.read_table("/home/jana/Documents/PhD/CompBio/HerdNo.txt", sep=" ")
+WorkingDir = "/home/jana/Documents/PhD/CompBio/TestingGBLUP/"
+cowsGen=5000
+ped = pd.read_csv("/home/jana/Documents/PhD/CompBio/TestingGBLUP/PedCows_HERDS_Total.txt", sep=" ")
+
+
+rounds = 5
+
+Relationship = pd.DataFrame(np.nan, index=range(rounds), columns=['Way', 'Rep', 'NoAnimals', 'NoHerds', 'Within', 'Between', 'Score', 'FinalScore'])
+for rep in range(rounds):
+    Relationship.Rep[rep] = rep
+    Relationship.Way[rep] = "Opt"
+    #1) dobi rešitev iz GA
+    RepDir = WorkingDir + "/Rep_" + str(rep)
+    os.chdir(RepDir)
+    chromosome = [int(x) for x in open(RepDir + "/GAherds.txt").read().strip("\n")[open(RepDir + "/GAherds.txt").read().strip("\n").find("List:"):].strip("'").strip("List:\t\t ").strip("[").strip("]").split(", ")]
     
+    NoAnimals = sum([no for (chrom, no) in zip (chromosome, HerdsAnim.NoAnim) if chrom == 1])
+    chosenHerds = [herd for (chrom, herd) in zip (chromosome, HerdsAnim.Herd) if chrom == 1]
+    Relationship.NoAnimals[rep] = NoAnimals
+    Relationship.NoHerds[rep] = len(chosenHerds)
+    
+    withinA = []
+    for index, vals in HerdsA.iterrows():
+       if (int(vals.Herd1) in chosenHerds) and (int(vals.Herd2) in chosenHerds): 
+           withinA.append(vals.A)
+    
+    withPb = (PbA.A[PbA.Herd.isin(chosenHerds)])
+    withNap = (NapA.A[NapA.Herd.isin(chosenHerds)])
+                  
+    within = np.mean(list(withPb) + list(withinA))
+    between = np.mean (withNap)
+    
+    Relationship.Within[rep] = within
+    Relationship.Between[rep] = between
+
+    #and also the number of animals 
+    score = (reLu(between - within) * 10000) **2
+    penalty = [-score if (NoAnimals > 1.5*cowsGen or NoAnimals < 0.85*cowsGen) else 0]
+    
+    Relationship.Score[rep] = score
+    Relationship.FinalScore[rep] = score+penalty[0]
+    RelationOpt = Relationship
+    
+Relationship = pd.DataFrame(np.nan, index=range(rounds), columns=['Way', 'Rep', 'NoAnimals', 'NoHerds', 'Within', 'Between', 'Score', 'FinalScore'])
+for rep in range(rounds):
+    Relationship.Rep[rep] = rep
+    Relationship.Way[rep] = "RandomHerd"
+    #1) dobi rešitev iz GA
+    RepDir = WorkingDir + "/Rep_" + str(rep)
+    os.chdir(RepDir)
+    
+    Inds = pd.read_table("IndForGeno_RandomHerds.txt", header=None)
+    herds = sorted(list(set(ped.cluster[ped.Indiv.isin(list(Inds.loc[:, 0]))])))
+    chromosome = [1 if herd in herds else 0 for herd in range(1, 101) ]
+
+    NoAnimals = sum([no for (chrom, no) in zip (chromosome, HerdsAnim.NoAnim) if chrom == 1])
+    chosenHerds = [herd for (chrom, herd) in zip (chromosome, HerdsAnim.Herd) if chrom == 1]
+    Relationship.NoAnimals[rep] = NoAnimals
+    Relationship.NoHerds[rep] = len(chosenHerds)
+    
+    withinA = []
+    for index, vals in HerdsA.iterrows():
+       if (int(vals.Herd1) in chosenHerds) and (int(vals.Herd2) in chosenHerds): 
+           withinA.append(vals.A)
+    
+    withPb = (PbA.A[PbA.Herd.isin(chosenHerds)])
+    withNap = (NapA.A[NapA.Herd.isin(chosenHerds)])
+                  
+    within = np.mean(list(withPb) + list(withinA))
+    between = np.mean (withNap)
+    
+    Relationship.Within[rep] = within
+    Relationship.Between[rep] = between
+
+    #and also the number of animals 
+    score = (reLu(between - within) * 10000) **2
+    penalty = [-score if (NoAnimals > 1.5*cowsGen or NoAnimals < 0.85*cowsGen) else 0]
+    
+    Relationship.Score[rep] = score
+    Relationship.FinalScore[rep] = score+penalty[0]
+    
+    RelationRandom = Relationship
+
+Relationship.append(RelationOpt).to_csv(WorkingDir + "Relations.csv", index=None)
