@@ -91,10 +91,10 @@ degree = sys.argv[1]
 
 
 
-print("Creating directory " + scenario + str(rep) +"_" + degree + "OCS")
-if not os.path.isdir(scenario + str(rep) +"_" + degree + "OCS"):
-    os.makedirs(scenario + str(rep) +"_" + degree + "OCS")
-SelectionDir = scenario + str(rep) +"_" + degree + "OCS/"
+print("Creating directory " + scenario + str(rep) +"_" + str(degree) + "OCS")
+if not os.path.isdir(scenario + str(rep) +"_" + str(degree) + "OCS"):
+    os.makedirs(scenario + str(rep) +"_" + str(degree) + "OCS")
+SelectionDir = WorkingDir + "/" + scenario + str(rep) +"_" + str(degree) + "OCS/"
 
 
 
@@ -175,13 +175,14 @@ for roundNo in range(21,41): #za vsak krog selekcije
     # prepare pedigree matrix for selected individuals
     pedA = AlphaRelate(AlphaSimDir, AlphaSimDir)
     pedA.preparePedigree()
+    resource.setrlimit(resource.RLIMIT_STACK, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
     pedA.runAlphaRelate()
 
     mate = AlphaMate(AlphaSimDir, AlphaSimDir, roundNo+19)
     mate.prepareGender()
     mate.prepareCriterionFile()
   
-    os.system("Rscript optiSel.R " + degree)
+    os.system("Rscript optiSel.R " + str(degree))
     Ocetje = list(pd.read_table("Ocetje.txt", header=None).loc[:, 0])
     #len(Ocetje)
 
@@ -243,7 +244,7 @@ for roundNo in range(21,41): #za vsak krog selekcije
     SpecFile.setTBVComp(2)
     SpecFile.setNB(StNB)
     # pozenes ALPHASIM
-    os.system(AlphaSimDir + '/AlphaSim1.08')
+    os.system(AlphaSimDir + '/AlphaSim1.05')
 
     # tukaj dodaj kategorije k PedigreeAndGeneticValues (AlphaSim File)
     PedCat = OrigPed(AlphaSimDir, WorkingDir + '/CodeDir')
