@@ -1547,17 +1547,17 @@ class AlphaRelate(object):
         def __init__(self, AlphaRelateDir, AlphaSimDir):
             self.AlphaRelateDir = AlphaRelateDir
             self.AlphaSimDir = AlphaSimDir
-            self.AlphaRelateSpec_gen = AlphaRelateDir + '/AlphaRelateSpec_gen.txt'
-            shutil.copy(self.AlphaRelateSpec_gen, AlphaRelateDir + "/AlphaRelateSpec.txt")
             self.AlphaRelateSpec = self.AlphaRelateDir + "/AlphaRelateSpec.txt"
-            shutil.copy(AlphaSimDir + "/IndOpt.txt", AlphaRelateDir)
-
+            try:
+		shutil.copy(AlphaSimDir + "/IndOpt.txt", AlphaRelateDir)
+	    except:
+		pass
 
         def preparePedigree(self):
             ped = pd.read_csv(self.AlphaSimDir + "/SimulatedData/PedigreeAndGeneticValues_cat.txt", sep="\s+")
-            ped[[1,2,3]].to_csv(self.AlphaRelateDir + "/PEDIGREE.txt", sep=",", index=None, header=None)
+            ped[["Indiv","Father", "Mother"]].to_csv(self.AlphaRelateDir + "/PEDIGREE.txt", sep=",", index=None, header=None)
             ped.loc[:, "sex1"] = [1 if x == "M" else 2 for x in ped.sex ]
-            ped[["Indiv", "sex1"]].to_csv(AlphaRelateDir + "/GENDER.txt", sep=" ", index=None, header=None)
+            ped[["Indiv", "sex1"]].to_csv(self.AlphaRelateDir + "/GENDER.txt", sep=" ", index=None, header=None)
 
         def runAlphaRelate(self):
             os.chdir(self.AlphaRelateDir)
@@ -1566,32 +1566,37 @@ class AlphaRelate(object):
 
 
 class AlphaMate(object):
-    def __init__(self, AlphaMateDir, AlphaSimDir):
+    def __init__(self, AlphaMateDir, AlphaSimDir, round):
         self.AlphaMateDir = AlphaMateDir
         self.AlphaSimDir = AlphaSimDir
         self.AlphaMateSpec_gen = AlphaMateDir + "/AlphaMateSpec_gen.txt"
         shutil.copy(self.AlphaMateSpec_gen, AlphaMateDir + "/AlphaMateSpec.txt")
         self.AlphaMateSpec = AlphaMateDir + "/AlphaMateSpec.txt"
-        shutil.copy(AlphaSimDir + "/IndOpt.txt", AlphaMateDir)
+	try:      
+		shutil.copy(AlphaSimDir + "/IndOpt.txt", AlphaMateDir)
+	except:
+		pass
         self.indopt = sorted(list(pd.read_table("IndOpt.txt", header=None).loc[:, 0]))
         self.ped = pd.read_csv(self.AlphaSimDir + "/SimulatedData/PedigreeAndGeneticValues_cat.txt", sep="\s+")
-        self.round = max(ped.Generation)
+#        self.round = max(self.ped.Generation)
+	self.round = round
 
 
 
 
     def prepareGender(self):
-        ped.loc[:, "sex1"] = [1 if x == "M" else 2 for x in ped.sex]
+        ped = self.ped
+	ped.loc[:, "sex1"] = [1 if x == "M" else 2 for x in ped.sex]
         ped[ped.Indiv.isin(self.indopt)][["Indiv", "sex1"]].to_csv(self.AlphaMateDir + "/GENDER.txt", sep=" ", index=None, header=None)
 
     def countFemaleSel(self):
-        gender = pd.read_table(AlphaMateDir + "/GENDER.txt", header=None, sep=" ")
+        gender = pd.read_table(self.AlphaMateDir + "/GENDER.txt", header=None, sep=" ")
         return (int(sum(gender[[1]] == 2)))
 
     def prepareCriterionFile(self):
-        sol = pd.read_csv(AlphaSimDir + "/renumbered_Solutions_" + str(40), header=None, sep=" ")
+        sol = pd.read_csv(self.AlphaSimDir + "/renumbered_Solutions_" + str(self.round), header=None, sep=" ")
         sol.columns = ["renID", "ID", "EBV"]
-        sol.loc[sol.ID.isin(indopt)][["ID", "EBV"]].to_csv(self.AlphaMateDir + "/CRITERION.txt", header=None, index=None)
+        sol.loc[sol.ID.isin(self.indopt)][["ID", "EBV"]].to_csv(self.AlphaMateDir + "/CRITERION.txt", header=None, index=None)
 
     def prepareSpecFile(self, NoMatings, NoMaleParents, NoFemaleParents, Degree):
         os.system('sed -i "s|NoMatings|' + str(NoMatings) + '|g" ' + self.AlphaMateSpec)
@@ -2055,7 +2060,7 @@ class snpFiles:
         if os.path.isfile(
                         self.AlphaSimDir + 'GenoFile.txt'):  # if GenoFile.txt exists, only add the newIndividuals for genotypisation
             os.system(
-                'grep -Fwf IndForGeno_new.txt ' + self.chipFile + ' > ChosenInd.txt')  # only individuals chosen for genotypisation - ONLY NEW - LAST GEN!
+                'grep -Fwaf IndForGeno_new.txt ' + self.chipFile + ' > ChosenInd.txt')  # only individuals chosen for genotypisation - ONLY NEW - LAST GEN!
             os.system("sed 's/^ *//' ChosenInd.txt > ChipFile.txt")  # Remove blank spaces at the beginning
             os.system("cut -f1 -d ' ' ChipFile.txt > Individuals.txt")  # obtain IDs
             os.system('''awk '{$1=""; print $0}' ChipFile.txt | sed 's/ //g' > Snps.txt''')  # obtain SNP genotypes
@@ -2067,7 +2072,7 @@ class snpFiles:
             os.system("less GenoFile.txt | sort -n | uniq > Genotmp && mv Genotmp GenoFile.txt")
         else:  # else create a new GenoFile containg all the individuals in the IndForGeno.txt
             os.system(
-                'grep -Fwf IndForGeno.txt ' + self.chipFile + ' > ChosenInd.txt')  # only individuals chosen for genotypisation - ALL
+                'grep -Fwaf IndForGeno.txt ' + self.chipFile + ' > ChosenInd.txt')  # only individuals chosen for genotypisation - ALL
             os.system("sed 's/^ *//' ChosenInd.txt > ChipFile.txt")  # Remove blank spaces at the beginning
             os.system("cut -f1 -d ' ' ChipFile.txt > Individuals.txt")  # obtain IDs
             os.system('''awk '{$1=""; print $0}' ChipFile.txt | sed 's/ //g' > Snps.txt''')  # obtain SNP genotypes

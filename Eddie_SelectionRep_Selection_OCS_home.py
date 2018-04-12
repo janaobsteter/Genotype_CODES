@@ -180,10 +180,14 @@ for roundNo in range(21,41): #za vsak krog selekcije
     mate = AlphaMate(AlphaSimDir, AlphaSimDir, roundNo+19)
     mate.prepareGender()
     mate.prepareCriterionFile()
-  
-    os.system("Rscript optiSel.R " + degree)
-    Ocetje = list(pd.read_table("Ocetje.txt", header=None).loc[:, 0])
-    #len(Ocetje)
+    gender = pd.read_table("./GENDER.txt", header=None, sep=" ")
+    print(gender.head())
+    print(os.getcwd())
+    print(str(mate.countFemaleSel()))
+    mate.prepareSpecFile(str(mate.countFemaleSel()), 25, mate.countFemaleSel(), degree)
+    mate.runAlphaMate()
+    Ocetje = mate.obtainSelMales()
+    shuffle(Ocetje)
 
     # dodaj novo generacijo
     ped.add_new_gen_naive(selPar['stNBn'], selPar['potomciNPn'] * 2)
