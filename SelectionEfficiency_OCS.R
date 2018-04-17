@@ -114,6 +114,11 @@ TGVsAll <- read.table("~/Documents/PhD/Simulaton//TGVsAll_10KRef_2501.csv", head
 TGVsAll <- read.table("~/Genotipi/Genotipi_CODES//TGVsAll_10KRef_2501.csv", header=TRUE) #če imaš 60 generacij, je standardizirano na 1. generacijo!!!
 TGVsAll <- read.table("~/TGVsAll_10KRef_2801_1Pb.csv", header=TRUE) #če imaš 60 generacij, je standardizirano na 1. generacijo!!!
 TGVsAll <- read.table("~/OCS/TGVsAll_10KRef_OCS.csv", header=TRUE) #če imaš 60 generacij, je standardizirano na 1. generacijo!!!
+TGVsAll <- read.table("~/TGVsAll_10KRef_OCS.csv", header=TRUE) #če imaš 60 generacij, je standardizirano na 1. generacijo!!!
+TGVsAll1 <- read.table("~/TGVsAll_optiSel.csv", header=TRUE, sep=" ") #če imaš 60 generacij, je standardizirano na 1. generacijo!!!
+colnames(TGVsAll1)[11] <- "Degree"
+TGVsAll2 <- read.table("~/TGVsAll_AlphaMate.csv", header=TRUE, sep=" ") #če imaš 60 generacij, je standardizirano na 1. generacijo!!!
+colnames(TGVsAll2)[11] <- "Degree"
 TGVsAll <- read.table("~/Documents/PhD/Simulaton//TGVsAll_10KRef_2801_1Pb.csv", header=TRUE) #če imaš 60 generacij, je standardizirano na 1. generacijo!!!
 TGVsAll <- read.table("~/Documents/PhD/Simulaton//TGVsAll_10KRef_2801_1Year.csv", header=TRUE) #če imaš 60 generacij, je standardizirano na 1. generacijo!!!
 TGVsAll <- read.table("~/Genotipi/Genotipi_CODES//TGVsAll_10KRef_2801_1Year.csv", header=TRUE) #če imaš 60 generacij, je standardizirano na 1. generacijo!!!
@@ -124,35 +129,54 @@ TGVsAll$Group <- paste(TGVsAll$scenario, TGVsAll$Rep)
 TGVsAll <- TGVsAll[TGVsAll$Generation %in% 40:60,]
 
 
+SU55 <- TGVsAll[(TGVsAll$scenario=="Gen") & (TGVsAll$Rep==0),]
+SU55$Degree <- "SU55"
+SU15 <- TGVsAll[(TGVsAll$scenario=="Gen") & (TGVsAll$Rep==0),]
+SU15$Degree <- "SU15"
+SU51 <- TGVsAll[(TGVsAll$scenario=="Gen") & (TGVsAll$Rep==0),]
+SU51$Degree <- "SU51"
+SU51 <- SU51[,-c(11, 12)]
+SU55 <- SU55[,-c(11, 12)]
+SU15 <- SU51[,-c(11, 12)]
+
+colnames(TGVsAll)[11] <- "Degree"
+TGVsAll <- TGVsAll[-which(TGVsAll$Degree=="DegreeAlphaMate"),]
+TGVsAll <- rbindlist(list(TGVsAll, SU55, SU51, SU15))
+library(datatable)
+TGVsAll <- rbindlist(list(TGVsAll1, TGVsAll2, SU55))
+TGVsAll <- rbind(TGVsAll, SU55)
+SU55 <- SU55[SU55$Generation %in% 40:60,]
+TGVsAll <- TGVsAll[TGVsAll$Generation %in% 40:60,]
+
+
 #Dodaj še nove spremenljivke
 #in spravi gensko in genetsko varianco na isto točko
 groupDF <- data.frame()
-for (group in unique(TGVsAll$Group)) {
-  groupT <- subset(TGVsAll[TGVsAll$Group==group,])
+for (degree in unique(TGVsAll$Degree)) {
+  groupT <- subset(TGVsAll[TGVsAll$Degree==degree,])
   groupT$SDGenicStNeg <- 1- groupT$AdditGenicVar1 / groupT$AdditGenicVar1[1]
   groupDF <- rbind(groupDF, groupT)
 }
 
 #standadise onto the 40 generation
 st40 <- data.frame()
-for (rep in 0:20) {
-  for (scenario in c("Class", "GenSLO", "OtherCowsGen", "BmGen", "Gen")) {
-    repScenario <- TGVsAll[(TGVsAll$Rep==rep) & (TGVsAll$scenario==scenario) & (TGVsAll$Generation %in% 40:60),]
-    repScenario$zMean <- (repScenario$gvNormUnres1 - repScenario$gvNormUnres1[1]) / repScenario$sd[1]
-    repScenario$SDGenicSt <- repScenario$AdditGenicVar1 / repScenario$AdditGenicVar1[1] 
-    repScenario$SDSt <- repScenario$sd / repScenario$sd[1] 
-    repScenario$zMeanGenic <- (repScenario$gvNormUnres1 - repScenario$gvNormUnres1[1]) / repScenario$AdditGenicVar1[1]
-    repScenario$SDGenicStNeg <- 1- repScenario$AdditGenicVar1 / repScenario$AdditGenicVar1[1]
-    #TGVsAll$zSdGenic <- (sqrt(TGVsAll$AdditGenicVar1) - sqrt(TGVsAll$))
-    #colnames(TGVs) < c("Generation", paste0("TGV_mean", scenario), paste0("TGV_sd", scenario), paste0("zMean_", scenario), paste0("GenicVar_", scenario), paste0("zMeanGenic_", scenario))
-    st40 <- rbind(st40, repScenario)
-  }
+
+for (degree in c(15, 30, 45, 60, 75, "SU55")) { #, "SU15", "SU51"
+  repScenario <- TGVsAll[(TGVsAll$Degree==degree) & (TGVsAll$Generation %in% 40:60),]
+  repScenario$zMean <- (repScenario$gvNormUnres1 - repScenario$gvNormUnres1[1]) / repScenario$sd[1]
+  repScenario$SDGenicSt <- repScenario$AdditGenicVar1 / repScenario$AdditGenicVar1[1] 
+  repScenario$SDSt <- repScenario$sd / repScenario$sd[1] 
+  repScenario$zMeanGenic <- (repScenario$gvNormUnres1 - repScenario$gvNormUnres1[1]) / repScenario$AdditGenicVar1[1]
+  repScenario$SDGenicStNeg <- 1- repScenario$AdditGenicVar1 / repScenario$AdditGenicVar1[1]
+  #TGVsAll$zSdGenic <- (sqrt(TGVsAll$AdditGenicVar1) - sqrt(TGVsAll$))
+  #colnames(TGVs) < c("Generation", paste0("TGV_mean", scenario), paste0("TGV_sd", scenario), paste0("zMean_", scenario), paste0("GenicVar_", scenario), paste0("zMeanGenic_", scenario))
+  st40 <- rbind(st40, repScenario)
 }
 
 TGVsAll <- st40
 varDF <- data.frame()
-for (group in unique(TGVsAll$Group)) {
-  groupT <- subset(TGVsAll[TGVsAll$Group==group,])
+for (degree in unique(TGVsAll$Degree)) {
+  groupT <- subset(TGVsAll[TGVsAll$Degree==degree,])
   groupT$var <- (groupT$sd)^2
   koef <- groupT$var[1] / groupT$AdditGenicVar1[1]
   groupT$GenicVAR_genetic <- groupT$AdditGenicVar1 * koef
@@ -186,29 +210,29 @@ multiplot(lm, lm2, cols=2)
 
 #TGVsAll <- TGVsAll[TGVsAll$Rep %in% 10:20,]
 #naredi povprečja replik
-Averages1 <- aggregate(TGVsAll$GENICSd_St ~TGVsAll$scenario + TGVsAll$Generation, FUN="mean")
-Averages2 <- aggregate(TGVsAll$zMean ~TGVsAll$scenario + TGVsAll$Generation, FUN="mean")
-Averages3 <- aggregate(TGVsAll$SDSt ~ TGVsAll$scenario + TGVsAll$Generation, FUN="mean")
-Averages4 <- aggregate(TGVsAll$zMean ~ TGVsAll$scenario + TGVsAll$Generation, FUN="mean")
-Averages5 <- aggregate(TGVsAll$zSdGenic ~ TGVsAll$scenario + TGVsAll$Generation, FUN="mean")
-Averages6 <- aggregate(TGVsAll$sd ~ TGVsAll$scenario + TGVsAll$Generation, FUN="mean")
-Averages7 <- aggregate(TGVsAll$MeanGENIC_genetic ~ TGVsAll$scenario + TGVsAll$Generation, FUN="mean")
-Averages8 <- aggregate(TGVsAll$GENICSd_St ~ TGVsAll$scenario + TGVsAll$Generation, FUN="mean")
-colnames(Averages1) <- c("scenario", "Generation", "SDGenic")
-colnames(Averages2) <- c("scenario", "Generation", "MeanGenic")
-colnames(Averages3) <- c("scenario", "Generation", "SDGenetic")
-colnames(Averages4) <- c("scenario", "Generation", "MeanGenetic")
-colnames(Averages5) <- c("scenario", "Generation", "SDGenic_noSt")
-colnames(Averages6) <- c("scenario", "Generation", "SDGenetic_noSt")
-colnames(Averages7) <- c("scenario", "Generation", "MeanGenicGenetic")
-colnames(Averages8) <- c("scenario", "Generation", "SDGenic_Genetic")
-Averages <- merge(Averages1, Averages2, by=c( "scenario", "Generation"))
-Averages <- merge(Averages, Averages3, by=c( "scenario", "Generation"))
-Averages <- merge(Averages, Averages4, by=c( "scenario", "Generation"))
-Averages <- merge(Averages, Averages5, by=c( "scenario", "Generation"))
-Averages <- merge(Averages, Averages6, by=c( "scenario", "Generation"))
-Averages <- merge(Averages, Averages7, by=c( "scenario", "Generation"))
-Averages <- merge(Averages, Averages8, by=c( "scenario", "Generation"))
+Averages1 <- aggregate(TGVsAll$GENICSd_St ~TGVsAll$Degree + TGVsAll$Generation, FUN="mean")
+Averages2 <- aggregate(TGVsAll$zMean ~TGVsAll$Degree + TGVsAll$Generation, FUN="mean")
+Averages3 <- aggregate(TGVsAll$SDSt ~ TGVsAll$Degree + TGVsAll$Generation, FUN="mean")
+Averages4 <- aggregate(TGVsAll$zMean ~ TGVsAll$Degree + TGVsAll$Generation, FUN="mean")
+Averages5 <- aggregate(TGVsAll$zSdGenic ~ TGVsAll$Degree + TGVsAll$Generation, FUN="mean")
+Averages6 <- aggregate(TGVsAll$sd ~ TGVsAll$Degree + TGVsAll$Generation, FUN="mean")
+Averages7 <- aggregate(TGVsAll$MeanGENIC_genetic ~ TGVsAll$Degree + TGVsAll$Generation, FUN="mean")
+Averages8 <- aggregate(TGVsAll$GENICSd_St ~ TGVsAll$Degree + TGVsAll$Generation, FUN="mean")
+colnames(Averages1) <- c("Degree", "Generation", "SDGenic")
+colnames(Averages2) <- c("Degree", "Generation", "MeanGenic")
+colnames(Averages3) <- c("Degree", "Generation", "SDGenetic")
+colnames(Averages4) <- c("Degree", "Generation", "MeanGenetic")
+colnames(Averages5) <- c("Degree", "Generation", "SDGenic_noSt")
+colnames(Averages6) <- c("Degree", "Generation", "SDGenetic_noSt")
+colnames(Averages7) <- c("Degree", "Generation", "MeanGenicGenetic")
+colnames(Averages8) <- c("Degree", "Generation", "SDGenic_Genetic")
+Averages <- merge(Averages1, Averages2, by=c( "Degree", "Generation"))
+Averages <- merge(Averages, Averages3, by=c( "Degree", "Generation"))
+Averages <- merge(Averages, Averages4, by=c( "Degree", "Generation"))
+Averages <- merge(Averages, Averages5, by=c( "Degree", "Generation"))
+Averages <- merge(Averages, Averages6, by=c( "Degree", "Generation"))
+Averages <- merge(Averages, Averages7, by=c( "Degree", "Generation"))
+Averages <- merge(Averages, Averages8, by=c( "Degree", "Generation"))
 
 #AveragesA <- Averages
 #to je max min za gensko varianco
@@ -219,11 +243,11 @@ for (scenario in unique(Averages$scenario)) {
     row <- row +1
 }
 #to je max min za gensko varianco standardizirano na genetsko varianco
-maxmin <- data.frame(scenario=NA, minGenicSD=NA, maxGenicSD=NA, minTGV=NA, maxTGV=NA)
+maxmin <- data.frame(degree=NA, minGenicSD=NA, maxGenicSD=NA, minTGV=NA, maxTGV=NA)
 row = 1
-for (scenario in unique(Averages$scenario)) {
-    maxmin[row,] <- c(scenario, min(Averages$SDGenic_Genetic[Averages$scenario==scenario]), max(Averages$SDGenic_Genetic[Averages$scenario==scenario]), 
-                      min(Averages$MeanGenicGenetic[Averages$scenario==scenario]), max(Averages$MeanGenicGenetic[Averages$scenario==scenario]))
+for (degree in unique(Averages$Degree)) {
+    maxmin[row,] <- c(degree, min(Averages$SDGenic_Genetic[Averages$Degree==degree]), max(Averages$SDGenic_Genetic[Averages$Degree==degree]), 
+                      min(Averages$MeanGenicGenetic[Averages$Degree==degree]), max(Averages$MeanGenicGenetic[Averages$Degree==degree]))
     row <- row +1
 }
 
@@ -284,12 +308,7 @@ library(ggplot2)
 #TGVsAll <- read.table("~/Documents/WCGALP/TGVsAll.csv", header=TRUE)
 #To je plot zMean (standardizirana na gensko variacno) na genetsko varianco
 
-TGVsAll$Sim <- ifelse(TGVsAll$Rep %in% 0:10, "1", "2")
-TGVsAll$Sim <- as.factor(TGVsAll$Sim)
 
-
-TGVsAll1 <- TGVsAll[TGVsAll$Sim == 1,]
-TGVsAll2 <- TGVsAll[TGVsAll$Sim == 2,]
 
 ggplot(data = TGVsAll1, aes(x=SDGenicSt, y=zMeanGenic, group=Group, colour=Sim, linetype=scenario)) + 
   geom_line(aes(linetype=TGVsAll1$scenario), size=0.5, alpha=0.3) + scale_x_reverse(sec.axis=sec_axis(trans=~1-.,                                   
@@ -311,41 +330,44 @@ ggplot(data = TGVsAll1, aes(x=SDGenicSt, y=zMeanGenic, group=Group, colour=Sim, 
                                         y=minTGV,  yend=maxTGV,                                    
                                         color=scenario, linetype=scenario, group=scenario), arrow=arrow(), show.legend=FALSE, size=1.5)
 
+TGVsAll$Degree <- as.factor(TGVsAll$Degree)
+maxmin$degree <- as.factor(maxmin$degree)
+
+TGVsAll <- TGVsAll[!(TGVsAll$Degree %in% c("SU51", "SU15")),]
 #o je z na genetsko standadrizirano gensko variacno
-Year1Eff <- ggplot(data = TGVsAll, aes(x=GENICSd_St, y=MeanGENIC_genetic, group=Group, colour=Sim, linetype=scenario)) + 
+Year1Eff <- ggplot(data = TGVsAll, aes(x=GENICSd_St, y=MeanGENIC_genetic, group=Degree, colour=Degree)) + 
+  geom_line(size=1, alpha=0.5) +
   scale_x_reverse(sec.axis=sec_axis(trans=~1-.,                                   
                                                                                                      name="Converted/Lost genic standard deviation")) +
   #geom_smooth( se=FALSE, formula=y~x+1, method="lm") + 
-  xlab("Generation") + ylab("True genetic value")  + ylim(0,7) +coord_cartesian(xlim = c(1, 0.85)) +
-  scale_linetype_manual(breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), 
-                        "Scenario", 
-                        values=c("solid", "dotted","dashed", "dotdash", "twodash"), labels=c("Conventional", "Genomic A", "Genomic B", "Genomic C", "Genomic D")) + 
-  scale_colour_manual(breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), 
+  xlab("Generation") + ylab("True genetic value")  + ylim(-1,9) +coord_cartesian(xlim = c(1, 0.80)) +
+
+  scale_colour_manual(breaks = c("optisel15", "optiSel30", "optiSel45", "optiSel60", "optiSel75", "AlphaMate15", "AlphaMate30", "AlphaMate45", "AlphaMate60", "AlphaMate75", "SU55"), 
                       "Scenario", 
-                      values=c("forestgreen", "dodgerblue2", "purple", "red3", "orange1"), labels=c("Conventional", "Genomic A", "Genomic B", "Genomic C", "Genomic D")) + 
+                      values=c("forestgreen", "dodgerblue2", "purple", "red3", "orange1","forestgreen", "dodgerblue2", "purple", "red3", "orange1", "black"), labels=c("optisel15", "optiSel30", "optiSel45", "optiSel60", "optiSel75", "AlphaMate15", "AlphaMate30", "AlphaMate45", "AlphaMate60", "AlphaMate75", "SU55")) + 
   xlab("Genic standard deviation") + ylab("Average True Genetic Value") + 
   theme(axis.text=element_text(size=18), legend.position = "left",
         axis.title=element_text(size=18,face="bold"), legend.text=element_text(size=18), legend.title=element_text(size=18)) +
   geom_segment(data=maxmin, mapping=aes(x=maxGenicSD, xend=minGenicSD,
                                         y=minTGV,  yend=maxTGV,                                    
-                                        color=scenario, linetype=scenario, group=scenario), arrow=arrow(), show.legend=FALSE, size=1.5)
+                                        color=degree, group=degree), arrow=arrow(), show.legend=FALSE, size=1.5)
 
 
 #To je plot zMean (standardizirana na GENETSKO variacno) 
-ggplot(data = TGVsAll, aes(x=SDSt, y=zMean, group=Group, colour=scenario, linetype=scenario)) + 
-  geom_line(aes(linetype=TGVsAll$scenario), size=0.5, alpha=0.3) + scale_x_reverse(sec.axis=sec_axis(trans=~1-.,                                   
+ggplot(data = TGVsAll, aes(x=SDSt, y=zMean, group=Degree, colour=Degree, linetype=Degree)) + 
+  geom_line(aes(linetype=TGVsAll$Degree), size=0.5, alpha=0.3) + scale_x_reverse(sec.axis=sec_axis(trans=~1-.,                                   
                                                                                                      name="Converted/Lost genic standard deviation")) +
   xlab("Generation") + ylab("True genetic value")  + 
-  scale_linetype_manual(breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), 
+  scale_linetype_manual(breaks = c(15, 30, 45, 60, 75), 
                         labels= c("Conventional", "Genomic A", "Genomic B", "Genomic C", "Genomic D"), "Scenario", 
                         values=c("solid", "dotted","dashed", "dotdash", "twodash")) + 
-  scale_colour_manual(breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), 
+  scale_colour_manual(breaks = c(15, 30, 45, 60, 75), 
                       labels= c("Conventional", "Genomic A", "Genomic B", "Genomic C", "Genomic D"), "Scenario", 
                       values=c("forestgreen", "dodgerblue2", "purple", "red3", "orange1")) + 
   xlab("Genic standard deviation") + ylab("Average True Genetic Value") +  #+
   geom_segment(data=maxmin, mapping=aes(x=maxGeneticSD, xend=minGeneticSD,
                                         y=minTGV,  yend=maxTGV,                                    
-                                        color=scenario, linetype=scenario, group=scenario), arrow=arrow(), show.legend=FALSE, size=1.5)
+                                        color=degree, linetype=degree, group=degree), arrow=arrow(), show.legend=FALSE, size=1.5)
 #To je plot GENETSKE variance po generaijch po scenariih
 genetic <- ggplot(data = TGVsAll, aes(x=Generation, y=AdditGenicVar1, group=Group, colour=scenario, linetype=scenario)) +  geom_line(aes(linetype=scenario), size=1) + 
   xlab("Generation") + ylab("True genetic value")  + 
@@ -356,7 +378,7 @@ genetic <- ggplot(data = TGVsAll, aes(x=Generation, y=AdditGenicVar1, group=Grou
                                         y=minGenicSD,  yend=maxTGV,                                    
                                         color=scenario, linetype=scenario, group=scenario),      arrow=arrow(), show.legend=FALSE)
 #To je plot GENSKE variance po generaijch po scenariih
-genic <- ggplot(data = TGVsAll, aes(x=Generation, y=zSdGenic, group=Group, colour=scenario, linetype=scenario)) +  geom_line(aes(linetype=scenario), size=1) + 
+genic <- ggplot(data = TGVsAll, aes(x=Generation, y=zSdGenic, group=degree, colour=degree, linetype=degree)) +  geom_line(aes(linetype=scenario), size=1) + 
   xlab("Generation") + ylab("True genetic value")  + 
   scale_linetype_manual("Scenario", breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), values=c("solid", "dashed", "dotted", "dotdash", "twodash"), labels=c("Conventional", "Genomic A", "Genomic B", "Genomic C", "Genomic D")) + 
   scale_colour_manual("Scenario", breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), values=c("forestgreen", "dodgerblue2", "purple", "red3", "orange1"), labels=c("Conventional", "Genomic A", "Genomic B", "Genomic C", "Genomic D")) + 
@@ -365,13 +387,13 @@ genic <- ggplot(data = TGVsAll, aes(x=Generation, y=zSdGenic, group=Group, colou
                                         y=minGenicSD,  yend=maxTGV,                                    
                                         color=scenario, linetype=scenario, group=scenario),      arrow=arrow(), show.legend=FALSE)
 
-MeanAverage <- aggregate(TGVsAll$zMean ~ TGVsAll$scenario + TGVsAll$Generation, FUN="mean")
-MeanAverageSD <- aggregate(TGVsAll$zMean ~ TGVsAll$scenario + TGVsAll$Generation, FUN="sd")
-colnames(MeanAverage) <- c("scenario", "Generation", "MeanTGV")
+MeanAverage <- aggregate(TGVsAll$zMean ~ TGVsAll$Degree + TGVsAll$Generation, FUN="mean")
+MeanAverageSD <- aggregate(TGVsAll$zMean ~ TGVsAll$Degree + TGVsAll$Generation, FUN="sd")
+colnames(MeanAverage) <- c("degree", "Generation", "MeanTGV")
 #genetic gain
-mean <- lmList(MeanTGV ~ Generation | scenario, data=MeanAverage)
-meanDF <- data.frame(Scenario=rownames(coef(mean)),coef(mean),check.names=FALSE)
-colnames(meanDF) <- c("Scenario", "Mean_Intercept", "Mean_Slope")
+mean <- lmList(MeanTGV ~ Generation | degree, data=MeanAverage)
+meanDF <- data.frame(degree=rownames(coef(mean)),coef(mean),check.names=FALSE)
+colnames(meanDF) <- c("Degree", "Mean_Intercept", "Mean_Slope")
 meanDF$test <- "Reference10000"
 #efficiency
 #to je regresija na povprečja
@@ -408,16 +430,15 @@ avgReg$method <- "Average regression"
 #TO JE ŠE z 1 - sd --> da dobiš intercept 0
 #to je povrepčje regresij
 library(nlme)
-regRep <- data.frame(Rep=NA, Intercept=NA, Slope=NA, Scenario=NA)
-for (sc in c("Class", "GenSLO", "OtherCowsGen", "BmGen", "Gen")) {
-  df <- varDF[varDF$scenario==sc,]
-  fm1 <- lmList(zMeanGenic ~ SDGenicStNeg | Rep, data=df)
-  tmp <- data.frame(Rep=rownames(coef(fm1)),coef(fm1),check.names=FALSE)
-  colnames(tmp) <- c("Rep", "Intercept", "Slope")
-  tmp$Scenario <- sc
-  regRep <- rbind(regRep, tmp)
-}
-regRep <- regRep[-1,]
+regRep <- data.frame(Degree=NA, Intercept=NA, Slope=NA)
+
+
+fm1 <- lmList(zMeanGenic ~ SDGenicStNeg | Degree, data=varDF)
+tmp <- data.frame(Degree=rownames(coef(fm1)),coef(fm1),check.names=FALSE)
+colnames(tmp) <- c("Degree", "Intercept", "Slope")
+regRep <- tmp
+
+
 
 #preveri, ali je klasična najslabš v vseh
 for (scenario in c("Class", "GenSLO", "OtherCowsGen", "BmGen", "Gen")) {
@@ -462,9 +483,9 @@ write.table(ref, "~/Documents/PhD/Simulaton/RefPopSize/Compare_1k_10K_RefSize.cs
 ####################################################
 #zračunaj značilnost razlik naklonov med scenariji
 library(lsmeans)
-regRep$Scenario <- as.factor(regRep$Scenario)
-regRep1 <- within(regRep, Scenario <- relevel(Scenario, ref = "Class"))
-m1 <- lm(Slope~Scenario,data=regRep)
+regRep$Degree <- as.factor(regRep$Degree)
+regRep1 <- within(regRep, Degree <- relevel(Degree, ref = 15))
+m1 <- lm(Slope~Degree,data=regRep)
 m1.grid <- ref_grid(m1)
 anova(m1)
 m1S <- lsmeans(m1.grid, "Scenario")
@@ -484,12 +505,12 @@ TGVsAll <- TGVsAll[TGVsAll$scenario %in% c("Class", "Gen"),]
 MeanAverage <- MeanAverage[MeanAverage$scenario %in% c("Class", "Gen"),]
 genGainPlot <- ggplot() + 
   xlab("Generation") + ylab("True genetic value")  + 
-  scale_linetype_manual("Scenario", breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), 
-                        values=c("solid", "dashed", "dotted", "dotdash", "twodash"), labels=c("Conventional", "Genomic A", "Genomic B", "Genomic C", "Genomic D")) + 
-  scale_colour_manual("Scenario", breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), values=c("forestgreen", "dodgerblue2", "purple", "red3", "orange1"), labels=c("Conventional", "Genomic A", "Genomic B", "Genomic C", "Genomic D")) + 
+  scale_linetype_manual("Degree", breaks = c(15, 30, 45, 60, 75, "SU55"), 
+                        values=c("solid", "dashed", "dotted", "dotdash", "twodash", "solid"), labels=c(15, 30, 45, 60, 75,"SU55")) + 
+  scale_colour_manual("Degree", breaks = c(15, 30, 45, 60, 75, "SU55"), values=c("forestgreen", "dodgerblue2", "purple", "red3", "orange1", "black"), labels=c(15, 30, 45, 60, 75, "SU55")) + 
   xlab("Generation") + ylab("Average True Genetic Value") +
-  geom_line(data = MeanAverage, aes(x=Generation, y=MeanTGV, colour=scenario, linetype=scenario), size=1.2) + 
-  ggtitle("a") + ylim(c(0, 7)) +
+  geom_line(data = MeanAverage, aes(x=Generation, y=MeanTGV, colour=degree, linetype=degree), size=1.2) + 
+  ggtitle("a") + 
   guides(group=guide_legend(nrow=6), fill=guide_legend(nrow=6), colour=guide_legend(nrow=6), linetype=guide_legend(nrow=6)) +
   theme(axis.text=element_text(size=20), legend.position = "left",
                                          axis.title=element_text(size=20,face="bold"), legend.text=element_text(size=18), legend.title=element_text(size=20)) #legend.position="bottom", 
