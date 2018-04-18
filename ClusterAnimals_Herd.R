@@ -5,7 +5,12 @@ pedK <- ped[ped$cat=="k",c("Indiv", "Mother", "gvNormUnres1", "phenoNormUnres1")
 
 pedK$cluster <- NA
 pedK$cluster <- kmeans(pedK[,2:4], 100)$cluster
+pedHerd <- merge(pedK[c("Indiv", "cluster")], ped, by="Indiv", all.x=TRUE)
 write.table(pedK, "/home/jana/Documents/PhD/CompBio/TestingGBLUP/PedCows_HERDS.txt", quote=FALSE, row.names=FALSE)
+write.table(pedHerd, "/home/jana/Documents/PhD/CompBio/TestingGBLUP/PedCows_HERDS_Total.txt", quote=FALSE, row.names=FALSE)
+
+
+
 herdNo <- as.data.frame(table(pedK$cluster))
 colnames(herdNo) <- c("Herd", "NoAnim")
 write.table(herdNo, "/home/jana/Documents/PhD/CompBio/HerdNo.txt", quote=FALSE, row.names=FALSE)

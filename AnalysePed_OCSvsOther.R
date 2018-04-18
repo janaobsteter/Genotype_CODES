@@ -30,3 +30,23 @@ ggplot(data=Avg[Avg$Strategy=="OCS",], aes(x = Avg$Generation[Avg$Strategy=="OCS
 ggplot(data=Avg[Avg$Strategy=="55",], aes(x = Avg$Generation[Avg$Strategy=="55"], y=Avg$TGV[Avg$Strategy=="55"]), group=Avg$Strategy[Avg$Strategy=="55"], colour=Avg$Strategy[Avg$Strategy=="55"], fill=Avg$Strategy[Avg$Strategy=="55"]) + geom_path() + scale_color_brewer()
 ggplot(data=Avg[Avg$Strategy=="51",], aes(x = Avg$Generation[Avg$Strategy=="51"], y=Avg$TGV[Avg$Strategy=="51"]), group=Avg$Strategy[Avg$Strategy=="51"], colour=Avg$Strategy[Avg$Strategy=="51"], fill=Avg$Strategy[Avg$Strategy=="51"]) + geom_path() + scale_color_brewer()
 ggplot(data=Avg[Avg$Strategy=="15",], aes(x = Avg$Generation[Avg$Strategy=="15"], y=Avg$TGV[Avg$Strategy=="15"]), group=Avg$Strategy[Avg$Strategy=="15"], colour=Avg$Strategy[Avg$Strategy=="15"], fill=Avg$Strategy[Avg$Strategy=="15"]) + geom_path() + scale_color_brewer()
+
+varOCS <- read.table("~/Var_OCS.txt", header=TRUE)
+var <- read.table("~/Var.txt", header=TRUE)
+var1Pb <- read.table("~/Var_1Pb.txt", header=TRUE)
+var1Year <- read.table("~/Var_1Year.txt", header=TRUE)
+
+varOCS <- varOCS[varOCS$QtnModel==1, c(1,3)]
+var <- var[var$QtnModel==1, c(1,3)]
+var1Pb <- var1Pb[var1Pb$QtnModel==1, c(1,3)]
+var1Year <- var1Year[var1Year$QtnModel==1, c(1,3)]
+
+varOCS$strategy <- "OCS"
+var$strategy <- "SU 55"
+var1Pb$strategy <- "SU 15"
+var1Year$strategy <- "SU 51"
+ 
+AvgVar <- as.data.frame(rbindlist(list(varOCS, var, var1Pb, var1Year)))
+
+ggplot(data=AvgVar, aes(x = AvgVar$Generation, y=AvgVar$AdditGenicVar1, group=AvgVar$strategy, colour=AvgVar$strategy, fill=AvgVar$strategy)) + geom_path() + scale_colour_discrete() + 
+  xlab("Generation") + ylab("Additive genetic variance") + theme(legend.title = element_text("Strategy"))

@@ -142,8 +142,8 @@ SU15 <- SU51[,-c(11, 12)]
 colnames(TGVsAll)[11] <- "Degree"
 TGVsAll <- TGVsAll[-which(TGVsAll$Degree=="DegreeAlphaMate"),]
 TGVsAll <- rbindlist(list(TGVsAll, SU55, SU51, SU15))
-library(datatable)
-TGVsAll <- rbindlist(list(TGVsAll1, TGVsAll2, SU55))
+TGVsAll <- rbind(TGVsAll1, TGVsAll2)
+#TGVsAll <- rbindlist(list(TGVsAll1, TGVsAll2, SU55))
 TGVsAll <- rbind(TGVsAll, SU55)
 SU55 <- SU55[SU55$Generation %in% 40:60,]
 TGVsAll <- TGVsAll[TGVsAll$Generation %in% 40:60,]
@@ -161,7 +161,7 @@ for (degree in unique(TGVsAll$Degree)) {
 #standadise onto the 40 generation
 st40 <- data.frame()
 
-for (degree in c(15, 30, 45, 60, 75, "SU55")) { #, "SU15", "SU51"
+for (degree in c("15optiSel", "30optiSel", "45optiSel", "60optiSel", "75optiSel", "15AlphaMate", "30AlphaMate", "45AlphaMate", "60AlphaMate", "75AlphaMate", "SU55")) { #, "SU15", "SU51"
   repScenario <- TGVsAll[(TGVsAll$Degree==degree) & (TGVsAll$Generation %in% 40:60),]
   repScenario$zMean <- (repScenario$gvNormUnres1 - repScenario$gvNormUnres1[1]) / repScenario$sd[1]
   repScenario$SDGenicSt <- repScenario$AdditGenicVar1 / repScenario$AdditGenicVar1[1] 
@@ -342,15 +342,42 @@ Year1Eff <- ggplot(data = TGVsAll, aes(x=GENICSd_St, y=MeanGENIC_genetic, group=
   #geom_smooth( se=FALSE, formula=y~x+1, method="lm") + 
   xlab("Generation") + ylab("True genetic value")  + ylim(-1,9) +coord_cartesian(xlim = c(1, 0.80)) +
 
-  scale_colour_manual(breaks = c("optisel15", "optiSel30", "optiSel45", "optiSel60", "optiSel75", "AlphaMate15", "AlphaMate30", "AlphaMate45", "AlphaMate60", "AlphaMate75", "SU55"), 
+  scale_colour_manual(breaks = c("15optiSel", "30optiSel", "45optiSel", "60optiSel", "75optiSel", "15AlphaMate", "30AlphaMate", "45AlphaMate", "60AlphaMate", "75AlphaMate", "SU55"), 
                       "Scenario", 
-                      values=c("forestgreen", "dodgerblue2", "purple", "red3", "orange1","forestgreen", "dodgerblue2", "purple", "red3", "orange1", "black"), labels=c("optisel15", "optiSel30", "optiSel45", "optiSel60", "optiSel75", "AlphaMate15", "AlphaMate30", "AlphaMate45", "AlphaMate60", "AlphaMate75", "SU55")) + 
+                      values=c("forestgreen", "dodgerblue2", "purple", "red3", "orange1","forestgreen", "dodgerblue2", "purple", "red3", "orange1", "black"), labels=c("15optiSel", "30optiSel", "45optiSel", "60optiSel", "75optiSel", "15AlphaMate", "30AlphaMate", "45AlphaMate", "60AlphaMate", "75AlphaMate", "SU55")) + 
   xlab("Genic standard deviation") + ylab("Average True Genetic Value") + 
+  scale_linetype_manual(breaks = c("15optiSel", "30optiSel", "45optiSel", "60optiSel", "75optiSel", "15AlphaMate", "30AlphaMate", "45AlphaMate", "60AlphaMate", "75AlphaMate", "SU55"), 
+                        labels= c("15optiSel", "30optiSel", "45optiSel", "60optiSel", "75optiSel", "15AlphaMate", "30AlphaMate", "45AlphaMate", "60AlphaMate", "75AlphaMate", "SU55"), "Scenario", 
+                        values=c("solid", "dashed","solid", "dashed", "solid", "dashed", "solid", "dashed", "solid", "dashed", "solid")) +
   theme(axis.text=element_text(size=18), legend.position = "left",
         axis.title=element_text(size=18,face="bold"), legend.text=element_text(size=18), legend.title=element_text(size=18)) +
   geom_segment(data=maxmin, mapping=aes(x=maxGenicSD, xend=minGenicSD,
                                         y=minTGV,  yend=maxTGV,                                    
-                                        color=degree, group=degree), arrow=arrow(), show.legend=FALSE, size=1.5)
+                                        color=degree, group=degree, linetype=degree), arrow=arrow(), show.legend=TRUE, size=1.5)
+#to je samo optiSel 
+TGVsAll$degree <- substring(TGVsAll$Degree, 1,2)
+TGVsAll$program <- substring(TGVsAll$Degree, 3)
+
+ggplot(data = TGVsAll[TGVsAll$program=="optiSel",], aes(x=GENICSd_St, y=MeanGENIC_genetic, group=degree, colour=degree)) + 
+  geom_line(size=1, alpha=0.5) +
+  scale_x_reverse(sec.axis=sec_axis(trans=~1-.,                                   
+                                                                                                     name="Converted/Lost genic standard deviation")) +
+  #geom_smooth( se=FALSE, formula=y~x+1, method="lm") + 
+  xlab("Generation") + ylab("True genetic value")  + ylim(-1,9) +coord_cartesian(xlim = c(1, 0.80)) +
+
+  scale_colour_manual(breaks = c(15, 30, 45, 60, 75), 
+                      "Scenario", 
+                      values=c("forestgreen", "dodgerblue2", "purple", "red3", "orange1", "black"), 
+                      labels=c(15, 30, 45, 60, 75)) + 
+  xlab("Genic standard deviation") + ylab("Average True Genetic Value") + 
+  scale_linetype_manual(breaks = c(15, 30, 45, 60, 75), 
+                        labels= c(15, 30, 45, 60, 75), "Scenario", 
+                        values=c("solid",  "solid", "solid", "solid", "solid", "solid")) +
+  theme(axis.text=element_text(size=18), legend.position = "left",
+        axis.title=element_text(size=18,face="bold"), legend.text=element_text(size=18), legend.title=element_text(size=18)) +
+  geom_segment(data=maxmin, mapping=aes(x=maxGenicSD, xend=minGenicSD,
+                                        y=minTGV,  yend=maxTGV,                                    
+                                        color=degree, group=degree, linetype=degree), arrow=arrow(), show.legend=TRUE, size=1.5)
 
 
 #To je plot zMean (standardizirana na GENETSKO variacno) 
@@ -378,14 +405,20 @@ genetic <- ggplot(data = TGVsAll, aes(x=Generation, y=AdditGenicVar1, group=Grou
                                         y=minGenicSD,  yend=maxTGV,                                    
                                         color=scenario, linetype=scenario, group=scenario),      arrow=arrow(), show.legend=FALSE)
 #To je plot GENSKE variance po generaijch po scenariih
-genic <- ggplot(data = TGVsAll, aes(x=Generation, y=zSdGenic, group=degree, colour=degree, linetype=degree)) +  geom_line(aes(linetype=scenario), size=1) + 
+genic <- ggplot(data = TGVsAll, aes(x=Generation, y=zSdGenic, group=Degree, colour=Degree, linetype=Degree)) +  geom_line(aes(linetype=Degree), size=1) + 
   xlab("Generation") + ylab("True genetic value")  + 
-  scale_linetype_manual("Scenario", breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), values=c("solid", "dashed", "dotted", "dotdash", "twodash"), labels=c("Conventional", "Genomic A", "Genomic B", "Genomic C", "Genomic D")) + 
-  scale_colour_manual("Scenario", breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), values=c("forestgreen", "dodgerblue2", "purple", "red3", "orange1"), labels=c("Conventional", "Genomic A", "Genomic B", "Genomic C", "Genomic D")) + 
+  scale_linetype_manual("Scenario", 
+                        breaks = c("15optiSel", "30optiSel", "45optiSel", "60optiSel", "75optiSel", "15AlphaMate", "30AlphaMate", "45AlphaMate", "60AlphaMate", "75AlphaMate", "SU55"), 
+                        values=c("dashed", "dashed", "dashed", "dashed", "dashed","solid", "solid","solid", "solid", "solid",  "solid"), 
+                        labels=c("15optiSel", "30optiSel", "45optiSel", "60optiSel", "75optiSel", "15AlphaMate", "30AlphaMate", "45AlphaMate", "60AlphaMate", "75AlphaMate", "SU55")) + 
+  scale_colour_manual("Scenario", 
+                      breaks = c("15optiSel", "30optiSel", "45optiSel", "60optiSel", "75optiSel", "15AlphaMate", "30AlphaMate", "45AlphaMate", "60AlphaMate", "75AlphaMate", "SU55"), 
+                      values=c("forestgreen", "dodgerblue2", "purple", "red3", "orange1","forestgreen", "dodgerblue2", "purple", "red3", "orange1", "black"), 
+                      labels=c("15optiSel", "30optiSel", "45optiSel", "60optiSel", "75optiSel", "15AlphaMate", "30AlphaMate", "45AlphaMate", "60AlphaMate", "75AlphaMate", "SU55")) + 
   xlab("Generation") + ylab("Additive Genic Variance")  #+
   geom_segment(data=maxmin, mapping=aes(x=maxGenicSD, xend=minGenicSD,
                                         y=minGenicSD,  yend=maxTGV,                                    
-                                        color=scenario, linetype=scenario, group=scenario),      arrow=arrow(), show.legend=FALSE)
+                                        color=degree, linetype=scenario, group=scenario),      arrow=arrow(), show.legend=FALSE)
 
 MeanAverage <- aggregate(TGVsAll$zMean ~ TGVsAll$Degree + TGVsAll$Generation, FUN="mean")
 MeanAverageSD <- aggregate(TGVsAll$zMean ~ TGVsAll$Degree + TGVsAll$Generation, FUN="sd")
@@ -505,9 +538,12 @@ TGVsAll <- TGVsAll[TGVsAll$scenario %in% c("Class", "Gen"),]
 MeanAverage <- MeanAverage[MeanAverage$scenario %in% c("Class", "Gen"),]
 genGainPlot <- ggplot() + 
   xlab("Generation") + ylab("True genetic value")  + 
-  scale_linetype_manual("Degree", breaks = c(15, 30, 45, 60, 75, "SU55"), 
-                        values=c("solid", "dashed", "dotted", "dotdash", "twodash", "solid"), labels=c(15, 30, 45, 60, 75,"SU55")) + 
-  scale_colour_manual("Degree", breaks = c(15, 30, 45, 60, 75, "SU55"), values=c("forestgreen", "dodgerblue2", "purple", "red3", "orange1", "black"), labels=c(15, 30, 45, 60, 75, "SU55")) + 
+  scale_linetype_manual("Degree", breaks = c("15optiSel", "30optiSel", "45optiSel", "60optiSel", "75optiSel", "15AlphaMate", "30AlphaMate", "45AlphaMate", "60AlphaMate", "75AlphaMate", "SU55"), 
+                        values=c("dashed", "dashed", "dashed", "dashed", "dashed","solid", "solid","solid", "solid", "solid",  "solid"), 
+                        labels=c("15optiSel", "30optiSel", "45optiSel", "60optiSel", "75optiSel", "15AlphaMate", "30AlphaMate", "45AlphaMate", "60AlphaMate", "75AlphaMate", "SU55")) + 
+  scale_colour_manual("Degree", breaks = c("15optiSel", "30optiSel", "45optiSel", "60optiSel", "75optiSel", "15AlphaMate", "30AlphaMate", "45AlphaMate", "60AlphaMate", "75AlphaMate", "SU55"), 
+                      values=c("forestgreen", "dodgerblue2", "purple", "red3", "orange1","forestgreen", "dodgerblue2", "purple", "red3", "orange1", "black"), 
+                      labels=c("15optiSel", "30optiSel", "45optiSel", "60optiSel", "75optiSel", "15AlphaMate", "30AlphaMate", "45AlphaMate", "60AlphaMate", "75AlphaMate", "SU55")) + 
   xlab("Generation") + ylab("Average True Genetic Value") +
   geom_line(data = MeanAverage, aes(x=Generation, y=MeanTGV, colour=degree, linetype=degree), size=1.2) + 
   ggtitle("a") + 
@@ -519,7 +555,7 @@ MeanAverage$Generation1 <- MeanAverage$Generation - 40
 ggplot() + 
   xlab("Generacija") + ylab("Plemenska vrednost")  + 
   scale_linetype_manual("Scenario", breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), 
-                        values=c("solid", "dashed", "dotted", "dotdash", "twodash"), labels=c("Klasična", "Genomic A", "Genomic B", "Genomic C", "Genomska")) + 
+                        values=c("solid", "solid", "dotted", "dotdash", "twodash"), labels=c("Klasična", "Genomic A", "Genomic B", "Genomic C", "Genomska")) + 
   scale_colour_manual("Scenario", breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), values=c("red3", "dodgerblue2", "purple", "red3", "orange1"), 
                       labels=c("Klasična", "Genomic A", "Genomic B", "Genomic C", "Genomska")) + 
   geom_line(data = MeanAverage, aes(x=Generation1, y=MeanTGV, colour=scenario, linetype=scenario), size=1.2) + 

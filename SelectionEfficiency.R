@@ -331,7 +331,27 @@ Year1Eff <- ggplot(data = TGVsAll, aes(x=GENICSd_St, y=MeanGENIC_genetic, group=
                                         color=scenario, linetype=scenario, group=scenario), arrow=arrow(), show.legend=FALSE, size=1.5)
 
 
-#To je plot zMean (standardizirana na GENETSKO variacno) 
+
+
+ggplot(data = TGVsAll[TGVsAll$Group=="Class 0",], aes(x=GENICSd_St, y=MeanGENIC_genetic)) + 
+  scale_x_reverse(sec.axis=sec_axis(trans=~1-.,                                   
+                                    name="Pretvorjena/izgubljena genska standardna deviacija")) +
+  #geom_smooth( se=FALSE, formula=y~x+1, method="lm") + 
+  xlab("Generation") + ylab("True genetic value") +  coord_cartesian(xlim = c(1, 0.95)) +
+  scale_linetype_manual(breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), 
+                        "Scenario", 
+                        values=c("solid", "dotted","dashed", "dotdash", "twodash"), labels=c("Conventional", "Genomic A", "Genomic B", "Genomic C", "Genomic D")) + 
+  scale_colour_manual(breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), 
+                      "Scenario", 
+                      values=c("black", "dodgerblue2", "purple", "red3", "orange1"), labels=c("Conventional", "Genomic A", "Genomic B", "Genomic C", "Genomic D")) + 
+  xlab("Genska standardna deviacija") + ylab("Plemenska vrednost") + 
+  theme(axis.text=element_text(size=16), legend.position = "left",
+        axis.title=element_text(size=16), legend.text=element_text(size=16), legend.title=element_text(size=18)) +
+  geom_segment(data=maxmin[maxmin$scenario=="Class",], mapping=aes(x=maxGenicSD, xend=minGenicSD,
+                                        y=minTGV,  yend=maxTGV,                                    
+                                        color=scenario, linetype=scenario, group=scenario), arrow=arrow(), show.legend=FALSE, size=1.5)
+
+e#To je plot zMean (standardizirana na GENETSKO variacno) 
 ggplot(data = TGVsAll, aes(x=SDSt, y=zMean, group=Group, colour=scenario, linetype=scenario)) + 
   geom_line(aes(linetype=TGVsAll$scenario), size=0.5, alpha=0.3) + scale_x_reverse(sec.axis=sec_axis(trans=~1-.,                                   
                                                                                                      name="Converted/Lost genic standard deviation")) +
