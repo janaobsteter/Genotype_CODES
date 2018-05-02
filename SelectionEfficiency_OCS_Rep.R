@@ -111,7 +111,7 @@ TGVsAll <- read.table("TGVsAll.csv", header=TRUE)
 TGVsAll <- read.table("~/Documents/PhD/Simulaton/RefPopSize/TGVsAll_1KRef_20Gen.csv", header=TRUE)
 TGVsAll <- read.table("~/Documents/PhD/Simulaton/RefPopSize/TGVsAll_10KRef_30Rep.csv", header=TRUE)
 TGVsAll <- read.table("~/Documents/PhD/Simulaton//TGVsAll_10KRef_2501.csv", header=TRUE) #če imaš 60 generacij, je standardizirano na 1. generacijo!!!
-TGVsAll <- read.table("~/Genotipi/Genotipi_CODES//TGVsAll_10KRef_2501.csv", header=TRUE) #če imaš 60 generacij, je standardizirano na 1. generacijo!!!
+TGVsAll3 <- read.table("~/Genotipi/Genotipi_CODES//TGVsAll_10KRef_2501.csv", header=TRUE) #če imaš 60 generacij, je standardizirano na 1. generacijo!!!
 TGVsAll <- read.table("~/TGVsAll_10KRef_2801_1Pb.csv", header=TRUE) #če imaš 60 generacij, je standardizirano na 1. generacijo!!!
 TGVsAll <- read.table("~/OCS/TGVsAll_10KRef_OCS.csv", header=TRUE) #če imaš 60 generacij, je standardizirano na 1. generacijo!!!
 TGVsAll <- read.table("~/TGVsAll_10KRef_OCS.csv", header=TRUE) #če imaš 60 generacij, je standardizirano na 1. generacijo!!!
@@ -119,14 +119,23 @@ TGVsAll1 <- read.table("~/TGVsAll_optiSel.csv", header=TRUE, sep=" ") #če imaš
 colnames(TGVsAll1)[11] <- "Degree"
 TGVsAll2 <- read.table("~/TGVsAll_AlphaMate.csv", header=TRUE, sep=" ") #če imaš 60 generacij, je standardizirano na 1. generacijo!!!
 colnames(TGVsAll2)[11] <- "Degree"
-TGVsAll <- read.table("~/TGVsAll_optiSel_Rep.csv", header=TRUE, sep=" ") #če imaš 60 generacij, je standardizirano na 1. generacijo!!!
-
+TGVsAll1 <- read.table("~/TGVsAll_optiSel_Rep.csv", header=TRUE, sep=" ") #če imaš 60 generacij, je standardizirano na 1. generacijo!!!
+TGVsAll2 <- read.table("~/TGVsAll_AlphaMate_Rep.csv", header=TRUE, sep=" ") #če imaš 60 generacij, je standardizirano na 1. generacijo!!!
+TGVsAll1$Program <- "optiSel"
+TGVsAll2$Program <- "AlphaMate"
 TGVsAll <- read.table("~/Documents/PhD/Simulaton//TGVsAll_10KRef_2801_1Pb.csv", header=TRUE) #če imaš 60 generacij, je standardizirano na 1. generacijo!!!
 TGVsAll <- read.table("~/Documents/PhD/Simulaton//TGVsAll_10KRef_2801_1Year.csv", header=TRUE) #če imaš 60 generacij, je standardizirano na 1. generacijo!!!
 TGVsAll <- read.table("~/Genotipi/Genotipi_CODES//TGVsAll_10KRef_2801_1Year.csv", header=TRUE) #če imaš 60 generacij, je standardizirano na 1. generacijo!!!
 #1 - 60 generacije
+TGVsAll3 <- TGVsAll3[TGVsAll3$Rep %in% 0:2,]
+TGVsAll3 <- TGVsAll3[TGVsAll3$scenario=="Gen",]
+colnames(TGVsAll3)[10] <- "Degree"
+TGVsAll3$Program <- "SU55"
 TGVsAll <- read.table("~/Documents/PhD/Simulaton/RefPopSize/TGVsAll_10KRef_60Gen.csv", header=TRUE)
-TGVsAll$Group <- paste0(TGVsAll$degree, "_",  TGVsAll$Rep)
+TGVsAll <- rbind(TGVsAll1, TGVsAll2)
+TGVsAll <- rbind(TGVsAll, TGVsAll3)
+TGVsAll$Group <- paste0(TGVsAll$Rep, TGVsAll$Program, TGVsAll$Degree)
+TGVsAll$GroupP <- paste0(TGVsAll$Program, TGVsAll$Degree)
 #TGVsAll <- TGVsAll[TGVsAll$Rep %in% c(0,1,2,3,5,6,7,8,9,10),]
 TGVsAll <- TGVsAll[TGVsAll$Generation %in% 40:60,]
 
@@ -162,24 +171,41 @@ for (degree in unique(TGVsAll$Degree)) {
 
 #standadise onto the 40 generation
 st40 <- data.frame()
+for (group in unique(TGVsAll$Group)) {
+      repScenario <- TGVsAll[(TGVsAll$Group==group) & (TGVsAll$Generation %in% 40:60),]
+      repScenario$zMean <- (repScenario$gvNormUnres1 - repScenario$gvNormUnres1[1]) / repScenario$sd[1]
+      repScenario$SDGenicSt <- repScenario$AdditGenicVar1 / repScenario$AdditGenicVar1[1] 
+      repScenario$SDSt <- repScenario$sd / repScenario$sd[1] 
+      repScenario$zMeanGenic <- (repScenario$gvNormUnres1 - repScenario$gvNormUnres1[1]) / repScenario$AdditGenicVar1[1]
+      repScenario$SDGenicStNeg <- 1- repScenario$AdditGenicVar1 / repScenario$AdditGenicVar1[1]
+      #TGVsAll$zSdGenic <- (sqrt(TGVsAll$AdditGenicVar1) - sqrt(TGVsAll$))
+      #colnames(TGVs) < c("Generation", paste0("TGV_mean", scenario), paste0("TGV_sd", scenario), paste0("zMean_", scenario), paste0("GenicVar_", scenario), paste0("zMeanGenic_", scenario))
+      st40 <- rbind(st40, repScenario)
+}
+
+
+#standadise onto the 40 generation
+st40 <- data.frame()
 for (rep in 0:2) {
   for (degree in c(15, 30, 45, 60, 75)) { #, "SU15", "SU51"
-    repScenario <- TGVsAll[(TGVsAll$Rep==rep) & (TGVsAll$Degree==degree) & (TGVsAll$Generation %in% 40:60),]
-    repScenario$zMean <- (repScenario$gvNormUnres1 - repScenario$gvNormUnres1[1]) / repScenario$sd[1]
-    repScenario$SDGenicSt <- repScenario$AdditGenicVar1 / repScenario$AdditGenicVar1[1] 
-    repScenario$SDSt <- repScenario$sd / repScenario$sd[1] 
-    repScenario$zMeanGenic <- (repScenario$gvNormUnres1 - repScenario$gvNormUnres1[1]) / repScenario$AdditGenicVar1[1]
-    repScenario$SDGenicStNeg <- 1- repScenario$AdditGenicVar1 / repScenario$AdditGenicVar1[1]
-    #TGVsAll$zSdGenic <- (sqrt(TGVsAll$AdditGenicVar1) - sqrt(TGVsAll$))
-    #colnames(TGVs) < c("Generation", paste0("TGV_mean", scenario), paste0("TGV_sd", scenario), paste0("zMean_", scenario), paste0("GenicVar_", scenario), paste0("zMeanGenic_", scenario))
-    st40 <- rbind(st40, repScenario)
+    for (program in c("optiSel", "AlphaMate", "SU55")) {
+      repScenario <- TGVsAll[(TGVsAll$Rep==rep) & (TGVsAll$Program==program) & (TGVsAll$Degree==degree) & (TGVsAll$Generation %in% 40:60),]
+      repScenario$zMean <- (repScenario$gvNormUnres1 - repScenario$gvNormUnres1[1]) / repScenario$sd[1]
+      repScenario$SDGenicSt <- repScenario$AdditGenicVar1 / repScenario$AdditGenicVar1[1] 
+      repScenario$SDSt <- repScenario$sd / repScenario$sd[1] 
+      repScenario$zMeanGenic <- (repScenario$gvNormUnres1 - repScenario$gvNormUnres1[1]) / repScenario$AdditGenicVar1[1]
+      repScenario$SDGenicStNeg <- 1- repScenario$AdditGenicVar1 / repScenario$AdditGenicVar1[1]
+      #TGVsAll$zSdGenic <- (sqrt(TGVsAll$AdditGenicVar1) - sqrt(TGVsAll$))
+      #colnames(TGVs) < c("Generation", paste0("TGV_mean", scenario), paste0("TGV_sd", scenario), paste0("zMean_", scenario), paste0("GenicVar_", scenario), paste0("zMeanGenic_", scenario))
+      st40 <- rbind(st40, repScenario)
+    }
   }
 }
   
 TGVsAll <- st40
 varDF <- data.frame()
-for (degree in unique(TGVsAll$Degree)) {
-  groupT <- subset(TGVsAll[TGVsAll$Degree==degree,])
+for (group in unique(TGVsAll$Group)) {
+  groupT <- subset(TGVsAll[TGVsAll$Group==group,])
   groupT$var <- (groupT$sd)^2
   koef <- groupT$var[1] / groupT$AdditGenicVar1[1]
   groupT$GenicVAR_genetic <- groupT$AdditGenicVar1 * koef
@@ -213,14 +239,14 @@ multiplot(lm, lm2, cols=2)
 
 #TGVsAll <- TGVsAll[TGVsAll$Rep %in% 10:20,]
 #naredi povprečja replik
-Averages1 <- aggregate(TGVsAll$GENICSd_St ~TGVsAll$Degree + TGVsAll$Generation, FUN="mean")
-Averages2 <- aggregate(TGVsAll$zMean ~TGVsAll$Degree + TGVsAll$Generation, FUN="mean")
-Averages3 <- aggregate(TGVsAll$SDSt ~ TGVsAll$Degree + TGVsAll$Generation, FUN="mean")
-Averages4 <- aggregate(TGVsAll$zMean ~ TGVsAll$Degree + TGVsAll$Generation, FUN="mean")
-Averages5 <- aggregate(TGVsAll$zSdGenic ~ TGVsAll$Degree + TGVsAll$Generation, FUN="mean")
-Averages6 <- aggregate(TGVsAll$sd ~ TGVsAll$Degree + TGVsAll$Generation, FUN="mean")
-Averages7 <- aggregate(TGVsAll$MeanGENIC_genetic ~ TGVsAll$Degree + TGVsAll$Generation, FUN="mean")
-Averages8 <- aggregate(TGVsAll$GENICSd_St ~ TGVsAll$Degree + TGVsAll$Generation, FUN="mean")
+Averages1 <- aggregate(TGVsAll$GENICSd_St ~TGVsAll$GroupP + TGVsAll$Generation, FUN="mean")
+Averages2 <- aggregate(TGVsAll$zMean ~TGVsAll$GroupP + TGVsAll$Generation, FUN="mean")
+Averages3 <- aggregate(TGVsAll$SDSt ~ TGVsAll$GroupP + TGVsAll$Generation, FUN="mean")
+Averages4 <- aggregate(TGVsAll$zMean ~ TGVsAll$GroupP + TGVsAll$Generation, FUN="mean")
+Averages5 <- aggregate(TGVsAll$zSdGenic ~ TGVsAll$GroupP + TGVsAll$Generation, FUN="mean")
+Averages6 <- aggregate(TGVsAll$sd ~ TGVsAll$GroupP + TGVsAll$Generation, FUN="mean")
+Averages7 <- aggregate(TGVsAll$MeanGENIC_genetic ~ TGVsAll$GroupP + TGVsAll$Generation, FUN="mean")
+Averages8 <- aggregate(TGVsAll$GENICSd_St ~ TGVsAll$GroupP + TGVsAll$Generation, FUN="mean")
 colnames(Averages1) <- c("Degree", "Generation", "SDGenic")
 colnames(Averages2) <- c("Degree", "Generation", "MeanGenic")
 colnames(Averages3) <- c("Degree", "Generation", "SDGenetic")
@@ -337,26 +363,33 @@ TGVsAll$Degree <- as.factor(TGVsAll$Degree)
 maxmin$degree <- as.factor(maxmin$degree)
 
 TGVsAll <- TGVsAll[!(TGVsAll$Degree %in% c("SU51", "SU15")),]
-#o je z na genetsko standadrizirano gensko variacno
-Year1Eff <- ggplot(data = TGVsAll, aes(x=GENICSd_St, y=MeanGENIC_genetic, group=Degree, colour=Degree)) + 
-  geom_line(size=1, alpha=0.5) +
-  scale_x_reverse(sec.axis=sec_axis(trans=~1-.,                                   
-                                                                                                     name="Converted/Lost genic standard deviation")) +
-  #geom_smooth( se=FALSE, formula=y~x+1, method="lm") + 
-  xlab("Generation") + ylab("True genetic value")  + ylim(-1,9) +coord_cartesian(xlim = c(1, 0.80)) +
 
-  scale_colour_manual(breaks = c("15optiSel", "30optiSel", "45optiSel", "60optiSel", "75optiSel", "15AlphaMate", "30AlphaMate", "45AlphaMate", "60AlphaMate", "75AlphaMate", "SU55"), 
+maxmin$program <- str_sub(maxmin$degree, -1, -2)
+
+TGVsAll$GroupP <- as.factor(TGVsAll$GroupP)
+TGVsAll$Program <- as.factor(TGVsAll$Program)
+maxmin$Degree <- c(rep(c(15, 30, 45, 60, 75), 2), "Gen")
+maxmin$Program <- c(rep("AlphaMate", 5), rep("optiSel", 5), "SU55")
+#o je z na genetsko standadrizirano gensko variacno
+Year1Eff <- ggplot(data = TGVsAll, aes(x=GENICSd_St, y=MeanGENIC_genetic, group=GroupP, colour=Degree, linetype=Program)) + 
+  geom_line(size=0.5, alpha=0.3) +
+  scale_x_reverse(sec.axis=sec_axis(trans=~1-.,                                   
+  name="Pretvorjen/Izgubljen genski standardni odklon")) +
+  ylim(-1,9) +coord_cartesian(xlim = c(1, 0.80)) +
+
+  scale_colour_manual(breaks = c(15, 30, 45, 60, 75, "Gen"),  #optiSel15", "optiSel30", "optiSel45", "optiSel60", "optiSel75",  "AlphaMate15", "AlphaMate30", "AlphaMate45", "AlphaMate60", "AlphaMate75", "SU55Gen
                       "Scenario", 
-                      values=c("forestgreen", "dodgerblue2", "purple", "red3", "orange1","forestgreen", "dodgerblue2", "purple", "red3", "orange1", "black"), labels=c("15optiSel", "30optiSel", "45optiSel", "60optiSel", "75optiSel", "15AlphaMate", "30AlphaMate", "45AlphaMate", "60AlphaMate", "75AlphaMate", "SU55")) + 
-  xlab("Genic standard deviation") + ylab("Average True Genetic Value") + 
-  scale_linetype_manual(breaks = c("15optiSel", "30optiSel", "45optiSel", "60optiSel", "75optiSel", "15AlphaMate", "30AlphaMate", "45AlphaMate", "60AlphaMate", "75AlphaMate", "SU55"), 
-                        labels= c("15optiSel", "30optiSel", "45optiSel", "60optiSel", "75optiSel", "15AlphaMate", "30AlphaMate", "45AlphaMate", "60AlphaMate", "75AlphaMate", "SU55"), "Scenario", 
-                        values=c("solid", "dashed","solid", "dashed", "solid", "dashed", "solid", "dashed", "solid", "dashed", "solid")) +
+                      values=c("forestgreen", "dodgerblue2", "purple", "red3", "orange1","black"), 
+                      labels=c("15", "30", "45", "60", "75", "SLO")) + 
+  xlab("Genski standardni odklon") + ylab("Povprečna prava genetska vrednost") + 
+  scale_linetype_manual(breaks = c("optiSel", "AlphaMate", "SU55"), 
+                        labels= c("optiSel", "AlphaMate", "SU55"), "Program", 
+                        values=c("solid", "dashed","solid")) +
   theme(axis.text=element_text(size=18), legend.position = "left",
         axis.title=element_text(size=18,face="bold"), legend.text=element_text(size=18), legend.title=element_text(size=18)) +
-  geom_segment(data=maxmin, mapping=aes(x=maxGenicSD, xend=minGenicSD,
+   geom_segment(data=maxmin, mapping=aes(x=maxGenicSD, xend=minGenicSD,
                                         y=minTGV,  yend=maxTGV,                                    
-                                        color=degree, group=degree, linetype=degree), arrow=arrow(), show.legend=TRUE, size=1.5)
+                                        color=Degree, group=degree, linetype=Program), arrow=arrow(), show.legend=TRUE, size=1.5)
 #to je samo optiSel 
 TGVsAll$degree <- substring(TGVsAll$Degree, 1,2)
 TGVsAll$program <- substring(TGVsAll$Degree, 3)
@@ -408,27 +441,37 @@ genetic <- ggplot(data = TGVsAll, aes(x=Generation, y=AdditGenicVar1, group=Grou
                                         y=minGenicSD,  yend=maxTGV,                                    
                                         color=scenario, linetype=scenario, group=scenario),      arrow=arrow(), show.legend=FALSE)
 #To je plot GENSKE variance po generaijch po scenariih
-genic <- ggplot(data = TGVsAll, aes(x=Generation, y=zSdGenic, group=Degree, colour=Degree, linetype=Degree)) +  geom_line(aes(linetype=Degree), size=1) + 
+genic <- ggplot(data = TGVsAll, aes(x=Generation, y=zSdGenic, group=GroupP, colour=GroupP, linetype=GroupP)) +  
+  geom_line(aes(linetype=GroupP), size=1) + 
   xlab("Generation") + ylab("True genetic value")  + 
   scale_linetype_manual("Scenario", 
-                        breaks = c("15optiSel", "30optiSel", "45optiSel", "60optiSel", "75optiSel", "15AlphaMate", "30AlphaMate", "45AlphaMate", "60AlphaMate", "75AlphaMate", "SU55"), 
+                        breaks = c("15optiSel", "30optiSel", "45optiSel", "60optiSel", "75optiSel", 
+                                   "15AlphaMate", "30AlphaMate", "45AlphaMate", "60AlphaMate", "75AlphaMate", "SU55Gen"), 
                         values=c("dashed", "dashed", "dashed", "dashed", "dashed","solid", "solid","solid", "solid", "solid",  "solid"), 
-                        labels=c("15optiSel", "30optiSel", "45optiSel", "60optiSel", "75optiSel", "15AlphaMate", "30AlphaMate", "45AlphaMate", "60AlphaMate", "75AlphaMate", "SU55")) + 
+                        labels=c("15optiSel", "30optiSel", "45optiSel", "60optiSel", "75optiSel", 
+                                 "15AlphaMate", "30AlphaMate", "45AlphaMate", "60AlphaMate", "75AlphaMate", "SU55Gen")) + 
   scale_colour_manual("Scenario", 
-                      breaks = c("15optiSel", "30optiSel", "45optiSel", "60optiSel", "75optiSel", "15AlphaMate", "30AlphaMate", "45AlphaMate", "60AlphaMate", "75AlphaMate", "SU55"), 
+                      breaks = c("15optiSel", "30optiSel", "45optiSel", "60optiSel", "75optiSel", 
+                                 "15AlphaMate", "30AlphaMate", "45AlphaMate", "60AlphaMate", "75AlphaMate", "SU55Gen"), 
                       values=c("forestgreen", "dodgerblue2", "purple", "red3", "orange1","forestgreen", "dodgerblue2", "purple", "red3", "orange1", "black"), 
-                      labels=c("15optiSel", "30optiSel", "45optiSel", "60optiSel", "75optiSel", "15AlphaMate", "30AlphaMate", "45AlphaMate", "60AlphaMate", "75AlphaMate", "SU55")) + 
-  xlab("Generation") + ylab("Additive Genic Variance")  #+
+                      labels=c("15optiSel", "30optiSel", "45optiSel", "60optiSel", "75optiSel", 
+                               "15AlphaMate", "30AlphaMate", "45AlphaMate", "60AlphaMate", "75AlphaMate", "SU55Gen")) + 
+  xlab("Generation") + ylab("Additive Genic Variance")  +
   geom_segment(data=maxmin, mapping=aes(x=maxGenicSD, xend=minGenicSD,
                                         y=minGenicSD,  yend=maxTGV,                                    
-                                        color=degree, linetype=scenario, group=scenario),      arrow=arrow(), show.legend=FALSE)
+                                        color=degree, linetype=degree, group=degree),      arrow=arrow(), show.legend=FALSE)
 
-MeanAverage <- aggregate(TGVsAll$zMean ~ TGVsAll$Degree + TGVsAll$Generation, FUN="mean")
-MeanAverageSD <- aggregate(TGVsAll$zMean ~ TGVsAll$Degree + TGVsAll$Generation, FUN="sd")
+MeanAverage <- aggregate(TGVsAll$zMean ~ TGVsAll$GroupP + TGVsAll$Generation, FUN="mean")
+MeanAverageSD <- aggregate(TGVsAll$zMean ~ TGVsAll$GroupP + TGVsAll$Generation, FUN="sd")
+MeanAverageSD <- aggregate(TGVsAll$SDGenicSt ~ TGVsAll$GroupP + TGVsAll$Generation, FUN="mean")
 colnames(MeanAverage) <- c("degree", "Generation", "MeanTGV")
+colnames(MeanAverageSD) <- c("degree", "Generation", "SdTGV")
+colnames(MeanAverageSD) <- c("degree", "Generation", "Genic")
 #genetic gain
 mean <- lmList(MeanTGV ~ Generation | degree, data=MeanAverage)
-meanDF <- data.frame(degree=rownames(coef(mean)),coef(mean),check.names=FALSE)
+meanSD <- lmList(SdTGV ~ Generation | degree, data=MeanAverageSD)
+meanSD <- lmList(Genic ~ Generation | degree, data=MeanAverageSD)
+# meanDF <- datma.frame(degree=rownames(coef(mean)),coef(mean),check.names=FALSE)
 colnames(meanDF) <- c("Degree", "Mean_Intercept", "Mean_Slope")
 meanDF$test <- "Reference10000"
 #efficiency
@@ -447,18 +490,18 @@ Tot$method <- "Regression on All Data"
 #to je povrepčje regresij
 library(nlme)
 regRep <- data.frame(Rep=NA, Intercept=NA, Slope=NA, Scenario=NA)
-for (sc in c("Class", "GenSLO", "OtherCowsGen", "BmGen", "Gen")) {
-  df <- TGVsAll[TGVsAll$scenario==sc,]
+for (group in (unique(TGVsAll$GroupP))) {
+  df <- TGVsAll[TGVsAll$GroupP==group,]
   fm1 <- lmList(zMeanGenic ~ SDGenicSt | Rep, data=df)
   tmp <- data.frame(Rep=rownames(coef(fm1)),coef(fm1),check.names=FALSE)
-  colnames(tmp) <- c("Rep", "Intercept", "Slope")
-  tmp$Scenario <- sc
+  tmp$Scenario <- unique(df$GroupP)
+  colnames(tmp) <- c("Rep", "Intercept", "Slope", "Scenario")
   regRep <- rbind(regRep, tmp)
 }
 
 #povprečje regresijskih koefificentov
-avgSlope <- aggregate(regRep$Slope ~ regRep$Scenario, FUN=mean)
-avgInt <- aggregate(regRep$Intercept ~ regRep$Scenario, FUN=mean)
+avgSlope <- aggregate(regRep$Slope ~ regRep$Scenario, FUN="mean")
+avgInt <- aggregate(regRep$Intercept ~ regRep$Scenario, FUN="mean")
 avgReg <- cbind(avgInt, avgSlope[,2])
 colnames(avgReg) <- c("Scenario", "Intercept", "Slope")
 avgReg$method <- "Average regression"
@@ -469,7 +512,7 @@ library(nlme)
 regRep <- data.frame(Degree=NA, Intercept=NA, Slope=NA)
 
 
-fm1 <- lmList(zMeanGenic ~ SDGenicStNeg | Degree, data=varDF)
+fm1 <- lmList(zMeanGenic ~ SDGenicStNeg | Degree, data=TGVsAll)
 tmp <- data.frame(Degree=rownames(coef(fm1)),coef(fm1),check.names=FALSE)
 colnames(tmp) <- c("Degree", "Intercept", "Slope")
 regRep <- tmp
@@ -541,19 +584,40 @@ TGVsAll <- TGVsAll[TGVsAll$scenario %in% c("Class", "Gen"),]
 MeanAverage <- MeanAverage[MeanAverage$scenario %in% c("Class", "Gen"),]
 genGainPlot <- ggplot() + 
   xlab("Generation") + ylab("True genetic value")  + 
-  scale_linetype_manual("Degree", breaks = c("15optiSel", "30optiSel", "45optiSel", "60optiSel", "75optiSel", "15AlphaMate", "30AlphaMate", "45AlphaMate", "60AlphaMate", "75AlphaMate", "SU55"), 
+  scale_linetype_manual("Degree", breaks = c("15optiSel", "30optiSel", "45optiSel", "60optiSel", "75optiSel", 
+                                             "15AlphaMate", "30AlphaMate", "45AlphaMate", "60AlphaMate", "75AlphaMate", "SU55Gen"), 
                         values=c("dashed", "dashed", "dashed", "dashed", "dashed","solid", "solid","solid", "solid", "solid",  "solid"), 
                         labels=c("15optiSel", "30optiSel", "45optiSel", "60optiSel", "75optiSel", "15AlphaMate", "30AlphaMate", "45AlphaMate", "60AlphaMate", "75AlphaMate", "SU55")) + 
-  scale_colour_manual("Degree", breaks = c("15optiSel", "30optiSel", "45optiSel", "60optiSel", "75optiSel", "15AlphaMate", "30AlphaMate", "45AlphaMate", "60AlphaMate", "75AlphaMate", "SU55"), 
+  scale_colour_manual("Degree", breaks = c("15optiSel", "30optiSel", "45optiSel", "60optiSel", "75optiSel", 
+                                           "15AlphaMate", "30AlphaMate", "45AlphaMate", "60AlphaMate", "75AlphaMate", "SU55Gen"), 
                       values=c("forestgreen", "dodgerblue2", "purple", "red3", "orange1","forestgreen", "dodgerblue2", "purple", "red3", "orange1", "black"), 
                       labels=c("15optiSel", "30optiSel", "45optiSel", "60optiSel", "75optiSel", "15AlphaMate", "30AlphaMate", "45AlphaMate", "60AlphaMate", "75AlphaMate", "SU55")) + 
-  xlab("Generation") + ylab("Average True Genetic Value") +
+  xlab("Generacija") + ylab("Povprečna prava genetska vrednost") +
   geom_line(data = MeanAverage, aes(x=Generation, y=MeanTGV, colour=degree, linetype=degree), size=1.2) + 
   ggtitle("a") + 
   guides(group=guide_legend(nrow=6), fill=guide_legend(nrow=6), colour=guide_legend(nrow=6), linetype=guide_legend(nrow=6)) +
   theme(axis.text=element_text(size=20), legend.position = "left",
                                          axis.title=element_text(size=20,face="bold"), legend.text=element_text(size=18), legend.title=element_text(size=20)) #legend.position="bottom", 
+genicPlot <- ggplot() + 
+  xlab("Generation") + ylab("True genetic value")  + 
+  scale_linetype_manual("Degree", breaks = c("15optiSel", "30optiSel", "45optiSel", "60optiSel", "75optiSel", 
+                                             "15AlphaMate", "30AlphaMate", "45AlphaMate", "60AlphaMate", "75AlphaMate", "SU55Gen"), 
+                        values=c("dashed", "dashed", "dashed", "dashed", "dashed","solid", "solid","solid", "solid", "solid",  "solid"), 
+                        labels=c("15optiSel", "30optiSel", "45optiSel", "60optiSel", "75optiSel", "15AlphaMate", "30AlphaMate", "45AlphaMate", "60AlphaMate", "75AlphaMate", "SU55")) + 
+  scale_colour_manual("Degree", breaks = c("15optiSel", "30optiSel", "45optiSel", "60optiSel", "75optiSel", 
+                                           "15AlphaMate", "30AlphaMate", "45AlphaMate", "60AlphaMate", "75AlphaMate", "SU55Gen"), 
+                      values=c("forestgreen", "dodgerblue2", "purple", "red3", "orange1","forestgreen", "dodgerblue2", "purple", "red3", "orange1", "black"), 
+                      labels=c("15optiSel", "30optiSel", "45optiSel", "60optiSel", "75optiSel", "15AlphaMate", "30AlphaMate", "45AlphaMate", "60AlphaMate", "75AlphaMate", "SU55")) + 
+  xlab("Generacija") + ylab("Genska varianca") +
+  geom_line(data = MeanAverageSD, aes(x=Generation, y=Genic, colour=degree, linetype=degree), size=1.2) + 
+  ggtitle("a") + 
+  guides(group=guide_legend(nrow=6), fill=guide_legend(nrow=6), colour=guide_legend(nrow=6), linetype=guide_legend(nrow=6)) +
+  theme(axis.text=element_text(size=20), legend.position = "left",
+                                         axis.title=element_text(size=20,face="bold"), legend.text=element_text(size=18), legend.title=element_text(size=20)) #legend.position="bottom", 
 
+
+write.csv(TGVsAll, "TGVsAll_optiSelAlphaMate.csv", quote = FALSE, row.names = FALSE)
+TGVsAll <- read.csv("TGVsAll_optiSelAlphaMate.csv")#, quote = FALSE, row.names = FALSE)
 MeanAverage$Generation1 <- MeanAverage$Generation - 40
 ggplot() + 
   xlab("Generacija") + ylab("Plemenska vrednost")  + 
