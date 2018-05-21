@@ -57,7 +57,7 @@ genome.setParams(rangemin=0, rangemax=1)
 # The evaluator function (objective function)
 genome.evaluator.set(eval_func)
 #genome.evaluator.add(eval_func2)
-genome.mutator.set(Mutators.G1DListMutatorIntegerRange)
+genome.mutator.set(Mutators.G1DListMutatorIntegerBinary)
 
 
 # Genetic Algorithm Instance

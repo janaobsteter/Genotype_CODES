@@ -55,7 +55,7 @@ for rep in range(rounds):
     os.system('''awk '{$1=""; print $0}' ChipFile.txt | sed 's/ //g' > Snps.txt''')  # obtain SNP genotypes
     os.system(
     r'''paste Individuals.txt Snps.txt | awk '{printf "%- 10s %+ 15s\n",$1,$2}' > GenoFile.txt''')  # obtain SNP genotypes of the last generation
-    pd.read_csv('/home/jana/bin/AlphaSim1.05Linux/SimulatedData/Chip1SnpInformation.txt', sep='\s+')[[0, 1, 2]].to_csv('SnpMap.txt', index=None, sep=" ", header=None)
+    pd.read_csv('/home/jana/bin/AlphaSim1.05Linux/REALFillIn20BurnIn20/SimulatedData/Chip1SnpInformation.txt', sep='\s+')[[0, 1, 2]].to_csv('SnpMap.txt', index=None, sep=" ", header=None)
     print "Created Geno File"
     
     #sfuraj blupf90
