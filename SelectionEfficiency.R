@@ -312,10 +312,10 @@ ggplot(data = TGVsAll1, aes(x=SDGenicSt, y=zMeanGenic, group=Group, colour=Sim, 
                                         color=scenario, linetype=scenario, group=scenario), arrow=arrow(), show.legend=FALSE, size=1.5)
 
 #o je z na genetsko standadrizirano gensko variacno
-Year1Eff <- ggplot(data = TGVsAll, aes(x=GENICSd_St, y=MeanGENIC_genetic, group=Group, colour=Sim, linetype=scenario)) + 
+Year1Eff <- ggplot(data = TGVsAll, aes(x=GENICSd_St, y=MeanGENIC_genetic, group=Degree, colour=Degree, linetype=scenario)) + 
   scale_x_reverse(sec.axis=sec_axis(trans=~1-.,                                   
                                                                                                      name="Converted/Lost genic standard deviation")) +
-  #geom_smooth( se=FALSE, formula=y~x+1, method="lm") + 
+  geom_line(aes(linetype=degree), size=0.5, alpha=0.4) +
   xlab("Generation") + ylab("True genetic value")  + ylim(0,7) +coord_cartesian(xlim = c(1, 0.85)) +
   scale_linetype_manual(breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), 
                         "Scenario", 

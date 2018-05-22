@@ -12,15 +12,16 @@ import resource
 #from selection10 import blupf90
 
 WorkingDir = "/home/jana/Documents/PhD/CompBio/TestingGBLUP/"
-rounds = raw_input("Enter the number of repetitions")
-Accuracies = pd.DataFrame(np.nan, index=range(rounds), columns=['Opt', 'Random', 'RandomHerd'])
+rounds = [int(i) for i in input("Enter the number of repetitions")]
+#rounds = range(rounds[0], rounds[1])[0]
+Accuracies = pd.DataFrame(np.nan, index=range(rounds[0], rounds[1]), columns=['Opt', 'Random', 'RandomHerd'])
 #to je skript, ki vozi GA v ponovitvah
 
 
 def reLu(number):
     return (0 if number < 0 else number)
 
-for rep in range(rounds):
+for rep in range(rounds[0], rounds[1]):
     #1) dobi rešitev iz GA
     os.makedirs(WorkingDir + "/Rep_" + str(rep))
     RepDir = WorkingDir + "/Rep_" + str(rep)
@@ -147,7 +148,7 @@ for rep in range(rounds):
     Accuracies.RandomHerd[rep] = list(np.corrcoef(AlphaSelPed.EBV, AlphaSelPed.gvNormUnres1)[0])[1]
     AlphaSelPed.to_csv('GenPed_EBV' + str(rep) + '_RandomHerd.txt', index=None)
 
-Accuracies.to_csv(WorkingDir + "AccuraciesRep.txt")
+Accuracies.to_csv(WorkingDir + "AccuraciesRep" + str(rounds[0]) + ".txt")
 
 
 HerdsA = pd.read_csv('/home/jana/Documents/PhD/CompBio/RefADF_mean.csv')
@@ -160,8 +161,8 @@ ped = pd.read_csv("/home/jana/Documents/PhD/CompBio/TestingGBLUP/PedCows_HERDS_T
 
 
 
-Relationship = pd.DataFrame(np.nan, index=range(rounds), columns=['Way', 'Rep', 'NoAnimals', 'NoHerds', 'Within', 'Between', 'Score', 'FinalScore'])
-for rep in range(rounds):
+Relationship = pd.DataFrame(np.nan, index=range(rounds[0], rounds[1]), columns=['Way', 'Rep', 'NoAnimals', 'NoHerds', 'Within', 'Between', 'Score', 'FinalScore'])
+for rep in range(rounds[0], rounds[1]):
     Relationship.Rep[rep] = rep
     Relationship.Way[rep] = "Opt"
     #1) dobi rešitev iz GA
@@ -196,8 +197,8 @@ for rep in range(rounds):
     Relationship.FinalScore[rep] = score+penalty[0]
     RelationOpt = Relationship
     
-Relationship = pd.DataFrame(np.nan, index=range(rounds), columns=['Way', 'Rep', 'NoAnimals', 'NoHerds', 'Within', 'Between', 'Score', 'FinalScore'])
-for rep in range(rounds):
+Relationship = pd.DataFrame(np.nan, index=range(rounds[0], rounds[1]), columns=['Way', 'Rep', 'NoAnimals', 'NoHerds', 'Within', 'Between', 'Score', 'FinalScore'])
+for rep in range(rounds[0], rounds[1]):
     Relationship.Rep[rep] = rep
     Relationship.Way[rep] = "RandomHerd"
     #1) dobi rešitev iz GA
@@ -236,4 +237,4 @@ for rep in range(rounds):
     
     RelationRandom = Relationship
 
-Relationship.append(RelationOpt).to_csv(WorkingDir + "Relations.csv", index=None)
+Relationship.append(RelationOpt).to_csv(WorkingDir + "Relations" + str(rounds[0]) + ".csv", index=None)
