@@ -157,10 +157,10 @@ for (group in unique(TGVsAll$Group)) {
   koef <- groupT$var[1] / groupT$AdditGenicVar1[1]
   groupT$GenicVAR_genetic <- groupT$AdditGenicVar1 * koef
   groupT$GenicSD_genetic <- sqrt(groupT$GenicVAR_genetic)
-  groupT$zMeanGenic <- (groupT$gvNormUnres1 - groupT$gvNormUnres1[1]) / groupT$zSdGenic[1]
-  groupT$SDGenicSt <- groupT$zSdGenic / groupT$zSdGenic[1] 
-  groupT$MeanGENIC_genetic <- (groupT$gvNormUnres1 - groupT$gvNormUnres1[1]) / groupT$GenicSD_genetic[1]
-  groupT$GENICSd_St <- groupT$GenicSD_genetic / groupT$GenicSD_genetic[1] 
+  groupT$zMeanGenic <- (groupT$gvNormUnres1 - groupT$gvNormUnres1[1]) / groupT$SDGenic[1]
+  groupT$SDGenicSt <- groupT$SDGenic / groupT$SDGenic[1] 
+  groupT$MeanGENIC_genetic <- (groupT$gvNormUnres1 - groupT$gvNormUnres1[1]) / groupT$Genic_Genetic_SD[1]
+  groupT$GENICSd_St <- groupT$SDGenic / groupT$SDGenic[1] 
   
   varDF <- rbind(varDF, groupT)
 }
@@ -395,7 +395,7 @@ colnames(meanDF) <- c("Scenario", "Mean_Intercept", "Mean_Slope")
 meanDF$test <- "Reference10000"
 #efficiency
 #to je regresija na povprečja
-avg <- lmList(MeanGenic ~ SDGenic | scenario, data=Averages)
+avg <- lmList(MeanGenic ~ SDGenicSt | scenario, data=Averages)
 Avg <- data.frame(Rep=rownames(coef(avg)),coef(avg),check.names=FALSE)
 colnames(Avg) <- c("ScTGVsAllenario", "Intercept", "Slope")
 Avg$method <- "Regression On Averages"
