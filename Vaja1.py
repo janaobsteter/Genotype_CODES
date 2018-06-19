@@ -53,23 +53,25 @@ print("Koordinate: ", zobS.GetOrigin())
 print("Smer: ", zobS.GetDirection())
 
 #ponastavi korak vzorčenja
-zobS.SetSpacing([2.0, 2.0])
-print("Nov korak vzorčenja: ", zobS.GetSpacing())
+zobSa = zobS #da ne spreminjam originalne slike
+zobSa.SetSpacing([2.0, 2.0])
+print("Nov korak vzorčenja: ", zobSa.GetSpacing())
 #ponastavi izhodišče
-zobS.SetOrigin([3.0, 0.5])
-print("Novo izhodišče: ", zobS.GetOrigin())
-sitk.WriteImage(zobS, Dir + "Zob.nrrd")
-sitk.WriteImage(zobS, Dir + "Zob.nii.gz")
+zobSa.SetOrigin([3.0, 0.5])
+print("Novo izhodišče: ", zobSa.GetOrigin())
+sitk.WriteImage(zobSa, Dir + "Zob.nrrd")
+sitk.WriteImage(zobSa, Dir + "Zob.nii.gz")
 
 #naloži nrrd .nazaj
 zobS1 = sitk.ReadImage(Dir + "Zob.nrrd")
 print("Izhodišče .nrrd: ", zobS1.GetOrigin())
 zobS1_array = sitk.GetArrayFromImage(zobS1)
 print(zobS1_array.view())
+
 #spremeni iz array-a nazaj v sliko - preveri, če se je ohranilo izhodišče
 zobB = sitk.GetImageFromArray(zobS1_array)
-print("Novo izhodišče: ", zobB.GetOrigin())
-print("Novo izhodišče: ", zobB.GetSpacing())
+print("Izhodišče array: ", zobB.GetOrigin())
+print("Korak vzorčenja array: ", zobB.GetSpacing())
 
 
 #obnova medicinskih slik
@@ -80,8 +82,29 @@ sitk.WriteImage(zobS_filter, Dir + "Zob_filterMean.png")
 zobS_filter = sitk.Median(zobS)
 sitk.WriteImage(zobS_filter, Dir + "Zob_filterMedian.png")
 
+zobSc = sitk.Cast( zobS, sitk.sitkFloat32 )
 #nelinearno filtriranje
+zobSc = sitk.GradientAnisotropicDiffusion(zobSc, timeStep=0.125,
+                                  conductanceParameter=int(2.0),
+                                  conductanceScalingUpdateInterval=int(1),
+                                  numberOfIterations=int(20))
 
-#sitk.GradientAnisotropicDiffusion(zobS)
-sitk.GradientAnisotropicDiffusion.EstimateOptimalTimeStep(zobS)
+ZOB = sitk.Cast( zobSc, sitk.sitkUInt8 )
+sitk.WriteImage(ZOB, Dir + "Zob_Anisotropic1.jpg")
 
+sitk.CurvatureAnisotropicDiffusion(zobSc, timeStep=0.125,
+                                  conductanceParameter=int(2.0),
+                                  conductanceScalingUpdateInterval=int(1),
+                                  numberOfIterations=int(20))
+
+ZOB = sitk.Cast( zobSc, sitk.sitkUInt8 )
+sitk.WriteImage(ZOB, Dir + "Zob_Curvature.jpg")
+
+
+sitk.Bilateral(zobSc, timeStep=0.125,
+                                  conductanceParameter=int(2.0),
+                                  conductanceScalingUpdateInterval=int(1),
+                                  numberOfIterations=int(20))
+
+ZOB = sitk.Cast( zobSc, sitk.sitkUInt8 )
+sitk.WriteImage(ZOB, Dir + "Zob_Curvature.jpg")
