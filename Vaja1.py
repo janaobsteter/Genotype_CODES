@@ -13,56 +13,159 @@ import scipy.ndimage as ni
 from scipy.interpolate import interpn
 
 
+plt.style.use('ggplot')
 
-# def normalizeImage(iImage, type='whitening'):
-#     if type=='whitening':
-#         oImage = (iImage - np.mean(iImage)) / np.std(iImage)
-#     elif type=='range':
-#         oImage = (iImage - np.min(iImage)) / (np.max(iImage) - np.min(iImage))
-#     return oImage
-#
-# def getChessBoardImage(iImageSize, iArraySize=10, dtype='uint8'):
-#     dy = int(np.ceil(iImageSize[0] / iArraySize)) + 1
-#     dx = int(np.ceil(iImageSize[1] / iArraySize)) + 1
-#
-#     A = [255 * np.ones(shape=(iArraySize, iArraySize)), np.zeros(shape=(iArraySize, iArraySize))]
-#     # board = [["BW"[(i+j+n%2+1) % 2] for i in range(n)] for j in range(n)]
-#     board = np.array(np.vstack([np.hstack([A[(i + j) % 2] \
-#                                            for i in range(dx)]) \
-#                                 for j in range(dy)]), dtype=dtype)
-#     return board[:iImageSize[0], :iImageSize[1]]
-#
-# def swirlControlPoints(iCPx, iCPy, a=2.0, b=100.0):
-#     oCPx = np.array(iCPx)
-#     oCPy = np.array(iCPy)
-#     xc = np.mean(oCPx[1:-3,1:-3])
-#     yc = np.mean(oCPy[1:-3,1:-3])
-#     rx1 = oCPx[1:-3,1:-3] - xc
-#     ry1 = oCPy[1:-3,1:-3] - yc
-#     angle = a*np.exp(-(rx1*rx1+ry1*ry1)/(b*b))
-#     oCPx[1:-3,1:-3] = np.cos(angle)*rx1 + np.sin(angle)*ry1 + xc
-#     oCPy[1:-3,1:-3] = -np.sin(angle)*rx1 + np.cos(angle)*ry1 + xc
-#     return oCPx, oCPy
-#
-# Naloga 1
-#
-Dir = "/home/janao/Documents/ZajemSlikeVaja2/"
 
-nonE = PIL.Image.open(Dir + "mr-nonenhanced.png")
-E = PIL.Image.open(Dir + "mr-enhanced.png")
-#nonE.show()
-#E.show()
 
-nonE_np = np.array(nonE)
-E_np = np.array(E)
 
-def izracunajB(slika_np):
-    deltaX = float(np.size(slika_np, axis=0)/4.0)
-    deltaY = float(np.size(slika_np, axis=1)/4.0)
-    i = np.size(slika_np,axis=0) / deltaX
-    j = np.size(slika_np,axis=1) / deltaY
-    u = 
-    B0 =
+
+zob = PIL.Image.open(Dir + "zob-microct.png")
+#zob.show()
+print(zob.size) #get the size
+print(zob.mode)
+zob.getbands()
+
+zobNP = np.array(zob)
+#print(zobNP.view())
+print(np.size(zobNP, axis=1))
+print(np.size(zobNP, axis=0))
+print(zobNP[:2, :2])
+
+plt.figure()
+#plt.imshow(zobNP)
+#plt.show()
+
+#get the size if the image
+x = np.size(zobNP, axis=0)
+y = np.size(zobNP, axis=1)
+
+#half the x and y size
+zob_small = zobNP[:int(x/2), :int(y/2)]
+plt.imshow(zob_small)
+print(int(x/2), int(y/2))
+#plt.show()
+
+#save image
+PIL.Image.fromarray(zob_small).save(Dir + "zobSmall.jpg")
+#PIL.Image.fromarray(zob_small).convert("RGB").show()
+
+
+#vaja 1.1 - simpleITK
+
+#zobS = sitk.GetImageFromArray(zobNP)
+zobS = sitk.ReadImage(Dir + "zob-microct.png")
+print("Size: ", zobS.GetSize())
+print("Tip: ", zobS.GetPixelIDValue())
+print("Tip: ", zobS.GetPixelIDTypeAsString())
+print("Korak: ", zobS.GetSpacing())
+print("Koordinate: ", zobS.GetOrigin())
+print("Smer: ", zobS.GetDirection())
+
+#ponastavi korak vzorčenja
+zobSa = zobS #da ne spreminjam originalne slike
+zobSa.SetSpacing([2.0, 2.0])
+print("Nov korak vzorčenja: ", zobSa.GetSpacing())
+#ponastavi izhodišče
+zobSa.SetOrigin([3.0, 0.5])
+print("Novo izhodišče: ", zobSa.GetOrigin())
+sitk.WriteImage(zobSa, Dir + "Zob.nrrd")
+sitk.WriteImage(zobSa, Dir + "Zob.nii.gz")
+
+#naloži nrrd .nazaj
+zobS1 = sitk.ReadImage(Dir + "Zob.nrrd")
+print("Izhodišče .nrrd: ", zobS1.GetOrigin())
+zobS1_array = sitk.GetArrayFromImage(zobS1)
+print(zobS1_array.view())
+
+#spremeni iz array-a nazaj v sliko - preveri, če se je ohranilo izhodišče
+zobB = sitk.GetImageFromArray(zobS1_array)
+print("Izhodišče array: ", zobB.GetOrigin())
+print("Korak vzorčenja array: ", zobB.GetSpacing())
+
+
+#obnova medicinskih slik
+#filtriranje
+zobS_filter = sitk.Mean(zobS)
+sitk.WriteImage(zobS_filter, Dir + "Zob_filterMean.png")
+
+zobS_filter = sitk.Median(zobS)
+sitk.WriteImage(zobS_filter, Dir + "Zob_filterMedian.png")
+
+zobFloat = sitk.Cast(zobS, sitk.sitkFloat32 )
+#nelinearno filtriranje
+zobSc = sitk.GradientAnisotropicDiffusion(zobFloat, timeStep=0.125,
+                                  conductanceParameter=int(2.0),
+                                  conductanceScalingUpdateInterval=int(1),
+                                  numberOfIterations=int(20))
+
+ZOB = sitk.Cast( zobSc, sitk.sitkUInt8 )
+sitk.WriteImage(ZOB, Dir + "Zob_Anisotropic1.jpg")
+
+
+########################################################################################
+########################################################################################
+#DODATNE NALOGE
+
+#control picture area
+#homogoenous intensity area
+#zob_control = zobNP[:150, :150]
+PIL.Image.fromarray(zob_control).convert("L").show()
+
+#ustvari preglednico, ki bo držala rezultate filtriranja
+filtering = pd.DataFrame(columns=["Method", "Parameters", "SD"])
+
+#testiraj različne vrednosti parametrov za anizortopni filter
+for timeStep in [0.025, 0.125, 0.25]:
+    for condParam in [1.0, 1.5, 2.0, 2.5, 3.0]:
+        for scaling in range(1, 5):
+            for iter in [5, 10, 15, 20, 25]:
+                zobSc = sitk.CurvatureAnisotropicDiffusion(zobFloat, timeStep=timeStep,
+                                                  conductanceParameter=int(condParam),
+                                                  conductanceScalingUpdateInterval=int(scaling),
+                                                  numberOfIterations=int(iter))
+
+                ZOB = sitk.Cast( zobSc, sitk.sitkUInt8)
+                #zapiši parametre filtiranja in preglej kakovost filtriranja s standardnim odklonom intenzitet na homogenem obmocju
+                filtering = filtering.append(pd.DataFrame({"Method": ["curvature"],
+                                                           "Parameters": (str(timeStep) + "_" + str(condParam) + "_" + str(scaling) + "_" + str(iter)),
+                                                           "SD": [np.std(sitk.GetArrayFromImage(ZOB)[:150, :150])]}), sort=False)
+
+#print(filtering)
+
+
+#BILATERAL
+#testiraj različne vrednosti parametrov za bilateralen filter
+for samples in [1, 10, 20, 30, 50]:
+    for domainSigma in [9, 18, 27]:
+        #print("Mean", np.mean(np.gradient(zobNP)))
+        #print("Median", np.median(np.gradient(zobNP)))
+        zobBil_mean = sitk.Bilateral(zobFloat, domainSigma,  np.mean(np.gradient(zobNP)), samples)
+        zobBil_Median = sitk.Bilateral(zobFloat, domainSigma,  np.median(np.gradient(zobNP)), samples)
+
+        zobSc = sitk.Cast(zobBil_mean, sitk.sitkUInt8)
+        ZOB = sitk.Cast(zobSc, sitk.sitkUInt8)
+        # zapiši parametre filtiranja in preglej kakovost filtriranja s standardnim odklonom intenzitet na homogenem obmocju
+        #filtriranje s povprečjem
+        filtering = filtering.append(pd.DataFrame({"Method": ["Bilateral"],
+                                                   "Parameters": ("Mean_" + str(samples) + "_" + str(domainSigma)),
+                                                   "SD": [np.std(sitk.GetArrayFromImage(ZOB)[:150, :150])]}), sort=False)
+
+        zobSc = sitk.Cast(zobBil_Median, sitk.sitkUInt8)
+        ZOB = sitk.Cast(zobSc, sitk.sitkUInt8)
+        # zapiši parametre filtiranja in preglej kakovost filtriranja s standardnim odklonom intenzitet na homogenem obmocju
+        # filtriranje z mediano
+        filtering = filtering.append(pd.DataFrame({"Method": ["Bilateral"],
+                                                   "Parameters": ("Median_" + str(samples)+ "_" + str(domainSigma)),
+                                                   "SD": [np.std(sitk.GetArrayFromImage(ZOB)[:150, :150])]}), sort=False)
+
+#zapisi preglednico z rezultati
+filtering.to_csv(Dir + "Filtering_Results.csv")
+
+#shrani najuspešnejše rezultate filtriranja - slike
+zobBil_mean = sitk.Bilateral(zobFloat, 18,  np.mean(np.gradient(zobNP)), 1)
+ZOB = sitk.Cast( zobBil_mean, sitk.sitkUInt8 )
+sitk.WriteImage(ZOB, Dir + "Zob_Bilateral_Mean1.jpg")
+
 
 
 
@@ -205,6 +308,7 @@ def izracunajB(slika_np):
 #     ax[1,2].set_title('abs(Registered - Fixed)')
 #
 #     plt.show()
+
 
 
 # print(zobNP.view())
@@ -370,5 +474,43 @@ def izracunajB(slika_np):
 #                                   conductanceScalingUpdateInterval=int(4),
 #                                   numberOfIterations=int(25))
 #
-# ZOB = sitk.Cast( zobSc, sitk.sitkUInt8 )
-# sitk.WriteImage(ZOB, Dir + "Zob_Curvature_Best.jpg")
+
+ZOB = sitk.Cast( zobSc, sitk.sitkUInt8 )
+sitk.WriteImage(ZOB, Dir + "Zob_Curvature_Best.jpg")
+
+
+filtering = pd.DataFrame(columns=["Method", "MaxLevel", "MaxIter" "SD"])
+
+misice = sitk.ReadImage(Dir + "misice-microscope.png")
+mis = PIL.Image.open(Dir + "misice-microscope.png")
+misH = mis.histogram()
+plt.hist(misH, bins=50)
+#plt.show()
+misiceNP = sitk.GetArrayFromImage(misice)
+plt.hist(np.diagonal(misiceNP), bins=50)
+plt.savefig(Dir + "Hist_Original.png")
+
+
+#testiraj različne parametre za N4 postopek filtriranja
+for iter in [10, 50, 100]:
+    for level in range(1, 5):
+        misice = sitk.ReadImage(Dir + "misice-microscope.png")
+#        misice_np = np.array(misice)
+        misiceFloat = sitk.Cast(misice, sitk.sitkFloat32)
+        corrector = sitk.N4BiasFieldCorrectionImageFilter()
+        corrector.SetMaximumNumberOfIterations([iter] * level)
+        corrector.SetMaskLabel(1)
+        oImage = corrector.Execute(misiceFloat)
+        MISICE = sitk.Cast(oImage, sitk.sitkUInt8)
+        MISICE_np = sitk.GetArrayFromImage(MISICE)
+        #print(MISICE_np)
+        plt.clf()
+        plt.hist(np.diagonal(MISICE_np), bins=50)
+        #plt.show()
+        plt.savefig(Dir + "Hist_" + str(iter) + "_" + str(level) + ".png")
+
+
+
+        sitk.WriteImage(MISICE, Dir + "MisiceN4" + str(iter) + "_" + str(level) + ".jpg")
+
+
