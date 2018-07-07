@@ -7,18 +7,18 @@ import SimpleITK as sitk
 import os
 import pandas as pd
 
-
+plt.style.use('ggplot')
 
 Dir = "/home/jana/Documents/PhD/ZajemInAnalizaSlike/Vaja1/"
 
 zob = PIL.Image.open(Dir + "zob-microct.png")
-zob.show()
+#zob.show()
 print(zob.size) #get the size
 print(zob.mode)
 zob.getbands()
 
 zobNP = np.array(zob)
-print(zobNP.view())
+#print(zobNP.view())
 print(np.size(zobNP, axis=1))
 print(np.size(zobNP, axis=0))
 print(zobNP[:2, :2])
@@ -94,89 +94,122 @@ ZOB = sitk.Cast( zobSc, sitk.sitkUInt8 )
 sitk.WriteImage(ZOB, Dir + "Zob_Anisotropic1.jpg")
 
 
-#########################################################################################
-#########################################################################################
+########################################################################################
+########################################################################################
 #DODATNE NALOGE
 
 #control picture area
 #homogoenous intensity area
 #zob_control = zobNP[:150, :150]
-#PIL.Image.fromarray(zob_control).convert("L").show()
-# filtering = pd.DataFrame(columns=["Method", "Parameters", "SD"])
-#
-# for timeStep in [0.025, 0.125, 0.25]:
-#     for condParam in [1.0, 1.5, 2.0, 2.5, 3.0]:
-#         for scaling in range(1, 5):
-#             for iter in [5, 10, 15, 20, 25]:
-#                 zobSc = sitk.CurvatureAnisotropicDiffusion(zobFloat, timeStep=timeStep,
-#                                                   conductanceParameter=int(condParam),
-#                                                   conductanceScalingUpdateInterval=int(scaling),
-#                                                   numberOfIterations=int(iter))
-#
-#                 ZOB = sitk.Cast( zobSc, sitk.sitkUInt8 )
-#                 #sitk.WriteImage(ZOB, Dir + "Zob_Curvature.jpg")
-#                 #print(np.std(sitk.GetArrayFromImage(ZOB)[:150, :150]))
-#                 filtering = filtering.append(pd.DataFrame({"Method": ["curvature"],
-#                                                            "Parameters": (str(timeStep) + "_" + str(condParam) + "_" + str(scaling) + "_" + str(iter)),
-#                                                            "SD": [np.std(sitk.GetArrayFromImage(ZOB)[:150, :150])]}), sort=False)
-#
-# #print(filtering)
-#
-#
-# #BILATERAL
-#
-# for samples in [1, 10, 20, 30, 50]:
-#     for domainSigma in [9, 18, 27]:
-#         #print("Mean", np.mean(np.gradient(zobNP)))
-#         #print("Median", np.median(np.gradient(zobNP)))
-#         zobBil_mean = sitk.Bilateral(zobFloat, domainSigma,  np.mean(np.gradient(zobNP)), samples)
-#         zobBil_Median = sitk.Bilateral(zobFloat, domainSigma,  np.median(np.gradient(zobNP)), samples)
-#
-#         zobSc = sitk.Cast(zobBil_mean, sitk.sitkUInt8)
-#         ZOB = sitk.Cast(zobSc, sitk.sitkUInt8)
-#         filtering = filtering.append(pd.DataFrame({"Method": ["Bilateral"],
-#                                                    "Parameters": ("Mean_" + str(samples) + "_" + str(domainSigma)),
-#                                                    "SD": [np.std(sitk.GetArrayFromImage(ZOB)[:150, :150])]}), sort=False)
-#
-#         zobSc = sitk.Cast(zobBil_Median, sitk.sitkUInt8)
-#         ZOB = sitk.Cast(zobSc, sitk.sitkUInt8)
-#         filtering = filtering.append(pd.DataFrame({"Method": ["Bilateral"],
-#                                                    "Parameters": ("Median_" + str(samples)+ "_" + str(domainSigma)),
-#                                                    "SD": [np.std(sitk.GetArrayFromImage(ZOB)[:150, :150])]}), sort=False)
-#
-# #print(filtering)
-# filtering.to_csv(Dir + "Filtering_Results.csv")
-#
-# #shrani najuspešnejše rezultate filtriranja
-# zobBil_mean = sitk.Bilateral(zobFloat, 18,  np.mean(np.gradient(zobNP)), 1)
-# ZOB = sitk.Cast( zobBil_mean, sitk.sitkUInt8 )
-# sitk.WriteImage(ZOB, Dir + "Zob_Bilateral_Mean1.jpg")
-#
-# zobBil_mean = sitk.Bilateral(zobFloat, 18,  np.median(np.gradient(zobNP)), 1)
-# ZOB = sitk.Cast( zobBil_mean, sitk.sitkUInt8 )
-# sitk.WriteImage(ZOB, Dir + "Zob_Bilateral_Median1.jpg")
-#
-# zobBil_mean = sitk.Bilateral(zobFloat, 18,  np.mean(np.gradient(zobNP)), 10)
-# ZOB = sitk.Cast( zobBil_mean, sitk.sitkUInt8 )
-# sitk.WriteImage(ZOB, Dir + "Zob_Bilateral_Mean10.jpg")
-#
-# zobBil_mean = sitk.Bilateral(zobFloat, 18,  np.mean(np.gradient(zobNP)), 20)
-# ZOB = sitk.Cast( zobBil_mean, sitk.sitkUInt8 )
-# sitk.WriteImage(ZOB, Dir + "Zob_Bilateral_Mean20.jpg")
-#
-# zobSc = sitk.CurvatureAnisotropicDiffusion(zobFloat, timeStep=0.25,
-#                                   conductanceParameter=int(3.0),
-#                                   conductanceScalingUpdateInterval=int(4),
-#                                   numberOfIterations=int(25))
-#
-# ZOB = sitk.Cast( zobSc, sitk.sitkUInt8 )
-# sitk.WriteImage(ZOB, Dir + "Zob_Curvature_Best.jpg")
+PIL.Image.fromarray(zob_control).convert("L").show()
 
-iMaxIter=50
-iNumLevels=50
+#ustvari preglednico, ki bo držala rezultate filtriranja
+filtering = pd.DataFrame(columns=["Method", "Parameters", "SD"])
 
-misice = PIL.Image.open(Dir + "misice-microscope.png")
-misice_np = np.array(misice)
-corrector = sitk.N4BiasFieldCorrectionImageFilter()
-corrector.SetMaximumNumberOfIterations([iMaxIter] * iNumLevels)
-oImage = corrector.Execute(zobFloat, 1)
+#testiraj različne vrednosti parametrov za anizortopni filter
+for timeStep in [0.025, 0.125, 0.25]:
+    for condParam in [1.0, 1.5, 2.0, 2.5, 3.0]:
+        for scaling in range(1, 5):
+            for iter in [5, 10, 15, 20, 25]:
+                zobSc = sitk.CurvatureAnisotropicDiffusion(zobFloat, timeStep=timeStep,
+                                                  conductanceParameter=int(condParam),
+                                                  conductanceScalingUpdateInterval=int(scaling),
+                                                  numberOfIterations=int(iter))
+
+                ZOB = sitk.Cast( zobSc, sitk.sitkUInt8)
+                #zapiši parametre filtiranja in preglej kakovost filtriranja s standardnim odklonom intenzitet na homogenem obmocju
+                filtering = filtering.append(pd.DataFrame({"Method": ["curvature"],
+                                                           "Parameters": (str(timeStep) + "_" + str(condParam) + "_" + str(scaling) + "_" + str(iter)),
+                                                           "SD": [np.std(sitk.GetArrayFromImage(ZOB)[:150, :150])]}), sort=False)
+
+#print(filtering)
+
+
+#BILATERAL
+#testiraj različne vrednosti parametrov za bilateralen filter
+for samples in [1, 10, 20, 30, 50]:
+    for domainSigma in [9, 18, 27]:
+        #print("Mean", np.mean(np.gradient(zobNP)))
+        #print("Median", np.median(np.gradient(zobNP)))
+        zobBil_mean = sitk.Bilateral(zobFloat, domainSigma,  np.mean(np.gradient(zobNP)), samples)
+        zobBil_Median = sitk.Bilateral(zobFloat, domainSigma,  np.median(np.gradient(zobNP)), samples)
+
+        zobSc = sitk.Cast(zobBil_mean, sitk.sitkUInt8)
+        ZOB = sitk.Cast(zobSc, sitk.sitkUInt8)
+        # zapiši parametre filtiranja in preglej kakovost filtriranja s standardnim odklonom intenzitet na homogenem obmocju
+        #filtriranje s povprečjem
+        filtering = filtering.append(pd.DataFrame({"Method": ["Bilateral"],
+                                                   "Parameters": ("Mean_" + str(samples) + "_" + str(domainSigma)),
+                                                   "SD": [np.std(sitk.GetArrayFromImage(ZOB)[:150, :150])]}), sort=False)
+
+        zobSc = sitk.Cast(zobBil_Median, sitk.sitkUInt8)
+        ZOB = sitk.Cast(zobSc, sitk.sitkUInt8)
+        # zapiši parametre filtiranja in preglej kakovost filtriranja s standardnim odklonom intenzitet na homogenem obmocju
+        # filtriranje z mediano
+        filtering = filtering.append(pd.DataFrame({"Method": ["Bilateral"],
+                                                   "Parameters": ("Median_" + str(samples)+ "_" + str(domainSigma)),
+                                                   "SD": [np.std(sitk.GetArrayFromImage(ZOB)[:150, :150])]}), sort=False)
+
+#zapisi preglednico z rezultati
+filtering.to_csv(Dir + "Filtering_Results.csv")
+
+#shrani najuspešnejše rezultate filtriranja - slike
+zobBil_mean = sitk.Bilateral(zobFloat, 18,  np.mean(np.gradient(zobNP)), 1)
+ZOB = sitk.Cast( zobBil_mean, sitk.sitkUInt8 )
+sitk.WriteImage(ZOB, Dir + "Zob_Bilateral_Mean1.jpg")
+
+zobBil_mean = sitk.Bilateral(zobFloat, 18,  np.median(np.gradient(zobNP)), 1)
+ZOB = sitk.Cast( zobBil_mean, sitk.sitkUInt8 )
+sitk.WriteImage(ZOB, Dir + "Zob_Bilateral_Median1.jpg")
+
+zobBil_mean = sitk.Bilateral(zobFloat, 18,  np.mean(np.gradient(zobNP)), 10)
+ZOB = sitk.Cast( zobBil_mean, sitk.sitkUInt8 )
+sitk.WriteImage(ZOB, Dir + "Zob_Bilateral_Mean10.jpg")
+
+zobBil_mean = sitk.Bilateral(zobFloat, 18,  np.mean(np.gradient(zobNP)), 20)
+ZOB = sitk.Cast( zobBil_mean, sitk.sitkUInt8 )
+sitk.WriteImage(ZOB, Dir + "Zob_Bilateral_Mean20.jpg")
+
+zobSc = sitk.CurvatureAnisotropicDiffusion(zobFloat, timeStep=0.25,
+                                  conductanceParameter=int(3.0),
+                                  conductanceScalingUpdateInterval=int(4),
+                                  numberOfIterations=int(25))
+
+ZOB = sitk.Cast( zobSc, sitk.sitkUInt8 )
+sitk.WriteImage(ZOB, Dir + "Zob_Curvature_Best.jpg")
+
+
+filtering = pd.DataFrame(columns=["Method", "MaxLevel", "MaxIter" "SD"])
+
+misice = sitk.ReadImage(Dir + "misice-microscope.png")
+mis = PIL.Image.open(Dir + "misice-microscope.png")
+misH = mis.histogram()
+plt.hist(misH, bins=50)
+#plt.show()
+misiceNP = sitk.GetArrayFromImage(misice)
+plt.hist(np.diagonal(misiceNP), bins=50)
+plt.savefig(Dir + "Hist_Original.png")
+
+
+#testiraj različne parametre za N4 postopek filtriranja
+for iter in [10, 50, 100]:
+    for level in range(1, 5):
+        misice = sitk.ReadImage(Dir + "misice-microscope.png")
+#        misice_np = np.array(misice)
+        misiceFloat = sitk.Cast(misice, sitk.sitkFloat32)
+        corrector = sitk.N4BiasFieldCorrectionImageFilter()
+        corrector.SetMaximumNumberOfIterations([iter] * level)
+        corrector.SetMaskLabel(1)
+        oImage = corrector.Execute(misiceFloat)
+        MISICE = sitk.Cast(oImage, sitk.sitkUInt8)
+        MISICE_np = sitk.GetArrayFromImage(MISICE)
+        #print(MISICE_np)
+        plt.clf()
+        plt.hist(np.diagonal(MISICE_np), bins=50)
+        #plt.show()
+        plt.savefig(Dir + "Hist_" + str(iter) + "_" + str(level) + ".png")
+
+
+
+        sitk.WriteImage(MISICE, Dir + "MisiceN4" + str(iter) + "_" + str(level) + ".jpg")
+
