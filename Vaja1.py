@@ -170,24 +170,24 @@ sitk.WriteImage(ZOB, Dir + "Zob_Bilateral_Mean1.jpg")
 
 
 #%% Naloga 2
-# # def getCubicBSpline2DGrid(iImageSize, iStep, nxy=None):
-# #     return oCPx, oCPy
-#
-# # test funkcije
-# if __name__ == '__main__':
-#     cbImage = getChessBoardImage((400,400), 50)
-#     iStep = (80, 80)
-#     oCPx, oCPy = getCubicBSpline2DGrid(cbImage.shape, iStep)
-#
-#     plt.close('all')
-#     plt.figure()
-#     plt.imshow(cbImage, cmap='gray')
-#     plt.plot(oCPx, oCPy, marker='o', color='r', linewidth=1)
-#     plt.plot(oCPx.transpose(), oCPy.transpose(), marker='o', color='r', linewidth=1)
-#     plt.xlim([-150,650])
-#     plt.ylim([650,-150])
-#     plt.show()
-#
+# def getCubicBSpline2DGrid(iImageSize, iStep, nxy=None):
+#     return oCPx, oCPy
+
+# test funkcije
+if __name__ == '__main__':
+    cbImage = getChessBoardImage((400,400), 50)
+    iStep = (80, 80)
+    oCPx, oCPy = getCubicBSpline2DGrid(cbImage.shape, iStep)
+
+    plt.close('all')
+    plt.figure()
+    plt.imshow(cbImage, cmap='gray')
+    plt.plot(oCPx, oCPy, marker='o', color='r', linewidth=1)
+    plt.plot(oCPx.transpose(), oCPy.transpose(), marker='o', color='r', linewidth=1)
+    plt.xlim([-150,650])
+    plt.ylim([650,-150])
+    plt.show()
+
 #
 # #%% Naloga 3
 # # def getCubicBSpline2DDeformation(iImageSize, iCPx, iCPy, iStep):

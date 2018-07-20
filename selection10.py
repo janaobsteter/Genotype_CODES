@@ -663,14 +663,18 @@ class pedigree(classPed):
         # this if for the rest of the new born population - 'mix' semen of all potential fathers
         # first - according to the given % - how many offsprign will be produced by genomically tested bulls
 
-        # here choose the classically tested bulls --> get the doses
+	 # here choose the classically tested bulls --> get the doses
         ClassOcetje = list(
             testiraniOce * pozitivnoTestDoz + mladiOce * mladiDoz) if testiraniOce else []  # progeny teste fathers - keep the ratios between young / natural service / PT
         PripustOcetje = list(pripustOce * pripustDoz)
         if NbGenTest == stNB:  # če naj bo kompletna splošna populacija semenjena samo z genomskimi (mlade, čakajoče si tako dala v gpb)
             GenOcetje = list(
                 gentestiraniOce * pozitivnoTestDoz) if 'gpb' in self.cat() else []  # dokler še imaš progene, uporabljaj mešano seme, potem ostanejo tako samo genomsko
-            Ocetje = random.sample(ClassOcetje + GenOcetje + PripustOcetje, stNB - potomciNPn * 2)
+            if len(GenOcetje) + len(PripustOcetje) < NbGenTest:
+                classNB = NbGenTest - (len(GenOcetje) + len(PripustOcetje))
+                Ocetje = random.sample(ClassOcetje, classNB - potomciNPn * 2)  + GenOcetje + PripustOcetje
+            if len(GenOcetje) + len(PripustOcetje) >= NbGenTest:
+                Ocetje = random.sample(GenOcetje + PripustOcetje, stNB - potomciNPn * 2)
         if NbGenTest == 0:  # če je % semenjenih z genomskimi 0, semeni samo z pb, mladimi in pripustom
             Ocetje = random.sample(ClassOcetje + PripustOcetje, stNB - potomciNPn * 2)
         if NbGenTest > 0 and NbGenTest < stNB:  # če je odstotek nekje med 0 in 100, semeni točno določen del z genomskimi, preostalo mix klasike in pripusta
@@ -1291,7 +1295,7 @@ def selekcija_total(pedFile, **kwargs):
             'less IndForGeno.txt | wc -l > ReferenceSize_new.txt && cat ReferenceSize_new.txt ReferenceSize.txt > Reftmp && mv Reftmp ReferenceSize.txt')
     ped.write_ped(kwargs.get('AlphaSimDir') + "/ExternalPedigree.txt")
     ped.write_pedTotal(kwargs.get('AlphaSimDir') + "/ExternalPedigreeTotal.txt")
-    ped.write_pedTotal("/home/jana/PedTotal.txt")
+#    ped.write_pedTotal("/home/jana/PedTotal.txt")
 
     return ped, ped.save_cat(), ped.save_sex(), ped.save_active()
 
@@ -1627,8 +1631,8 @@ def finishPedigree_OCS():
     # dodaj očete
     ped.ped.loc[ped.ped.cat.isin(['nr', 'potomciNP']), 'Father'] = Ocetje
     ped.ped.Father = ped.ped.Father.astype(int)
-    ped.write_ped("/home/jana/bin/AlphaMateLinux/OCSSloPop/CowSample//ExternalPedigree.txt")
-    ped.write_pedTotal("/home/jana/bin/AlphaMateLinux/OCSSloPop/CowSample//ExternalPedigreeTotal.txt")
+#    ped.write_ped("/home/jana/bin/AlphaMateLinux/OCSSloPop/CowSample//ExternalPedigree.txt")
+#    ped.write_pedTotal("/home/jana/bin/AlphaMateLinux/OCSSloPop/CowSample//ExternalPedigreeTotal.txt")
 
 
 
@@ -1855,7 +1859,7 @@ def nastavi_cat(PedFile, **kwargs):
         ped.saveIndForGeno(kwargs.get('genotyped'))
     ped.write_ped(kwargs.get('AlphaSimDir') + "/ExternalPedigree.txt")
     ped.write_pedTotal(kwargs.get('AlphaSimDir') + "/ExternalPedigreeTotal.txt")
-    ped.write_pedTotal("/home/jana/PedTotal.txt")
+#    ped.write_pedTotal("/home/jana/PedTotal.txt")
 
     return ped, ped.save_cat(), ped.save_sex(), ped.save_active()
 

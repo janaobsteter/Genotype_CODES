@@ -42,7 +42,8 @@ FROM
   --kapa = 100, beta = 103
 SELECT
   ziv.ZIV_ID_SEQ seq,
-  ziv.DAT_ROJSTVO rojstvo,
+  ziv.DRZ_ORIG_ZIVAL || ziv.ZIV_ID_SEQ,
+  extract(year from ziv.DAT_ROJSTVO) rojstvo,
   ziv.SIF_SPOL spol,
   gp.ZGP_VREDNOST kappa,
   pasma.PASMA_SPADA pasma
