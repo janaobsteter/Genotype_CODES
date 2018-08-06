@@ -37,9 +37,14 @@ cbind(giA[(giA$`gi$LINE`=="sireF") & (giA$`gi$scenario`=="Gen"),],
       giA$`gi$genInt`[(giA$`gi$LINE`=="sireF") & (giA$`gi$scenario`=="Class")])
 
 #SU5/5 - SU5/1
-SU <- cbind(giA[(giA$`gi$strategy`=="10K_Ref_1Year"),],
-  giA[(giA$`gi$strategy`=="10K_Ref_20Rep"),])
+SU <- cbind(giA[(giA$`gi$strategy`=="SU51"),],
+  giA[(giA$`gi$strategy`=="SU55"),])
 
 SU$diff <- 1 - (giA$`gi$genInt`[(giA$`gi$strategy`=="SU51")] / 
        giA$`gi$genInt`[(giA$`gi$strategy`=="SU55")])
 SU[order(-SU$diff),]
+
+SUt <- cbind(giAS[giAS$Strategy=="SU55",] , giAS[giAS$Strategy=="SU51",])
+SUt$diff <- 1 - (giAS$genInt[(giAS$Strategy=="SU51")] / 
+                  giAS$genInt[(giAS$Strategy=="SU55")])
+SUt[order(-SUt$diff),]

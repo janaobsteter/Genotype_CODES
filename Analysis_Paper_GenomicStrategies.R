@@ -1,15 +1,46 @@
-acc <- read.csv("~/AccuraciesALL_Cor.csv")
-accA <- aggregate(acc$corEBV ~ acc$scenario + acc$strategy + acc$Cat, FUN="mean")
-accC <- aggregate(acc$corEBV ~ acc$Cat, FUN="mean")
-accSc <- aggregate(acc$corEBV ~ acc$scenario + acc$strategy, FUN="mean")
-accS <- aggregate(acc$corEBV ~ acc$strategy, FUN="mean")
-accA <- accA[!(accA$`acc$Cat` %in% c("Unnamed: 0", "Unnamed: 16")),]
+acc <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/AccuraciesALL_correlation.csv")
+#acc <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/AccuraciesALL_Cat.csv")
+#accAcc <- acc[,paste0("X", 21:40)]
+#accNames <- acc[,c("cat", "Strategy", "Scenario", "Rep")]
+#accNames$corEBV <- as.numeric(rowMeans(accAcc))
+#acc <- accNames
+accA <- aggregate(acc$corEBV ~ acc$Scenario + acc$Strategy + acc$Cat + acc$Cycle, FUN="mean")
+accASc <- aggregate(acc$corEBV ~ acc$Strategy + acc$Cat + acc$Cycle, FUN="mean")
+accSc <- aggregate(acc$corEBV ~ acc$Scenario + acc$Strategy, FUN="mean")
+accSc <- aggregate(acc$corEBV ~ acc$Strategy + acc$Cat, FUN="mean")
+accS <- aggregate(acc$corEBV ~ acc$Strategy, FUN="mean")
+colnames(accA) <- c("Scenario", "Strategy", "Cat",  "Cycle", "corEBV")
+colnames(accSc) <- c("Scenario", "Strategy", "Cat", "corEBV")
+colnames(accASc) <- c("Strategy", "Cat", "Cycle", "corEBV")
 write.csv(accA, "~/Documents/PhD/Simulaton/Accuracies_genomicStrategies.csv", quote=FALSE)
 
-cbind(accA[(accA$`acc$Cat` %in% c("mladi", "genTest")) & (accA$`acc$strategy`=="10K_Ref_20Rep"),], accA[(accA$`acc$Cat` %in% c("mladi", "genTest")) & (accA$`acc$strategy`=="10K_Ref_1Year"),])
+mean(accA$corEBV[accA$Scenario=="Class" & accA$Cat=="potomciNP"])
+mean(accA$corEBV[accA$Cat=="genTest"])
 
+mean(accA$corEBV[accA$Scenario %in% c("Class", "GenSLO") & accA$Cat=="pb"])
+mean(accA$corEBV[accA$Cat=="pb"])
+mean(accA$corEBV[accA$Cat=="gpb"])
+accA[accA$Cat=="gpb",]
+acc[acc$Strategy=="SU55" & acc$Scenario=="Class" & acc$Cat=="mladi",]
+
+
+accASc[accASc$Cat=="genTest",]
+ggplot(data=accASc[accASc$Cat=="genTest",], aes(x=Cycle, y=corEBV, group=Strategy, colour=Strategy)) + geom_line()
+
+
+accA[(accA$Cat %in% c("vhlevljeni", "genTest", "mladi", "potomciNP")) & (accA$Strategy=="SU55"),]
+comp <- cbind(accSc[(accSc$Cat %in% c("mladi", "genTest")) & (accSc$Strategy=="SU55"),], accSc[(accSc$Cat %in% c("mladi", "genTest")) & (accSc$Strategy=="SU51"),])
+comp$diff <- accSc$corEBV[(accSc$Cat %in% c( "genTest")) & (accSc$Strategy=="SU55")] - accSc$corEBV[(accSc$Cat %in% c( "genTest")) & (accSc$Strategy=="SU51")]
+diffK <- accSc$corEBV[(accSc$Cat %in% c( "k")) & (accSc$Strategy=="SU55")] - accSc$corEBV[(accSc$Cat %in% c( "k")) & (accSc$Strategy=="SU51")]
+mean(comp$diff)
+mean(acc$corEBV[acc$Strategy=="SU55"], na.rm=TRUE) - mean(acc$corEBV[acc$Strategy=="SU51"], na.rm=TRUE)
+sd(acc$corEBV[acc$Strategy=="SU55"], na.rm=TRUE) 
+sd(acc$corEBV[acc$Strategy=="SU51"], na.rm=TRUE)
+######################################################################################################
+######################################################################################################
+######################################################################################################
 #TGVsAll <- read.csv("~/TGVSALL_11062018.csv")
-TGVsAll <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/TGVSALL_16072018.csv")
+TGVsAll <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/TGVSALL_19072018.csv")
 TGVsAll$strategy <-TGVsAll$Strategy
 #TGVsAll$strategy <- NA
 #TGVsAll$strategy[TGVsAll$Strategy == "10K_Ref_20Rep"] <- "SU55"
@@ -117,7 +148,7 @@ for (strategy in c("SU55", "SU15", "SU51")) {
 library(gridExtra)
 library(grid)
 library(gtable)
-
+Tole je bolj na majavih tleh
 maxmin$slope <- (maxmin$maxTGV - maxmin$minTGV) / (maxmin$maxGenicSD - maxmin$minGenicSD)
 mA <- aggregate(maxmin$slope ~ maxmin$strategy, FUN="summary")
 aggregate(maxmin$minGenicSD ~ maxmin$strategy, FUN="summary")
@@ -220,9 +251,15 @@ regRep <- regRep[-1,]
 
 #povprečje regresijskih koefificentov - efficiency
 avgSlope <- aggregate(regRep$Slope ~ regRep$Scenario + regRep$Strategy, FUN="mean")
+avgSlopeSD <- aggregate(regRep$Slope ~ regRep$Scenario + regRep$Strategy, FUN="sd")
 avgInt <- aggregate(regRep$Intercept ~ regRep$Scenario + regRep$Strategy, FUN="mean")
-avgReg <- merge(avgSlope, avgInt, by=c("regRep$Scenario", "regRep$Strategy"))
-colnames(avgReg) <- c("Scenario", "Strategy",  "Slope", "Intercept")
+avgIntSD <- aggregate(regRep$Intercept ~ regRep$Scenario + regRep$Strategy, FUN="sd")
+avgReg <- merge(avgSlope, avgSlopeSD, by=c("regRep$Scenario", "regRep$Strategy"))
+avgReg <- merge(avgReg, avgInt, by=c("regRep$Scenario", "regRep$Strategy"))
+avgReg <- merge(avgReg, avgIntSD, by=c("regRep$Scenario", "regRep$Strategy"))
+colnames(avgReg) <- c("Scenario", "Strategy",  "Slope", "SlopeSD", "Intercept", "InterceptSD")
+avgReg$Eff <- round(avgReg$Slope, 0)
+avgReg$EffSd <- round(avgReg$SlopeSD, 0)
 write.csv(avgReg, "~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results//Efficiency_genomicstrategies_19072018.csv", quote=FALSE)
 
 #efficiency of SU55
@@ -238,7 +275,20 @@ library(emmeans)
 regRep$Scenario <- as.factor(regRep$Scenario)
 regRep$Strategy <- as.factor(regRep$Strategy)
 regRep1 <- within(regRep, Scenario <- relevel(Scenario, ref = "Class"))
-m1 <- lm(Slope~Scenario,data=regRep[regRep$Strategy=="SU55",])
+m1 <- lm(Slope~Scenario,data=regRep1[regRep1$Strategy=="SU51",])
+m1.grid <- ref_grid(m1)
+anova(m1)
+m1S <- lsmeans(m1.grid, "Scenario")
+contrast(m1.grid, method="pairwise")
+contrast(m1S, method="eff")
+summary(lm(Slope~Scenario,data=regRep1))
+
+#significance of genetic gain
+library(emmeans)
+Mean60$Scenario <- as.factor(Mean60$Scenario)
+Mean60$Strategy <- as.factor(Mean60$Strategy)
+Mean601 <- within(Mean60, Scenario <- relevel(Scenario, ref = "Class"))
+m1 <- lm(MeanTGV~Scenario,data=Mean601[Mean601$Strategy=="SU51",])
 m1.grid <- ref_grid(m1)
 anova(m1)
 m1S <- lsmeans(m1.grid, "Scenario")
@@ -257,8 +307,9 @@ for (scenario in c("Class", "GenSLO", "OtherCowsGen", "BmGen", "Gen")) {
     vec <- c(vec, which(a$Scenario==scenario))
   }
   print(scenario)
-  print(sum(vec == 5))
+  print(sum(vec == 1))
 }
+
 avgReg$Eff <- round(avgReg$Slope, 0)
 avgReg[avgReg$Strategy=="SU55",]
 avgReg[avgReg$Strategy=="SU51",]

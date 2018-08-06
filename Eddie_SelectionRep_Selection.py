@@ -13,7 +13,7 @@ import resource
 import ast
 WorkingDir = os.getcwd()
 
-
+#sys.argv: 1 = rep, 2 = scenario, 3 = strategy, 4 = reference size
 
 class estimateBV:
     def __init__(self, AlphaSimDir, codeDir, way, sel):
@@ -82,7 +82,12 @@ class estimateBV:
 #argument 0 is the name of the script
 rep = sys.argv[1]
 scenario = sys.argv[2]
+strategy = sys.argv[3]
+refSize = sys.argv[4]
 
+os.chdir(strategy + "/")
+
+print("Creating directory " + scenario + str(rep))
 if not os.path.isdir(scenario + str(rep)):
 	os.makedirs(scenario + str(rep))
 SelectionDir = scenario + str(rep) + "/"
@@ -98,12 +103,17 @@ SelectionDir = scenario + str(rep) + "/"
 os.chdir(SelectionDir)
 
 print("Copying files to " + SelectionDir)
+os.system('cp -r ' + WorkingDir + '/FillInBurnIn' + str(rep) + '/* .')
 os.system('cp -r ' + WorkingDir + '/Essentials/* .')
-#os.system('cp -r ' + WorkingDir + '/FillInBurnIn' + str(rep) + '/* .')
 os.system('cp -r ' + WorkingDir + '/CodeDir/* .')
-os.system('mv IndForGeno_Gen.txt IndForGeno.txt')
+os.system('mv IndForGeno_' + refSize + '.txt IndForGeno.txt')
 
-par = pd.read_csv(WorkingDir + "/Essentials/SelectionParam_" + scenario + ".csv", header=None, names=["Keys", "Vals"])
+os.system("chmod a+x AlphaSim1.08")
+os.system("chmod a+x renumf90")
+os.system("chmod a+x blupf90")
+
+
+par = pd.read_csv(WorkingDir + "/Essentials/" + strategy + "SelPar/SelectionParam_" + scenario + ".csv", header=None, names=["Keys", "Vals"])
 par.to_dict()
 selPar = defaultdict()
 for key, val in zip(par.Keys, par.Vals):
@@ -134,7 +144,7 @@ StSelGen = 40
 StartSelGen = 21
 StopSelGen = 40
 NumberOfSires = 12
-NumberOfDams = 3500
+NumberOfDams = 4320
 selPar['AlphaSimDir'] = os.getcwd() + '/'
 AlphaSimDir = os.getcwd() + '/'
 AlphaSimPed = selPar['AlphaSimDir'] + '/SimulatedData/PedigreeAndGeneticValues.txt'
@@ -149,7 +159,7 @@ if selPar['gEBV']:
 #SELEKCIJA
 ##############################################################################
 print(AlphaSimDir)
-for roundNo in range(1,21): #za vsak krog selekcije
+for roundNo in range(21,41): #za vsak krog selekcije
     # prestavi se v AlphaSim Dir
     if not os.path.isfile(AlphaSimDir + 'ReferenceSize.txt') and os.path.isfile(AlphaSimDir + "IndForGeno.txt"):
         os.system("less IndForGeno.txt | wc -l > ReferenceSize.txt")
@@ -162,10 +172,10 @@ for roundNo in range(1,21): #za vsak krog selekcije
     selekcija_total('GenPed_EBV.txt', **selPar)
 
     # kopiraj pedigre v selection folder
-    if not os.path.exists(AlphaSimDir + '/Selection/SelectionFolder' + str(StBurnInGen + roundNo) + '/'):
-        os.makedirs(AlphaSimDir + '/Selection/SelectionFolder' + str(StBurnInGen + roundNo) + '/')
+    if not os.path.exists(AlphaSimDir + '/Selection/SelectionFolder' + str(roundNo) + '/'):
+        os.makedirs(AlphaSimDir + '/Selection/SelectionFolder' + str(roundNo) + '/')
     shutil.copy(AlphaSimDir + '/ExternalPedigree.txt',
-                AlphaSimDir + '/Selection/SelectionFolder' + str(StBurnInGen + roundNo) + '/')
+                AlphaSimDir + '/Selection/SelectionFolder' + str(roundNo) + '/')
     # TUKAJ POTEM popravis AlphaSimSpec
     # PRVIc PO BURN IN-U
     SpecFile = AlphaSimSpec(os.getcwd(),WorkingDir + "/CodeDir")  # AlphaSimSpec je class iz selection, ki omogoča nastavljanje parametrov AlphaSimSpec fila
@@ -176,14 +186,17 @@ for roundNo in range(1,21): #za vsak krog selekcije
     SpecFile.setNoSires(NumberOfSires)
     SpecFile.setNoDams(NumberOfDams)
     SpecFile.turnOnGenFlex()
-    SpecFile.setFlexGenToFrom((StFillInBurnIn + roundNo), (StFillInBurnIn + roundNo))
+    SpecFile.setFlexGenToFrom((StBurnInGen + roundNo), (StBurnInGen + roundNo))
     SpecFile.turnOnSelFlex()
     SpecFile.setExtPedForGen(StBurnInGen + roundNo)
     SpecFile.setTBVComp(2)
     SpecFile.setNB(StNB)
     # pozenes ALPHASIM
     os.system('./AlphaSim1.08')
-
+    #tukaj odstrani chip2 genotype file in izračunaj heterozigotnost na nevtralnih lokusih (chip2 - chip1)
+    os.system("/exports/cmvm/eddie/eb/groups/tier2_hickey_external/R-3.4.2/bin/Rscript MeanHetChip2_NeutralMarker.R " + str(roundNo+20) + " " + str(rep) + " " + str(scenario) + " " + str(strategy))			
+    os.system("bash ChangeChip2Geno_IDs.sh")    	
+	
     # tukaj dodaj kategorije k PedigreeAndGeneticValues (AlphaSim File)
     PedCat = OrigPed(AlphaSimDir, WorkingDir + '/CodeDir')
     PedCat.addInfo() #to ti zapiše PedigreeAndGeneticValues_cat.txt v AlphaSim/SimualatedData
@@ -196,14 +209,14 @@ for roundNo in range(1,21): #za vsak krog selekcije
         GenInt.prepareGenInts(['genTest', 'pt']) #pri klasični so izbrani potomci vsi genomsko testirani (pozTest in pripust) in plemenske telice
     blupNextGen = estimateBV(AlphaSimDir, WorkingDir + "/CodeDir",  way='milk', sel=seltype)
     blupNextGen.computeEBV() #estimate EBV with added phenotypes only of animals of certain category (here = milk)
-    Acc.saveAcc()
+    #Acc.saveAcc()
     #GenTrends.saveTrends()
     #zdaj za vsako zapiši, ker vsakič na novo prebereš
-    Acc.writeAcc()
+    #Acc.writeAcc()
     #GenTrends.writeTrends()
 
 
 os.system('rm -rf Chromosomes Selection && cp * ' + scenario + str(rep))
-os.system('rm SimulatedData/UnrestrictedQtnIndivGenotypes.txt')
+#os.system('rm SimulatedData/UnrestrictedQtnIndivGenotypes.txt')
 os.system('rm SimulatedData/RestrictedQtnIndivGenotypes.txt')
 

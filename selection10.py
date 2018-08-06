@@ -171,11 +171,11 @@ class pedigree(classPed):
     def catCurrent_indiv(self, cat):
         return list(self.ped.loc[self.ped.cat == cat, 'Indiv'])
 
-    def catCurrent_indiv_age(self, cat, age):
-        return list(self.ped.loc[(self.ped.cat == cat) & (self.ped.age == age), 'Indiv'])
-
     def catCurrent_indiv_sex(self, cat, sex):
         return list(self.ped.loc[(self.ped.cat == cat) & (self.ped.sex == sex), 'Indiv'])
+
+    def catCurrent_indiv_age(self, cat, age):
+        return list(self.ped.loc[(self.ped.cat == cat) & (self.ped.age == age), 'Indiv'])
 
     def catCurrent_indiv_sex_CriteriaRandom(self, cat, sex, number):
         return random.sample(list(self.ped.loc[(self.ped.cat == cat) & (self.ped.sex == sex), 'Indiv']), number)
@@ -241,6 +241,16 @@ class pedigree(classPed):
             self.set_cat_list(izlRow, "izl")
             self.set_active_list(izlRow, 2)
 
+    def izloci_poEBV_list(self, seznam, stIzl):
+        izlRow = list(
+            self.ped.loc[(self.ped.Indiv.isin(seznam)), 'EBV'].sort_values(
+                ascending=True)[:stIzl].index)  # katere izločiš
+        if len(izlRow) < stIzl:
+            print("Too little animals to choose from. <{} {}>".format("izloci po EBV", oldcat))
+        else:
+            self.set_cat_list(izlRow, "izl")
+            self.set_active_list(izlRow, 2)
+
     def izloci_poEBV_age(self, sex, age, stIzl, oldcat, prevGenDict):
         izlRow = list(self.ped.loc[(self.ped.age == age) & (self.ped.sex == sex) & (
             self.ped.Indiv.isin(prevGenDict[oldcat])), 'EBV'].sort_values(ascending=True)[
@@ -254,6 +264,16 @@ class pedigree(classPed):
     def izberi_poEBV_top(self, sex, st, oldcat, cat, prevGenDict):
         selRow = list(
             self.ped.loc[(self.ped.sex == sex) & (self.ped.Indiv.isin(prevGenDict[oldcat])), 'EBV'].sort_values(
+                ascending=False)[:st].index)  # katere izbereš
+        if len(selRow) < st:
+            print("Too little animals to choose from. <{} {} > {}>".format("izberi po EBV", oldcat, cat))
+        else:
+            self.set_cat_list(selRow, cat)
+            self.set_active_list(selRow, 1)
+
+    def izberi_poEBV_top_list(self, seznam, st, cat):
+        selRow = list(
+            self.ped.loc[(self.ped.Indiv.isin(seznam)), 'EBV'].sort_values(
                 ascending=False)[:st].index)  # katere izbereš
         if len(selRow) < st:
             print("Too little animals to choose from. <{} {} > {}>".format("izberi po EBV", oldcat, cat))
@@ -1073,9 +1093,32 @@ def selekcija_total(pedFile, **kwargs):
     ped.izloci_poEBV("F", izlF, "nr", categories)  # cull females (lowest on EBV) tukaj jih izloči, funkcija v modulu
 
     # age 1 - pri enem letu osemeni določeno število telic (% določen zgoraj), druge izloči
+    #TUKAJ PRIDE GENOMSKA PO ŽENSKI STRANI!!!!
     if 'telF' in categories.keys():
-        ped.izberi_poEBV_top("F", kwargs.get('ptn'), 'telF', 'pt', categories)  # plemenske telice
-        ped.izloci_poEBV("F", (len(categories['telF']) - kwargs.get('ptn')), 'telF', categories)  # preostale izloči
+        if kwargs.get("genFemale") and 'telF' in [i[0] for i in kwargs[
+            'genotyped']]: #če delaš genomsko po ženski strani
+            #najprej ugotovi, katere pt so bile genotipizirane
+            indGeno = list(pd.read_csv("IndForGeno.txt", header=None)[0])
+            gentelF = list(set(set(list(ped.displayCat_prevGen("telF", categories)["Indiv"])
+) & set(indGeno)))
+            if gentelF: #če že imaš genotipizirane telice
+                seznam = list(ped0.ped.loc[ped0.ped.Indiv.isin(gentelF)].index)
+                ped.set_cat_list(seznam, "gentelF")
+                #najboljše genotipizirane prestavi v bodoče bikovske matere
+                ped.izberi_poEBV_top_catCurrent("F", int(kwargs.get('bmn') / kwargs.get('bmUp')), "gentelF", "pBM")
+                #preostale vrži nazaj v "morje" za izbiro pt
+                available_telF = list(set(list(ped.displayCat_prevGen("telF", categories)["Indiv"])) - set(ped.catCurrent_indiv("pBM")))
+                #izberi pt
+                ped.izberi_poEBV_top_list(available_telF, kwargs.get('ptn'), 'pt')
+                #druge izloči
+                ped.izloci_poEBV_list(available_telF, (len(categories['telF']) - kwargs.get('ptn')))
+            else: #to je za namen prehoda - sicer delaš genomsko selekcijo po ženski strani, ampak prvo leto šele daš genotipizirat telice
+                ped.izberi_poEBV_top("F", kwargs.get('ptn'), 'telF', 'pt', categories)  # plemenske telice
+                ped.izloci_poEBV("F", (len(categories['telF']) - kwargs.get('ptn')), 'telF', categories)  # preostale izloči
+                ped.set_active_cat('pBM', 1, categories)
+        if not kwargs.get("genFemale"): # če ni genomske po ženski strani
+            ped.izberi_poEBV_top("F", kwargs.get('ptn'), 'telF', 'pt', categories)  # plemenske telice
+            ped.izloci_poEBV("F", (len(categories['telF']) - kwargs.get('ptn')), 'telF', categories)  # preostale izloči
 
     # age > 2 - tukaj odbiraš in izločaš krave, odbiraš in izločaš BM
     # najprej dodaj nove krave, če jih že imaš v populaciji
@@ -1087,10 +1130,13 @@ def selekcija_total(pedFile, **kwargs):
     # če imaš že dovolj stare krave, potem odberi BM - NAJPREJ - kasneje funkcija random polni prazne prostore (cat)!!!
     # BM se odbira po drugi laktaciji - to je starost 3 - 4 (starost v pedigreju = 3, ker imaš tudi 0)
     if ('k' in categories.keys()) and ((1 + kwargs.get('bmOdbira')) in ped.age()):
-        ped.izberi_poEBV_top_age("F", kwargs.get('bmOdbira') + 1, int(kwargs.get('bmn') / kwargs.get('bmUp')), 'k',
-                                 'pBM',
-                                 categories)  # izberi BM, ki jih osemeniš (plemenske BM = pBM) iz krav po 2. laktaciji
-        ped.set_active_cat('pBM', 1, categories)
+        if not kwargs.get("genFemale"):
+            ped.izberi_poEBV_top_age("F", kwargs.get('bmOdbira') + 1, int(kwargs.get('bmn') / kwargs.get('bmUp')), 'k',
+                                     'pBM',
+                                     categories)  # izberi BM, ki jih osemeniš (plemenske BM = pBM) iz krav po 2. laktaciji
+            ped.set_active_cat('pBM', 1, categories)
+
+
     # ostale BM prestavi naprej - BM po 1. do izločitvene laktacije
     if 'pBM' in categories.keys():
         for i in range((1 + kwargs.get('bmOdbira') + 1), (

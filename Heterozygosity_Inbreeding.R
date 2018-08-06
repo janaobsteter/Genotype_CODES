@@ -6,7 +6,7 @@ library(reshape2)
 #povprečna hetero/homozigotnost --> dF / Ne
 #generacije 1 - 20 so generacije 40 - 60
 #Heterozygosity na QTNih
-hetQTN <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/MeanHet_NeutralALL_20072018.csv")#[, -1]
+hetQTN <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/MeanHet_QTNsALL_20072018.csv")[, -1]
 colnames(hetQTN) <- c("Strategy",  "Scenario", "Rep", "Gen", "Het")
 hetQTN$Marker <- "QTN"
 
@@ -16,7 +16,7 @@ colnames(hetNTR) <-  c("Strategy",  "Scenario", "Rep", "Gen", "Het")
 hetNTR$Marker  <- "NTR"
 
 #Heterozygosity na nevtralnih vezanih lokusih
-hetNL <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/MeanHet_NeutralALL_20072018.csv")
+hetNL <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/MeanHet_NeutralLinkesALL_23072018.csv")[,-1]
 colnames(hetNL) <-  c("Strategy",  "Scenario", "Rep", "Gen", "Het")
 hetNL$Marker  <- "NL"
 
@@ -91,10 +91,31 @@ dF_DF <- dF_DF[dF_DF$Ne > 0,]
 #dF_DF <- dF_DF[-which((dF_DF$Marker=="NTR") & (dF_DF$Strategy=="10K_Ref_20Rep") & (dF_DF$Scenario=="Gen") & (dF_DF$Rep==13)),]
 dF_DFa <- aggregate(dF_DF$Ne ~ dF_DF$Strategy + dF_DF$Scenario + dF_DF$Marker, FUN="mean")
 dF_DFa1 <- aggregate(dF_DF$dF ~ dF_DF$Strategy + dF_DF$Scenario + dF_DF$Marker, FUN="mean")
+dF_DFa_SD <- aggregate(dF_DF$Ne ~ dF_DF$Strategy + dF_DF$Scenario + dF_DF$Marker, FUN="sd")
+dF_DFa1_SD <- aggregate(dF_DF$dF ~ dF_DF$Strategy + dF_DF$Scenario + dF_DF$Marker, FUN="sd")
 colnames(dF_DFa) <- c("Strategy", "Scenario","Marker",  "Ne")
 colnames(dF_DFa1) <- c("Strategy", "Scenario","Marker",  "dF")
+colnames(dF_DFa_SD) <- c("Strategy", "Scenario","Marker",  "Ne_sd")
+colnames(dF_DFa1_SD) <- c("Strategy", "Scenario","Marker",  "dF_sd")
 DFa <- merge(dF_DFa, dF_DFa1, by=c("Strategy", "Scenario","Marker"))
+DFa <- merge(DFa, dF_DFa_SD, by=c("Strategy", "Scenario","Marker"))
+DFa <- merge(DFa, dF_DFa1_SD, by=c("Strategy", "Scenario","Marker"))
 
+
+
+#significance razlik v Ne
+library(emmeans)
+DFa$Scenario <- as.factor(DFa$Scenario)
+DFa$Strategy <- as.factor(DFa$Strategy)
+DFa$Marker <- as.factor(DFa$Marker)
+DFa1 <- within(DFa, Scenario <- relevel(Scenario, ref = "PT"))
+m1 <- lm(Ne~Marker,data=DFa1[DFa1$Strategy=="SU 5/5",])
+m1.grid <- ref_grid(m1)
+anova(m1)
+m1S <- lsmeans(m1.grid, "Marker")
+contrast(m1.grid, method="pairwise")
+contrast(m1S, method="eff")
+summary(lm(Ne~Scenario,data=DFa))
 '#tega zdj nimaš izračunanega
 #agregiraj F po generacijah za plot F
 df_QTN$F <- as.numeric(df_QTN$F)
@@ -196,25 +217,24 @@ ggplot(data=compareF_str, aes(x=Generation, y=F, group=method, fill=method, colo
 '
 
 ##primerjaj z rodovniškim - Ne in deltaF
-pedInb <- read.csv("/home/jana/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results_QTNsOnChip/NEs_deltaFs.csv")
+pedInb <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results//NEs_deltaFs_23072018.csv")
 HetInb$Scenario <- as.factor(HetInb$Scenario)
 levels(HetInb$Scenario)
 levels(HetInb$Scenario) <- c("GS-BD", "PT", "GS", "GS-PS", "GS-C")
 HetInb$Strategy <- as.factor(HetInb$Strategy)
 levels(HetInb$Strategy)
 levels(HetInb$Strategy) <- c("SU 1/5", "SU 5/1", "SU 5/5")
+pedInb$Marker <- "Pedigree"
+pedInbA <- pedInb[pedInb$Interval.gen. =="41:60",c(3,2,8,4,6,5,7)]
+colnames(pedInbA) <- colnames(DFa)
 
-pedInb <- pedInb[pedInb$Interval.gen. =="41:60",c(2,3,5,4)]
-HetInbQ <- HetInb[HetInb$Marker=="QTN",c(1,2,4,5)]
-HetInbN <- HetInb[HetInb$Marker=="NTR",c(1,2,4,5)]
-colnames(pedInb)[c(3,4)] <- c("dF_Ped", "Ne_Ped")
-colnames(HetInbQ)[c(3,4)] <- c("dF_HetQ", "Ne_HetQ")
-colnames(HetInbN)[c(3,4)] <- c("dF_HetN", "Ne_HetN")
-dFcompare <- merge(pedInb, HetInbQ, by=c("Strategy", "Scenario"))
-dFcompare <- merge(dFcompare, HetInbN, by=c("Strategy", "Scenario"))
-dFcompare[,c(3, 5, 7)] <- round(dFcompare[,c(3,5,7)], 4)
-dFcompare[,c(4, 6, 8)] <- round(dFcompare[,c(4,6,8)], 1)
-write.csv(dFcompare, "/home/jana/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results_QTNsOnChip/Compare_PedHet_Inbreeding.csv", quote=FALSE, row.names = FALSE)
+
+InbALL <- rbind(pedInbA, DFa)
+InbALL$Ne <- round(InbALL$Ne, 0)
+InbALL$Ne_sd <- round(InbALL$Ne_sd, 0)
+InbALL$dF <- round(InbALL$dF, 5)
+InbALL$dF_sd <- round(InbALL$dF_sd, 5)
+write.csv(InbALL, "/home/jana/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/Compare_PedHet_Inbreeding.csv", quote=FALSE, row.names = FALSE)
 ####################################################################
 
 

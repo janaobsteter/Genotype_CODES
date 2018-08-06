@@ -1,4 +1,4 @@
-inb <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results//InbreedingALL_16072018.csv")
+inb <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results//InbreedingALL_23072018.csv")
 colnames(inb)[c(1,2)] <- c("Generation", "F")
 
 
@@ -57,11 +57,18 @@ ScenarioDF$Interval1 <- as.factor(ScenarioDF$Interval1)
 
 ScenarioDF$Ne <- as.numeric(ScenarioDF$Ne)
 ScenarioDFA <- unique(aggregate(ScenarioDF$Ne ~ ScenarioDF$Interval1 + ScenarioDF$Scenario + ScenarioDF$Strategy, FUN="mean"))
+ScenarioDFA_sd <- unique(aggregate(ScenarioDF$Ne ~ ScenarioDF$Interval1 + ScenarioDF$Scenario + ScenarioDF$Strategy, FUN="sd"))
 colnames(ScenarioDFA) <- c("Interval[gen]", "Scenario","Strategy", "Ne")
+colnames(ScenarioDFA_sd) <- c("Interval[gen]", "Scenario","Strategy", "Ne_sd")
 ScenarioDF$deltaF <- as.numeric(ScenarioDF$deltaF)
 ScenarioDFA_dF <- unique(aggregate(ScenarioDF$deltaF ~ ScenarioDF$Interval1 + ScenarioDF$Scenario + ScenarioDF$Strategy, FUN="mean"))
+ScenarioDFA_dF_sd <- unique(aggregate(ScenarioDF$deltaF ~ ScenarioDF$Interval1 + ScenarioDF$Scenario + ScenarioDF$Strategy, FUN="sd"))
 colnames(ScenarioDFA_dF) <- c("Interval[gen]", "Scenario","Strategy", "deltaF")
-ScenarioA <- merge(ScenarioDFA, ScenarioDFA_dF, by=c("Interval[gen]", "Scenario","Strategy"))
+colnames(ScenarioDFA_dF_sd) <- c("Interval[gen]", "Scenario","Strategy", "deltaF_sd")
+ScenarioA <- merge(ScenarioDFA, ScenarioDFA_sd, by=c("Interval[gen]", "Scenario","Strategy"))
+ScenarioA <- merge(ScenarioA, ScenarioDFA_dF, by=c("Interval[gen]", "Scenario","Strategy"))
+ScenarioA <- merge(ScenarioA, ScenarioDFA_dF_sd, by=c("Interval[gen]", "Scenario","Strategy"))
+
 INB <- ScenarioA[ScenarioA$`Interval[gen]` =="41:60",]
 INB1 <- ScenarioA[ScenarioA$`Interval[gen]` !="41:60",]
 INB1$Strategy <- "FILLIN"
@@ -76,7 +83,7 @@ INB$Strategy <- as.factor(INB$Strategy)
 levels(INB$Strategy)
 levels(INB$Strategy) <- c( "FILLIN", "SU 1/5", "SU 5/1", "SU 5/5")
 
-write.csv(INB, "~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results//NEs_deltaFs_19072018.csv", row.names=FALSE, quote=FALSE)
+write.csv(INB, "~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results//NEs_deltaFs_23072018.csv", row.names=FALSE, quote=FALSE)
 
 inbRep <- aggregate(inb$F ~  inb$Generation + inb$scenario + inb$strategy, FUN="mean")
 inbRepSD <- aggregate(inb$F ~  inb$Generation + inb$scenario + inb$strategy, FUN="sd")
