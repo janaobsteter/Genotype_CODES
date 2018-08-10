@@ -38,11 +38,11 @@ def remove_from_zip(zipfname, *filenames):
 ########################################################
 #set directories and file names
 ########################################################
-date=22062018
+date='09082018'
 pasma="Rjava"
 AlleleFormat="top"
-zip_file=""
-merge_ask='Y'
+zip_file="we_mr_19042018_IDB191.zip"
+merge_ask='N'
 #Ask the user for the current date (date of download) and breed
 #date = raw_input("Enter the date (today): ")
 #pasma = raw_input("Enter the breed [Rjava/Holstein/Lisasta]: ") 
@@ -288,30 +288,30 @@ for chip in MapFiles:
     
 #MERGE FOR QC-ed data!!!!
 
-for i in PedFiles:
-    if not os.path.exists(PLINKDIR+str(i)):
-        os.makedirs(PLINKDIR+str(i))
-    for pedfile, mapfile in zip (PedFilesQC[i], MapFilesQC[i]):
-        shutil.copy(pedfile, PLINKDIR+str(i))
-        shutil.copy(mapfile, PLINKDIR+str(i))
-    os.chdir(PLINKDIR+str(i))
-    shutil.copy("/home/jana/Genotipi/Genotipi_CODES/PARAMFILE.txt", PLINKDIR+i)
-    pedToMerge = ",".join(PedFilesQC[i]).strip("'")
-    mapToMerge = ",".join(MapFilesQC[i]).strip("'")
-    if not os.path.isfile(PLINKDIR+i+'/PLINK_MERGED_' + i + '_CleanIndsMarkers.ped'):
-        mergeChipCommand = "plink --file {0} --cow --merge-list {1} --recode --out {2}".format((PedFilesQC[i][0].strip(".ped")), 'MergeChip.txt', "PLINK_MERGED_" + i + "_CleanIndsMarkers")
-        with open('MergeChip.txt', 'w') as csvfile:
-            writer = csv.writer(csvfile, delimiter=" ")
-            [writer.writerow(r) for r in zip(PedFilesQC[i][1:], MapFilesQC[i][1:])] #leave the first one out - that goes in the plink command line
-    if os.path.isfile(PLINKDIR+i+'/PLINK_MERGED_' + i + '_CleanIndsMarkers.ped'):
-        mergeChipCommand = 'plink --file PLINK_MERGED_{0}_CleanIndsMarkers --cow --merge-list {1} --recode --out PLINK_MERGED_{0}_CleanIndsMarkers'.format(i, 'MergeChip.txt')
-        with open('MergeChip.txt', 'w') as csvfile:
-            writer = csv.writer(csvfile, delimiter=" ")
-            [writer.writerow(r) for r in zip(PedFilesQC[i], MapFilesQC[i])] 
-        
-    status, output = commands.getstatusoutput(mergeChipCommand) #merge with plink
-    
-    if status == 0:
-        print "Successfully merged " + str(i) + " " + PLINKDIR + " " + i + "_CleanIndsMarkers"
-    else: 
-        print "Merging went wrong, error: " + str(status) 
+#for i in PedFiles:
+#    if not os.path.exists(PLINKDIR+str(i)):
+#        os.makedirs(PLINKDIR+str(i))
+#    for pedfile, mapfile in zip (PedFilesQC[i], MapFilesQC[i]):
+#        shutil.copy(pedfile, PLINKDIR+str(i))
+#        shutil.copy(mapfile, PLINKDIR+str(i))
+#    os.chdir(PLINKDIR+str(i))
+#    shutil.copy("/home/jana/Genotipi/Genotipi_CODES/PARAMFILE.txt", PLINKDIR+i)
+#    pedToMerge = ",".join(PedFilesQC[i]).strip("'")
+#    mapToMerge = ",".join(MapFilesQC[i]).strip("'")
+#    if not os.path.isfile(PLINKDIR+i+'/PLINK_MERGED_' + i + '_CleanIndsMarkers.ped'):
+#        mergeChipCommand = "plink --file {0} --cow --merge-list {1} --recode --out {2}".format((PedFilesQC[i][0].strip(".ped")), 'MergeChip.txt', "PLINK_MERGED_" + i + "_CleanIndsMarkers")
+#        with open('MergeChip.txt', 'w') as csvfile:
+#            writer = csv.writer(csvfile, delimiter=" ")
+#            [writer.writerow(r) for r in zip(PedFilesQC[i][1:], MapFilesQC[i][1:])] #leave the first one out - that goes in the plink command line
+#    if os.path.isfile(PLINKDIR+i+'/PLINK_MERGED_' + i + '_CleanIndsMarkers.ped'):
+#        mergeChipCommand = 'plink --file PLINK_MERGED_{0}_CleanIndsMarkers --cow --merge-list {1} --recode --out PLINK_MERGED_{0}_CleanIndsMarkers'.format(i, 'MergeChip.txt')
+#        with open('MergeChip.txt', 'w') as csvfile:
+#            writer = csv.writer(csvfile, delimiter=" ")
+#            [writer.writerow(r) for r in zip(PedFilesQC[i], MapFilesQC[i])] 
+#        
+#    status, output = commands.getstatusoutput(mergeChipCommand) #merge with plink
+#    
+#    if status == 0:
+#        print "Successfully merged " + str(i) + " " + PLINKDIR + " " + i + "_CleanIndsMarkers"
+#    else: 
+#        print "Merging went wrong, error: " + str(status) 

@@ -2,3 +2,12 @@ select GOVEDO.GOVEDO_SPLOSNE_PROCEDURE.PREBERI_NASLOV_REJCA (kmaz.id_lok),kmaz.I
 from kon_mle_adm_zap kmaz, janao.F4F_REJE fr
 where fr.F4F_CRE_SIFRA_CREDA=kmaz.ID_LOK
 group by kmaz.ID_LOK;
+
+select ziv.DRZ_ORIG_ZIVAL || ziv.STEV_ORIG_ZIVAL from GENOTIPIZIRANE_ZIVALI gen, GOVEDO.ZIVALI ziv where ziv.ZIV_ID_SEQ=gen.ZIV_ID_SEQ and gen.GEN_CHIP='IDBv03';
+select ziv.DRZ_ORIG_ZIVAL || ziv.STEV_ORIG_ZIVAL, gen.* from GENOTIPIZIRANE_ZIVALI gen, GOVEDO.ZIVALI ziv where ziv.ZIV_ID_SEQ=gen.ZIV_ID_SEQ;
+select ziv.DRZ_ORIG_ZIVAL || ziv.STEV_ORIG_ZIVAL from GENOTIPIZIRANE_ZIVALI gen, GOVEDO.ZIVALI ziv where ziv.ZIV_ID_SEQ=gen.ZIV_ID_SEQ and ziv.SP1_SIFRA_PASMA=1;
+select ziv.DRZ_ORIG_ZIVAL || ziv.STEV_ORIG_ZIVAL, ziv.SP1_SIFRA_PASMA from GENOTIPIZIRANE_ZIVALI gen, GOVEDO.ZIVALI ziv where ziv.ZIV_ID_SEQ=gen.ZIV_ID_SEQ and gen.GEN_CHIP='50Kv01';
+
+select * from GOVEDO.GEN_RJAVA gen, GOVEDO.ZIVALI ziv where ziv.ZIV_ID_SEQ=gen. and ziv.STEV_ORIG_ZIVAL='74086429';
+
+select * from GENOTIPIZIRANE_ZIVALI;

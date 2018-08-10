@@ -37,17 +37,17 @@ def remove_from_zip(zipfname, *filenames):
 ########################################################
 #set directories and file names
 ########################################################
-#date=13012017
-#pasma="Rjava"
-#AlleleFormat="ab"
-#zip_file="Matija_Rigler.zip"
-#merge_ask='N'
+date=10082018
+pasma="Rjava"
+AlleleFormat="top"
+zip_file="Matija_Rigler_BOVGGPV03_20150405_PLINK.zip"
+merge_ask='N'
 #Ask the user for the current date (date of download) and breed
-date = raw_input("Enter the date (today): ")
-pasma = raw_input("Enter the breed [Rjava/Holstein/Lisasta]: ") 
-AlleleFormat=raw_input("Enter the desired allele coding [top / forward / ab]: ")
-zip_file = raw_input("Enter the name of the downloaded zip file: ")
-merge_ask=raw_input("Do you want to merge newly downloaded genotypes to the Latest Genotypes files (by chip)? [Y/N] ")
+# date = raw_input("Enter the date (today): ")
+# pasma = raw_input("Enter the breed [Rjava/Holstein/Lisasta]: ")
+# AlleleFormat=raw_input("Enter the desired allele coding [top / forward / ab]: ")
+# zip_file = raw_input("Enter the name of the downloaded zip file: ")
+# merge_ask=raw_input("Do you want to merge newly downloaded genotypes to the Latest Genotypes files (by chip)? [Y/N] ")
 
 #ask what action does the user want to perform
 action = raw_input("Do you want to extract SNPs for parental verification  [Y/N] ")
@@ -241,23 +241,23 @@ print "The number of different genotyping chips is {0}: {1}.".format(len(PedFile
 
 #merge SNP800 files
 #first check whether there are more than one SNP800 files
-if len(SNP800_Peds) == len(SNP800_Maps) & len(SNP800_Peds) != 1:
-    # write a --merge-list file for plink with all the SNP800 file on the download date
-    with open('SNP800_List.txt', 'w') as csvfile:
-        writer = csv.writer(csvfile, delimiter=" ")
-        [writer.writerow(r) for r in zip(SNP800_Peds[1:], SNP800_Maps[1:])] #leave the first one out - that goes in the plink command line
+#if len(SNP800_Peds) == len(SNP800_Maps) & len(SNP800_Peds) != 1:
+#    # write a --merge-list file for plink with all the SNP800 file on the download date
+#    with open('SNP800_List.txt', 'w') as csvfile:
+#        writer = csv.writer(csvfile, delimiter=" ")
+#        [writer.writerow(r) for r in zip(SNP800_Peds[1:], SNP800_Maps[1:])] #leave the first one out - that goes in the plink command line
     #merge with plink
-    mergecommand = "plink --file {0} --cow --merge-list {1} --recode --out {2}".format((SNP800_Peds[0].strip(".ped")),"SNP800_List.txt", str(date)+"_SNP800") 
-    status, output = commands.getstatusoutput(mergecommand)
-    if status == 0:
-        for i in filter(lambda x: x.startswith("Parental"), os.listdir(tempDir)):
-            os.remove(i)
-elif len(SNP800_Peds)==1 & len(SNP800_Maps) == 1: #if there is only one genoPackage, then just copy the SNP800 file and rename it to date_SNP800
-    print "Only one SNP800 file"
-    shutil.move(SNP800_Peds[0], tempDir+"/"+str(date)+"_SNP800.ped")
-    shutil.move(SNP800_Maps[0], tempDir+"/"+str(date)+"_SNP800.map")
-elif len(SNP800_Peds) != len(SNP800_Maps): #if the number of SNP800 ped and map files is not the same, report an error
-    print "The length of Ped and Map SNP800 List are not equal, check for inconsistences and errors"
+#    mergecommand = "plink --file {0} --cow --merge-list {1} --recode --out {2}".format((SNP800_Peds[0].strip(".ped")),"SNP800_List.txt", str(date)+"_SNP800") 
+#    status, output = commands.getstatusoutput(mergecommand)
+#    if status == 0:
+#        for i in filter(lambda x: x.startswith("Parental"), os.listdir(tempDir)):
+#            os.remove(i)
+#elif len(SNP800_Peds)==1 & len(SNP800_Maps) == 1: #if there is only one genoPackage, then just copy the SNP800 file and rename it to date_SNP800
+#    print "Only one SNP800 file"
+#    shutil.move(SNP800_Peds[0], tempDir+"/"+str(date)+"_SNP800.ped")
+#    shutil.move(SNP800_Maps[0], tempDir+"/"+str(date)+"_SNP800.map")
+#elif len(SNP800_Peds) != len(SNP800_Maps): #if the number of SNP800 ped and map files is not the same, report an error
+#    print "The length of Ped and Map SNP800 List are not equal, check for inconsistences and errors"
 
 
 
