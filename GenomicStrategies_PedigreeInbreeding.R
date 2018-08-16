@@ -1,4 +1,4 @@
-inb <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results//InbreedingALL_23072018.csv")
+inb <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results//InbreedingALL_14082018.csv")
 colnames(inb)[c(1,2)] <- c("Generation", "F")
 
 

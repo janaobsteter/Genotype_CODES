@@ -1,4 +1,4 @@
-gi <- read.csv("/home/jana/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results//GENINTS_all_16072018.csv")
+gi <- read.csv("/home/jana/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/GENINTS_all_14082018.csv")
 gi$LINE <- paste0(gi$line, gi$sex)
 gi <- gi[gi$Gen %in% 40:60,]
 gi$genInt <- as.numeric(as.character(gi$genInt))
@@ -48,3 +48,4 @@ SUt <- cbind(giAS[giAS$Strategy=="SU55",] , giAS[giAS$Strategy=="SU51",])
 SUt$diff <- 1 - (giAS$genInt[(giAS$Strategy=="SU51")] / 
                   giAS$genInt[(giAS$Strategy=="SU55")])
 SUt[order(-SUt$diff),]
+

@@ -40,7 +40,7 @@ sd(acc$corEBV[acc$Strategy=="SU51"], na.rm=TRUE)
 ######################################################################################################
 ######################################################################################################
 #TGVsAll <- read.csv("~/TGVSALL_11062018.csv")
-TGVsAll <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/TGVSALL_19072018.csv")
+TGVsAll <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/TGVSALL_14082018.csv")
 TGVsAll$strategy <-TGVsAll$Strategy
 #TGVsAll$strategy <- NA
 #TGVsAll$strategy[TGVsAll$Strategy == "10K_Ref_20Rep"] <- "SU55"
@@ -74,7 +74,7 @@ Averages <- merge(Averages, Averages7, by=c( "strategy","scenario", "Generation"
 Averages <- merge(Averages, Averages8, by=c( "strategy","scenario", "Generation"))
 
 
-write.csv(Averages[Averages$Generation==60,], "~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results//Averages_3strategies_19072018.csv", quote=FALSE)
+write.csv(Averages[Averages$Generation==60,], "~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results//Averages_3strategies_14082018.csv", quote=FALSE)
 #AveragesA <- Averages
 #to je max min za gensko varianco standardizirano
 maxmin <- data.frame(strategy=NA, scenario=NA, minGenicSD=NA, maxGenicSD=NA, minTGV=NA, maxTGV=NA)
@@ -148,7 +148,7 @@ for (strategy in c("SU55", "SU15", "SU51")) {
 library(gridExtra)
 library(grid)
 library(gtable)
-Tole je bolj na majavih tleh
+#Tole je bolj na majavih tleh
 maxmin$slope <- (maxmin$maxTGV - maxmin$minTGV) / (maxmin$maxGenicSD - maxmin$minGenicSD)
 mA <- aggregate(maxmin$slope ~ maxmin$strategy, FUN="summary")
 aggregate(maxmin$minGenicSD ~ maxmin$strategy, FUN="summary")
@@ -231,7 +231,7 @@ colnames(avgReg) <- c("Scenario", "Strategy",  "Intercept", "Slope")
 #and Sd
 sdSlope <- aggregate(regRep$Slope ~ regRep$Scenario + regRep$Strategy, FUN="sd")
 colnames(sdSlope) <- c("Scenario", "Strategy",  "SDSlope")
-write.csv(SD, "~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results//StandardDeviation_Efficiency_19072018.csv", quote=FALSE)
+write.csv(SD, "~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results//StandardDeviation_Efficiency_14082018.csv", quote=FALSE)
 
 #efficiency
 regRep <- data.frame(Rep=NA, Intercept=NA, Slope=NA, Scenario=NA, Strategy=NA)
@@ -260,7 +260,7 @@ avgReg <- merge(avgReg, avgIntSD, by=c("regRep$Scenario", "regRep$Strategy"))
 colnames(avgReg) <- c("Scenario", "Strategy",  "Slope", "SlopeSD", "Intercept", "InterceptSD")
 avgReg$Eff <- round(avgReg$Slope, 0)
 avgReg$EffSd <- round(avgReg$SlopeSD, 0)
-write.csv(avgReg, "~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results//Efficiency_genomicstrategies_19072018.csv", quote=FALSE)
+write.csv(avgReg, "~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results//Efficiency_genomicstrategies_14082018.csv", quote=FALSE)
 
 #efficiency of SU55
 a <- avgReg[avgReg$Strategy=="SU55",]
@@ -269,6 +269,7 @@ a <- avgReg[avgReg$Strategy=="SU15",]
 a[order(a$Slope),]
 a <- avgReg[avgReg$Strategy=="SU51",]
 a[order(a$Slope),]
+1 - avgReg$Slope[avgReg$Strategy=="SU51"] / avgReg$Slope[avgReg$Strategy=="SU55"]
 
 #significance of efficiency
 library(emmeans)
@@ -391,6 +392,8 @@ colnames(MEAN60) <- c("Strategy", "Scenario", "MeanTGV")
 
 SD <- merge(MEAN60, Sd60, by=c("Strategy", "Scenario")) 
 SD$percentage <- round(SD$MeanTGV / SD$MeanTGV[SD$Strategy=="SU55" & SD$Scenario=="Class"]*100,0)
+SD[SD$Strategy=="SU51",]
+SD$percentage[SD$Strategy=="SU51"] - SD$percentage[SD$Strategy=="SU55"]
 write.csv(SD, "~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results//StandardDeviation_GeneticGain_gen60_19072018.csv", quote=FALSE)
 
 
