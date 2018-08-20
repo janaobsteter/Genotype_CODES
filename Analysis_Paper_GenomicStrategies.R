@@ -1,4 +1,4 @@
-acc <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/AccuraciesALL_correlation.csv")
+qstatacc <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/AccuraciesALL_correlation.csv")
 #acc <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/AccuraciesALL_Cat.csv")
 #accAcc <- acc[,paste0("X", 21:40)]
 #accNames <- acc[,c("cat", "Strategy", "Scenario", "Rep")]
@@ -223,6 +223,7 @@ for (str in c("SU55", "SU51", "SU15")) {
     regRep <- rbind(regRep, tmp)
   }
 }
+
 #povprečje regresijskih koefificentov
 avgSlope <- aggregate(regRep$Slope ~ regRep$Scenario + regRep$Strategy, FUN="mean")
 avgInt <- aggregate(regRep$Intercept ~ regRep$Scenario + regRep$Strategy, FUN="mean")
@@ -269,14 +270,14 @@ a <- avgReg[avgReg$Strategy=="SU15",]
 a[order(a$Slope),]
 a <- avgReg[avgReg$Strategy=="SU51",]
 a[order(a$Slope),]
-1 - avgReg$Slope[avgReg$Strategy=="SU51"] / avgReg$Slope[avgReg$Strategy=="SU55"]
+1 - avgReg$Slope[avgReg$Strategy=="SU15"] / avgReg$Slope[avgReg$Strategy=="SU55"]
 
 #significance of efficiency
 library(emmeans)
 regRep$Scenario <- as.factor(regRep$Scenario)
 regRep$Strategy <- as.factor(regRep$Strategy)
 regRep1 <- within(regRep, Scenario <- relevel(Scenario, ref = "Class"))
-m1 <- lm(Slope~Scenario,data=regRep1[regRep1$Strategy=="SU51",])
+m1 <- lm(Slope~Scenario,data=regRep1[regRep1$Strategy=="SU55",])
 m1.grid <- ref_grid(m1)
 anova(m1)
 m1S <- lsmeans(m1.grid, "Scenario")
@@ -330,13 +331,13 @@ ggplot() +
                       values=c("forestgreen", "dodgerblue2", "purple", "red3", "orange1"), 
                       labels=c("PT", "GS-PS", "GS-C", "GS-BD", "GS")) + 
   xlab("Generation") + ylab("Average True Genetic Value") +
-  geom_line(data = MeanAverage, aes(x=Generation, y=MeanTGV, colour=scenario, linetype=scenario), size=1.2) + 
+  geom_line(data = MeanAverage[MeanAverage$Strategy=="SU55",], aes(x=Generation, y=MeanTGV, colour=scenario, linetype=scenario), size=1.2) + 
   #geom_ribbon(data=MeanAverage, aes(x=Generation, ymin=lower, ymax=upper, colour=scenario), alpha=0.1) + 
 ylim(c(0, 7)) +
   guides(group=guide_legend(nrow=6), fill=guide_legend(nrow=6), colour=guide_legend(nrow=6), linetype=guide_legend(nrow=6)) +
   theme(axis.text=element_text(size=18), legend.position = "left",
-        axis.title=element_text(size=18,face="bold"), legend.text=element_text(size=16), legend.title=element_text(face="bold", size=18), 
-        strip.text = element_text(face="bold", size=16))   + 
+        axis.title=element_text(size=18,face="bold"), legend.text=element_text(size=18), legend.title=element_text(face="bold", size=18), 
+        strip.text = element_text(face="bold", size=16))   #+ 
 facet_grid(order ~ ., scales = "free_y") + theme(legend.position = "right") 
 
 #genetic variance plot
@@ -392,6 +393,8 @@ colnames(MEAN60) <- c("Strategy", "Scenario", "MeanTGV")
 
 SD <- merge(MEAN60, Sd60, by=c("Strategy", "Scenario")) 
 SD$percentage <- round(SD$MeanTGV / SD$MeanTGV[SD$Strategy=="SU55" & SD$Scenario=="Class"]*100,0)
+SD[SD$Strategy=="SU55",]
+SD[SD$Strategy=="SU15",]
 SD[SD$Strategy=="SU51",]
 SD$percentage[SD$Strategy=="SU51"] - SD$percentage[SD$Strategy=="SU55"]
 write.csv(SD, "~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results//StandardDeviation_GeneticGain_gen60_19072018.csv", quote=FALSE)
