@@ -1580,16 +1580,19 @@ def odberi_testOce_gen(ped, **kwargs):
                                    kwargs.get('EliteDamsGenBulls'), kwargs.get('EliteDamsPABulls'),
                                    kwargs.get('genTest_mladi'), kwargs.get('genTest_gpb'))))
 
-def odberiStarse_OCSgen(pedigree_genEBV, AlphaRelateDir, **selPar):
+def odberiStarse_OCSgen(pedigree_genEBV, AlphaRelateDir, sampleFemale=False, samplePercentage=100.0, **selPar):
     # tukaj odberi metere
     ped, (bm, motherOther) = odbira_mater(pedigree_genEBV, **selPar)
     # tukaj odberi random sample krav
-    motherSample = random.sample(motherOther, int(len(motherOther) * 0.2)) + random.sample(bm, int(len(bm) * 0.2))
+    if sampleFemale:
+        females = random.sample(motherOther, int(len(motherOther) * samplePercentage)) + random.sample(bm, int(len(bm) * 0.2))
+    else:
+        females = motherOther
 
     #tukaj odberi očete - kandidati so drugačni v prvem letu (mladi + vhlevljeni + čakajoči), kasneje pa so to genTest
     ped, (kandidati, (genOce)) = odberi_testOce_gen(ped, **selPar)
 
-    pd.DataFrame({"ID": list(motherSample) + list(kandidati) + list(genOce)}).to_csv(AlphaRelateDir + "/IndOpt.txt", index=None, header=None)
+    pd.DataFrame({"ID": list(females) + list(kandidati) + list(genOce)}).to_csv(AlphaRelateDir + "/IndOpt.txt", index=None, header=None)
 
     return ped
 

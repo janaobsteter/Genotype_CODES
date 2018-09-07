@@ -5,6 +5,7 @@ import csv
 import pandas as pd
 import zipfile
 import shutil
+import re
 
 
 chips = {19720: "GGPv02", 
@@ -17,7 +18,8 @@ chips = {19720: "GGPv02",
 139376: "HDv02", 
 54001:"50Kv01" , 
 54609: "50Kv02",
-51274: "IDBv03"
+51274: "IDBv03",
+52445: "IDBv03"
          }
 
 TraitSNPs = {
@@ -850,7 +852,8 @@ class genZipPackage:
         self.zipname=zipDatoteka
         self.name=zipDatoteka.strip(".zip")
         self.sernum=zipDatoteka.strip(".zip").strip('Matija_Rigler_')
-        self.genodate=zipDatoteka.strip(".zip").strip("Matija_Rigler_")[-9:].strip("_").strip('/')
+        self.genodate=str([i for i in re.findall('\d+', self.zipname) if '2013' in i or '2014' in i or '2015' in i or '2017'
+                       in i or '2018' in i or '2016' in i][0])
         self.infiles=self.zipFile.namelist()
         self.finalreportname=[s for s in self.infiles if "final" in s.lower()][0] if len([s for s in self.infiles if "final" in s.lower()]) == 1 else [s for s in self.infiles if "final" in s.lower()]
         self.samplemapname = [s for s in self.infiles if "sample_map" in s.lower()][0] if len([s for s in self.infiles if "sample_map" in s.lower()]) == 1 else [s for s in self.infiles if "sample_map" in s.lower()]
@@ -865,6 +868,7 @@ class genZipPackage:
                 self.zipFile.extract(self.finalreportname)
                 zipfile.ZipFile(self.finalreportname).extractall()
                 os.remove(os.getcwd()+'/'+self.finalreportname)
+                shutil.move(self.finalreportname.strip(".zip") + ".txt", self.name + '_FinalReport.txt')
             else:
                 self.zipFile.extract(self.finalreportname)
         else:
@@ -876,7 +880,7 @@ class genZipPackage:
                 self.zipFile.extract(self.samplemapname)
                 zipfile.ZipFile(self.samplemapname).extractall()
                 #os.remove(self.samplemapname)
-                shutil.move('Sample_Map.txt', self.name+'_Sample_Map.txt')
+                shutil.move(self.samplemapname.strip(".zip") + ".txt", self.name+'_Sample_Map.txt')
             else:
                 self.zipFile.extract(self.samplemapname)
                 shutil.move(self.samplemapname, self.name + '_Sample_Map.txt')
@@ -895,12 +899,14 @@ class genZipPackage:
 
     
     def extractErrorNames(self): #this creates a list of tuples - errorID, correctedID
-        if 'Sample_Map.zip' in self.infiles:
+        if self.samplemapname:
             self.extractSampleMap()
             #os.system('sed -i "s|SI  |SI|g" ' + self.name+'_Sample_Map.txt') #remove double spacing
-            #os.system('sed -i "s|SI |SI|g" ' + self.name+'_Sample_Map.txt') #remove space in sample IDs
+            #os.system('sed -i "s|SI |SI|g" ' + self.name+'_Sample_
+            # Map.txt') #remove space in sample IDs
             sampleTable = pd.read_table(self.name+'_Sample_Map.txt')
-            names=sampleTable['Name']
+            names=sampleTable['ID']
+            print(names)
             errornames=[]
             for i in names:
                 try:
@@ -923,7 +929,7 @@ class genZipPackage:
                 self.zipFile.extract(self.snpmapname)
                 zipfile.ZipFile(self.snpmapname).extractall()
                 #os.remove(self.snpmapname)
-                shutil.move(self.snpmapname, self.name + '_SNP_Map.txt')
+                shutil.move(self.snpmapname.strip(".zip") + ".txt", self.name + '_SNP_Map.txt')
             else:
                 self.zipFile.extract(self.snpmapname)
                 shutil.move(self.snpmapname, self.name + '_SNP_Map.txt')

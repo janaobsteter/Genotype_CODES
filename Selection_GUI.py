@@ -234,7 +234,7 @@ if __name__ == "__main__":
     window.pripust1.setText('0.7')
     window.telM.setText('0.73')
     window.bik12.setText('0.12')
-    window.accEBV.setText('0.8')
+#    window.accEBV.setText('0.8')
     window.kraveUpE.setText('4')
     window.bmOdbiraE.setText('2')
     window.bmUpE.setText('3')
@@ -249,7 +249,7 @@ if __name__ == "__main__":
     window.SelFromGen.setText('1')
     window.SelToGen.setText('40')
     window.AlphaSimDirShow.setText('/home/jana/bin/AlphaSim1.05Linux/')
-    sys.exit(app.exec_())
+
 
 
 """

@@ -14,7 +14,7 @@ import resource
 import ast
 from random import shuffle
 
-WorkingDir = "/home/jana/bin/AlphaSim1.05Linux/"
+WorkingDir = os.getcwd()
 
 
 reload(selection10)
@@ -85,9 +85,13 @@ class estimateBV:
 ######################################################################################
 #os.chdir("/home/jana/bin/AlphaSim1.05Linux/EddieScripts/")
 #argument 0 is the name of the script
-rep = 0
-scenario = "Gen"
-degree = sys.argv[1]
+rep = sys.argv[1]
+scenario = sys.argv[2]
+degree = sys.argv[3]
+strategy = sys.argv[4]
+refSize = sys.argv[5]
+
+
 
 
 
@@ -108,12 +112,17 @@ os.chdir(SelectionDir)
 
 print("Copying files to " + SelectionDir)
 os.system('cp -r ' + WorkingDir + '/Essentials/* .')
-os.system('cp -r ' + WorkingDir + 'REALFillIn20BurnIn20/* .')
+os.system('cp -r ' + WorkingDir + '/FillInBurnIn' + str(rep) + '/* .')
 os.system('cp -r ' + WorkingDir + '/CodeDir/* .')
-#os.system('cp ' + WorkingDir + '/AlphaMate .')
-os.system('mv IndForGeno_10000.txt IndForGeno.txt')
+os.system('cp ' + WorkingDir + '/AlphaMate .')
+os.system('mv IndForGeno_' + refSize + '.txt IndForGeno.txt')
 
-par = pd.read_csv(WorkingDir + "/Essentials/SelectionParam_" + scenario + ".csv", header=None, names=["Keys", "Vals"])
+os.system("chmod a+x AlphaSim1.08")
+os.system("chmod a+x AlphaMate")
+os.system("chmod a+x renumf90")
+os.system("chmod a+x blupf90")
+
+par = pd.read_csv(WorkingDir + "/Essentials/" + strategy + "SelPar/SelectionParam_" + scenario + ".csv", header=None, names=["Keys", "Vals"])
 par.to_dict()
 selPar = defaultdict()
 for key, val in zip(par.Keys, par.Vals):
@@ -159,7 +168,7 @@ if selPar['gEBV']:
 #SELEKCIJA
 ##############################################################################
 print(AlphaSimDir)
-for roundNo in range(21,41): #za vsak krog selekcije
+for roundNo in range(21,22): #za vsak krog selekcije
     # prestavi se v AlphaSim Dir
     if not os.path.isfile(AlphaSimDir + 'ReferenceSize.txt') and os.path.isfile(AlphaSimDir + "IndForGeno.txt"):
         os.system("less IndForGeno.txt | wc -l > ReferenceSize.txt")
@@ -170,7 +179,7 @@ for roundNo in range(21,41): #za vsak krog selekcije
     # izvedi selekcijo, doloci kategorije zivali, dodaj novo generacijo in dodeli starse
     # pedigre se zapise v AlphaSimDir/SelectionFolder/ExternalPedigree.txt
     #TO JE SEDAJ OCS KORAK!!!!!!
-    ped = odberiStarse_OCSgen('GenPed_EBV.txt', AlphaSimDir, **selPar)
+    ped = odberiStarse_OCSgen('GenPed_EBV.txt', AlphaSimDir, sampleFemale=False, **selPar)
 
     # prepare pedigree matrix for selected individuals
     pedA = AlphaRelate(AlphaSimDir, AlphaSimDir)

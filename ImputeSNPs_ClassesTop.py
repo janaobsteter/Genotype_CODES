@@ -38,17 +38,17 @@ def remove_from_zip(zipfname, *filenames):
 ########################################################
 #set directories and file names
 ########################################################
-date='09082018'
-pasma="Rjava"
-AlleleFormat="top"
-zip_file="we_mr_19042018_IDB191.zip"
-merge_ask='N'
+# date='09082018'
+# pasma="Rjava"
+# AlleleFormat="top"
+# zip_file="we_mr_19042018_IDB191.zip"
+# merge_ask='N'
 #Ask the user for the current date (date of download) and breed
-#date = raw_input("Enter the date (today): ")
-#pasma = raw_input("Enter the breed [Rjava/Holstein/Lisasta]: ") 
-#AlleleFormat=raw_input("Enter the desired allele coding [top / forward / ab]: ")
-#zip_file = raw_input("Enter the name of the downloaded zip file: ")
-#merge_ask=raw_input("Do you want to merge newly downloaded genotypes to the Latest Genotypes files (by chip)? [Y/N] ")
+date = raw_input("Enter the date (today): ")
+pasma = raw_input("Enter the breed [Rjava/Holstein/Lisasta]: ")
+AlleleFormat=raw_input("Enter the desired allele coding [top / forward / ab]: ")
+zip_file = raw_input("Enter the name of the downloaded zip file: ")
+merge_ask=raw_input("Do you want to merge newly downloaded genotypes to the Latest Genotypes files (by chip)? [Y/N] ")
 
 #ask what action does the user want to perform
 #action = raw_input("Do you want to extract SNPs for parental verification  [Y/N] ")
@@ -64,14 +64,15 @@ peddarow="/home/jana/Genotipi/Genotipi_CODES/SNPchimpRepo/source_codes/PEDDA_ROW
 #Zip latest
 Zip_lat="/home/jana/Genotipi/Genotipi_DATA/Genotipi_latest/" + pasma + "/Top/ZipGenoFiles/"
 #Zip_lat="/home/jana/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/Zip/"
-#PLINKDIR = '/home/jana/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/Top/Top_PLINK/'
-PLINKDIR="/home/jana/Genotipi/Genotipi_DATA/Genotipi_latest/" + pasma + "/Top/"
+PLINKDIR = '/home/jana/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/Top/'
+#PLINKDIR="/home/jana/Genotipi/Genotipi_DATA/Genotipi_latest/" + pasma + "/Top/"
 #Genotipi_latest directory - sploh ni v uporabi kasneje v skriptu
 #Gen_lat = "/home/jana/Genotipi/Genotipi_DATA/Genotipi_latest/"+pasma+"/"
-PLINKDIR = "/run/user/1000/gvfs/smb-share:server=kis-h2.si,share=kisdfs/ZIV/vol1/ZIV/VSI/JanaO/Genotipi/TopPLINK/"
+#PLINKDIR = "/run/user/1000/gvfs/smb-share:server=kis-h2.si,share=kisdfs/ZIV/vol1/ZIV/VSI/JanaO/Genotipi/TopPLINK/"
 #path to Zanardi
 ZanDir="/home/jana/Genotipi/Genotipi_CODES/Zanardi/"
 CodeDir = "/home/jana/Genotipi/Genotipi_CODES/"
+DownloadDir = "/home/jana/Downloads/"
 
 #File with a list of 800 SNPs for parentage verification
 SNP800="/home/jana/Genotipi/ParentalVerification_SNPSNP/Names_800SNPs.txt"
@@ -82,7 +83,7 @@ SNPSifrant="/home/jana/Genotipi/ParentalVerification_SNPSNP/Sifrant_SNP.csv"
 
 
 #name of the file
-zipPackage="we_mr_19042018_IDB191.zip"
+zipPackage = zip_file
 #########################################################################################################
 ##########################################################################################################
 ##########################################################################################################
@@ -130,7 +131,7 @@ if not os.path.exists(tempDir):
 os.chdir(tempDir)
 
 
-shutil.copy(Zip_lat + "/" + zipPackage, tempDir)
+shutil.copy(DownloadDir + "/" + zipPackage, tempDir)
     
     
 #zipPackages = (filter(lambda x: x.endswith('.zip'), os.listdir(tempDir)))
@@ -150,7 +151,7 @@ onePackage.extractSNPMap()
 onePackage.extractSampleMap()
     
 #check for error IDs and replace the prior identified errouneous IDs
-replaceIDs = [('SI4574059','SI04574059'),('SI84048801','SI84048802'),('SI4384195','SI04384195'),('Si24289407','SI24289407'), ('SI53595706_201851770050_R08C02', 'SI53595706'), 
+replaceIDs = [('SI 549458926','SI54945829'),('SI549458926','SI54945829'),('SI4574059','SI04574059'),('SI84048801','SI84048802'),('SI4384195','SI04384195'),('Si24289407','SI24289407'), ('SI53595706_201851770050_R08C02', 'SI53595706'),
 ('SI53595706_201851770081_R03C02', 'SI53595706'), ('SI15036148 (COF)', 'SI15036148'), ('SI85036127 (ASUL)', 'SI85036127'), ('SI55035882 (HRABRI)', 'SI55035882'), ('SI95095002 (KINGSTON', 'SI95095002'),
 ('SI45094707 (VALDEN)', 'SI45094707'), ('SI34951462 (CAFIERO)', 'SI34951462'), ('SI85026654 (VAUDEK)', 'SI85026654'), ('SI74941696 VASK', 'SI74941696')]
 errorIDs = onePackage.extractErrorNames() #extract Sample Names if they exist - they shouldnt be in the file
@@ -193,10 +194,27 @@ os.system('sed -i "s/AlleleFormat/"'+"ab"+'"/g" peddar.param') #insert desired A
 os.system('sed -i "s/TEST/"'+pasma+'"/g" peddar.param')
 os.system("python pedda_row.py") #transform into ped and map file
 
+#create a new zip file with corrected error names
+#shutil.move(onePackage.name+'_Sample_Map.txt', 'Sample_Map.txt') #rename extracted SampleMap
+with zipfile.ZipFile(onePackage.name+'_FinalReport.zip', 'w', zipfile.ZIP_DEFLATED) as myzip:
+    myzip.write(onePackage.name+'_FinalReport.txt') #create new FinalReport zip
+with zipfile.ZipFile('Sample_Map.zip', 'w', zipfile.ZIP_DEFLATED) as myzip:
+    myzip.write(onePackage.name+'_Sample_Map.txt')      #create new Sample_Map.zip
+
+remove_from_zip(onePackage.zipname, onePackage.finalreportname)
+remove_from_zip(onePackage.zipname, onePackage.samplemapname)
+
+shutil.move(onePackage.name+'_FinalReport.zip', onePackage.finalreportname)
+shutil.move('Sample_Map.zip', onePackage.samplemapname)
+
+with zipfile.ZipFile(onePackage.zipname, 'a', zipfile.ZIP_DEFLATED) as z:
+    z.write(onePackage.finalreportname)
+with zipfile.ZipFile(onePackage.zipname, 'a', zipfile.ZIP_DEFLATED) as z:
+    z.write(onePackage.samplemapname)
 
 #make pedfile a GenFiles pedFile object
-pedfile=GenFiles.pedFile(onePackage.name +  '.ped')
-mapfile=GenFiles.mapFile(onePackage.name +  '.map')
+pedfile=GenFiles.pedFile(onePackage.name + '.ped')
+mapfile=GenFiles.mapFile(onePackage.name + '.map')
 
 
 
@@ -214,7 +232,7 @@ DateGenotyped[onePackage.genodate] += [(x, pedfile.chip) for x in (pedfile.sampl
 AllInfo += [(x, pedfile.chip, pedfile.name, onePackage.genodate) for x in (pedfile.samples)]
 for i in pedfile.samples:
     if i in Rj_IDSeq_Dict:
-        SampleIDs[i] = [Rj_IDSeq_Dict.get(i)[0], onePackage.genodate, pedfile.chip, date]
+        SampleIDs[i] = [i, Rj_IDSeq_Dict.get(i)[0], onePackage.genodate, pedfile.chip, date]
     else: 
         print "Sample ID " + i + " in " + pedfile.name +" not found!!!"
    
@@ -237,11 +255,16 @@ print "The number of different genotyping chips is {0}: {1}.".format(len(PedFile
 
 #Perform QC!!!
 
-#create a table of individuals for govedo   
-#columns are seq, chip, date genotyped  
-#GenotypedInd = pd.DataFrame.from_dict(SampleIDs, orient='index', dtype=None)
-#GenotypedInd.columns = ['ZIV_ID_SEQ','GenoDate','Chip','DownloadDate']
-#GenotypedInd.to_csv(path_or_buf = tempDir+str(date)+'GovedoInd.csv', sep=",", index=False  )
+# #create a table of individuals for govedo
+# #columns are seq, chip, date genotyped
+GenotypedInd = pd.DataFrame.from_dict(SampleIDs, orient='index', dtype=None)
+GenotypedInd.columns = ['ID', 'ZIV_ID_SEQ','GenoDate','Chip','DownloadDate']
+imiss = pd.read_table(tempDir+pedfile.name + "_" + pedfile.chip + ".imiss", sep="\s+")[["IID", "F_MISS"]]
+imiss.columns = ['ID', "F_MISS"]
+Tabela = pd.merge(GenotypedInd, imiss, on="ID")
+Tabela.to_csv(path_or_buf = tempDir+str(onePackage.genodate)+'GovedoInd.csv', sep=",", index=False  )
+print("Created table for Govedo.")
+#
 
 
 
