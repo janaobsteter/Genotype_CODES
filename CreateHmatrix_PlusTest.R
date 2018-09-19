@@ -94,7 +94,8 @@ I1 <-
 ##################################33
 gb <- 0.95*g + 0.05*a22
 d <- gb - a22
-upLeft <- a12 %*% ia22 %*%  d %*% ia22 %*% a21
+upLeft <- mmult(mmult(mmult(mmult(a12, ia22), d), ia22), a21)
+upLeftO <- a12 %*% ia22 %*%  d %*% ia22 %*% a21
 downLeft <- d %*% ia22 %*% a21
 upRight <- a12 %*% ia22 %*% d
 downRight <- d
@@ -109,9 +110,28 @@ reorder <- match(sorted, allAnimals)
 allAnimals[reorder]
 H <- H[reorder, reorder]
 
+indopt <- read.table("IndOpt.txt")
+Hanimals <- colnames(H)
+optOrder <- match(indopt$V1, Hanimals)
+H <- H[optOrder, optOrder]
 
 write.table(H, "Hmatrix.txt", quote=FALSE, col.names = FALSE, sep=" ")
 
+
+library(Rcpp)
+cppFunction('NumericMatrix mmult(const NumericMatrix& m1, const NumericMatrix& m2){
+if (m1.ncol() != m2.nrow()) stop ("Incompatible matrix dimensions");
+NumericMatrix out(m1.nrow(),m2.ncol());
+NumericVector rm1, cm2;
+for (size_t i = 0; i < m1.nrow(); ++i) {
+    rm1 = m1(i,_);
+    for (size_t j = 0; j < m2.ncol(); ++j) {
+      cm2 = m2(_,j);
+      out(i,j) = std::inner_product(rm1.begin(), rm1.end(), cm2.begin(), 0.);              
+    }
+  }
+return out;
+}')
 
 ###check whether blupf90 did the same matrix
 

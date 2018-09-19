@@ -6,24 +6,24 @@ library(reshape2)
 #povprečna hetero/homozigotnost --> dF / Ne
 #generacije 1 - 20 so generacije 40 - 60
 #Heterozygosity na QTNih
-hetQTN <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/MeanHet_QTNsALL_20072018.csv")[, -1]
+hetQTN <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/MeanHet_QTNsALL_14082018.csv")[, -1]
 colnames(hetQTN) <- c("Strategy",  "Scenario", "Rep", "Gen", "Het")
 hetQTN$Marker <- "QTN"
 
 #Heterozygosity na nevtralnih lokusih
-hetNTR <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/MeanHet_NeutralALL_20072018.csv")
+hetNTR <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/MeanHet_NeutralALL_14082018.csv")
 colnames(hetNTR) <-  c("Strategy",  "Scenario", "Rep", "Gen", "Het")
 hetNTR$Marker  <- "NTR"
 
-#Heterozygosity na nevtralnih vezanih lokusih
-hetNL <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/MeanHet_NeutralLinkesALL_23072018.csv")[,-1]
-colnames(hetNL) <-  c("Strategy",  "Scenario", "Rep", "Gen", "Het")
-hetNL$Marker  <- "NL"
+#Heterozygosity na markerjih
+hetM <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/MeanHet_MarkerALL_14082018.csv")
+colnames(hetM) <-  c("Strategy",  "Scenario", "Rep", "Gen", "Het")
+hetM$Marker  <- "M"
 
 
 #združi podatke o heterozigotnost na QTNih in nevtralnih mestih
 hetDF <- rbind(hetQTN, hetNTR)
-hetDF <- rbind(hetDF, hetNL)
+hetDF <- rbind(hetDF, hetM)
 
 
 '
@@ -65,16 +65,18 @@ dF_DF <- data.frame(Strategy=NA, Scenario=NA, Rep=NA, Marker=NA, dF=NA, Ne=NA)
 for (strategy in c("SU55", "SU15", "SU51")) {
   for (scenario in c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen")) {
     for (rep in 0:19) {
-      for (marker in c( "QTN", "NTR", "NL")) {
-        #print(c(strategy, scenario, rep, marker))
+      for (marker in c( "QTN", "NTR", "M")) {
+        print(c(strategy, scenario, rep, marker))
         tmp <- hetDF [(hetDF$Strategy==strategy) & (hetDF$Scenario==scenario) & (hetDF$Rep==rep) & (hetDF$Marker==marker),]
-
-        tmp$y1 = log(tmp$Het)
-        fit1 = MASS:::rlm(tmp$y1 ~ tmp$Gen, maxit=2000)
-        dF <-  1 - exp(coef(fit1)[2])
-        Ne <-  1 / (2 * dF)
-        
-        dF_DF <- rbind(dF_DF, c(strategy, scenario, rep, marker, dF, Ne))
+        if (nrow(tmp) > 1) {
+  
+          tmp$y1 = log(tmp$Het)
+          fit1 = MASS:::rlm(tmp$y1 ~ tmp$Gen, maxit=2000)
+          dF <-  1 - exp(coef(fit1)[2])
+          Ne <-  1 / (2 * dF)
+          
+          dF_DF <- rbind(dF_DF, c(strategy, scenario, rep, marker, dF, Ne))
+        }
       }
     }
   }
@@ -100,22 +102,61 @@ colnames(dF_DFa1_SD) <- c("Strategy", "Scenario","Marker",  "dF_sd")
 DFa <- merge(dF_DFa, dF_DFa1, by=c("Strategy", "Scenario","Marker"))
 DFa <- merge(DFa, dF_DFa_SD, by=c("Strategy", "Scenario","Marker"))
 DFa <- merge(DFa, dF_DFa1_SD, by=c("Strategy", "Scenario","Marker"))
+scenarios <- c("Class", "GenSLO", "OtherCowsGen", "BmGen", "Gen")
 
-
+DFa55 <- DFa[DFa$Strategy=="SU55",]
+DFO <- DFa55[(order(match(DFa55$Scenario, scenarios))),c(1,2,3,4,6)]
+DFO[,4:5] <- round(DFO[,4:5], 0)
+DFO
+DFa15 <- DFa[DFa$Strategy=="SU15",]
+DFO <- DFa15[(order(match(DFa15$Scenario, scenarios))),c(1,2,3,4,6)]
+DFO[,4:5] <- round(DFO[,4:5], 0)
+DFO
+DFa51 <- DFa[DFa$Strategy=="SU51",]
+DFO <- DFa51[(order(match(DFa51$Scenario, scenarios))),c(1,2,3,4,6)]
+DFO[,4:5] <- round(DFO[,4:5], 0)
+DFO
 
 #significance razlik v Ne
 library(emmeans)
 DFa$Scenario <- as.factor(DFa$Scenario)
 DFa$Strategy <- as.factor(DFa$Strategy)
 DFa$Marker <- as.factor(DFa$Marker)
-DFa1 <- within(DFa, Scenario <- relevel(Scenario, ref = "PT"))
-m1 <- lm(Ne~Marker,data=DFa1[DFa1$Strategy=="SU 5/5",])
+DFa1 <- within(DFa, Scenario <- relevel(Scenario, ref = "Class"))
+m1 <- lm(Ne~Marker ,data=DFa1[DFa1$Strategy=="SU55",])
 m1.grid <- ref_grid(m1)
 anova(m1)
 m1S <- lsmeans(m1.grid, "Marker")
 contrast(m1.grid, method="pairwise")
 contrast(m1S, method="eff")
 summary(lm(Ne~Scenario,data=DFa))
+
+#significance razlik v Ne med strategijami
+library(emmeans)
+DFa$Scenario <- as.factor(DFa$Scenario)
+DFa$Strategy <- as.factor(DFa$Strategy)
+DFa$Marker <- as.factor(DFa$Marker)
+DFa1 <- within(DFa, Strategy <- relevel(Strategy, ref = "SU55"))
+m1 <- lm(Ne~ Strategy + Marker ,data=DFa1[DFa1$Strategy %in% c("SU55", "SU51") & DFa1$Scenario=="Class",])
+m1.grid <- ref_grid(m1)
+anova(m1)
+m1S <- lsmeans(m1.grid, "Marker")
+contrast(m1.grid, method="pairwise")
+contrast(m1S, method="eff")
+summary(lm(Ne~Scenario,data=DFa))
+
+
+#Združi s pedigre
+
+##povprečje QTN, NTR and M - since there is no sigificant differences
+DFmean <- aggregate(DFa$Ne ~DFa$Strategy + DFa$Scenario, FUN="mean")
+DFmeanSD <- aggregate(DFa$Ne_sd ~DFa$Strategy + DFa$Scenario, FUN="mean")
+colnames(DFmean) <- c("Strategy", "Scenario", "Ne")
+colnames(DFmeanSD) <- c("Strategy", "Scenario", "Ne_sd")
+DF_MEAN <- merge(DFmean, DFmeanSD, by=c("Strategy", "Scenario"))
+DF_MEAN[,3:4] <- round(DF_MEAN[,3:4], 0)
+
+write.table(DF_MEAN, "~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Ne_MEANMarkers.csv", quote=FALSE)
 '#tega zdj nimaš izračunanega
 #agregiraj F po generacijah za plot F
 df_QTN$F <- as.numeric(df_QTN$F)

@@ -82,8 +82,9 @@ levels(INB$Scenario) <- c("GS-BD", "PT", "FILLIN", "GS", "GS-PS", "GS-C")
 INB$Strategy <- as.factor(INB$Strategy)
 levels(INB$Strategy)
 levels(INB$Strategy) <- c( "FILLIN", "SU 1/5", "SU 5/1", "SU 5/5")
+INB[INB$Strategy=="SU 5/1",]
 
-write.csv(INB, "~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results//NEs_deltaFs_23072018.csv", row.names=FALSE, quote=FALSE)
+write.csv(INB, "~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results//NEs_deltaFs_14082018.csv", row.names=FALSE, quote=FALSE)
 
 inbRep <- aggregate(inb$F ~  inb$Generation + inb$scenario + inb$strategy, FUN="mean")
 inbRepSD <- aggregate(inb$F ~  inb$Generation + inb$scenario + inb$strategy, FUN="sd")
