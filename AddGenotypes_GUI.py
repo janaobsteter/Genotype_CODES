@@ -22,12 +22,28 @@ import tempfile
 qtCreatorFile = '/home/jana/Genotipi/Genotipi_CODES/GenoMergeBox.ui' # Enter file here.
 Ui_MainWindow, QtBaseClass = uic.loadUiType(qtCreatorFile)
 
+
+def remove_from_zip(zipfname, *filenames):
+    tempdir = tempfile.mkdtemp()
+    try:
+        tempname = os.path.join(tempdir, 'new.zip')
+        with zipfile.ZipFile(zipfname, 'r') as zipread:
+            with zipfile.ZipFile(tempname, 'w') as zipwrite:
+                for item in zipread.infolist():
+                    if item.filename not in filenames:
+                        data = zipread.read(item.filename)
+                        zipwrite.writestr(item, data)
+        shutil.move(tempname, zipfname)
+    finally:
+        shutil.rmtree(tempdir)
+
+
 class AddGenotypes(QtGui.QMainWindow, Ui_MainWindow):
     def __init__(self):
         QtGui.QMainWindow.__init__(self)
         Ui_MainWindow.__init__(self)
         self.setupUi(self)
-        self.date = str(self.Date.text())
+        #self.date = str(self.Date.text()) #ne moreš met tukaj tega, ker še nisi vsenel datuma
         self.Breed.addItems(["Rjava", "Holstein", "Lisasta"])
         self.breed = str(self.Breed.currentText())
         self.AlleleFormat.addItems(["top", "ab", "forward"])
@@ -44,7 +60,6 @@ class AddGenotypes(QtGui.QMainWindow, Ui_MainWindow):
         self.PeddarowDir.clicked.connect(self.choose_peddarowDir)
         self.ZanardiDir.clicked.connect(self.choose_zanardiDir)
         self.CodeDir.clicked.connect(self.choose_codeDir)
-
 
 
     def enableNoSNPs(self):
@@ -91,25 +106,14 @@ class AddGenotypes(QtGui.QMainWindow, Ui_MainWindow):
             self.CodeDirShow.setText(cdir)
 
 
-    def remove_from_zip(zipfname, *filenames):
-        tempdir = tempfile.mkdtemp()
-        try:
-            tempname = os.path.join(tempdir, 'new.zip')
-            with zipfile.ZipFile(zipfname, 'r') as zipread:
-                with zipfile.ZipFile(tempname, 'w') as zipwrite:
-                    for item in zipread.infolist():
-                        if item.filename not in filenames:
-                            data = zipread.read(item.filename)
-                            zipwrite.writestr(item, data)
-            shutil.move(tempname, zipfname)
-        finally:
-            shutil.rmtree(tempdir)
+
 
 
     def performAddition(self):
         ########################################################
         # set directories and file names
         ########################################################
+        self.date = str(self.Date.text())
         self.zip = str(self.ZipFileShow.text())
         self.tempdir = str(self.tempDirShow.text())
         self.ZipDir = str(self.ZipDirShow.text())
@@ -122,8 +126,14 @@ class AddGenotypes(QtGui.QMainWindow, Ui_MainWindow):
         print(self.peddarow)
         print(self.breed)
         print(self.alleleFormat)
-        self.tempDir = self.tempDir + "/Genotipi_" + str(self.date) + "/"
-        print(self.tempDir)
+        self.TEMPDIR = self.tempdir + "/Genotipi_" + str(self.date) + "/"
+        self.zipfile = self.TEMPDIR + "/" + str(self.ZipFileShow.text()).split("/")[-1]
+        print(self.zip)
+        print(self.zipfile)
+        print(self.TEMPDIR)
+        print("Date: ", self.date)
+
+
 
         # ask what action does the user want to perform
         # action = raw_input("Do you want to extract SNPs for parental verification  [Y/N] ")
@@ -137,7 +147,7 @@ class AddGenotypes(QtGui.QMainWindow, Ui_MainWindow):
         SNPSifrant = self.codeDir + "/Sifrant_SNP.csv"
 
         # name of the file
-        zipPackage = self.zip
+        zipPackage = self.zipfile
         #########################################################################################################
         ##########################################################################################################
         ##########################################################################################################
@@ -172,16 +182,19 @@ class AddGenotypes(QtGui.QMainWindow, Ui_MainWindow):
             for line in reader:
                 Rj_IDSeq_Dict[line[0]] = line[1:]
 
+        print(self.date)
+        print(self.TEMPDIR)
         ############################################################################################################
         #############################################################################################################
         # create a directory with the current date for temp genotype manipulation
-        if not os.path.exists(self.tempDir):
-            os.makedirs(self.tempDir)
+        if not os.path.exists(self.TEMPDIR):
+            os.makedirs(self.TEMPDIR)
 
         # change current working directory to the created directory
-        os.chdir(self.tempDir)
+        os.chdir(self.TEMPDIR)
+        print(os.getcwd())
 
-        shutil.copy(self.zip, self.tempDir)
+        shutil.copy(self.zip, self.TEMPDIR)
 
         # zipPackages = (filter(lambda x: x.endswith('.zip'), os.listdir(tempDir)))
 
@@ -194,7 +207,7 @@ class AddGenotypes(QtGui.QMainWindow, Ui_MainWindow):
         #    pass
 
 
-        onePackage = GenFiles.genZipPackage(self.zip)
+        onePackage = GenFiles.genZipPackage(self.zipfile)
         onePackage.extractFinalReport()
         onePackage.extractSNPMap()
         onePackage.extractSampleMap()
@@ -218,24 +231,34 @@ class AddGenotypes(QtGui.QMainWindow, Ui_MainWindow):
                 os.system('sed -i  "s|' + str(i[0]) + '|' + i[1] + '|g" ' + onePackage.name + '_Sample_Map.txt')
                 ###############
         for i in replaceIDs:
-            os.system('sed -i  "s|' + i[0] + '|' + i[
+            print('sed -i  "s|' + i[0] + '|' + i[
                 1] + '|g" ' + onePackage.name + "_FinalReport.txt")  # errorIDs are tuples, replace first element witht the second
-            os.system('sed -i  "s|' + i[0] + '|' + i[1] + '|g" ' + onePackage.name + '_Sample_Map.txt')
+            print('sed -i  "s|' + i[0] + '|' + i[1] + '|g" ' + onePackage.name + '_Sample_Map.txt')
 
+        print(onePackage.name)
+        print(onePackage.snpmapname)
+        print(onePackage.samplemapname)
         # copy pedda.param and python script to the current directory
         shutil.copy((self.peddarow + "/peddar.param"), "peddar.param")
         shutil.copy((self.peddarow + "/pedda_row.py"), "pedda_row.py")
         # replace strings with shell command
+        print("Finalreport replace")
         os.system(
             'sed -i "s|test_FinalReport.txt|' + onePackage.name + "_FinalReport.txt" + '|g" peddar.param')  # insert FinalReport name into peddar.param
+        print("Dominant replace")
         os.system(
             'sed -i "s|Dominant |Dominant_|g" ' + onePackage.name + "_FinalReport.txt")  # problem Dominant Red with a space
+        print("Dominant replace SNPmap")
         os.system('sed -i "s|Dominant |Dominant_|g" ' + onePackage.name + '_SNP_Map.txt')  ##problem Dominant Red with a space
-        os.system('sed -i "s/test_outputfile/"' + onePackage.name + '"/g" peddar.param')  # insert OutPut name into peddar.param
+        print("Outputfile replace")
+        os.system('sed -i "s|test_outputfile|"' + onePackage.name + '"|g" peddar.param')  # insert OutPut name into peddar.param
+        print("SNPmap replace")
         os.system(
-            'sed -i "s/test_SNPMap.txt/"' + onePackage.name + '_SNP_Map.txt' + '"/g" peddar.param')  # insert SNPMap name into peddar.param
+            'sed -i "s|test_SNPMap.txt|"' + onePackage.name + '_SNP_Map.txt' + '"|g" peddar.param')  # insert SNPMap name into peddar.param
+        print("Allele format")
         os.system(
             'sed -i "s/AlleleFormat/"' + self.alleleFormat + '"/g" peddar.param')  # insert desired AlleleFormat name into peddar.param
+        print("breed replace")
         os.system('sed -i "s/TEST/"' + self.breed + '"/g" peddar.param')
         os.system("python pedda_row.py")  # transform into ped and map file
 
@@ -263,8 +286,9 @@ class AddGenotypes(QtGui.QMainWindow, Ui_MainWindow):
         with zipfile.ZipFile('Sample_Map.zip', 'w', zipfile.ZIP_DEFLATED) as myzip:
             myzip.write(onePackage.name + '_Sample_Map.txt')  # create new Sample_Map.zip
 
-        self.remove_from_zip(onePackage.zipname, onePackage.finalreportname)
-        self.remove_from_zip(onePackage.zipname, onePackage.samplemapname)
+        print(onePackage.zipname, onePackage.finalreportname)
+        remove_from_zip(onePackage.zipname, onePackage.finalreportname)
+        remove_from_zip(onePackage.zipname, onePackage.samplemapname)
 
         shutil.move(onePackage.name + '_FinalReport.zip', onePackage.finalreportname)
         shutil.move('Sample_Map.zip', onePackage.samplemapname)
@@ -276,18 +300,22 @@ class AddGenotypes(QtGui.QMainWindow, Ui_MainWindow):
 
         # make pedfile a GenFiles pedFile object
         pedfile = GenFiles.pedFile(onePackage.name + '.ped')
+        pedfilename = onePackage.name.split("/")[-1]
         mapfile = GenFiles.mapFile(onePackage.name + '.map')
 
         # Perform QC!
         os.system("bash " + self.codeDir + "/1_QC_FileArgs.sh " + pedfile.name + " " + pedfile.chip)
-        PedFilesQC[pedfile.chip].append(self.tempDir + pedfile.name + "_" + pedfile.chip + "_CleanIndsMarkers.ped")
-        MapFilesQC[pedfile.chip].append(self.tempDir + pedfile.name + "_" + pedfile.chip + "_CleanIndsMarkers.map")
+        PedFilesQC[pedfile.chip].append(self.TEMPDIR + pedfilename + "_" + pedfile.chip + "_CleanIndsMarkers.ped")
+        MapFilesQC[pedfile.chip].append(self.TEMPDIR + pedfilename + "_" + pedfile.chip + "_CleanIndsMarkers.map")
+
+        print("pedfile name: " + pedfile.name)
+        print("pedfile pedname: " + pedfile.pedname)
 
         # add file to the dictionary of chip files
-        PedFiles[pedfile.chip].append(self.tempDir + pedfile.pedname)
-        MapFiles[pedfile.chip].append(self.tempDir + mapfile.mapname)
+        PedFiles[pedfile.chip].append(self.TEMPDIR + pedfile.pedname)
+        MapFiles[pedfile.chip].append(self.TEMPDIR + mapfile.mapname)
         GenoFile[pedfile.chip].add(pedfile.name)
-        DateDownloaded[date] += (pedfile.name)
+        DateDownloaded[self.date] += (pedfile.name)
         DateGenotyped[onePackage.genodate] += [(x, pedfile.chip) for x in (pedfile.samples)]
         AllInfo += [(x, pedfile.chip, pedfile.name, onePackage.genodate) for x in (pedfile.samples)]
         for i in pedfile.samples:
@@ -314,10 +342,10 @@ class AddGenotypes(QtGui.QMainWindow, Ui_MainWindow):
         # #columns are seq, chip, date genotyped
         GenotypedInd = pd.DataFrame.from_dict(SampleIDs, orient='index', dtype=None)
         GenotypedInd.columns = ['ID', 'ZIV_ID_SEQ', 'GenoDate', 'Chip', 'DownloadDate']
-        imiss = pd.read_table(self.tempDir + pedfile.name + "_" + pedfile.chip + ".imiss", sep="\s+")[["IID", "F_MISS"]]
+        imiss = pd.read_table(self.TEMPDIR + pedfilename + "_" + pedfile.chip + ".imiss", sep="\s+")[["IID", "F_MISS"]]
         imiss.columns = ['ID', "F_MISS"]
         Tabela = pd.merge(GenotypedInd, imiss, on="ID")
-        Tabela.to_csv(path_or_buf=self.tempDir + str(onePackage.genodate) + 'GovedoInd.csv', sep=",", index=False)
+        Tabela.to_csv(path_or_buf=self.TEMPDIR + str(onePackage.genodate) + 'GovedoInd.csv', sep=",", index=False)
         print("Created table for Govedo.")
         #
 
@@ -325,13 +353,13 @@ class AddGenotypes(QtGui.QMainWindow, Ui_MainWindow):
 
         # merge is outside the loop
         # merge all the chips needed updating
-
-        for i in PedFiles:
+        print(PedFiles.keys())
+        for i in PedFiles.keys():
             if not os.path.exists(self.MergeDir + str(i)):
                 os.makedirs(self.MergeDir + str(i))
             for pedfile, mapfile in zip(PedFiles[i], MapFiles[i]):
-                shutil.copy(pedfile, self.MergeDir + str(i))
-                shutil.copy(mapfile, self.MergeDir + str(i))
+                shutil.copy(pedfile.split("/")[-1], self.MergeDir + str(i))
+                shutil.copy(mapfile.split("/")[-1], self.MergeDir + str(i))
             os.chdir(self.MergeDir + str(i))
             shutil.copy(self.codeDir + "/PARAMFILE.txt", self.MergeDir + i)
             pedToMerge = ",".join(PedFiles[i]).strip("'")
@@ -402,4 +430,10 @@ if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
     window = AddGenotypes()
     window.show()
+    window.tempDirShow.setText("/home/jana/Genotipi/Genotipi_DATA/Rjava_TEMP/")
+    window.ZipDirShow.setText("/home/jana/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/Zip/")
+    window.MergeDirShow.setText("/home/jana/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/Top/")
+    window.PeddarowDirShow.setText("/home/jana/Genotipi/Genotipi_CODES/SNPchimpRepo/source_codes/PEDDA_ROW/")
+    window.ZanardiDirShow.setText("/home/jana/Genotipi/Genotipi_CODES/Zanardi/")
+    window.CodeDirShow.setText("/home/jana/Genotipi/Genotipi_CODES/")
     sys.exit(app.exec_())

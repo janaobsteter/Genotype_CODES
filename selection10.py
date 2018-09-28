@@ -171,11 +171,11 @@ class pedigree(classPed):
     def catCurrent_indiv(self, cat):
         return list(self.ped.loc[self.ped.cat == cat, 'Indiv'])
 
-    def catCurrent_indiv_sex(self, cat, sex):
-        return list(self.ped.loc[(self.ped.cat == cat) & (self.ped.sex == sex), 'Indiv'])
-
     def catCurrent_indiv_age(self, cat, age):
         return list(self.ped.loc[(self.ped.cat == cat) & (self.ped.age == age), 'Indiv'])
+
+    def catCurrent_indiv_sex(self, cat, sex):
+        return list(self.ped.loc[(self.ped.cat == cat) & (self.ped.sex == sex), 'Indiv'])
 
     def catCurrent_indiv_sex_CriteriaRandom(self, cat, sex, number):
         return random.sample(list(self.ped.loc[(self.ped.cat == cat) & (self.ped.sex == sex), 'Indiv']), number)
@@ -271,9 +271,9 @@ class pedigree(classPed):
             self.set_cat_list(selRow, cat)
             self.set_active_list(selRow, 1)
 
-    def izberi_poEBV_top_list(self, seznam, st, cat):
+    def izberi_poEBV_top(self, sex, st, oldcat, cat, prevGenDict):
         selRow = list(
-            self.ped.loc[(self.ped.Indiv.isin(seznam)), 'EBV'].sort_values(
+            self.ped.loc[(self.ped.sex == sex) & (self.ped.Indiv.isin(prevGenDict[oldcat])), 'EBV'].sort_values(
                 ascending=False)[:st].index)  # katere izbereš
         if len(selRow) < st:
             print("Too little animals to choose from. <{} {} > {}>".format("izberi po EBV", oldcat, cat))
@@ -1099,8 +1099,7 @@ def selekcija_total(pedFile, **kwargs):
             'genotyped']]: #če delaš genomsko po ženski strani
             #najprej ugotovi, katere pt so bile genotipizirane
             indGeno = list(pd.read_csv("IndForGeno.txt", header=None)[0])
-            gentelF = list(set(set(list(ped.displayCat_prevGen("telF", categories)["Indiv"])
-) & set(indGeno)))
+            gentelF = list(set(set(list(ped.displayCat_prevGen("telF", categories)["Indiv"])) & set(indGeno)))
             if gentelF: #če že imaš genotipizirane telice
                 seznam = list(ped0.ped.loc[ped0.ped.Indiv.isin(gentelF)].index)
                 ped.set_cat_list(seznam, "gentelF")
@@ -1585,9 +1584,9 @@ def odberiStarse_OCSgen(pedigree_genEBV, AlphaRelateDir, sampleFemale=False, sam
     ped, (bm, motherOther) = odbira_mater(pedigree_genEBV, **selPar)
     # tukaj odberi random sample krav
     if sampleFemale:
-        females = random.sample(motherOther, int(len(motherOther) * samplePercentage)) + random.sample(bm, int(len(bm) * 0.2))
+        females = random.sample(motherOther, int(len(motherOther) * samplePercentage)) + random.sample(bm, int(len(bm) * samplePercentage))
     else:
-        females = motherOther
+        females = motherOther + bm
 
     #tukaj odberi očete - kandidati so drugačni v prvem letu (mladi + vhlevljeni + čakajoči), kasneje pa so to genTest
     ped, (kandidati, (genOce)) = odberi_testOce_gen(ped, **selPar)
@@ -1596,21 +1595,33 @@ def odberiStarse_OCSgen(pedigree_genEBV, AlphaRelateDir, sampleFemale=False, sam
 
     return ped
 
+
 class AlphaRelate(object):
         def __init__(self, AlphaRelateDir, AlphaSimDir):
             self.AlphaRelateDir = AlphaRelateDir
             self.AlphaSimDir = AlphaSimDir
             self.AlphaRelateSpec = self.AlphaRelateDir + "/AlphaRelateSpec.txt"
+	    self.chipFile = self.AlphaSimDir + '/SimulatedData/AllIndividualsSnpChips/Chip1Genotype.txt'
             try:
-		shutil.copy(AlphaSimDir + "/IndOpt.txt", AlphaRelateDir)
+	        shutil.copy(AlphaSimDir + "/IndOpt.txt", AlphaRelateDir)
 	    except:
-		pass
+	        pass
+            try:
+	        shutil.copy(AlphaSimDir + "/IndForGeno.txt", AlphaRelateDir)
+	    except:
+	        pass           
 
         def preparePedigree(self):
             ped = pd.read_csv(self.AlphaSimDir + "/SimulatedData/PedigreeAndGeneticValues_cat.txt", sep="\s+")
             ped[["Indiv","Father", "Mother"]].to_csv(self.AlphaRelateDir + "/PEDIGREE.txt", sep=",", index=None, header=None)
             ped.loc[:, "sex1"] = [1 if x == "M" else 2 for x in ped.sex ]
             ped[["Indiv", "sex1"]].to_csv(self.AlphaRelateDir + "/GENDER.txt", sep=" ", index=None, header=None)
+
+        def subsetForHmatrix(self):
+            os.system("cat IndOpt.txt IndForGeno.txt | sort | uniq > INDPED.txt")
+
+	def prepareGenoFile(self):
+	    os.system('grep -Fwaf IndForGeno.txt ' + self.chipFile + ' > AlphaRelateGenotypes.txt') 
 
         def runAlphaRelate(self):
             os.chdir(self.AlphaRelateDir)
@@ -1644,15 +1655,23 @@ class AlphaMate(object):
 
     def countFemaleSel(self):
         gender = pd.read_table(self.AlphaMateDir + "/GENDER.txt", header=None, sep=" ")
-        return (int(sum(gender[[1]] == 2)))
+        gender.columns = ["ID", "Sex"]
+        return (int(sum(gender.Sex == 2)))
+
+    def countMaleSel(self):
+        gender = pd.read_table(self.AlphaMateDir + "/GENDER.txt", header=None, sep=" ")
+	gender.columns = ["ID", "Sex"]
+        return (int(sum(gender.Sex == 1)))
+
 
     def prepareCriterionFile(self):
         sol = pd.read_csv(self.AlphaSimDir + "/renumbered_Solutions_" + str(self.round), header=None, sep=" ")
         sol.columns = ["renID", "ID", "EBV"]
         sol.loc[sol.ID.isin(self.indopt)][["ID", "EBV"]].to_csv(self.AlphaMateDir + "/CRITERION.txt", header=None, index=None)
 
-    def prepareSpecFile(self, NoMatings, NoMaleParents, NoFemaleParents, Degree):
-        os.system('sed -i "s|NoMatings|' + str(NoMatings) + '|g" ' + self.AlphaMateSpec)
+    def prepareSpecFile(self, KinshipMatrix, NoMatings, NoMaleParents, NoFemaleParents, Degree):
+	os.system('sed -i "s|KINSHIPMATRIX|' + KinshipMatrix + '|g" ' + self.AlphaMateSpec)
+        os.system('sed -i "s|NoMating|' + str(NoMatings) + '|g" ' + self.AlphaMateSpec)
         os.system('sed -i "s|NoMaleParents|' + str(NoMaleParents) + '|g" ' + self.AlphaMateSpec)
         os.system('sed -i "s|NoFemaleParents|' + str(NoFemaleParents) + '|g" ' + self.AlphaMateSpec)
         os.system('sed -i "s|SetDegree|' + str(Degree) + '|g" ' + self.AlphaMateSpec)
@@ -1661,10 +1680,13 @@ class AlphaMate(object):
         os.chdir(self.AlphaMateDir)
         os.system("./AlphaMate")
 
-    def obtainSelMales(self):
-        Cont = pd.read_table(self.AlphaMateDir + "/ContributionsModeOptTarget1.txt", sep="\s+")
+    def obtainSelMales(self, femaleSample=False, FemaleSamplePer=100.0):
+        Cont = pd.read_table(self.AlphaMateDir + "/ContributorsModeOptTarget1.txt", sep="\s+")
         selM = Cont.loc[Cont.Gender == 1]
-        selM.loc[:, "nMatingPop"] = (selM.loc[:, "nMating"] / 0.2).astype(int)
+	if femaleSample:
+	    selM.loc[:, "nMatingPop"] = (selM.loc[:, "nMating"] / (FemaleSamplePer/100)).astype(int)
+	if not femaleSample:
+	    selM.loc[:, "nMatingPop"] = selM.loc[:, "nMating"]
         return list(chain.from_iterable([[int(father)] * dose for (father, dose) in zip(selM.Id, selM.nMatingPop)])) #to so očeti
 
 

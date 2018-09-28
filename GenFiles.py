@@ -880,7 +880,7 @@ class genZipPackage:
                 self.zipFile.extract(self.samplemapname)
                 zipfile.ZipFile(self.samplemapname).extractall()
                 #os.remove(self.samplemapname)
-                shutil.move(self.samplemapname.strip(".zip") + ".txt", self.name+'_Sample_Map.txt')
+                shutil.move(self.samplemapname.strip("zip") + "txt", self.name+'_Sample_Map.txt')
             else:
                 self.zipFile.extract(self.samplemapname)
                 shutil.move(self.samplemapname, self.name + '_Sample_Map.txt')
@@ -929,7 +929,7 @@ class genZipPackage:
                 self.zipFile.extract(self.snpmapname)
                 zipfile.ZipFile(self.snpmapname).extractall()
                 #os.remove(self.snpmapname)
-                shutil.move(self.snpmapname.strip(".zip") + ".txt", self.name + '_SNP_Map.txt')
+                shutil.move(self.snpmapname.strip("zip") + "txt", self.name + '_SNP_Map.txt')
             else:
                 self.zipFile.extract(self.snpmapname)
                 shutil.move(self.snpmapname, self.name + '_SNP_Map.txt')
