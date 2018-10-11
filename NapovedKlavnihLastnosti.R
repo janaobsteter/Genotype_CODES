@@ -13,9 +13,11 @@ dat <- read.csv("~/Documents/NapovedPV_Klavne/dat_ft_LS_05_17.txt", sep=";")
 dat <- dat[dat$PASMA==2,]
 summary(dat$STAROST)
 summary(dat$DAT_ROJSTVO)
+dat$K_L_ZAKOLA <- paste(dat$KLAVNICA, dat$L_ZAKOLA, sep="_")
 
 
-datModel <- dat[,c("ZIV_ID_SEQ", "CREDA", "TOPLA_MASA", "K_L_ZAKOLA", "M_ZAKOLA", "STAROST", "INT_RASTI","SPOL")]
+datModel <- dat[,c("ZIV_ID_SEQ", "CREDA", "TOPLA_MASA", "K_L_ZAKOLA", "M_ZAKOLA", "STAROST", "SPOL")]
+datModel$STAROST <- datModel$STAROST^2
 hist(datModel$STAROST)
 table(datModel$SPOL)
 summary(datModel$CREDA)

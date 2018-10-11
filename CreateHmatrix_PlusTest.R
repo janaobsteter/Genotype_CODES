@@ -213,3 +213,10 @@ ia22
 solve(0.95 * gfi + 0.05*ia22)
 
 solve(0.95 * solve(gb) + 0.05*ia22)
+
+
+#############################
+#read Rprof.out and summary
+##############################
+
+Rprof <- read.table("Rprof.out")

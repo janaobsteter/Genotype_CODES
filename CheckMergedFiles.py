@@ -2,6 +2,9 @@ import os
 import GenFiles
 import pandas as pd
 from collections import defaultdict
+import subprocess
+import re
+from itertools import chain
 
 workdir = "/home/jana/Genotipi/Genotipi_DATA/Rjava_TEMP/"
 os.chdir("/home/jana/Genotipi/Genotipi_DATA/Rjava_TEMP/")
@@ -43,12 +46,13 @@ print(pedChip)
 
 mergedir = "/home/jana/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/Top/"
 
-compareDF = pd.DataFrame(columns=["File", "Concordance", "Format"])
+compareDF = pd.DataFrame(columns=["File", "Concordance", "Format", "NumIndiv"])
 comparedir = "/home/jana/Genotipi/Genotipi_DATA/Compare/"
 os.chdir(comparedir)
 for ped in pedChip.keys():
     print(ped)
     os.system("cut " + ped + '.ped -f1,2 -d" " > Inds.txt')
+    numindiv = os.popen("less Inds.txt | wc -l").read().strip()
     os.system("cut " + ped + '.ped -f1500 -d" " |  sort | uniq > Alleles.txt')
     alleles = open("Alleles.txt").read().strip().split("\n")
     print(alleles)
@@ -64,10 +68,31 @@ for ped in pedChip.keys():
     try:
         os.system("plink --file " + ped + " --merge " +
                   mergedir + pedChip[ped] + "/" +  "PLINK_MERGED.ped " +
-                  mergedir + pedChip[ped] + "/" +  "PLINK_MERGED.map --merge-mode 7 --cow --keep Inds.txt --recode --out DIFF > DIFFtmp.txt")
+                  mergedir + pedChip[ped] + "/" +  "PLINK_MERGED.map --cow --recode --out DIFF0")
+        print("plink --file " + ped + " --merge " +
+                  mergedir + pedChip[ped] + "/" +  "PLINK_MERGED.ped " +
+                  mergedir + pedChip[ped] + "/" +  "PLINK_MERGED.map --cow --recode --out " + ped.split("/")[-1] + "DIFF0")
+
+        out = open(comparedir + "DIFF0.log").read().strip().split("\n")
+        print(out)
+        c = [x for x in chain.from_iterable([x.split(" ") for x in out if "Variant" in x]) if
+             bool(re.search(r'\d', x))]
+        print(c)
+        print(os.getcwd())
+        pd.DataFrame({"Variant": c}).to_csv(comparedir + "SpuriousSNPs.txt", header=None, index=None)
+        os.system("""sed -i "s/'//g" """ + comparedir + "SpuriousSNPs.txt")
+        os.system("grep -Fwf " + comparedir + "SpuriousSNPs.txt " + ped + ".map > " + comparedir + "RemoveSNPs.txt")
+
+        os.system("plink --file " + ped + " --merge " +
+                  mergedir + pedChip[ped] + "/" + "PLINK_MERGED.ped " +
+                  mergedir + pedChip[
+                      ped] + "/" + "PLINK_MERGED.map --exclude RemoveSNPs.txt --merge-mode 7 --cow "
+                                   "--keep Inds.txt --recode --out DIFF > DIFFtmp.txt")
+
         a = open("DIFFtmp.txt").read().strip().split("\n")
         c = [x for x in a if "concordance rate" in x][0].split(" ")[-1].strip(".")
-        compareDF = compareDF.append(pd.DataFrame({"File": [ped.split("/")[-1]], "Concordance": [c], "Format": [format]}))
+        compareDF = compareDF.append(pd.DataFrame({"File": [ped.split("/")[-1]], "Concordance": [c], "Format": [format],
+                                                   "NumIndiv": numindiv}))
     except:
         pass
 

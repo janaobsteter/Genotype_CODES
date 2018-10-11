@@ -47,9 +47,9 @@ print(args)
 TGVsAll <- data.frame()
 for (rep in 0:20) {
   for (scenario in c("Class", "GenSLO", "OtherCowsGen", "BmGen", "Gen")) {
-    WorkingDir = paste0("/home/v1jobste/JanaO/",strategy, "/", scenario, rep, "/SimulatedData/")
     TGVs <- data.frame(Generation=40:60)
-    ped <- read.table(paste0(WorkingDir,'/PedigreeAndGeneticValues.txt'), header=TRUE)
+    #ped <- read.table(paste0('~/PedOCS.txt'), header=TRUE)
+    ped <- read.table(paste0('~/PedOCS15_1.txt'), header=TRUE)
     #to standardise onto the generation 40 - which is the generation of comparison
     ped <- ped[ped$Generation %in% 40:60,]
     #obtain mean and sd of genetic values
@@ -63,7 +63,8 @@ for (rep in 0:20) {
     TGV$zMean <- (TGV$gvNormUnres1 - TGV$gvNormUnres1[1]) / TGV$sd[1]
     TGVs <- merge(TGVs, TGV, by="Generation")
     #read in genic variance
-    Var <- read.table(paste0(WorkingDir,'TotalGenicAndGeneticVariancesPerGeneration.txt'), header=T)
+    #Var <- read.table(paste0('~/VarOCS.txt'), header=T)
+    Var <- read.table(paste0('~/VarOCS15_1.txt'), header=T)
     #Qtn model 1 is unrestricted 
     Var <- Var[Var$QtnModel==1,c(1,3)]
     TGVs <- merge(TGVs, Var, by="Generation")
@@ -84,9 +85,9 @@ for (rep in 0:20) {
     #standarise genetic values with genic_genetic standard deviation
     TGVs$zMeanGenic_Genetic <- (TGVs$gvNormUnres1 - TGVs$gvNormUnres1[1]) / TGVs$Genic_Genetic_SD[1]
     #TGVsAll$zSdGenic <- (sqrt(TGVsAll$AdditGenicVar1) - sqrt(TGVsAll$))
-    TGVs$scenario <- scenario
-    TGVs$Rep <- rep
-    TGVs$Strategy <- strategy
+    TGVs$scenario <- "OCS15_1"
+    TGVs$Rep <- 1
+    TGVs$Strategy <- "SU55"
     #colnames(TGVs) < c("Generation", paste0("TGV_mean", scenario), paste0("TGV_sd", scenario), paste0("zMean_", scenario), paste0("GenicVar_", scenario), paste0("zMeanGenic_", scenario))
     TGVsAll <- rbind(TGVsAll, TGVs)
   }
@@ -94,3 +95,10 @@ for (rep in 0:20) {
 
 
 write.table(TGVsAll, paste0("TGVsAll_10KRef_", strategy, "_", date, ".csv"), quote=FALSE, row.names=FALSE)
+
+library(ggplot2)
+ggplot(data=TGVsAll, aes(x=Generation, y=zMean, group=scenario, colour=scenario)) + geom_path()
+
+pedOCS <- read.table("~/PedOCS.txt", header=TRUE)
+pedOCS40 <- ped[ped$Generation %in% 40:60,]
+aggregate(pedOCS40$Father ~ pedOCS40$Generation, FUN = function (x) {length(unique(x))})

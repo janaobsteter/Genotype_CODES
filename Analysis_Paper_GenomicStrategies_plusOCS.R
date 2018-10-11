@@ -41,9 +41,14 @@ sd(acc$corEBV[acc$Strategy=="SU51"], na.rm=TRUE)
 ######################################################################################################
 #TGVsAll <- read.csv("~/TGVSALL_11062018.csv")
 TGVsAll <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/TGVSALL_14082018.csv")
-TGVsOCS <- read.csv("~/TGVsAll_OCS_10102018.csv")
+TGVsOCS <- read.csv("~/TGVsAll_OCS_10102018.csv", sep=" ")
+colnames(TGVsOCS)[16] <- "scenario"
+TGVsOCS$scenario <- as.factor(TGVsOCS$scenario)
+TGVsAll <- rbind(TGVsAll, TGVsOCS)
 #TGVsAll <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_ReferenceSize//Results/TGVSALL_22082018.csv")
 TGVsAll$strategy <-TGVsAll$Strategy
+
+TGVsAll <- TGVsAll[TGVsAll$Rep %in% 0:2,]
 #TGVsAll$strategy <- NA
 #TGVsAll$strategy[TGVsAll$Strategy == "10K_Ref_20Rep"] <- "SU55"
 #TGVsAll$strategy[TGVsAll$Strategy == "10K_Ref_1Pb"] <- "SU15"
@@ -90,6 +95,7 @@ for (strategy in unique(Averages$strategy)) {
     row <- row +1
   }
 }
+maxmin <- maxmin[maxmin$minGenicSD != Inf,]
 #to je max min za genetsko varianco standardizirano - ampak ne pada monotono --> problemi pri učnkovitost
 #maxmin <- data.frame(strategy=NA, scenario=NA, minGenicSD=NA, maxGenicSD=NA, minTGV=NA, maxTGV=NA)
 #row = 1
@@ -145,6 +151,19 @@ for (strategy in c("SU55", "SU15", "SU51")) {
                                           color=scenario, linetype=scenario, group=scenario), arrow=arrow(), show.legend=TRUE, size=1.5) 
   number <-  number + 1
 }
+
+
+ggplot(data = TGVsAll[TGVsAll$Strategy %in% c("SU55", "OCS"),], aes(x=SDGenicSt, y=zMeanGenic, group=group, colour=strategy, linetype=Strategy)) + 
+  scale_x_reverse(sec.axis=sec_axis(trans=~1-.,                                   
+                                    name="Converted/Lost genic standard deviation")) +
+  geom_line(aes(linetype=scenario), size=0.5, alpha=0.2) + ggtitle(unique(TGVstrategy$strategy)) + 
+  xlab("Generation") + ylab("True genetic value")  + ylim(0,7) +coord_cartesian(xlim = c(1, 0.85)) +
+  xlab("Genic standard deviation") + ylab("Average True Genetic Value") + 
+  theme(axis.text=element_text(size=16), legend.position = "left", axis.title.x=element_blank(), axis.title.y=element_blank(),
+        axis.title=element_text(size=16,face="bold"), legend.text=element_text(size=16), legend.title=element_text(face="bold", size=16)) +
+  geom_segment(data=maxminS, mapping=aes(x=maxGenicSD, xend=minGenicSD,
+                                         y=minTGV,  yend=maxTGV,                                    
+                                         color=strategy, linetype=strategy, group=scenario), arrow=arrow(), show.legend=TRUE, size=1.5) 
 
 
 library(gridExtra)
@@ -326,14 +345,8 @@ maxmin[maxmin$strategy=="SU15","minGenicSD"] -  maxmin[maxmin$strategy=="SU55","
 MeanAverage$order <- factor(MeanAverage$Strategy, levels = c("SU55", "SU15", "SU51"))
 ggplot() + 
   xlab("Generation") + ylab("True genetic value")  + 
-  scale_linetype_manual("Scenario", breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), 
-                        values=c("solid", "dashed", "dotted", "dotdash", "twodash"), 
-                        labels=c("PT", "GS-PS", "GS-C", "GS-BD", "GS")) + 
-  scale_colour_manual("Scenario", breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), 
-                      values=c("forestgreen", "dodgerblue2", "purple", "red3", "orange1"), 
-                      labels=c("PT", "GS-PS", "GS-C", "GS-BD", "GS")) + 
-  xlab("Generation") + ylab("Average True Genetic Value") +
-  geom_line(data = MeanAverage[MeanAverage$Strategy=="SU55",], aes(x=Generation, y=MeanTGV, colour=scenario, linetype=scenario), size=1.2) + 
+
+  geom_line(data = MeanAverage[MeanAverage$Strategy=="SU15" | MeanAverage$Strategy=="OCS",], aes(x=Generation, y=MeanTGV, colour=scenario, linetype=Strategy), size=1.2) + 
   #geom_ribbon(data=MeanAverage, aes(x=Generation, ymin=lower, ymax=upper, colour=scenario), alpha=0.1) + 
 ylim(c(0, 7)) +
   guides(group=guide_legend(nrow=6), fill=guide_legend(nrow=6), colour=guide_legend(nrow=6), linetype=guide_legend(nrow=6)) +
@@ -342,11 +355,7 @@ ylim(c(0, 7)) +
         strip.text = element_text(face="bold", size=16))   #+ 
 facet_grid(order ~ ., scales = "free_y") + theme(legend.position = "right") 
 
-#genetic variance plot
-MeanAverageSD$order <- factor(MeanAverageSD$Strategy, levels = c("SU55", "SU15", "SU51"))
-
-ggplot() + 
-  xlab("Generation") + ylab("True genetic value")  + 
+"""
   scale_linetype_manual("Scenario", breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), 
                         values=c("solid", "dashed", "dotted", "dotdash", "twodash"), 
                         labels=c("PT", "GS-PS", "GS-C", "GS-BD", "GS")) + 
@@ -354,33 +363,47 @@ ggplot() +
                       values=c("forestgreen", "dodgerblue2", "purple", "red3", "orange1"), 
                       labels=c("PT", "GS-PS", "GS-C", "GS-BD", "GS")) + 
   xlab("Generation") + ylab("Average True Genetic Value") +
-  geom_line(data = MeanAverageSD, aes(x=Generation, y=SdTGV, colour=scenario, linetype=scenario), size=1.2) + 
+"""
+
+TGVsAll$group <- paste0(TGVsAll$scenario, TGVsAll$Rep)
+TGVsAll <- TGVsAll[!(is.na(TGVsAll$scenario)),]
+#plotaj replike
+ggplot(data = TGVsAll[TGVsAll$Strategy %in% c("SU55", "OCS"),], aes(x = Generation, y = zMean, colour=scenario, group=group, linetype=Strategy) ) + geom_line()
+
+#genetic variance plot
+MeanAverageSD$order <- factor(MeanAverageSD$Strategy, levels = c("SU55", "SU15", "SU51"))
+
+ggplot() + 
+  xlab("Generation") + ylab("True genetic value")  + 
+
+  geom_line(data = MeanAverageSD[MeanAverageSD$Strategy=="SU55" | MeanAverageSD$Strategy=="OCS",], aes(x=Generation, y=SdTGV, colour=scenario, linetype=Strategy), size=1.2) + 
   ylim(c(0.85, 1)) +
   guides(group=guide_legend(nrow=6), fill=guide_legend(nrow=6), colour=guide_legend(nrow=6), linetype=guide_legend(nrow=6)) +
   theme(axis.text=element_text(size=18), legend.position = "left",
         axis.title=element_text(size=18,face="bold"), legend.text=element_text(size=16), legend.title=element_text(face="bold", size=18), 
         strip.text = element_text(face="bold", size=16))   + 
-  facet_grid(order ~ ., scales = "free_y") + theme(legend.position = "right") 
+theme(legend.position = "right") 
+
+scale_linetype_manual("Scenario", breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), 
+                      values=c("solid", "dashed", "dotted", "dotdash", "twodash"), 
+                      labels=c("PT", "GS-PS", "GS-C", "GS-BD", "GS")) + 
+  scale_colour_manual("Scenario", breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), 
+                      values=c("forestgreen", "dodgerblue2", "purple", "red3", "orange1"), 
+                      labels=c("PT", "GS-PS", "GS-C", "GS-BD", "GS")) + 
+  xlab("Generation") + ylab("Average True Genetic Value") +
 
 
 MeanAverageSDGenic$order <- factor(MeanAverageSDGenic$Strategy, levels = c("SU55", "SU15", "SU51"))
 #genic variance plot
 ggplot() + 
   xlab("Generation") + ylab("True genetic value")  + 
-  scale_linetype_manual("Scenario", breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), 
-                        values=c("solid", "dashed", "dotted", "dotdash", "twodash"), 
-                        labels=c("PT", "GS-PS", "GS-C", "GS-BD", "GS")) + 
-  scale_colour_manual("Scenario", breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), 
-                      values=c("forestgreen", "dodgerblue2", "purple", "red3", "orange1"), 
-                      labels=c("PT", "GS-PS", "GS-C", "GS-BD", "GS")) + 
-  xlab("Generation") + ylab("Average True Genetic Value") +
-  geom_line(data = MeanAverageSDGenic, aes(x=Generation, y=SdGenic, colour=scenario, linetype=scenario), size=1.2) + 
+  geom_line(data = MeanAverageSDGenic[MeanAverageSD$Strategy %in% c("SU15", "OCS"),], aes(x=Generation, y=SdGenic, colour=scenario, linetype=Strategy), size=1.2) + 
   ylim(c(0.85, 1)) +
   guides(group=guide_legend(nrow=6), fill=guide_legend(nrow=6), colour=guide_legend(nrow=6), linetype=guide_legend(nrow=6)) +
   theme(axis.text=element_text(size=18), legend.position = "left",
         axis.title=element_text(size=18,face="bold"), legend.text=element_text(size=16), legend.title=element_text(face="bold", size=18), 
         strip.text = element_text(face="bold", size=16))   + 
-  facet_grid(order ~ ., scales = "free_y") + theme(legend.position = "right") 
+theme(legend.position = "right") 
 
 
 #standard deviations of the measures
