@@ -41,14 +41,14 @@ sd(acc$corEBV[acc$Strategy=="SU51"], na.rm=TRUE)
 ######################################################################################################
 #TGVsAll <- read.csv("~/TGVSALL_11062018.csv")
 TGVsAll <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/TGVSALL_14082018.csv")
-TGVsOCS <- read.csv("~/TGVsAll_OCS_10102018.csv", sep=" ")
-colnames(TGVsOCS)[16] <- "scenario"
-TGVsOCS$scenario <- as.factor(TGVsOCS$scenario)
-TGVsAll <- rbind(TGVsAll, TGVsOCS)
+#TGVsOCS <- read.csv("~/TGVsAll_OCS_10102018.csv", sep=" ")
+#colnames(TGVsOCS)[16] <- "scenario"
+#TGVsOCS$scenario <- as.factor(TGVsOCS$scenario)
+#TGVsAll <- rbind(TGVsAll, TGVsOCS)
 #TGVsAll <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_ReferenceSize//Results/TGVSALL_22082018.csv")
 TGVsAll$strategy <-TGVsAll$Strategy
 
-TGVsAll <- TGVsAll[TGVsAll$Rep %in% 0:2,]
+#TGVsAll <- TGVsAll[TGVsAll$Rep %in% 0:2,]
 #TGVsAll$strategy <- NA
 #TGVsAll$strategy[TGVsAll$Strategy == "10K_Ref_20Rep"] <- "SU55"
 #TGVsAll$strategy[TGVsAll$Strategy == "10K_Ref_1Pb"] <- "SU15"
