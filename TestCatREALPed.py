@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 import ast
+import pandas as pd
+from collections import defaultdict
+import os
 WorkingDir = "/home/jana/"
 os.chdir(WorkingDir)
-scenario = "Gen"
+scenario = "Class_LargePop"
 par = pd.read_csv(WorkingDir + "/Essentials/SelectionParam_" + scenario + ".csv", header=None, names=["Keys", "Vals"])
 par.to_dict()
 selPar = defaultdict()
@@ -67,7 +70,7 @@ for ind in inds:
 
 
 
-IndCat['Indiv'] = ped.ped.Indiv
+Ind_['Indiv'] = ped.ped.Indiv
 IndCat['catBurnIN'] = ped.ped.cat
 
 

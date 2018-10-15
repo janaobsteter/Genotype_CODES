@@ -45,59 +45,59 @@ print(strategy)
 print(args)
 
 TGVsAll <- data.frame()
-for (rep in 0:20) {
-  for (scenario in c("Class", "GenSLO", "OtherCowsGen", "BmGen", "Gen")) {
-    TGVs <- data.frame(Generation=40:60)
-    #ped <- read.table(paste0('~/PedOCS.txt'), header=TRUE)
-    ped <- read.table(paste0('~/PedOCS15_1.txt'), header=TRUE)
-    #to standardise onto the generation 40 - which is the generation of comparison
-    ped <- ped[ped$Generation %in% 40:60,]
-    #obtain mean and sd of genetic values
-    TGV <- summarySE(ped, measurevar = "gvNormUnres1", groupvars = "Generation")[,c(1,3,4)]
-    #variance of genetic values
-    TGV$var <- (TGV$sd)^2
-    colnames(TGV)[1] <- c("Generation")
-    #standardise genetic standard devistion
-    TGV$SDSt <- TGV$sd / TGV$sd[1]
-    #standardise genetic values with genetic standard deviation
-    TGV$zMean <- (TGV$gvNormUnres1 - TGV$gvNormUnres1[1]) / TGV$sd[1]
-    TGVs <- merge(TGVs, TGV, by="Generation")
-    #read in genic variance
-    #Var <- read.table(paste0('~/VarOCS.txt'), header=T)
-    Var <- read.table(paste0('~/VarOCS15_1.txt'), header=T)
-    #Qtn model 1 is unrestricted 
-    Var <- Var[Var$QtnModel==1,c(1,3)]
-    TGVs <- merge(TGVs, Var, by="Generation")
-    #obtain genic standard deviation
-    TGVs$SDGenic <- (sqrt(TGVs$AdditGenicVar1))
-    #standarise genic standard devistion
-    TGVs$SDGenicSt <- TGVs$SDGenic / TGVs$SDGenic[1]
-    #standardise genetic values with genic standard devistion
-    TGVs$zMeanGenic <- (TGVs$gvNormUnres1 - TGVs$gvNormUnres1[1]) / TGVs$SDGenic[1]
-    #reciprocated genic standard deviation
-    TGVs$SDGenicStNeg <- 1 - (TGVs$SDGenic / TGVs$SDGenic[1])
-    #genic variance standardised onto genetic variance
-    koef <- TGVs$var[1] / TGVs$AdditGenicVar1[1]
-    TGVs$Genic_Genetic_VAR <- TGVs$AdditGenicVar1 * koef
-    TGVs$Genic_Genetic_SD <- sqrt(TGVs$Genic_Genetic_VAR)
-    #standardise genic_genetic standard deviation
-    TGVs$Genic_Genetic_SDSt <- TGVs$Genic_Genetic_SD / TGVs$Genic_Genetic_SD[1]
-    #standarise genetic values with genic_genetic standard deviation
-    TGVs$zMeanGenic_Genetic <- (TGVs$gvNormUnres1 - TGVs$gvNormUnres1[1]) / TGVs$Genic_Genetic_SD[1]
-    #TGVsAll$zSdGenic <- (sqrt(TGVsAll$AdditGenicVar1) - sqrt(TGVsAll$))
-    TGVs$scenario <- "OCS15_1"
-    TGVs$Rep <- 1
-    TGVs$Strategy <- "SU55"
-    #colnames(TGVs) < c("Generation", paste0("TGV_mean", scenario), paste0("TGV_sd", scenario), paste0("zMean_", scenario), paste0("GenicVar_", scenario), paste0("zMeanGenic_", scenario))
-    TGVsAll <- rbind(TGVsAll, TGVs)
-  }
+
+for (scenario in c("LargePop", "SmallPop")) {
+  TGVs <- data.frame(Generation=0:60)
+  #ped <- read.table(paste0('~/PedOCS.txt'), header=TRUE)
+  ped <- read.table(paste0('~/Ped', scenario, ".txt"), header=TRUE)
+  #to standardise onto the generation 40 - which is the generation of comparison
+  ped <- ped[ped$Generation %in% 0:40,]
+  #obtain mean and sd of genetic values
+  TGV <- summarySE(ped, measurevar = "gvNormUnres1", groupvars = "Generation")[,c(1,3,4)]
+  #variance of genetic values
+  TGV$var <- (TGV$sd)^2
+  colnames(TGV)[1] <- c("Generation")
+  #standardise genetic standard devistion
+  TGV$SDSt <- TGV$sd / TGV$sd[1]
+  #standardise genetic values with genetic standard deviation
+  TGV$zMean <- (TGV$gvNormUnres1 - TGV$gvNormUnres1[1]) / TGV$sd[1]
+  TGVs <- merge(TGVs, TGV, by="Generation")
+  #read in genic variance
+  #Var <- read.table(paste0('~/VarOCS.txt'), header=T)
+  Var <- read.table(paste0('~/Var', scenario, '.txt'), header=T)
+  #Qtn model 1 is unrestricted 
+  Var <- Var[Var$QtnModel==1,c(1,3)]
+  TGVs <- merge(TGVs, Var, by="Generation")
+  #obtain genic standard deviation
+  TGVs$SDGenic <- (sqrt(TGVs$AdditGenicVar1))
+  #standarise genic standard devistion
+  TGVs$SDGenicSt <- TGVs$SDGenic / TGVs$SDGenic[1]
+  #standardise genetic values with genic standard devistion
+  TGVs$zMeanGenic <- (TGVs$gvNormUnres1 - TGVs$gvNormUnres1[1]) / TGVs$SDGenic[1]
+  #reciprocated genic standard deviation
+  TGVs$SDGenicStNeg <- 1 - (TGVs$SDGenic / TGVs$SDGenic[1])
+  #genic variance standardised onto genetic variance
+  koef <- TGVs$var[1] / TGVs$AdditGenicVar1[1]
+  TGVs$Genic_Genetic_VAR <- TGVs$AdditGenicVar1 * koef
+  TGVs$Genic_Genetic_SD <- sqrt(TGVs$Genic_Genetic_VAR)
+  #standardise genic_genetic standard deviation
+  TGVs$Genic_Genetic_SDSt <- TGVs$Genic_Genetic_SD / TGVs$Genic_Genetic_SD[1]
+  #standarise genetic values with genic_genetic standard deviation
+  TGVs$zMeanGenic_Genetic <- (TGVs$gvNormUnres1 - TGVs$gvNormUnres1[1]) / TGVs$Genic_Genetic_SD[1]
+  #TGVsAll$zSdGenic <- (sqrt(TGVsAll$AdditGenicVar1) - sqrt(TGVsAll$))
+  TGVs$scenario <- scenario
+  TGVs$Rep <- 0
+  #TGVs$Strategy <- "SU55"
+  #colnames(TGVs) < c("Generation", paste0("TGV_mean", scenario), paste0("TGV_sd", scenario), paste0("zMean_", scenario), paste0("GenicVar_", scenario), paste0("zMeanGenic_", scenario))
+  TGVsAll <- rbind(TGVsAll, TGVs)
 }
+
 
 
 write.table(TGVsAll, paste0("TGVsAll_10KRef_", strategy, "_", date, ".csv"), quote=FALSE, row.names=FALSE)
 
 library(ggplot2)
-ggplot(data=TGVsAll, aes(x=Generation, y=zMean, group=scenario, colour=scenario)) + geom_path()
+ggplot(data=TGVsAll, aes(x=Generation, y=zMean, colour=scenario)) + geom_line()
 
 pedOCS <- read.table("~/PedOCS.txt", header=TRUE)
 pedOCS40 <- ped[ped$Generation %in% 40:60,]
