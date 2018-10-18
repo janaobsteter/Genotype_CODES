@@ -5,7 +5,8 @@ from collections import defaultdict
 from itertools import chain
 import re
 
-workdir = "/home/jana/Genotipi/Genotipi_DATA/Compare/CompareAB/"
+#workdir = "/home/jana/Genotipi/Genotipi_DATA/Compare/CompareAB/"
+workdir = "/home/jana/Genotipi/Genotipi_DATA/Compare/CompareTop/"
 os.chdir(workdir)
 
 
@@ -25,7 +26,8 @@ chips = {19720: "GGPv02",
 
 print(chips.values())
 
-dirs = ["GGPv04", "HDv02"]
+#dirs = ["GGPv04", "HDv02"] #ot je za AB
+dirs = ["IDBv03"] #to je za top
 
 
 
@@ -35,7 +37,8 @@ pedPars = pd.DataFrame()
 for dir in dirs:
     compareDF = pd.DataFrame(columns=["File", "Concordance", "Reference"])
     os.chdir(workdir + "/" + dir + "/")
-    peds = [x.strip(".ped") for x in os.listdir(os.getcwd()) if x.endswith(".ped") and x.startswith("Matija")]
+    peds = [x.strip(".ped") for x in os.listdir(os.getcwd()) if x.endswith(".ped") and x.startswith("we")]
+    print(peds)
     for ped in peds:
         print(ped)
         os.system('cut -f1,2 -d" " ' + ped + '.ped > Inds.txt')
