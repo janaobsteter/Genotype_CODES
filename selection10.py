@@ -721,51 +721,78 @@ class pedigree(classPed):
 
 
     def doloci_ocete(self, stNB, potomciNPn, cak, pbUp, pripustDoz, mladiDoz, pozitivnoTestDoz, NbGenTest,
-                     EliteDamsPTBulls, EliteDamsGenBulls, EliteDamsPABulls, gen_mladi, gen_gpb):
+                     EliteDamsPTBulls, EliteDamsGenBulls, EliteDamsPABulls, gen_mladi, gen_gpb,
+                     importBool=False, importGroup=None, FatherList=None):
+
         # OČETJE
-        mladiOce = self.catCurrent_indiv('mladi')
-        pripustOce = self.catCurrent_indiv('pripust1') + self.catCurrent_indiv('pripust2')
-        testiraniOce = list(chain.from_iterable([self.catCurrent_indiv_age('pb', (2 + cak + 1 + x)) for x in range(1,
-                                                                                                                   pbUp + 1)]))  # v času, ko določaš potomce, so že eno leto starjši!!!
-        gentestiraniOce = list(chain.from_iterable([self.catCurrent_indiv_age('gpb', x + 1) for x in range(1,
-                                                                                                           pbUp + 1)]))  # v času, ko določaš potomce, so že eno leto starjši!!!
-        mladiOceBest = self.catCurrent_indiv_sex_CriteriaEBV('mladi', 'M', 4)
-        cakOcetjeBest = list(
-            chain.from_iterable([self.catCurrent_indiv_age_CriteriaEBV('cak', (2 + x), 4) for x in range(1, cak + 1)]))
-        print 'GenTest{0}'.format(str(len(gentestiraniOce)))
 
-        # set fathers for offspring of contracted mating
-        bmMother = (potomciNPn * 2) if len(self.catCurrent_indiv('pBM')) >= (potomciNPn * 2) else len(
-            self.catCurrent_indiv('pBM'))  # the number of elite dams - they are the limiting factor
-        # for classical testing - if you already have elite bulls
-        if EliteDamsPTBulls:  # whether the elite dams are inseminated with genomicaly tested or progeny tested bulls
-            if testiraniOce:
-                elita = np.random.choice(testiraniOce, bmMother, replace=True)
-                #       pd.Series(elita).value_counts()#preveri zastopanost po bikih
-                # naštimaj očete elite --> BM
-        if EliteDamsGenBulls:  # if with genomically tested
-            if gen_mladi:
-                genMladiOcetje = mladiOceBest + cakOcetjeBest
-                elita = np.random.choice(genMladiOcetje, bmMother, replace=True)
-            if gen_gpb:
-                if gentestiraniOce:  # if you already have genomically proven bulls
-                    elita = np.random.choice(gentestiraniOce, bmMother, replace=True)
-                else:  # otherwise inseminate with progeny tested until genomically tested become proven
+        if not importBool:
+            mladiOce = self.catCurrent_indiv('mladi')
+            pripustOce = self.catCurrent_indiv('pripust1') + self.catCurrent_indiv('pripust2')
+            testiraniOce = list(
+                chain.from_iterable([self.catCurrent_indiv_age('pb', (2 + cak + 1 + x)) for x in range(1,
+                                                                                                       pbUp + 1)]))  # v času, ko določaš potomce, so že eno leto starjši!!!
+            gentestiraniOce = list(chain.from_iterable([self.catCurrent_indiv_age('gpb', x + 1) for x in range(1,
+                                                                                                               pbUp + 1)]))  # v času, ko določaš potomce, so že eno leto starjši!!!
+            mladiOceBest = self.catCurrent_indiv_sex_CriteriaEBV('mladi', 'M', 4)
+            cakOcetjeBest = list(
+                chain.from_iterable(
+                    [self.catCurrent_indiv_age_CriteriaEBV('cak', (2 + x), 4) for x in range(1, cak + 1)]))
+            print 'GenTest{0}'.format(str(len(gentestiraniOce)))
+
+            # Tu DOLOČI ELITO
+            # set fathers for offspring of contracted mating
+            bmMother = (potomciNPn * 2) if len(self.catCurrent_indiv('pBM')) >= (potomciNPn * 2) else len(
+                self.catCurrent_indiv('pBM'))  # the number of elite dams - they are the limiting factor
+            # for classical testing - if you already have elite bulls
+            if EliteDamsPTBulls:  # whether the elite dams are inseminated with genomicaly tested or progeny tested bulls
+                if testiraniOce:
                     elita = np.random.choice(testiraniOce, bmMother, replace=True)
+                    #       pd.Series(elita).value_counts()#preveri zastopanost po bikih
+                    # naštimaj očete elite --> BM
+            if EliteDamsGenBulls:  # if with genomically tested
+                if gen_mladi:
+                    genMladiOcetje = mladiOceBest + cakOcetjeBest
+                    elita = np.random.choice(genMladiOcetje, bmMother, replace=True)
+                if gen_gpb:
+                    if gentestiraniOce:  # if you already have genomically proven bulls
+                        elita = np.random.choice(gentestiraniOce, bmMother, replace=True)
+                    else:  # otherwise inseminate with progeny tested until genomically tested become proven
+                        elita = np.random.choice(testiraniOce, bmMother, replace=True)
 
-        if EliteDamsPABulls:
-            self.computePA_previousCat('potomciNP', 'M', categories)
-            selRow = list(
-                self.ped.loc[(self.ped.cat == cat) & (self.ped.sex == sex), 'PA'].sort_values(
-                    ascending=False)[:number].index)  # katere izbereš
-            return list(self.ped.Indiv[selRow])
+            if EliteDamsPABulls:
+                self.computePA_previousCat('potomciNP', 'M', categories)
+                selRow = list(
+                    self.ped.loc[(self.ped.cat == cat) & (self.ped.sex == sex), 'PA'].sort_values(
+                        ascending=False)[:number].index)  # katere izbereš
+                return list(self.ped.Indiv[selRow])
+
+
+        if importBool:
+            if importGroup == "k":
+                mladiOce = self.catCurrent_indiv('mladi')
+                pripustOce = self.catCurrent_indiv('pripust1') + self.catCurrent_indiv('pripust2')
+                testiraniOce = FatherList  # v času, ko določaš potomce, so že eno leto starjši!!!
+                gentestiraniOce = list(chain.from_iterable([self.catCurrent_indiv_age('gpb', x + 1) for x in range(1,
+                                                                                                                   pbUp + 1)]))  # v času, ko določaš potomce, so že eno leto starjši!!!
+                mladiOceBest = self.catCurrent_indiv_sex_CriteriaEBV('mladi', 'M', 4)
+                cakOcetjeBest = list(
+                    chain.from_iterable(
+                        [self.catCurrent_indiv_age_CriteriaEBV('cak', (2 + x), 4) for x in range(1, cak + 1)]))
+                print 'GenTest{0}'.format(str(len(gentestiraniOce)))
+
+            if importGroup == "bm":
+                elita = np.random.choice(FatherList, bmMother, replace=True)
+
 
         self.set_father_catPotomca(elita, 'potomciNP')
 
-        # this if for the rest of the new born population - 'mix' semen of all potential fathers
-        # first - according to the given % - how many offsprign will be produced by genomically tested bulls
+                # this if for the rest of the new born population - 'mix' semen of all potential fathers
+                # first - according to the given % - how many offsprign will be produced by genomically tested bulls
 
-	 # here choose the classically tested bulls --> get the doses
+
+
+                # here choose the classically tested bulls --> get the doses
         ClassOcetje = list(
             testiraniOce * pozitivnoTestDoz + mladiOce * mladiDoz) if testiraniOce else []  # progeny teste fathers - keep the ratios between young / natural service / PT
         PripustOcetje = list(pripustOce * pripustDoz)
@@ -774,7 +801,7 @@ class pedigree(classPed):
                 gentestiraniOce * pozitivnoTestDoz) if 'gpb' in self.cat() else []  # dokler še imaš progene, uporabljaj mešano seme, potem ostanejo tako samo genomsko
             if len(GenOcetje) + len(PripustOcetje) < NbGenTest:
                 classNB = NbGenTest - (len(GenOcetje) + len(PripustOcetje))
-                Ocetje = random.sample(ClassOcetje, classNB - potomciNPn * 2)  + GenOcetje + PripustOcetje
+                Ocetje = random.sample(ClassOcetje, classNB - potomciNPn * 2) + GenOcetje + PripustOcetje
             if len(GenOcetje) + len(PripustOcetje) >= NbGenTest:
                 Ocetje = random.sample(GenOcetje + PripustOcetje, stNB - potomciNPn * 2)
         if NbGenTest == 0:  # če je % semenjenih z genomskimi 0, semeni samo z pb, mladimi in pripustom
