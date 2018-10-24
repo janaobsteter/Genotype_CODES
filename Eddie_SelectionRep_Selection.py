@@ -169,7 +169,13 @@ for roundNo in range(21,41): #za vsak krog selekcije
     #GenTrends = TBVCat(AlphaSimDir)
     # izvedi selekcijo, doloci kategorije zivali, dodaj novo generacijo in dodeli starse
     # pedigre se zapise v AlphaSimDir/SelectionFolder/ExternalPedigree.txt
-    selekcija_total('GenPed_EBV.txt', **selPar)
+    splitGenPed("PopulationSplit.txt")
+    selekcija_total('GenPed_EBVhome.txt', externalPedName="ExternalPedigreehome", group=True, groupNumber=0,
+                    **selParhome)
+    selekcija_total_TGV('GenPed_EBVimport.txt', externalPedName="ExternalPedigreeimport", group=True, groupNumber=1,
+                        **selParimport)
+    joinExternalPeds(["ExternalPedigreehome", "ExternalPedigreeimport"], AlphaSimDir)
+    record_groups(["home", "import"], "PopulationSplit.txt")
 
     # kopiraj pedigre v selection folder
     if not os.path.exists(AlphaSimDir + '/Selection/SelectionFolder' + str(roundNo) + '/'):

@@ -3,7 +3,6 @@ from __future__ import division
 import sys
 import os
 import math
-import selection10
 from selection10 import *
 from selection10 import nastavi_cat, selekcija_total
 from collections import defaultdict
@@ -12,13 +11,9 @@ import pandas as pd
 import numpy as np
 import resource
 import ast
-from random import shuffle
-
 WorkingDir = os.getcwd()
 
-
-reload(selection10)
-#sys.argv: 1 = rep, 2 = scenario
+#sys.argv: 1 = rep, 2 = scenario, 3 = strategy, 4 = reference size
 
 class estimateBV:
     def __init__(self, AlphaSimDir, codeDir, way, sel):
@@ -87,18 +82,15 @@ class estimateBV:
 #argument 0 is the name of the script
 rep = sys.argv[1]
 scenario = sys.argv[2]
-degree = sys.argv[3]
-strategy = sys.argv[4]
-refSize = sys.argv[5]
+strategy = sys.argv[3]
+refSize = sys.argv[4]
 
+os.chdir(strategy + "/")
 
-
-
-
-print("Creating directory " + scenario + str(rep) +"_" + degree + "OCS")
-if not os.path.isdir(scenario + str(rep) +"_" + degree + "OCS"):
-    os.makedirs(scenario + str(rep) +"_" + degree + "OCS")
-SelectionDir = scenario + str(rep) +"_" + degree + "OCS/"
+print("Creating directory " + scenario + str(rep))
+if not os.path.isdir(scenario + str(rep)):
+    os.makedirs(scenario + str(rep))
+SelectionDir = scenario + str(rep) + "/"
 
 
 
@@ -111,58 +103,78 @@ SelectionDir = scenario + str(rep) +"_" + degree + "OCS/"
 os.chdir(SelectionDir)
 
 print("Copying files to " + SelectionDir)
-os.system('cp -r ' + WorkingDir + '/Essentials/* .')
 os.system('cp -r ' + WorkingDir + '/FillInBurnIn' + str(rep) + '/* .')
+os.system('cp -r ' + WorkingDir + '/Essentials/* .')
 os.system('cp -r ' + WorkingDir + '/CodeDir/* .')
-os.system('cp ' + WorkingDir + '/AlphaMate .')
 os.system('mv IndForGeno_' + refSize + '.txt IndForGeno.txt')
 
 os.system("chmod a+x AlphaSim1.08")
-os.system("chmod a+x AlphaMate")
 os.system("chmod a+x renumf90")
 os.system("chmod a+x blupf90")
 
-par = pd.read_csv(WorkingDir + "/Essentials/" + refSize + "/" + strategy + "SelPar/SelectionParam_" + scenario + ".csv", header=None, names=["Keys", "Vals"])
-par.to_dict()
-selPar = defaultdict()
-for key, val in zip(par.Keys, par.Vals):
+parhome = pd.read_csv(os.getcwd() + "/SelectionParam_Class.csv", header=None, names=["Keys", "Vals"])
+parhome.to_dict()
+selParhome = defaultdict()
+for key, val in zip(parhome.Keys, parhome.Vals):
     if key not in ['BurnInYN', 'EBV', 'gEBV', 'PA', 'AlphaSimDir', 'genotyped', 'EliteDamsPTBulls',
                    'EliteDamsPABulls', 'UpdateGenRef', 'sexToUpdate', 'EliteDamsGenBulls', 'gpb_pb',
                    'genTest_mladi', 'genTest_gpb', 'genFemale']:
         try:
-            selPar[key] = int(val)
+            selParhome[key] = int(val)
         except:
-            selPar[key] = float(val)
+            selParhome[key] = float(val)
     if key in ['BurnInYN', 'EBV', 'gEBV', 'PA', 'AlphaSimDir', 'EliteDamsPTBulls',
                'EliteDamsPABulls', 'UpdateGenRef', 'sexToUpdate', 'EliteDamsGenBulls', 'gpb_pb',
                'genTest_mladi', 'genTest_gpb', 'genFemale']:
         if val in ['False', 'True']:
-            selPar[key] = bool(val == 'True')
+            selParhome[key] = bool(val == 'True')
         else:
-            selPar[key] = val
+            selParhome[key] = val
     if key == 'genotyped':
-        selPar[key] = ast.literal_eval(val)
+        selParhome[key] = ast.literal_eval(val)
 
+if selParhome['EBV']:
+    seltype = 'class'
+if selParhome['gEBV']:
+    seltype = 'gen'
 
-BurnInYN = "False" #ali izvedeš tudi BurnIn
-SelYN = "True" #ali izvedeš tudi BurnIn
-StNB = 8640
+# tukaj pa še parametri za "large" population
+parimport = pd.read_csv(os.getcwd() + "/SelectionParam_" + scenario + "_LargePop.csv", header=None, names=["Keys", "Vals"])
+parimport.to_dict()
+selParimport = defaultdict()
+for key, val in zip(parimport.Keys, parimport.Vals):
+    if key not in ['BurnInYN', 'EBV', 'gEBV', 'PA', 'AlphaSimDir', 'genotyped', 'EliteDamsPTBulls',
+                   'EliteDamsPABulls', 'UpdateGenRef', 'sexToUpdate', 'EliteDamsGenBulls', 'gpb_pb',
+                   'genTest_mladi', 'genTest_gpb', 'genFemale']:
+        try:
+            selParimport[key] = int(val)
+        except:
+            selParimport[key] = float(val)
+    if key in ['BurnInYN', 'EBV', 'gEBV', 'PA', 'AlphaSimDir', 'EliteDamsPTBulls',
+               'EliteDamsPABulls', 'UpdateGenRef', 'sexToUpdate', 'EliteDamsGenBulls', 'gpb_pb',
+               'genTest_mladi', 'genTest_gpb', 'genFemale']:
+        if val in ['False', 'True']:
+            selParimport[key] = bool(val == 'True')
+        else:
+            selParimport[key] = val
+    if key == 'genotyped':
+        selParimport[key] = ast.literal_eval(val)
+
+BurnInYN = "False"  # ali izvedeš tudi BurnIn
+SelYN = "True"  # ali izvedeš tudi BurnIn
+StNB = 17280
 StBurnInGen = 20
-StFillInBurnIn = 40
 StSelGen = 40
 StartSelGen = 21
 StopSelGen = 40
-NumberOfSires = 12
-NumberOfDams = 4320
-selPar['AlphaSimDir'] = os.getcwd() + '/'
+NumberOfSires = 30
+NumberOfDams = 8640
 AlphaSimDir = os.getcwd() + '/'
-AlphaSimPed = selPar['AlphaSimDir'] + '/SimulatedData/PedigreeAndGeneticValues.txt'
-if selPar['EBV']:
-    seltype = 'class'
-if selPar['gEBV']:
+selParimport['AlphaSimDir'] = os.getcwd()
+if selParimport['EBV']:
+    seltypeimport = 'class'
+if selParimport['gEBV']:
     seltype = 'gen'
-
-
 
 ##############################################################################
 #SELEKCIJA
@@ -178,66 +190,25 @@ for roundNo in range(21,41): #za vsak krog selekcije
     #GenTrends = TBVCat(AlphaSimDir)
     # izvedi selekcijo, doloci kategorije zivali, dodaj novo generacijo in dodeli starse
     # pedigre se zapise v AlphaSimDir/SelectionFolder/ExternalPedigree.txt
-    #TO JE SEDAJ OCS KORAK!!!!!!
-    ped = odberiStarse_OCSgen('GenPed_EBV.txt', AlphaSimDir, sampleFemale=False, **selPar)
 
-    # prepare pedigree matrix for selected individuals
-    pedA = AlphaRelate(AlphaSimDir, AlphaSimDir)
-    pedA.preparePedigree()
-    pedA.subsetForHmatrix()
-    pedA.prepareGenoFile()
-    pedA.runAlphaRelate()
+    #tukaj razdeli populacijo na domačo in tujo
+    splitGenPed("PopulationSplit.txt")
+    #tukaj izvedi celotno selekcijo v tuji populaciji --> naknadno shrani še očete z izberi_ocete_PT
+    #v domači odberi in nastavi matere --> očete (za bm) uvoziš
+    pedI, cI, sI, aI = selekcija_total_TGV('GenPed_EBVimport.txt', externalPedName="ExternalPedigreeimport", group=True, groupNumber=1,
+                        **selParimport)
+    if selParimport['EBV']:
+        Oce_import = pedI.izberi_ocete_PT(selParimport["pbUp"]) #tukaj so PT testirani očetje
+    if selParimport['gEBV']:
+        Oce_import = pedI.izberi_ocete_gen(selParimport["pbUp"])  # tukaj so genomsko testirani očetje
 
-    os.system("/exports/cmvm/eddie/eb/groups/tier2_hickey_external/R-3.4.2/bin/Rscript CreateHmatrix.R > ErrorHMatrix.txt")
-
-    mate = AlphaMate(AlphaSimDir, AlphaSimDir, roundNo+19)
-    mate.prepareGender()
-    mate.prepareCriterionFile()
-    gender = pd.read_table("./GENDER.txt", header=None, sep=" ")
-    print(gender.head())
-    print(os.getcwd())
-    print(str(mate.countFemaleSel()))
-    mate.prepareSpecFile("Hmatrix.txt", str(mate.countFemaleSel()), str(mate.countMaleSel()), str(mate.countFemaleSel()), degree)
-    mate.runAlphaMate()
-    Ocetje = mate.obtainSelMales()
-    shuffle(Ocetje)
-
-    # dodaj novo generacijo
-    ped.add_new_gen_naive(selPar['stNBn'], selPar['potomciNPn'] * 2)
-    ped.compute_age()
-    # dodaj matere
-    ped.doloci_matere(selPar.get('stNBn'), selPar.get('potomciNPn'), selPar.get('ptn'), selPar.get('kraveUp'))
-    # preveri - mora biti nič!!! - oz. če mater še ni dovolj, potem še ne!
-    ped.mother_nr_blank()
-    # dodaj očete
-    print(len(Ocetje))
-    if len(Ocetje) == selPar.get('stNBn'):
-    	ped.ped.loc[ped.ped.cat.isin(['nr', 'potomciNP']), 'Father'] = Ocetje
-	ped.ped.Father = ped.ped.Father.astype(int)
-    else:
-        print("Not enough fathers!!!!")
-
-    ped.ped.loc[ped.ped.cat == "kandidati", 'cat'] = "izl"
-    ped.ped.loc[ped.ped.Indiv.isin(list(set(Ocetje))), "cat"] = "gpb"
+    #odberi starše domače populacije
+    pedH, cH, sH, aH = selekcija_importOcetov('GenPed_EBVhome.txt', externalPedName="ExternalPedigreehome", group=True, groupNumber=0,
+                                              importBool=True, importGroup="bm", FatherList=Oce_import, **selParhome)
 
 
-    # preveri - mora biti nič!!! - oz. če mater še ni dovolj, potem še ne!
-    ped.mother_nr_blank()
-
-    # ped.UpdateIndCat('/home/jana/')
-    ped.save_cat_DF()
-    ped.save_sex_DF()
-    ped.save_active_DF()
-    if selPar.get('gEBV'):
-        if selPar.get('UpdateGenRef'):
-            ped.updateAndSaveIndForGeno(selPar.get('genotyped'), selPar.get('NbUpdatedGen'), selPar.get('sexToUpdate'),
-                                        selPar.get('AlphaSimDir'))
-        if not selPar.get('UpdateGenRef'):
-            ped.saveIndForGeno(selPar.get('genotyped'))
-        os.system(
-            'less IndForGeno.txt | wc -l > ReferenceSize_new.txt && cat ReferenceSize_new.txt ReferenceSize.txt > Reftmp && mv Reftmp ReferenceSize.txt')
-    ped.write_ped(AlphaSimDir + "/ExternalPedigree.txt")
-    ped.write_pedTotal(AlphaSimDir + "/ExternalPedigreeTotal.txt")
+    joinExternalPeds(["ExternalPedigreehome", "ExternalPedigreeimport"], AlphaSimDir)
+    record_groups(["home", "import"], "PopulationSplit.txt")
 
     # kopiraj pedigre v selection folder
     if not os.path.exists(AlphaSimDir + '/Selection/SelectionFolder' + str(roundNo) + '/'):
@@ -260,11 +231,11 @@ for roundNo in range(21,41): #za vsak krog selekcije
     SpecFile.setTBVComp(2)
     SpecFile.setNB(StNB)
     # pozenes ALPHASIM
-    os.system(AlphaSimDir + '/AlphaSim1.08')
+    os.system('./AlphaSim1.08')
     #tukaj odstrani chip2 genotype file in izračunaj heterozigotnost na nevtralnih lokusih (chip2 - chip1)
     os.system("/exports/cmvm/eddie/eb/groups/tier2_hickey_external/R-3.4.2/bin/Rscript MeanHetChip2_NeutralMarker.R " + str(roundNo+20) + " " + str(rep) + " " + str(scenario) + " " + str(strategy))			
-    os.system("bash ChangeChip2Geno_IDs.sh") 
-
+    os.system("bash ChangeChip2Geno_IDs.sh")    	
+	
     # tukaj dodaj kategorije k PedigreeAndGeneticValues (AlphaSim File)
     PedCat = OrigPed(AlphaSimDir, WorkingDir + '/CodeDir')
     PedCat.addInfo() #to ti zapiše PedigreeAndGeneticValues_cat.txt v AlphaSim/SimualatedData
@@ -285,6 +256,6 @@ for roundNo in range(21,41): #za vsak krog selekcije
 
 
 os.system('rm -rf Chromosomes Selection && cp * ' + scenario + str(rep))
-os.system('rm SimulatedData/UnrestrictedQtnIndivGenotypes.txt')
+#os.system('rm SimulatedData/UnrestrictedQtnIndivGenotypes.txt')
 os.system('rm SimulatedData/RestrictedQtnIndivGenotypes.txt')
 

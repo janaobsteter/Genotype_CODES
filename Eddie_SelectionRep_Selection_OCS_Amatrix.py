@@ -95,10 +95,10 @@ refSize = sys.argv[5]
 
 
 
-print("Creating directory " + scenario + str(rep) +"_" + degree + "OCS")
-if not os.path.isdir(scenario + str(rep) +"_" + degree + "OCS"):
-    os.makedirs(scenario + str(rep) +"_" + degree + "OCS")
-SelectionDir = scenario + str(rep) +"_" + degree + "OCS/"
+print("Creating directory " + scenario + str(rep) +"_" + degree + "OCS_A")
+if not os.path.isdir(scenario + str(rep) +"_" + degree + "OCS_A"):
+    os.makedirs(scenario + str(rep) +"_" + degree + "OCS_A")
+SelectionDir = scenario + str(rep) +"_" + degree + "OCS_A/"
 
 
 
@@ -135,7 +135,7 @@ for key, val in zip(par.Keys, par.Vals):
             selPar[key] = float(val)
     if key in ['BurnInYN', 'EBV', 'gEBV', 'PA', 'AlphaSimDir', 'EliteDamsPTBulls',
                'EliteDamsPABulls', 'UpdateGenRef', 'sexToUpdate', 'EliteDamsGenBulls', 'gpb_pb',
-               'genTest_mladi', 'genTest_gpb', 'genFemale']:
+               'genTest_mladi', 'genTest_gpb']:
         if val in ['False', 'True']:
             selPar[key] = bool(val == 'True')
         else:
@@ -188,7 +188,7 @@ for roundNo in range(21,41): #za vsak krog selekcije
     pedA.prepareGenoFile()
     pedA.runAlphaRelate()
 
-    os.system("/exports/cmvm/eddie/eb/groups/tier2_hickey_external/R-3.4.2/bin/Rscript CreateHmatrix.R > ErrorHMatrix.txt")
+#    os.system("/exports/cmvm/eddie/eb/groups/tier2_hickey_external/R-3.4.2/bin/Rscript CreateHmatrix.R > ErrorHMatrix.txt")
 
     mate = AlphaMate(AlphaSimDir, AlphaSimDir, roundNo+19)
     mate.prepareGender()
@@ -197,7 +197,7 @@ for roundNo in range(21,41): #za vsak krog selekcije
     print(gender.head())
     print(os.getcwd())
     print(str(mate.countFemaleSel()))
-    mate.prepareSpecFile("Hmatrix.txt", str(mate.countFemaleSel()), str(mate.countMaleSel()), str(mate.countFemaleSel()), degree)
+    mate.prepareSpecFile("PedigreeNrm.txt", str(mate.countFemaleSel()), str(mate.countMaleSel()), str(mate.countFemaleSel()), degree)
     mate.runAlphaMate()
     Ocetje = mate.obtainSelMales()
     shuffle(Ocetje)

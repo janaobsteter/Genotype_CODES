@@ -88,17 +88,13 @@ class estimateBV:
 rep = sys.argv[1]
 scenario = sys.argv[2]
 degree = sys.argv[3]
-strategy = sys.argv[4]
-refSize = sys.argv[5]
 
 
 
-
-
-print("Creating directory " + scenario + str(rep) +"_" + degree + "OCS")
-if not os.path.isdir(scenario + str(rep) +"_" + degree + "OCS"):
-    os.makedirs(scenario + str(rep) +"_" + degree + "OCS")
-SelectionDir = scenario + str(rep) +"_" + degree + "OCS/"
+print("Creating directory " + scenario + str(rep) +"_" + str(degree) + "OCS")
+if not os.path.isdir(scenario + str(rep) +"_" + str(degree) + "OCS"):
+    os.makedirs(scenario + str(rep) +"_" + str(degree) + "OCS")
+SelectionDir = scenario + str(rep) +"_" + str(degree) + "OCS/"
 
 
 
@@ -115,27 +111,22 @@ os.system('cp -r ' + WorkingDir + '/Essentials/* .')
 os.system('cp -r ' + WorkingDir + '/FillInBurnIn' + str(rep) + '/* .')
 os.system('cp -r ' + WorkingDir + '/CodeDir/* .')
 os.system('cp ' + WorkingDir + '/AlphaMate .')
-os.system('mv IndForGeno_' + refSize + '.txt IndForGeno.txt')
+os.system('mv IndForGeno_10000.txt IndForGeno.txt')
 
-os.system("chmod a+x AlphaSim1.08")
-os.system("chmod a+x AlphaMate")
-os.system("chmod a+x renumf90")
-os.system("chmod a+x blupf90")
-
-par = pd.read_csv(WorkingDir + "/Essentials/" + refSize + "/" + strategy + "SelPar/SelectionParam_" + scenario + ".csv", header=None, names=["Keys", "Vals"])
+par = pd.read_csv(WorkingDir + "/Essentials/SelectionParam_" + scenario + ".csv", header=None, names=["Keys", "Vals"])
 par.to_dict()
 selPar = defaultdict()
 for key, val in zip(par.Keys, par.Vals):
     if key not in ['BurnInYN', 'EBV', 'gEBV', 'PA', 'AlphaSimDir', 'genotyped', 'EliteDamsPTBulls',
                    'EliteDamsPABulls', 'UpdateGenRef', 'sexToUpdate', 'EliteDamsGenBulls', 'gpb_pb',
-                   'genTest_mladi', 'genTest_gpb', 'genFemale']:
+                   'genTest_mladi', 'genTest_gpb']:
         try:
             selPar[key] = int(val)
         except:
             selPar[key] = float(val)
     if key in ['BurnInYN', 'EBV', 'gEBV', 'PA', 'AlphaSimDir', 'EliteDamsPTBulls',
                'EliteDamsPABulls', 'UpdateGenRef', 'sexToUpdate', 'EliteDamsGenBulls', 'gpb_pb',
-               'genTest_mladi', 'genTest_gpb', 'genFemale']:
+               'genTest_mladi', 'genTest_gpb']:
         if val in ['False', 'True']:
             selPar[key] = bool(val == 'True')
         else:
@@ -153,7 +144,7 @@ StSelGen = 40
 StartSelGen = 21
 StopSelGen = 40
 NumberOfSires = 12
-NumberOfDams = 4320
+NumberOfDams = 3500
 selPar['AlphaSimDir'] = os.getcwd() + '/'
 AlphaSimDir = os.getcwd() + '/'
 AlphaSimPed = selPar['AlphaSimDir'] + '/SimulatedData/PedigreeAndGeneticValues.txt'
@@ -179,28 +170,21 @@ for roundNo in range(21,41): #za vsak krog selekcije
     # izvedi selekcijo, doloci kategorije zivali, dodaj novo generacijo in dodeli starse
     # pedigre se zapise v AlphaSimDir/SelectionFolder/ExternalPedigree.txt
     #TO JE SEDAJ OCS KORAK!!!!!!
-    ped = odberiStarse_OCSgen('GenPed_EBV.txt', AlphaSimDir, sampleFemale=False, **selPar)
+    ped = odberiStarse_OCSgen('GenPed_EBV.txt', AlphaSimDir, **selPar)
 
     # prepare pedigree matrix for selected individuals
     pedA = AlphaRelate(AlphaSimDir, AlphaSimDir)
     pedA.preparePedigree()
-    pedA.subsetForHmatrix()
-    pedA.prepareGenoFile()
+    resource.setrlimit(resource.RLIMIT_STACK, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
     pedA.runAlphaRelate()
-
-    os.system("/exports/cmvm/eddie/eb/groups/tier2_hickey_external/R-3.4.2/bin/Rscript CreateHmatrix.R > ErrorHMatrix.txt")
 
     mate = AlphaMate(AlphaSimDir, AlphaSimDir, roundNo+19)
     mate.prepareGender()
     mate.prepareCriterionFile()
-    gender = pd.read_table("./GENDER.txt", header=None, sep=" ")
-    print(gender.head())
-    print(os.getcwd())
-    print(str(mate.countFemaleSel()))
-    mate.prepareSpecFile("Hmatrix.txt", str(mate.countFemaleSel()), str(mate.countMaleSel()), str(mate.countFemaleSel()), degree)
-    mate.runAlphaMate()
-    Ocetje = mate.obtainSelMales()
-    shuffle(Ocetje)
+  
+    os.system("Rscript optiSel_" + str(degree) + ".R")
+    Ocetje = list(pd.read_table("Ocetje.txt", header=None).loc[:, 0])
+    #len(Ocetje)
 
     # dodaj novo generacijo
     ped.add_new_gen_naive(selPar['stNBn'], selPar['potomciNPn'] * 2)
@@ -261,9 +245,6 @@ for roundNo in range(21,41): #za vsak krog selekcije
     SpecFile.setNB(StNB)
     # pozenes ALPHASIM
     os.system(AlphaSimDir + '/AlphaSim1.08')
-    #tukaj odstrani chip2 genotype file in izračunaj heterozigotnost na nevtralnih lokusih (chip2 - chip1)
-    os.system("/exports/cmvm/eddie/eb/groups/tier2_hickey_external/R-3.4.2/bin/Rscript MeanHetChip2_NeutralMarker.R " + str(roundNo+20) + " " + str(rep) + " " + str(scenario) + " " + str(strategy))			
-    os.system("bash ChangeChip2Geno_IDs.sh") 
 
     # tukaj dodaj kategorije k PedigreeAndGeneticValues (AlphaSim File)
     PedCat = OrigPed(AlphaSimDir, WorkingDir + '/CodeDir')
