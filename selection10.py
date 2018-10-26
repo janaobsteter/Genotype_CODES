@@ -724,65 +724,57 @@ class pedigree(classPed):
                      EliteDamsPTBulls, EliteDamsGenBulls, EliteDamsPABulls, gen_mladi, gen_gpb,
                      importBool=False, importGroup=None, FatherList=None):
 
-        # OČETJE
+        # NAJPREJ BM!
+        # set fathers for offspring of contracted mating
+        bmMother = (potomciNPn * 2) if len(self.catCurrent_indiv('pBM')) >= (potomciNPn * 2) else len(
+            self.catCurrent_indiv('pBM'))  # the number of elite dams - they are the limiting factor
 
-        if not importBool:
-            mladiOce = self.catCurrent_indiv('mladi')
-            pripustOce = self.catCurrent_indiv('pripust1') + self.catCurrent_indiv('pripust2')
-            testiraniOce = list(
-                chain.from_iterable([self.catCurrent_indiv_age('pb', (2 + cak + 1 + x)) for x in range(1,
-                                                                                                       pbUp + 1)]))  # v času, ko določaš potomce, so že eno leto starjši!!!
-            gentestiraniOce = list(chain.from_iterable([self.catCurrent_indiv_age('gpb', x + 1) for x in range(1,
-                                                                                                               pbUp + 1)]))  # v času, ko določaš potomce, so že eno leto starjši!!!
-            mladiOceBest = self.catCurrent_indiv_sex_CriteriaEBV('mladi', 'M', 4)
-            cakOcetjeBest = list(
-                chain.from_iterable(
-                    [self.catCurrent_indiv_age_CriteriaEBV('cak', (2 + x), 4) for x in range(1, cak + 1)]))
-            print 'GenTest{0}'.format(str(len(gentestiraniOce)))
 
-            # Tu DOLOČI ELITO
-            # set fathers for offspring of contracted mating
-            bmMother = (potomciNPn * 2) if len(self.catCurrent_indiv('pBM')) >= (potomciNPn * 2) else len(
-                self.catCurrent_indiv('pBM'))  # the number of elite dams - they are the limiting factor
-            # for classical testing - if you already have elite bulls
-            if EliteDamsPTBulls:  # whether the elite dams are inseminated with genomicaly tested or progeny tested bulls
-                if testiraniOce:
+        mladiOce = self.catCurrent_indiv('mladi')
+        pripustOce = self.catCurrent_indiv('pripust1') + self.catCurrent_indiv('pripust2')
+        testiraniOce = list(
+            chain.from_iterable([self.catCurrent_indiv_age('pb', (2 + cak + 1 + x)) for x in range(1,
+                                                                                                   pbUp + 1)]))  # v času, ko določaš potomce, so že eno leto starjši!!!
+        gentestiraniOce = list(chain.from_iterable([self.catCurrent_indiv_age('gpb', x + 1) for x in range(1,
+                                                                                                           pbUp + 1)]))  # v času, ko določaš potomce, so že eno leto starjši!!!
+        mladiOceBest = self.catCurrent_indiv_sex_CriteriaEBV('mladi', 'M', 4)
+        cakOcetjeBest = list(
+            chain.from_iterable(
+                [self.catCurrent_indiv_age_CriteriaEBV('cak', (2 + x), 4) for x in range(1, cak + 1)]))
+        print 'GenTest{0}'.format(str(len(gentestiraniOce)))
+
+
+        # for classical testing - if you already have elite bulls
+        if EliteDamsPTBulls:  # whether the elite dams are inseminated with genomicaly tested or progeny tested bulls
+            if testiraniOce:
+                elita = np.random.choice(testiraniOce, bmMother, replace=True)
+                #       pd.Series(elita).value_counts()#preveri zastopanost po bikih
+                # naštimaj očete elite --> BM
+        if EliteDamsGenBulls:  # if with genomically tested
+            if gen_mladi:
+                genMladiOcetje = mladiOceBest + cakOcetjeBest
+                elita = np.random.choice(genMladiOcetje, bmMother, replace=True)
+            if gen_gpb:
+                if gentestiraniOce:  # if you already have genomically proven bulls
+                    elita = np.random.choice(gentestiraniOce, bmMother, replace=True)
+                else:  # otherwise inseminate with progeny tested until genomically tested become proven
                     elita = np.random.choice(testiraniOce, bmMother, replace=True)
-                    #       pd.Series(elita).value_counts()#preveri zastopanost po bikih
-                    # naštimaj očete elite --> BM
-            if EliteDamsGenBulls:  # if with genomically tested
-                if gen_mladi:
-                    genMladiOcetje = mladiOceBest + cakOcetjeBest
-                    elita = np.random.choice(genMladiOcetje, bmMother, replace=True)
-                if gen_gpb:
-                    if gentestiraniOce:  # if you already have genomically proven bulls
-                        elita = np.random.choice(gentestiraniOce, bmMother, replace=True)
-                    else:  # otherwise inseminate with progeny tested until genomically tested become proven
-                        elita = np.random.choice(testiraniOce, bmMother, replace=True)
 
-            if EliteDamsPABulls:
-                self.computePA_previousCat('potomciNP', 'M', categories)
-                selRow = list(
-                    self.ped.loc[(self.ped.cat == cat) & (self.ped.sex == sex), 'PA'].sort_values(
-                        ascending=False)[:number].index)  # katere izbereš
-                return list(self.ped.Indiv[selRow])
+        if EliteDamsPABulls:
+            self.computePA_previousCat('potomciNP', 'M', categories)
+            selRow = list(
+                self.ped.loc[(self.ped.cat == cat) & (self.ped.sex == sex), 'PA'].sort_values(
+                    ascending=False)[:number].index)  # katere izbereš
+            return list(self.ped.Indiv[selRow])
 
 
-        if importBool:
+        if importBool: #povozi si spremenljivk!
             if importGroup == "k":
-                mladiOce = self.catCurrent_indiv('mladi')
-                pripustOce = self.catCurrent_indiv('pripust1') + self.catCurrent_indiv('pripust2')
                 testiraniOce = FatherList  # v času, ko določaš potomce, so že eno leto starjši!!!
-                gentestiraniOce = list(chain.from_iterable([self.catCurrent_indiv_age('gpb', x + 1) for x in range(1,
-                                                                                                                   pbUp + 1)]))  # v času, ko določaš potomce, so že eno leto starjši!!!
-                mladiOceBest = self.catCurrent_indiv_sex_CriteriaEBV('mladi', 'M', 4)
-                cakOcetjeBest = list(
-                    chain.from_iterable(
-                        [self.catCurrent_indiv_age_CriteriaEBV('cak', (2 + x), 4) for x in range(1, cak + 1)]))
-                print 'GenTest{0}'.format(str(len(gentestiraniOce)))
 
             if importGroup == "bm":
                 elita = np.random.choice(FatherList, bmMother, replace=True)
+
 
 
         self.set_father_catPotomca(elita, 'potomciNP')
@@ -1503,9 +1495,14 @@ def selekcija_importOcetov(pedFile, externalPedName="ExternalPedigree.txt", grou
         ped = pedigree(pedFile)
 
     elif max(ped.gens()) > 1:
-        categories = ped.create_categoriesDict('Categories_gen' + str(max(ped.gens())) + 'DF.csv')
-        sex = ped.create_sexDict('Sex_gen' + str(max(ped.gens())) + 'DF.csv')
-        active = ped.create_activeDict('Active_gen' + str(max(ped.gens())) + 'DF.csv')
+        if not group:
+            categories = ped.create_categoriesDict('Categories_gen' + str(max(ped.gens())) + 'DF.csv')
+            sex = ped.create_sexDict('Sex_gen' + str(max(ped.gens())) + 'DF.csv')
+            active = ped.create_activeDict('Active_gen' + str(max(ped.gens())) + 'DF.csv')
+        if group:
+            categories = ped.create_categoriesDict('Categories_gen' + str(max(ped.gens())) + 'DF_' + str(groupNumber) + '.csv')
+            sex = ped.create_sexDict('Sex_gen' + str(max(ped.gens())) + 'DF_' + str(groupNumber) + '.csv')
+            active = ped.create_activeDict('Active_gen' + str(max(ped.gens())) + 'DF_' + str(groupNumber) + '.csv')
 
         # določi spol po AlphaSIm - ampak to ni potrebno, ker je vseskozi external pedigre
     # ped.set_sex_AlphaSim(kwargs.get('AlphaSimDir'))
@@ -1758,9 +1755,16 @@ def selekcija_importOcetov(pedFile, externalPedName="ExternalPedigree.txt", grou
 
     # ped.UpdateIndCat('/home/jana/')
     categories.clear()
-    ped.save_cat_DF()
-    ped.save_sex_DF()
-    ped.save_active_DF()
+
+    if not group:
+        ped.save_cat_DF()
+        ped.save_sex_DF()
+        ped.save_active_DF()
+    if group:
+        ped.save_cat_DF_group(groupNumber)
+        ped.save_sex_DF_group(groupNumber)
+        ped.save_active_DF_group(groupNumber)
+
     if kwargs.get('gEBV'):
         if kwargs.get('UpdateGenRef'):
             ped.updateAndSaveIndForGeno(kwargs.get('genotyped'), kwargs.get('NbUpdatedGen'),
@@ -2082,8 +2086,8 @@ def joinExternalPeds(extPeds, AlphaSimDir): #extPeds are only roots of the names
     for extPed in extPeds:
         mergedPed = mergedPed.append(pd.read_csv(AlphaSimDir + "/" + extPed + ".txt", header=None))
         mergedPedT = mergedPedT.append(pd.read_csv(AlphaSimDir + "/" + extPed + "Total.txt"))
-    mergedPed.to_csv(AlphaSimDir + "/" + "ExternalPedigree.txt", header=None)
-    mergedPedT.to_csv(AlphaSimDir + "/" + "ExternalPedigreeTotal.txt")
+    mergedPed.sort_values(by=0).to_csv(AlphaSimDir + "/" + "ExternalPedigree.txt", header=None, index=None)
+    mergedPedT.sort_values(by="Indiv").to_csv(AlphaSimDir + "/" + "ExternalPedigreeTotal.txt", index=None)
 
 def record_groups(groups, splitfile):
     split = pd.read_csv(splitfile)

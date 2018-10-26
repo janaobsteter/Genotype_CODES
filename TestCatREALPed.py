@@ -130,7 +130,7 @@ os.system("Rscript /home/jana/Genotipi/Genotipi_CODES/Combine_PedTotals.R")
 joinExternalPeds(["ExternalPedigreehome", "ExternalPedigreeimport"], AlphaSimDir)
 record_groups(["home", "import"], "PopulationSplit.txt")
 
-krogov = 3
+krogov = 2
 for krog in range(krogov): #ponavljaj kolikor krogov selekcije hočeš
     splitGenPed("PopulationSplit.txt")
     pedH, cH, sH, aH = selekcija_total('GenPed_EBVhome.txt', externalPedName = "ExternalPedigreehome", group=True, groupNumber=0, noGroups=2,  **selParhome)
@@ -151,7 +151,7 @@ for krog in range(krogov): #ponavljaj kolikor krogov selekcije hočeš
         Oce_import = pedI.izberi_ocete_gen(selParimport["pbUp"])  # tukaj so genomsko testirani očetje
 
     #odberi starše domače populacije
-    pedH, cH, sH, aH = selekcija_importOcetov('GenPed_EBVhome.txt', externalPedName="ExternalPedigreehome", group=True, groupNumber=0,
+    pedH, cH, sH, aH = selekcija_importOcetov('GenPed_EBVhome.txt', externalPedName="ExternalPedigreehome", group=True, groupNumber=0, noGroups=2,
                                               importBool=True, importGroup="bm", FatherList=Oce_import, **selParhome)
 
 
