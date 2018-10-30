@@ -91,7 +91,7 @@ if selParimport['gEBV']:
 
 IndCat = pd.DataFrame()
 ped0, c0, s0, a0 = nastavi_cat_TGV("/home/jana/bin/AlphaMateLinux/OCSSloPop/GenPed_EBV.txt", **selParhome)
-ped0, c0, s0, a0 = selekcija_total("/home/jana/bin/AlphaMateLinux/OCSSloPop/GenPed_EBV.txt", **selPar)
+ped0, c0, s0, a0 = selekcija_total("/home/jana//GenPed_EBV.txt", **selPar)
 
 inds = ped0.catCurrent_indiv('')
 Cats = []
@@ -152,8 +152,10 @@ for krog in range(krogov): #ponavljaj kolikor krogov selekcije hočeš
 
     #odberi starše domače populacije
     pedH, cH, sH, aH = selekcija_importOcetov('GenPed_EBVhome.txt', externalPedName="ExternalPedigreehome", group=True, groupNumber=0, noGroups=2,
-                                              importBool=True, importGroup="bm", FatherList=Oce_import, **selParhome)
-
+                                           importBool=True, importGroup="bm", FatherList=Oce_import, **selParhome)
+    pedH.write_pedTotal("/home/jana/PedTotalhome.txt")
+    pedI.write_pedTotal("/home/jana/PedTotalimport.txt")
+    os.system("Rscript /home/jana/Genotipi/Genotipi_CODES/Combine_PedTotals.R")
 
     joinExternalPeds(["ExternalPedigreehome", "ExternalPedigreeimport"], AlphaSimDir)
     record_groups(["home", "import"], "PopulationSplit.txt")

@@ -195,18 +195,17 @@ for roundNo in range(21,41): #za vsak krog selekcije
     splitGenPed("PopulationSplit.txt")
     #tukaj izvedi celotno selekcijo v tuji populaciji --> naknadno shrani še očete z izberi_ocete_PT
     #v domači odberi in nastavi matere --> očete (za bm) uvoziš
-    pedI, cI, sI, aI = selekcija_total_TGV('GenPed_EBVimport.txt', externalPedName="ExternalPedigreeimport", group=True, groupNumber=1,
-                        **selParimport)
+    pedI, cI, sI, aI = selekcija_total_TGV('GenPed_EBVimport.txt', externalPedName="ExternalPedigreeimport", group=True,
+                                           groupNumber=1, noGroups=2, **selParimport)
     if selParimport['EBV']:
         Oce_import = pedI.izberi_ocete_PT(selParimport["pbUp"]) #tukaj so PT testirani očetje
     if selParimport['gEBV']:
         Oce_import = pedI.izberi_ocete_gen(selParimport["pbUp"])  # tukaj so genomsko testirani očetje
 
     #odberi starše domače populacije
-    pedH, cH, sH, aH = selekcija_importOcetov('GenPed_EBVhome.txt', externalPedName="ExternalPedigreehome", group=True, groupNumber=0,
+    pedH, cH, sH, aH = selekcija_importOcetov('GenPed_EBVhome.txt', externalPedName="ExternalPedigreehome", group=True,
+                                              groupNumber=0, noGroups=2,
                                               importBool=True, importGroup="bm", FatherList=Oce_import, **selParhome)
-
-
     joinExternalPeds(["ExternalPedigreehome", "ExternalPedigreeimport"], AlphaSimDir)
     record_groups(["home", "import"], "PopulationSplit.txt")
 

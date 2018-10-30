@@ -2236,14 +2236,9 @@ def odberi_testOce_gen(ped, **kwargs):
         ped = pedigree(pedFile)
 
     elif max(ped.gens()) > 1:
-        if not group:
-            categories = ped.create_categoriesDict('Categories_gen' + str(max(ped.gens())) + 'DF.csv')
-            sex = ped.create_sexDict('Sex_gen' + str(max(ped.gens())) + 'DF.csv')
-            active = ped.create_activeDict('Active_gen' + str(max(ped.gens())) + 'DF.csv')
-        if group:
-            categories = ped.create_categoriesDict('Categories_gen' + str(max(ped.gens())) + 'DF_' + str(groupNumber) + '.csv')
-            sex = ped.create_sexDict('Sex_gen' + str(max(ped.gens())) + 'DF_' + str(groupNumber) + '.csv')
-            active = ped.create_activeDict('Active_gen' + str(max(ped.gens())) + 'DF_' + str(groupNumber) + '.csv')
+        categories = ped.create_categoriesDict('Categories_gen' + str(max(ped.gens())) + 'DF.csv')
+        sex = ped.create_sexDict('Sex_gen' + str(max(ped.gens())) + 'DF.csv')
+        active = ped.create_activeDict('Active_gen' + str(max(ped.gens())) + 'DF.csv')
 
     #################################################################
     # MALES
@@ -2332,16 +2327,11 @@ def odberi_testOce_gen(ped, **kwargs):
 
     print ped.cat()
     print ped.cat()
-    return (ped, (ped.catCurrent_indiv('kandidati'),
-                  ped.izberi_ocete_gen(kwargs.get('stNBn'), kwargs.get('potomciNPn'), kwargs.get('cak'), kwargs.get('pbUp'),
-                                   kwargs.get('pripustDoz'), kwargs.get('mladiDoz'), kwargs.get('pozitivnoTestDoz'),
-                                   kwargs.get('CowsGenBulls_Per'), kwargs.get('EliteDamsPTBulls'),
-                                   kwargs.get('EliteDamsGenBulls'), kwargs.get('EliteDamsPABulls'),
-                                   kwargs.get('genTest_mladi'), kwargs.get('genTest_gpb'))))
+    return (ped, (ped.catCurrent_indiv('kandidati'), ped.izberi_ocete_gen(kwargs.get('pbUp'))))
 
-def odberiStarse_OCSgen(pedigree_genEBV, AlphaRelateDir, sampleFemale=False, samplePercentage=100.0, **selPar):
+def odberiStarse_OCSgen(pedigree_genEBV, AlphaRelateDir, sampleFemale=False, samplePercentage=100.0, **kwargs):
     # tukaj odberi metere
-    ped, (bm, motherOther) = odbira_mater(pedigree_genEBV, **selPar)
+    ped, (bm, motherOther) = odbira_mater(pedigree_genEBV, **kwargs)
     # tukaj odberi random sample krav
     if sampleFemale:
         females = random.sample(motherOther, int(len(motherOther) * samplePercentage)) + random.sample(bm, int(len(bm) * samplePercentage))
@@ -2349,7 +2339,7 @@ def odberiStarse_OCSgen(pedigree_genEBV, AlphaRelateDir, sampleFemale=False, sam
         females = motherOther + bm
 
     #tukaj odberi očete - kandidati so drugačni v prvem letu (mladi + vhlevljeni + čakajoči), kasneje pa so to genTest
-    ped, (kandidati, (genOce)) = odberi_testOce_gen(ped, **selPar)
+    ped, (kandidati, (genOce)) = odberi_testOce_gen(ped, **kwargs)
 
     pd.DataFrame({"ID": list(females) + list(kandidati) + list(genOce)}).to_csv(AlphaRelateDir + "/IndOpt.txt", index=None, header=None)
 
