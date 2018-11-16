@@ -772,7 +772,7 @@ class pedigree(classPed):
             if importGroup == "k":
                 testiraniOce = FatherList  # v času, ko določaš potomce, so že eno leto starjši!!!
 
-            if importGroup == "bm":
+            elif importGroup == "bm":
                 elita = np.random.choice(FatherList, bmMother, replace=True)
 
 

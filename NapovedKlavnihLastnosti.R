@@ -17,13 +17,12 @@ dat$K_L_ZAKOLA <- paste(dat$KLAVNICA, dat$L_ZAKOLA, sep="_")
 
 
 datModel <- dat[,c("ZIV_ID_SEQ", "CREDA", "TOPLA_MASA", "K_L_ZAKOLA", "M_ZAKOLA", "STAROST", "SPOL")]
-datModel$STAROST <- datModel$STAROST^2
+datModel$STAROST2 <- datModel$STAROST^2
 hist(datModel$STAROST)
 table(datModel$SPOL)
 summary(datModel$CREDA)
 summary(datModel$ZIV_ID_SEQ)
 hist(datModel$M_ZAKOLA)
-hist(datModel$INT_RASTI)
 table(datModel$K_L_ZAKOLA)
 
 ped <- read.table("~/Documents/NapovedPV_Klavne/ped_ft_LS_05_17.txt", header=FALSE)

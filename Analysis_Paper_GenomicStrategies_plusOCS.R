@@ -422,7 +422,7 @@ SD[SD$Strategy=="SU55",]
 SD[SD$Strategy=="SU15",]
 SD[SD$Strategy=="SU51",]
 SD$percentage[SD$Strategy=="SU51"] - SD$percentage[SD$Strategy=="SU55"]
-write.csv(SD, "~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results//StandardDeviation_GeneticGain_gen60_19072018.csv", quote=FALSE)
+write.csv(SD, "~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results//StandardDeviation_GeneticGain_gen60_2018.csv", quote=FALSE)
 
 
 

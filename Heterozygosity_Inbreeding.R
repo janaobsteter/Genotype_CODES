@@ -7,19 +7,33 @@ library(reshape2)
 #generacije 1 - 20 so generacije 40 - 60
 #Heterozygosity na QTNih
 hetQTN <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/MeanHet_QTNsALL_14082018.csv")[, -1]
-colnames(hetQTN) <- c("Strategy",  "Scenario", "Rep", "Gen", "Het")
-hetQTN$Marker <- "QTN"
+# colnames(hetQTN) <-  c("Strategy",  "Scenario", "Rep", "Gen", "Het")
+# hetQTN$Marker <- "QTN"
+# nQTN <- 10000
+# nAnim <- 8640
+# hetQTN$HetCorr <- hetQTN$Het *  nQTN / nAnim
+# write.csv(hetQTN, "~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/MeanHet_QTNsALL_14082018.csv", quote=FALSE, row.names=FALSE)
+
+#popravi vrednosti!!!! NAREDILA SI VSOTO HETEROZIGOTNOST PO ZIVALI (apply - 2), NATO PA DELILA S ŠTEVILOM QTNom!!!
+
 
 #Heterozygosity na nevtralnih lokusih
 hetNTR <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/MeanHet_NeutralALL_14082018.csv")
-colnames(hetNTR) <-  c("Strategy",  "Scenario", "Rep", "Gen", "Het")
-hetNTR$Marker  <- "NTR"
+# colnames(hetNTR) <-   c("Strategy",  "Scenario", "Rep", "Gen", "Het", "Marker", "HetCorr")
+# hetNTR$Marker  <- "NTR"
+# nNeutral <- 20000
+# nAnim <- 8640
+# hetNTR$HetCorr <- hetNTR$Het *  nNeutral / nAnim
+# write.csv(hetNTR, "~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/MeanHet_NeutralALL_14082018.csv", quote=FALSE, row.names=FALSE)
 
 #Heterozygosity na markerjih
 hetM <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/MeanHet_MarkerALL_14082018.csv")
-colnames(hetM) <-  c("Strategy",  "Scenario", "Rep", "Gen", "Het")
-hetM$Marker  <- "M"
-
+# colnames(hetM) <-  c("Strategy",  "Scenario", "Rep", "Gen", "Het", "Marker", "HetCorr")
+# hetM$Marker  <- "M"
+# nMarker <- 20000
+# nAnim <- 8640
+# hetM$HetCorr <- hetM$Het *  nMarker / nAnim
+# write.csv(hetM, "~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/MeanHet_MarkerALL_14082018.csv", quote=FALSE, row.names=FALSE)
 
 #združi podatke o heterozigotnost na QTNih in nevtralnih mestih
 hetDF <- rbind(hetQTN, hetNTR)
@@ -66,11 +80,11 @@ for (strategy in c("SU55", "SU15", "SU51")) {
   for (scenario in c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen")) {
     for (rep in 0:19) {
       for (marker in c( "QTN", "NTR", "M")) {
-        print(c(strategy, scenario, rep, marker))
+        #print(c(strategy, scenario, rep, marker))
         tmp <- hetDF [(hetDF$Strategy==strategy) & (hetDF$Scenario==scenario) & (hetDF$Rep==rep) & (hetDF$Marker==marker),]
         if (nrow(tmp) > 1) {
   
-          tmp$y1 = log(tmp$Het)
+          tmp$y1 = log(tmp$HetCorr)
           fit1 = MASS:::rlm(tmp$y1 ~ tmp$Gen, maxit=2000)
           dF <-  1 - exp(coef(fit1)[2])
           Ne <-  1 / (2 * dF)
@@ -89,6 +103,33 @@ dF_DF <- dF_DF[-1,]
 dF_DF$dF <- as.numeric(dF_DF$dF )
 dF_DF$Ne <- as.numeric(dF_DF$Ne)
 dF_DF <- dF_DF[dF_DF$Ne > 0,]
+
+
+
+HET <- data.frame()
+for (strategy in c("SU55", "SU51", "SU15")) {
+  for (scenario in c("Class", "GenSLO", "OtherCowsGen", "BmGen", "Gen")) {
+    for (marker in c("NTR", "M", "QTN")) {
+      for (rep in 0:19) {
+        #genetic gain
+        base <- dF_DF$Ne[dF_DF$Scenario=="Class" & dF_DF$Strategy=="SU55" & dF_DF$Marker==marker & dF_DF$Rep==rep]
+        het <- dF_DF[dF_DF$Scenario==scenario & dF_DF$Strategy==strategy & dF_DF$Marker==marker & dF_DF$Rep==rep,]
+        het$per_het <- het$Ne / base
+        
+        HET <- rbind(HET, het)
+      }
+    }
+  }
+}
+
+HET$per_het <- (1-HET$per_het)*100
+HETa <- summarySE(HET, measurevar="per_het", groupvars=c("Strategy", "Scenario", "Marker"))[,c(1,2,3,5,6)]
+colnames(HETa) <- c("Strategy", "Scenario", "Marker", "per_het", "per_hetSD")
+HETa$per_het <- round(HETa$per_het)
+HETa$per_hetSD <- round(HETa$per_hetSD)
+
+
+dF_DF <- dF_DF
 #dF_DF <- dF_DF[-which((dF_DF$Marker=="NTR") & (dF_DF$Strategy=="10K_Ref_20Rep") & (dF_DF$Scenario=="Gen") & (dF_DF$Rep==6)),]
 #dF_DF <- dF_DF[-which((dF_DF$Marker=="NTR") & (dF_DF$Strategy=="10K_Ref_20Rep") & (dF_DF$Scenario=="Gen") & (dF_DF$Rep==13)),]
 dF_DFa <- aggregate(dF_DF$Ne ~ dF_DF$Strategy + dF_DF$Scenario + dF_DF$Marker, FUN="mean")

@@ -183,10 +183,38 @@ for (row in 1:nrow(MeanAverage)) {
                                         (TGVsAll$strategy == MeanAverage$Strategy[row])])
 }
 
+#standard deviations
 MeanAverageSD <- aggregate(TGVsAll$SDSt ~  TGVsAll$strategy + TGVsAll$scenario + TGVsAll$Generation, FUN="mean")
 MeanAverageSDGenic <- aggregate(TGVsAll$SDGenicSt ~  TGVsAll$strategy + TGVsAll$scenario + TGVsAll$Generation, FUN="mean")
-colnames(MeanAverageSD) <- c("Strategy", "scenario", "Generation", "SdTGV")
-colnames(MeanAverageSDGenic) <- c("Strategy", "scenario", "Generation", "SdGenic")
+MeanAverageSDsd <- aggregate(TGVsAll$SDSt ~  TGVsAll$strategy + TGVsAll$scenario + TGVsAll$Generation, FUN="sd")
+MeanAverageSDGenicsd <- aggregate(TGVsAll$SDGenicSt ~  TGVsAll$strategy + TGVsAll$scenario + TGVsAll$Generation, FUN="sd")
+
+colnames(MeanAverageSD) <- c("Strategy", "scenario", "Generation", "GeneticSD")
+colnames(MeanAverageSDGenic) <- c("Strategy", "scenario", "Generation", "GenicSD")
+colnames(MeanAverageSDsd) <- c("Strategy", "scenario", "Generation", "GeneticSD_SD")
+colnames(MeanAverageSDGenicsd) <- c("Strategy", "scenario", "Generation", "GenicSD_SD")
+
+GeneticSD <- merge(MeanAverageSD,MeanAverageSDsd, by=c("Strategy", "scenario", "Generation"))
+GenicSD <- merge(MeanAverageSDGenic,MeanAverageSDGenicsd, by=c("Strategy", "scenario", "Generation"))
+StandardDeviation <- merge(GeneticSD, GenicSD, by=c("Strategy", "scenario", "Generation"))
+
+TGVsAll <- TGVsAll1
+#variances
+MeanAverageVARGenetic <- aggregate(TGVsAll$GeneticVarSt ~  TGVsAll$strategy + TGVsAll$scenario + TGVsAll$Generation, FUN="mean")
+MeanAverageVARGeneticSD <- aggregate(TGVsAll$GeneticVarSt ~  TGVsAll$strategy + TGVsAll$scenario + TGVsAll$Generation, FUN="sd")
+MeanAverageVARGenic <- aggregate(TGVsAll$GenicVarSt ~  TGVsAll$strategy + TGVsAll$scenario + TGVsAll$Generation, FUN="mean")
+MeanAverageVARGenicSD <- aggregate(TGVsAll$GenicVarSt ~  TGVsAll$strategy + TGVsAll$scenario + TGVsAll$Generation, FUN="sd")
+
+colnames(MeanAverageVARGenetic) <- c("Strategy", "scenario", "Generation", "GeneticVAR")
+colnames(MeanAverageVARGeneticSD) <- c("Strategy", "scenario", "Generation", "GeneticVAR_SD")
+colnames(MeanAverageVARGenic) <- c("Strategy", "scenario", "Generation", "GenicVAR")
+colnames(MeanAverageVARGenicSD) <- c("Strategy", "scenario", "Generation", "GenicVAR_SD")
+
+
+GeneticVar <- merge(MeanAverageVARGenetic,MeanAverageVARGeneticSD, by=c("Strategy", "scenario", "Generation"))
+GenicVar <- merge(MeanAverageVARGenic,MeanAverageVARGenicSD, by=c("Strategy", "scenario", "Generation"))
+Variance <- merge(GeneticVar, GenicVar, by=c("Strategy", "scenario", "Generation"))
+
 
 #genetic gain
 library(lme4)
@@ -241,7 +269,7 @@ regRep <- data.frame(Rep=NA, Intercept=NA, Slope=NA, Scenario=NA, Strategy=NA)
 for (str in c("SU55", "SU51", "SU15")) {
   for (sc in c("Class", "GenSLO", "OtherCowsGen", "BmGen", "Gen")) {
     df <-  TGVsAll[(TGVsAll$scenario==sc) & (TGVsAll$strategy==str),]
-    fm1 <- lmList(zMeanGenic ~ SDGenicStNeg | Rep, data=df)
+    fm1 <- lmList(zMeanGenic ~ SDGenicStNeg | Rep, data=df, pool = TRUE)
     tmp <- data.frame(Rep=rownames(coef(fm1)),coef(fm1),check.names=FALSE)
     colnames(tmp) <- c("Rep", "Intercept", "Slope")
     tmp$Scenario <- sc
@@ -386,20 +414,86 @@ ggplot() +
 #standard deviations of the measures
 #genetic gain in gen 60
 TGV60 <- TGVsAll[TGVsAll$Generation==60,]
-Mean60 <- aggregate(TGV60$zMean ~ TGV60$strategy + TGV60$scenario + TGV60$Rep, FUN="mean")
-colnames(Mean60) <- c("Strategy", "Scenario", "Rep", "MeanTGV")
-MEAN60 <- aggregate(Mean60$MeanTGV ~Mean60$Strategy + Mean60$Scenario, FUN="mean")
-Sd60 <- aggregate(Mean60$MeanTGV ~Mean60$Strategy + Mean60$Scenario, FUN="sd")
-colnames(Sd60) <- c("Strategy", "Scenario", "SdTGV")
-colnames(MEAN60) <- c("Strategy", "Scenario", "MeanTGV")
+tgv60 <- data.frame()
+EFF <- data.frame()
+for (strategy in c("SU55", "SU51", "SU15")) {
+  for (scenario in c("Class", "GenSLO", "OtherCowsGen", "BmGen", "Gen")) {
+    for (rep in 0:19) {
+      #genetic gain
+      base <- TGV60$zMean[TGV60$scenario=="Class" & TGV60$Strategy=="SU55" & TGV60$Rep==rep]
+      tgv <- TGV60[TGV60$scenario==scenario & TGV60$Strategy==strategy & TGV60$Rep==rep,]
+      tgv$per_zMean <- tgv$zMean / base
+      
+      #genic variance
+      base <- TGV60$GenicVarSt[TGV60$scenario=="Class" & TGV60$Strategy=="SU55" & TGV60$Rep==rep]
+      tgv$per_GenicVar <- (tgv$GenicVarSt / base)
+      
+      #genetic variance
+      base <- TGV60$GeneticVarSt[TGV60$scenario=="Class" & TGV60$Strategy=="SU55" & TGV60$Rep==rep]
+      tgv$per_GeneticVar <- (tgv$GeneticVarSt / base)      
+      
+      effBase <- regRep$Slope[regRep$Scenario=="Class"  & regRep$Strategy=="SU55" & regRep$Rep==rep]
+      eff <- regRep[regRep$Scenario==scenario & regRep$Strategy==strategy & regRep$Rep==rep,]
+      eff$per_Eff <- (eff$Slope / effBase)
+      
+      tgv60 <- rbind(tgv60, tgv)
+      EFF <- rbind(EFF, eff)
+    }
+  }
+}
+TGV60 <- tgv60
 
-SD <- merge(MEAN60, Sd60, by=c("Strategy", "Scenario")) 
-SD$percentage <- round(SD$MeanTGV / SD$MeanTGV[SD$Strategy=="SU55" & SD$Scenario=="Class"]*100,0)
-SD[SD$Strategy=="SU55",]
-SD[SD$Strategy=="SU15",]
-SD[SD$Strategy=="SU51",]
-SD$percentage[SD$Strategy=="SU51"] - SD$percentage[SD$Strategy=="SU55"]
-write.csv(SD, "~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results//StandardDeviation_GeneticGain_gen60_19072018.csv", quote=FALSE)
+TGV60$per_zMean <- TGV60$per_zMean*100 - 100 #tukaj ma osnoven scenarij 100: zato odštej 100
+TGV60$per_GenicVar <- (1 - TGV60$per_GenicVar)*100 #tukaj ma osnoven scenarij 0
+TGV60$per_GeneticVar <- (1-TGV60$per_GeneticVar)*100
+EFF$per_Eff <-  EFF$per_Eff * 100 -100
+
+#genetic gain
+MEAN60_abs <- summarySE(TGV60, measurevar="zMean", groupvars=c("Strategy", "scenario"))[,c(1,2,4,5)]
+MEAN60 <- summarySE(TGV60, measurevar="per_zMean", groupvars=c("Strategy", "scenario"))[,c(1,2,4,5)]
+colnames(MEAN60_abs) <- c("Strategy", "Scenario", "zMean", "zMeanSD")
+colnames(MEAN60) <- c("Strategy", "Scenario", "per_zMean", "per_zMeanSD")
+MEAN60$per_zMean <- round(MEAN60$per_zMean)
+MEAN60$per_zMeanSD <- round(MEAN60$per_zMeanSD)
+head(MEAN60)
+
+
+#genetic variance
+VAR60a <- summarySE(TGV60, measurevar="per_GeneticVar", groupvars=c("Strategy", "scenario"))[,c(1,2,4,5)]
+colnames(VAR60a) <- c("Strategy", "Scenario", "per_GeneticVar", "per_GeneticVarSD")
+VAR60a$per_GeneticVar <- round(VAR60a$per_GeneticVar, 3)
+VAR60a$per_GeneticVarSD <- round(VAR60a$per_GeneticVarSD, 3)
+
+MEAN60 <- merge(MEAN60, VAR60a, by=c("Strategy", "Scenario"))
+
+#genic variance
+VAR60b <- summarySE(TGV60, measurevar="per_GenicVar", groupvars=c("Strategy", "scenario"))[,c(1,2,4,5)]
+colnames(VAR60b) <- c("Strategy", "Scenario", "per_GenicVar", "per_GenicVarSD")
+VAR60b$per_GenicVar <- round(VAR60b$per_GenicVar, 3)
+VAR60b$per_GenicVarSD <- round(VAR60b$per_GenicVarSD, 3)
+
+MEAN60 <- merge(MEAN60, VAR60b, by=c("Strategy", "Scenario"))
+
+
+#efficiency
+eff <- summarySE(EFF, measurevar="per_Eff", groupvars=c("Strategy", "Scenario"))[,c(1,2,4,5)]
+colnames(eff) <- c("Strategy", "Scenario", "per_Eff", "per_EffSD")
+eff$per_Eff <- round(eff$per_Eff)
+eff$per_EffSD <- round(eff$per_EffSD)
+
+MEAN60 <- merge(MEAN60, eff, by=c("Strategy", "Scenario"))
+
+#for displaying
+MEAN60$Strategy <- factor(MEAN60$Strategy, levels =c("SU55", "SU51", "SU15"))
+MEAN60$Scenario <- factor(MEAN60$Scenario, levels =c("Class", "GenSLO", "OtherCowsGen", "BmGen", "Gen"))
+MEAN60[order(MEAN60$Strategy, MEAN60$Scenario),]
+
+MEAN60[MEAN60$Strategy=="SU55",]
+MEAN60[MEAN60$Strategy=="SU15",]
+MEAN60[MEAN60$Strategy=="SU51",]
+MEAN60$per_zMean[MEAN60$Strategy=="SU51"] - MEAN60$per_zMean[MEAN60$Strategy=="SU55"]
+MEAN60$per_zMean[MEAN60$Strategy=="SU15"] - MEAN60$per_zMean[MEAN60$Strategy=="SU55"]
+write.csv(MEAN60, "~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results//StandardDeviation_GeneticGain_gen60_16112018.csv", quote=FALSE)
 
 
 

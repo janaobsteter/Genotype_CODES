@@ -4,6 +4,7 @@ gi <- gi[gi$Gen %in% 40:60,]
 gi$genInt <- as.numeric(as.character(gi$genInt))
 
 giA <- aggregate(gi$genInt ~ gi$LINE + gi$scenario + gi$strategy, FUN="mean")
+giA[giA$`gi$LINE`=="sireF",]
 giAS <- aggregate(giA$`gi$genInt` ~ giA$`gi$scenario` + giA$`gi$strategy`, FUN="sum")
 colnames(giAS) <- c("Scenario", "Strategy", "genInt")
 
