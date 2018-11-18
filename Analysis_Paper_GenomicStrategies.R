@@ -38,10 +38,13 @@ sd(acc$corEBV[acc$Strategy=="SU55"], na.rm=TRUE)
 sd(acc$corEBV[acc$Strategy=="SU51"], na.rm=TRUE)
 ######################################################################################################
 ######################################################################################################
-######################################################################################################
+######################################################################################################""
+setwd("/home/jana/Documents/Projects/inProgress/GenomicStrategies_SireUSe/")
+
 #TGVsAll <- read.csv("~/TGVSALL_11062018.csv")
 TGVsAll <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/TGVSALL_14082018.csv")
-TGVsOCS <- read.csv("~/TGVsAll_OCS_10102018.csv")
+TGVsAll <- read.csv("TGVSALL_14082018.csv")
+#TGVsOCS <- read.csv("~/TGVsAll_OCS_10102018.csv")
 #TGVsAll <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_ReferenceSize//Results/TGVSALL_22082018.csv")
 TGVsAll$strategy <-TGVsAll$Strategy
 #TGVsAll$strategy <- NA
@@ -77,6 +80,7 @@ Averages <- merge(Averages, Averages8, by=c( "strategy","scenario", "Generation"
 
 
 write.csv(Averages[Averages$Generation==60,], "~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results//Averages_3strategies_14082018.csv", quote=FALSE)
+write.csv(Averages[Averages$Generation==60,], "Averages_3strategies_14082018.csv", quote=FALSE)
 #AveragesA <- Averages
 #to je max min za gensko varianco standardizirano
 maxmin <- data.frame(strategy=NA, scenario=NA, minGenicSD=NA, maxGenicSD=NA, minTGV=NA, maxTGV=NA)
