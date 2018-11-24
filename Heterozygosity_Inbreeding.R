@@ -128,6 +128,11 @@ colnames(HETa) <- c("Strategy", "Scenario", "Marker", "per_het", "per_hetSD")
 HETa$per_het <- round(HETa$per_het)
 HETa$per_hetSD <- round(HETa$per_hetSD)
 
+HETa$Strategy <- factor(HETa$Strategy, levels =c("SU55", "SU51", "SU15"))
+HETa$Scenario <- factor(HETa$Scenario, levels =c("Class", "GenSLO", "OtherCowsGen", "BmGen", "Gen"))
+HETa$Marker <- factor(HETa$Marker, levels =c("NTR", "M", "QTN"))
+HETa[order(HETa$Marker, HETa$Strategy, HETa$Scenario),]
+
 
 dF_DF <- dF_DF
 #dF_DF <- dF_DF[-which((dF_DF$Marker=="NTR") & (dF_DF$Strategy=="10K_Ref_20Rep") & (dF_DF$Scenario=="Gen") & (dF_DF$Rep==6)),]
@@ -299,7 +304,7 @@ ggplot(data=compareF_str, aes(x=Generation, y=F, group=method, fill=method, colo
 '
 
 ##primerjaj z rodovniškim - Ne in deltaF
-pedInb <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results//NEs_deltaFs_23072018.csv")
+pedInb <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results//NEs_deltaFs_14082018.csv")
 HetInb$Scenario <- as.factor(HetInb$Scenario)
 levels(HetInb$Scenario)
 levels(HetInb$Scenario) <- c("GS-BD", "PT", "GS", "GS-PS", "GS-C")

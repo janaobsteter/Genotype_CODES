@@ -53,7 +53,31 @@ ScenarioDF$Interval <- as.numeric(ScenarioDF$Interval)
 ScenarioDF$Interval1 <- paste(ScenarioDF$Interval, ScenarioDF$Interval+19, sep=":")
 ScenarioDF$Interval1 <- as.factor(ScenarioDF$Interval1)
 
+#to je izračun procenta razlike od PT SU 5/5
+Scenario60 <- ScenarioDF[ScenarioDF$Interval==41,]
+INB <- data.frame()
+for (strategy in c("SU55", "SU51", "SU15")) {
+  for (scenario in c("Class", "GenSLO", "OtherCowsGen", "BmGen", "Gen")) {
+    for (rep in 0:19) {
+        #genetic gain
+        base <- Scenario60$Ne[Scenario60$Scenario=="Class" & Scenario60$Strategy=="SU55"  & Scenario60$Rep==rep]
+        inb <- Scenario60[Scenario60$Scenario==scenario & Scenario60$Strategy==strategy & Scenario60$Rep==rep,]
+        inb$per_inb <- inb$Ne / base
+        
+        INB <- rbind( INB, inb)
+    }
+  }
+}
 
+INB$per_inb <- (INB$per_inb)*100 - 100
+INBa <- summarySE(INB, measurevar="per_inb", groupvars=c("Strategy", "Scenario"))[,c(1,2,4,5)]
+colnames(INBa) <- c("Strategy", "Scenario", "per_inb", "per_inbSD")
+INBa$per_inb <- round(INBa$per_inb)
+INBa$per_inbSD <- round(INBa$per_inbSD)
+
+INBa$Strategy <- factor(INBa$Strategy, levels =c("SU55", "SU51", "SU15"))
+INBa$Scenario <- factor(INBa$Scenario, levels =c("Class", "GenSLO", "OtherCowsGen", "BmGen", "Gen"))
+INBa[order(INBa$Strategy, INBa$Scenario),]
 
 ScenarioDF$Ne <- as.numeric(ScenarioDF$Ne)
 ScenarioDFA <- unique(aggregate(ScenarioDF$Ne ~ ScenarioDF$Interval1 + ScenarioDF$Scenario + ScenarioDF$Strategy, FUN="mean"))

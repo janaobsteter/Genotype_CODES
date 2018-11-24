@@ -347,9 +347,63 @@ summary(lm(Slope~Scenario,data=regRep1))
 library(emmeans)
 TGV60$scenario <- as.factor(TGV60$scenario)
 TGV60$Strategy <- as.factor(TGV60$Strategy)
+TGV60$tr <- paste(TGV60$Strategy, TGV60$scenario, sep="_")
+TGV60$tr <- as.factor(TGV60$tr)
 TGV601 <- within(TGV60, scenario <- relevel(scenario, ref = "Class"))
-m1 <- lm(zMean~scenario,data=TGV601[TGV601$Strategy=="SU55",])
-m1 <- lm(zMean~Strategy,data=TGV601[TGV601$scenario=="Class",])
+
+dataS = TGV60[TGV60$Strategy=="SU55",]
+dataS$Strategy <- as.factor(dataS$Strategy)
+dataS$scenario <- as.factor(dataS$scenario)
+m1 <- lm(TGV60$zMean ~ TGV60$tr)
+m1 <- lm(zMean ~ scenario + Strategy, data=TGV60)
+K1 <- glht(m1, mcp(scenario = "Tukey"))$linfct
+K2 <- glht(m1, mcp(Strategy = "Tukey"))$linfct
+summary(glht(m1, linfct = rbind(K1, K2)))
+
+a1 <- aov(zMean ~ scenario, data=dataS)
+posthoc <- TukeyHSD(x=a1, 'scenario', conf.level=0.95)
+posthoc
+posthoc <- TukeyHSD(x=a1, 'TGV601$Strategy', conf.level=0.95)
+
+
+model <- lm(zMean ~ scenario + Strategy + scenario : Strategy, data=TGV60)
+library(car)
+Anova(model,type = "II")
+x = residuals(model)
+plotNormalHistogram(x)
+library(multcompView)
+library(lsmeans)
+marginal = lsmeans(model, ~ Strategy)
+
+
+a1 <- aov(m1)
+dht <- glht(a1, linfct = mcp(Strategy = "Tukey"))
+confint(dht)
+summary(dht, test = adjusted("Shaffer"))
+
+### same as TukeyHSD
+TukeyHSD(amod, "scenario:Strategy")
+### set up linear hypotheses for all-pairs of both factors
+
+
+tmp <- expand.grid(Strategy = unique(TGV60$Strategy),
+                   scenario = unique(TGV60$scenario))
+X <- model.matrix(~ scenario * Strategy, data = tmp)
+glht(m1, linfct = X)
+
+Tukey <- contrMat(table(TGV60$Strategy), "Tukey")
+K1 <- cbind(Tukey, matrix(0, nrow = nrow(Tukey), ncol = ncol(Tukey)))
+rownames(K1) <- paste(levels(TGV60$Strategy)[1], rownames(K1), sep = ":")
+K2 <- cbind(matrix(0, nrow = nrow(Tukey), ncol = ncol(Tukey)), Tukey)
+rownames(K2) <- paste(levels(TGV60$scenario)[2], rownames(K2), sep = ":")
+K <- rbind(K1, K2)
+colnames(K) <- c(colnames(Tukey), colnames(Tukey))
+summary(glht(m1, linfct = K %*% X))
+
+
+library(agricolae)
+print(HSD.test(m1, 'TGV601$Strategy'))
+#m1 <- lm(zMean~Strategy,data=TGV601[TGV601$scenario=="Class",])
 m1.grid <- ref_grid(m1)
 anova(m1)
 m1S <- lsmeans(m1.grid, "scenario")
