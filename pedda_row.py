@@ -17,13 +17,13 @@ import sys,os
 '''
 
 ### HEADER
-print "#"*60
+print("#"*60)
 print "###                                                      ### "
 print "###                  PEDDA software                      ### "
 print "###      Converts Illumina row fmt into PLINK fmt        ### "
 print "###                                                      ### "
 print "###                              Coded by: E.L.Nicolazzi ### "
-print "#"*60
+print("#"*60)
 
 ### USEFUL DEFs
 def bomb(message):

@@ -61,6 +61,7 @@ WHERE par.LETO    =2016
 AND ziv.ZIV_ID_SEQ=par.PB_ZIV_ID_SEQ
 GROUP BY ziv.DRZ_ORIG_ZIVAL,
   par.ZA_PASMO_BM;
+  
 --število moških in ženskih telet rojenih op letih, povprečje 2000-2016
 SELECT stleta.pasma,
   stleta.spol,
@@ -280,22 +281,25 @@ AND ziv.SIF_SPOL      =1
 AND extract(YEAR FROM ziv.DAT_ROJSTVO) BETWEEN 2000 AND 2016
 GROUP BY extract(YEAR FROM ziv.DAT_ROJSTVO),
   pasma.pasma_spada;
+  
 --potomci BM in elitnih bikov --> koliko po očetu
 SELECT COUNT(DISTINCT ziv.ZIV_ID_SEQ),
   ziv.ZIV_OCE_SEQ,
-  extract(YEAR FROM ziv.DAT_ROJSTVO)
+  extract(YEAR FROM ziv.DAT_ROJSTVO), pb1.SIF_UPORABA_PB
 FROM govedo.zivali ziv,
   GOVEDO.BIKOVSKE_MATERE bm,
   GOVEDO.PB_ZA_BM pb,
-  GOVEDO.ZIVALI_PASMA_SPADA pasma
+  GOVEDO.ZIVALI_PASMA_SPADA pasma,
+  GOVEDO.PLEMENSKI_BIKI pb1
 WHERE pasma.ZIV_ID_SEQ=ziv.ZIV_ID_SEQ
 AND ziv.ZIV_MATI_SEQ  = bm.BM_ZIV_ID_SEQ
 AND ziv.ZIV_OCE_SEQ   =pb.PB_ZIV_ID_SEQ
 AND pasma.PASMA_SPADA =1
+and pb.PB_ZIV_ID_SEQ = pb1.PB_ZIV_ID_SEQ
 AND ziv.SIF_SPOL      =1
 AND extract(YEAR FROM ziv.DAT_ROJSTVO) BETWEEN 2014 AND 2016
 GROUP BY ziv.ZIV_OCE_SEQ,
-  extract(YEAR FROM ziv.DAT_ROJSTVO);
+  extract(YEAR FROM ziv.DAT_ROJSTVO), pb1.SIF_UPORABA_PB;
 --koliko pb za bm na leto
 SELECT * FROM GOVEDO.PB_ZA_BM pb WHERE pb.LETO=2016;
 

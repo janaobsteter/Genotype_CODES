@@ -343,9 +343,9 @@ and       zs.ZSG_SS_ID_SEQ=ss.SS_ID_SEQ and
 select  count(distinct ziv.ZIV_OCE_SEQ) st_potomcev,  pb.SIF_UPORABA_PB from  govedo.zivali ziv, GOVEDO.ZIVALI_PASMA_SPADA pasma , GOVEDO.PLEMENSKI_BIKI pb
 where ziv.ziv_id_seq=pasma.ZIV_ID_SEQ and pasma.PASMA_SPADA=1 --and ziv.SIF_SPOL=2
     and ziv.ZIV_OCE_SEQ=pb.PB_ZIV_ID_SEQ
-    AND (extract(YEAR FROM ziv.DAT_ROJSTVO)) in(2014) --BETWEEN 2000 AND 2016 -
+    AND (extract(YEAR FROM ziv.DAT_ROJSTVO)) BETWEEN 2000 AND 2016 
     and count(distinct ziv.ZIV_OCE_SEQ) >= 50
-    group by pb.SIF_UPORABA_PB;
+    group by   pb.SIF_UPORABA_PB;
 
 
 --koliko očetov v AI več kot 50 potomk v letu --> tukaj dobi samo seznam očetov, potem v Ru dobi ven več kot 50 in povprečje za tri leta
@@ -416,6 +416,15 @@ where (extract(year from ziv.DAT_ROJSTVO))=2015
 and ziv.ZIV_OCE_SEQ=pb.PB_ZIV_ID_SEQ 
 and ziv.SP1_SIFRA_PASMA=1
 group by pb.SIF_UPORABA_PB;
+
+--število osemenitev po biku šifri 
+select count(distinct os.OSE_ID_SEQ),  pb.SIF_UPORABA_PB,  (extract(year from os.DAT_OSEM)) letoOs from zivali ziv, GOVEDO.OSEMENITVE os, GOVEDO.PLEMENSKI_BIKI pb  
+where (extract(year from os.DAT_OSEM)) in (2015,2016,2017)
+and os.OSE_ZIV_OCE_SEQ=pb.PB_ZIV_ID_SEQ 
+and os.OSE_ZIV_OCE_SEQ=ziv.ZIV_ID_SEQ
+and ziv.SP1_SIFRA_PASMA=1
+and pb.SIF_UPORABA_PB=7
+group by pb.SIF_UPORABA_PB,  (extract(year from os.DAT_OSEM));
 
 --koliko je vseh potomcev
 select avg(count(distinct ziv.ziv_id_seq)) from zivali ziv where (extract(year from ziv.dat_rojstvo)) between 2014 and 2016 and ziv.SP1_SIFRA_PASMA=1 

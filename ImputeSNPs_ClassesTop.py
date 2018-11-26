@@ -12,6 +12,7 @@
 
 
 import os
+os.chdir("/home/jana/Genotipi/Genotipi_CODES/")
 import sys
 import zipfile
 import shutil
@@ -153,7 +154,8 @@ onePackage.extractSampleMap()
 #check for error IDs and replace the prior identified errouneous IDs
 replaceIDs = [('SI 549458926','SI54945829'),('SI549458926','SI54945829'),('SI4574059','SI04574059'),('SI84048801','SI84048802'),('SI4384195','SI04384195'),('Si24289407','SI24289407'), ('SI53595706_201851770050_R08C02', 'SI53595706'),
 ('SI53595706_201851770081_R03C02', 'SI53595706'), ('SI15036148 (COF)', 'SI15036148'), ('SI85036127 (ASUL)', 'SI85036127'), ('SI55035882 (HRABRI)', 'SI55035882'), ('SI95095002 (KINGSTON', 'SI95095002'),
-('SI45094707 (VALDEN)', 'SI45094707'), ('SI34951462 (CAFIERO)', 'SI34951462'), ('SI85026654 (VAUDEK)', 'SI85026654'), ('SI74941696 VASK', 'SI74941696')]
+('SI45094707 (VALDEN)', 'SI45094707'), ('SI34951462 (CAFIERO)', 'SI34951462'), ('SI85026654 (VAUDEK)', 'SI85026654'), ('SI74941696 VASK', 'SI74941696'),
+              ('SI35100865 KIBUS', 'SI35100865'), ('SI35100865KIBUS', 'SI35100865')]
 errorIDs = onePackage.extractErrorNames() #extract Sample Names if they exist - they shouldnt be in the file
 #to samo, če ti samo prav popravi!!!!!!!!!!!!!
 if errorIDs:
