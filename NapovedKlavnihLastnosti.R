@@ -9,9 +9,10 @@ dat <- read.csv("~/Documents/NapovedPV_Klavne/ft_LS_10_17_data.csv", header=TRUE
 colnames(dat) <- c("TOPLA_MASA", "PGK_TM",  "PRIRAST", "INT_RASTI",  "KONF", "ZAMASC", "ok2", "ok3", "ok4", "STAROST", "STAROSTk", "BREED", "SPOL", "S_ROJ", "S_ZAKOLA", "L_ZAKOLA", "M_ZAKOLA", "K_L_ZAKOLA", "KLAVNICA", "HERD", "animal")
 
 
-dat <- read.csv("~/Documents/NapovedPV_Klavne/dat_ft_LS_05_17.txt", sep=";")
+dat <- read.csv("~/Documents/NapovedPV_Klavne/dat_ft_LS_05_17.txt", sep=";") #to je od 2005 do 2017
 dat <- dat[dat$PASMA==2,]
 summary(dat$STAROST)
+summary(dat$TOPLA_MASA)
 summary(dat$DAT_ROJSTVO)
 dat$K_L_ZAKOLA <- paste(dat$KLAVNICA, dat$L_ZAKOLA, sep="_")
 

@@ -4,6 +4,7 @@ ped <- read.csv("~/GenSLO5_1Pb.txt",sep=" ")
 ped <- read.csv("~/GenSLO15_1Pb.txt",sep=" ")
 ped <- read.csv("~/Class_1Year.txt",sep=" ")
 ped <- read.csv("~/Class_1Year.txt",sep=" ")
+ped <- read.csv("~/PEDGI.txt",sep=" ")
 
 
 
@@ -46,5 +47,29 @@ ped <- read.csv("~/BmGen_1Pb.txt",sep=" ")
 
 table(ped$Generation[ped$cat == 'pb'])
 table(ped$Generation[ped$cat == 'mladi'])
+
+
+#koliko časa so očetje v uporabi
+#kdaj jih odbereš
+table(ped$Generation[ped$cat=="pb"])
+table(ped$Generation[ped$cat=="cak"])
+table(ped$Generation[ped$cat=="mladi"])
+table(ped$Generation[ped$cat=="vhlevljeni"])
+table(ped$Generation[ped$cat=="potomciNP"])
+
+ped <- ped[ped$Generation %in% 40:60,]
+for (father in unique(ped$Indiv[ped$cat=="pb"])) {
+  offspring <- unique(ped$Generation[ped$Father==father])
+  diff <- max(offspring) - min(offspring)
+  print(c(father, diff))
+}
+
+
+ped[ped$Father==406080,]
+use <- unique(ped$Generation[ped$Father==406080])
+for (year in use) {
+  off <- nrow(ped[ped$Generation==year & ped$Father==406080,])
+  print(c(year, off))
+}
 
 

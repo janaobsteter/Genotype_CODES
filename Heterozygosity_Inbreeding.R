@@ -123,6 +123,11 @@ for (strategy in c("SU55", "SU51", "SU15")) {
 }
 
 HET$per_het <- (1-HET$per_het)*100
+HETavg <- aggregate(HET$dF ~ HET$Strategy + HET$Scenario + HET$Marker, FUN="mean")
+colnames(HETavg) <- c("Strategy", "Scenario", "Marker", "dF")
+#NAJPREJ izračunaj povprečje in SD
+##################################################################
+#HETa <- summarySE(HET, measurevar="Ne", groupvars=c("Strategy", "Scenario", "Marker"))[,c(1,2,3,5,6)] to je za ABSOLUTNE vrednosti
 HETa <- summarySE(HET, measurevar="per_het", groupvars=c("Strategy", "Scenario", "Marker"))[,c(1,2,3,5,6)]
 colnames(HETa) <- c("Strategy", "Scenario", "Marker", "per_het", "per_hetSD")
 HETa$per_het <- round(HETa$per_het)
@@ -133,7 +138,56 @@ HETa$Scenario <- factor(HETa$Scenario, levels =c("Class", "GenSLO", "OtherCowsGe
 HETa$Marker <- factor(HETa$Marker, levels =c("NTR", "M", "QTN"))
 HETa[order(HETa$Marker, HETa$Strategy, HETa$Scenario),]
 
+write.csv(HETa, "~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/NEs_HET_relative_21112018.csv", row.names=FALSE, quote=FALSE)
 
+#####################################################################3
+
+
+#preveri značilnost med QTN, M, NTR
+############################################################
+HET$Strategy <- factor(HET$Strategy, levels =c("SU55", "SU51", "SU15"))
+HET$Scenario <- factor(HET$Scenario, levels =c("Class", "GenSLO", "OtherCowsGen", "BmGen", "Gen"))
+
+
+model <- lm(per_het ~ Strategy + Scenario + Strategy + Marker + Marker: Strategy : Scenario, data=HET)
+anova(model)
+marginal = emmeans(model, ~ Strategy:Scenario:Marker)
+CLD = cld(marginal, by="Strategy",
+          alpha   = 0.05, sort=FALSE,
+          Letters = letters,         ###  Use lowercase letters for .group
+          adjust  = "tukey") 
+CLD
+
+CLD = cld(marginal, by="Scenario",
+          alpha   = 0.05, sort=FALSE,
+          Letters = LETTERS,         ###  Use lowercase letters for .group
+          adjust  = "tukey") 
+CLD
+############################################################
+
+#izračunaj značilnost
+############################################################
+HETQ <- HET[HET$Marker=="QTN",]
+HETQ$Strategy <- factor(HETQ$Strategy, levels =c("SU55", "SU51", "SU15"))
+HETQ$Scenario <- factor(HETQ$Scenario, levels =c("Class", "GenSLO", "OtherCowsGen", "BmGen", "Gen"))
+
+
+model <- lm(per_het ~ Strategy + Scenario + Strategy : Scenario, data=HETQ)
+marginal = emmeans(model, ~ Strategy:Scenario)
+CLD = cld(marginal, by="Strategy",
+          alpha   = 0.05, sort=FALSE,
+          Letters = letters,         ###  Use lowercase letters for .group
+          adjust  = "tukey") 
+CLD
+
+CLD = cld(marginal, by="Scenario",
+          alpha   = 0.05, sort=FALSE,
+          Letters = LETTERS,         ###  Use lowercase letters for .group
+          adjust  = "tukey") 
+CLD
+############################################################
+
+'''
 dF_DF <- dF_DF
 #dF_DF <- dF_DF[-which((dF_DF$Marker=="NTR") & (dF_DF$Strategy=="10K_Ref_20Rep") & (dF_DF$Scenario=="Gen") & (dF_DF$Rep==6)),]
 #dF_DF <- dF_DF[-which((dF_DF$Marker=="NTR") & (dF_DF$Strategy=="10K_Ref_20Rep") & (dF_DF$Scenario=="Gen") & (dF_DF$Rep==13)),]
@@ -190,9 +244,9 @@ m1S <- lsmeans(m1.grid, "Marker")
 contrast(m1.grid, method="pairwise")
 contrast(m1S, method="eff")
 summary(lm(Ne~Scenario,data=DFa))
+'''
 
 
-#Združi s pedigre
 
 ##povprečje QTN, NTR and M - since there is no sigificant differences
 DFmean <- aggregate(DFa$Ne ~DFa$Strategy + DFa$Scenario, FUN="mean")
@@ -203,6 +257,48 @@ DF_MEAN <- merge(DFmean, DFmeanSD, by=c("Strategy", "Scenario"))
 DF_MEAN[,3:4] <- round(DF_MEAN[,3:4], 0)
 
 write.table(DF_MEAN, "~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Ne_MEANMarkers.csv", quote=FALSE)
+
+
+##združi z rodovniškim
+INBa <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/NEs_relative_21112018.csv")
+INBa$Marker <- "Pedigree"
+colnames(HETa)[colnames(HETa)=="per_het"] <- "per_inb"
+colnames(HETa)[colnames(HETa)=="per_hetSD"] <- "per_inbSD"
+INBALL <- rbind(INBa, HETa)
+
+
+write.csv(INBALL, "/home/jana/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/PedHet_Inbreeding_Relative_21112018.csv", quote=FALSE, row.names = FALSE)
+####################################################################
+
+
+#izračunaj genomski F
+#######################################################################
+
+hetQTN$F <- NA
+for (strategy in c("SU55", "SU51", "SU15")) {
+  for (scenario in c("Class", "GenSLO", "OtherCowsGen", "BmGen", "Gen")) {
+    for (rep in 0:19) {
+      for (gen in 2:20) {
+        #genetic gain
+        hetQTN$F[hetQTN$Scenario==scenario & hetQTN$Strategy==strategy & hetQTN$Rep==rep & hetQTN$Gen==gen] <- 1 - 
+          (hetQTN$HetCorr[hetQTN$Scenario==scenario & hetQTN$Strategy==strategy & hetQTN$Rep==rep & hetQTN$Gen==gen] / 
+          hetQTN$HetCorr[hetQTN$Scenario==scenario & hetQTN$Strategy==strategy & hetQTN$Rep==rep & hetQTN$Gen==1])
+      }
+    }
+  }
+}
+
+QTNa <- aggregate(hetQTN$F ~ hetQTN$Strategy + hetQTN$Scenario + hetQTN$Gen, FUN="mean")
+colnames(QTNa) <- c("Strategy", "Scenario", "Generation", "F")
+QTNa$Strategy <- factor(QTNa$Strategy, levels =c("SU55", "SU51", "SU15"))
+QTNa$Scenario <- factor(QTNa$Scenario, levels =c("Class", "GenSLO", "OtherCowsGen", "BmGen", "Gen"))
+QTNa$Scenario <- revalue(QTNa$Scenario, c("Class" = "PT", "GenSLO" = "GS-PS", "OtherCowsGen" = "GS-C", "BmGen" = "GS-BD", "Gen" = "GS"))
+
+QTNa$Generation <- QTNa$Generation + 40
+ggplot(data=QTNa, aes(x=Generation, y=F, group=Scenario, colour=Scenario)) + geom_path() + 
+  facet_grid(Strategy ~ ., scales = "free_y")
+
+
 '#tega zdj nimaš izračunanega
 #agregiraj F po generacijah za plot F
 df_QTN$F <- as.numeric(df_QTN$F)

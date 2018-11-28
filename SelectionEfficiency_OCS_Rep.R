@@ -163,7 +163,7 @@ for (rep in 0:2) {
     st40 <- rbind(st40, repScenario)
   }
 }
-  
+
 TGVsAll <- st40
 varDF <- data.frame()
 for (group in unique(TGVsAll$Group)) {

@@ -1,5 +1,6 @@
 gi <- read.csv("/home/jana/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/GENINTS_all_14082018.csv")
 gi$LINE <- paste0(gi$line, gi$sex)
+gi[si$LIE]
 gi <- gi[gi$Gen %in% 40:60,]
 gi$genInt <- as.numeric(as.character(gi$genInt))
 
@@ -8,7 +9,7 @@ colnames(giA) <- c("Line", "Scenario", "Strategy", "genInt")
 giA$Strategy <- factor(giA$Strategy, levels =c("SU55", "SU51", "SU15"))
 giA$Scenario <- factor(giA$Scenario, levels =c("Class", "GenSLO", "OtherCowsGen", "BmGen", "Gen"))
 giA$genInt <- round(giA$genInt, 1)
-giA[order(giA$Strategy, giA$Scenario),][giA$Line=="sireF",]
+giA[order(giA$Strategy, giA$Scenario),][giA$Line=="sireM",]
 
 giPer <- data.frame()
 for (strategy in c("SU55", "SU51", "SU15")) {
@@ -45,38 +46,38 @@ cbind(giA[(giA$Line=="sireF") & (giA$Scenario=="OtherCowsGen"),],
       giA[(giA$Line=="sireF") & (giA$Scenario=="Class"),])
 
 1 - (giA$genInt[(giA$Line=="sireF") & (giA$Scenario=="OtherCowsGen")] / 
-      giA$genInt[(giA$Line=="sireF") & (giA$Scenario=="Class")])
+       giA$genInt[(giA$Line=="sireF") & (giA$Scenario=="Class")])
 
 #gs-bd
 cbind(giA[(giA$Line=="sireM") & (giA$Scenario=="BmGen"),], 
       giA[(giA$Line=="sireM") & (giA$Scenario=="Class"),])
 
 1 - (giA$genInt[(giA$Line=="sireM") & (giA$Scenario=="BmGen")] / 
-      giA$genInt[(giA$Line=="sireM") & (giA$Scenario=="Class")])
+       giA$genInt[(giA$Line=="sireM") & (giA$Scenario=="Class")])
 
 #gs
 cbind(giA[(giA$Line=="sireM") & (giA$Scenario=="Gen"),], 
       giA[(giA$Line=="sireM") & (giA$Scenario=="Class"),])
 
 1 - (giA$genInt[(giA$Line=="sireM") & (giA$Scenario=="Gen")] / 
-      giA$genInt[(giA$Line=="sireM") & (giA$Scenario=="Class")])
+       giA$genInt[(giA$Line=="sireM") & (giA$Scenario=="Class")])
 
 cbind(giA[(giA$Line=="sireF") & (giA$Scenario=="Gen"),], 
       giA[(giA$Line=="sireF") & (giA$Scenario=="Class"),])
 
 1 - (giA$genInt[(giA$Line=="sireF") & (giA$Scenario=="Gen")] / 
-      giA$genInt[(giA$Line=="sireF") & (giA$Scenario=="Class")])
+       giA$genInt[(giA$Line=="sireF") & (giA$Scenario=="Class")])
 
 #SU5/5 - SU5/1
 SU <- cbind(giA[(giA$Strategy=="SU51"),],
-  giA[(giA$Strategy=="SU55"),])
+            giA[(giA$Strategy=="SU55"),])
 
 SU$diff <- 1 - (giA$genInt[(giA$Strategy=="SU51")] / 
-       giA$genInt[(giA$Strategy=="SU55")])
+                  giA$genInt[(giA$Strategy=="SU55")])
 SU[order(-SU$diff),]
 
 SUt <- cbind(giAS[giAS$Strategy=="SU55",] , giAS[giAS$Strategy=="SU51",])
 SUt$diff <- 1 - (giAS$genInt[(giAS$Strategy=="SU51")] / 
-                  giAS$genInt[(giAS$Strategy=="SU55")])
+                   giAS$genInt[(giAS$Strategy=="SU55")])
 SUt[order(-SUt$diff),]
 
