@@ -392,11 +392,11 @@ for (strategy in c("SU55", "SU51", "SU15")) {
       base <- TGV60$GeneticVarSt[TGV60$scenario=="Class" & TGV60$Strategy=="SU55" & TGV60$Rep==rep]
       tgv$per_GeneticVar <- (tgv$GeneticVarSt / base)   
       
-      #genic sd
+      #genic standard
       base <- TGV60$SDGenicSt[TGV60$scenario=="Class" & TGV60$Strategy=="SU55" & TGV60$Rep==rep]
       tgv$per_GenicSD <- (tgv$SDGenicSt / base)
       
-      #genetic variance
+      #genetic standard deviation
       base <- TGV60$SDSt[TGV60$scenario=="Class" & TGV60$Strategy=="SU55" & TGV60$Rep==rep]
       tgv$per_GeneticSD <- (tgv$SDSt / base)      
 

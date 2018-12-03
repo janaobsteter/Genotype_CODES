@@ -84,8 +84,92 @@ Averages <- merge(Averages, Averages6, by=c( "strategy","scenario", "Generation"
 Averages <- merge(Averages, Averages7, by=c( "strategy","scenario", "Generation"))
 Averages <- merge(Averages, Averages8, by=c( "strategy","scenario", "Generation"))
 
+#izračunaj procente glede na SU55 PT
+OCS60 <- TGVsAll[TGVsAll$Generation==50,]
+tgv60 <- data.frame()
 
-write.csv(Averages[Averages$Generation==60,], "~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results//Averages_3strategies_14082018.csv", quote=FALSE)
+for (scenario in c("PT",15, 30, 45, 60, 75)) {
+  for (rep in 0:9) {
+    #genetic gain
+    base <- OCS60$zMean[OCS60$scenario=="PT" & OCS60$Strategy=="SU55" & OCS60$Rep==rep]
+    tgv <- OCS60[OCS60$scenario==scenario & OCS60$Rep==rep,]
+    tgv$per_zMean <- tgv$zMean / base
+
+    
+    #genic sd
+    base <- OCS60$SDGenicSt[OCS60$scenario=="PT" & OCS60$Strategy=="SU55" & OCS60$Rep==rep]
+    tgv$per_GenicSD <- (tgv$SDGenicSt / base)
+    
+    #genetic sd
+    base <- OCS60$SDSt[OCS60$scenario=="PT" & OCS60$Strategy=="SU55" & OCS60$Rep==rep]
+    tgv$per_GeneticSD <- (tgv$SDSt / base)      
+    
+    
+    tgv60 <- rbind(tgv60, tgv)
+    
+  }
+}
+
+OCS60 <- tgv60[tgv60$Strategy %in% c("SU55", "OCS"),]
+table(OCS60$Strategy, OCS60$scenario)
+OCS60$per_zMean <- OCS60$per_zMean*100 - 100 #tukaj ma osnoven scenarij 100: zato odštej 100
+OCS60$per_GenicSD <- (OCS60$per_GenicSD)*100 - 100#tukaj ma osnoven scenarij 0
+OCS60$per_GeneticSD <- (OCS60$per_GeneticSD)*100 - 100
+
+#genetic mean
+MEAN60_OCS <- summarySE(OCS60, measurevar="per_zMean", groupvars=c("Strategy", "scenario"))[,c(1,2,4,5)]
+MEAN60_OCS_abs <- summarySE(OCS60, measurevar="zMean", groupvars=c("Strategy", "scenario"))[,c(1,2,4,5)]
+colnames(MEAN60_OCS) <- c("Strategy", "Scenario", "per_zMean", "per_zMeanSD")
+
+#genetic sd
+SD60_OCS <- summarySE(OCS60, measurevar="per_GeneticSD", groupvars=c("Strategy", "scenario"))[,c(1,2,4,5)]
+colnames(SD60_OCS) <- c("Strategy", "Scenario", "per_GeneticSD", "per_GeneticSDSD")
+#SD60a$per_GeneticSD <- round(SD60a$per_GeneticSD, 3)
+#SD60a$per_GeneticSDSD <- round(SD60a$per_GeneticSDSD, 3)
+
+MEAN60_OCS <- merge(MEAN60_OCS, SD60_OCS, by=c("Strategy", "Scenario"))
+
+#genic sd
+SD60_OCSa <- summarySE(OCS60, measurevar="per_GenicSD", groupvars=c("Strategy", "scenario"))[,c(1,2,4,5)]
+SD60_OCSa_abs <- summarySE(OCS60, measurevar="SDGenicSt", groupvars=c("Strategy", "scenario"))[,c(1,2,4,5)]
+#SD60b <- summarySE(TGV60, measurevar="SDGenicSt", groupvars=c("Strategy", "scenario"))[,c(1,2,4,5)]
+colnames(SD60_OCSa) <- c("Strategy", "Scenario", "per_GenicSD", "per_GenicSDSD")
+#SD60b$per_GenicSD <- round(SD60b$per_GenicSD, 3)
+#SD60b$per_GenicSDSD <- round(SD60b$per_GenicSDSD, 3)
+
+MEAN60_OCS <- merge(MEAN60_OCS, SD60_OCSa, by=c("Strategy", "Scenario"))
+
+
+library(emmeans)
+OCS60$scenario <- as.factor(OCS60$scenario)
+OCS60$Strategy <- as.factor(OCS60$Strategy)
+OCS60$scenario <- factor(OCS60$scenario, levels =c("PT", 15,30,45,60,75))
+
+
+#significane of genetic gain
+model <- lm(per_zMean ~ scenario, data=OCS60)
+anova(model)
+marginal = emmeans(model, ~ scenario)
+pairs(marginal,
+      adjust="tukey")
+CLD = cld(marginal, sort=FALSE,
+          alpha   = 0.05,
+          Letters = letters) 
+CLD
+
+
+#significance of genic SD
+model <- lm(per_GenicSD ~ scenario, data=OCS60)
+marginal = emmeans(model, ~ scenario)
+CLD = cld(marginal, 
+          alpha   = 0.05, sort=FALSE,
+          Letters = letters,         ###  Use lowercase letters for .group
+          adjust  = "tukey") 
+CLD
+
+
+
+#write.csv(Averages[Averages$Generation==60,], "~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results//Averages_3strategies_14082018.csv", quote=FALSE)
 #AveragesA <- Averages
 #to je max min za gensko varianco standardizirano
 maxmin <- data.frame(strategy=NA, scenario=NA, minGenicSD=NA, maxGenicSD=NA, minTGV=NA, maxTGV=NA)
@@ -121,56 +205,71 @@ maxmin$maxGenicSD <- as.numeric(maxmin$maxGenicSD)
 maxmin$minTGV <- as.numeric(maxmin$minTGV)
 maxmin$maxTGV <- as.numeric(maxmin$maxTGV)
 
-#o je z na genetsko standadrizirano gensko variacno
-library(ggplot2)
-plotList = list()
-number = 1
-for (strategy in c("SU55", "SU15", "SU51")) {
-  TGVstrategy <- TGVsAll[TGVsAll$Strategy==strategy,]
-  TGVstrategy$Group <- paste0(TGVstrategy$scenario, TGVstrategy$Rep)
-  maxminS <- maxmin[maxmin$strategy==strategy,]
-  maxminSminGenicSD <- as.numeric(maxminS$minGenicSD)
-  maxminS$maxGenicSD <- as.numeric(maxminS$maxGenicSD)
-  maxminS$minTGV <- as.numeric(maxminS$minTGV)
-  maxminS$maxTGV <- as.numeric(maxminS$maxTGV)
-  
-  plotList[[number]] <- ggplot(data = TGVstrategy, aes(x=SDGenicSt, y=zMeanGenic, group=Group, colour=scenario, linetype=scenario)) + 
-    scale_x_reverse(sec.axis=sec_axis(trans=~1-.,                                   
-                                      name="Converted/Lost genic standard deviation")) +
-    geom_line(aes(linetype=scenario), size=0.5, alpha=0.2) + ggtitle(unique(TGVstrategy$strategy)) + 
-    xlab("Generation") + ylab("True genetic value")  + ylim(0,7) +coord_cartesian(xlim = c(1, 0.85)) +
-    scale_linetype_manual(breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), 
-                          "Scenario", 
-                          values=c("solid", "dotted","dashed", "dotdash", "twodash"), 
-                          labels=c("PT", "GS-PS", "GS-C", "GS-BD", "GS")) + 
-    scale_colour_manual(breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), 
-                        values=c("forestgreen", "dodgerblue2", "purple", "red3", "orange1"), 
-                        labels=c("PT", "GS-PS", "GS-C", "GS-BD", "GS")) + 
-    xlab("Genic standard deviation") + ylab("Average True Genetic Value") + 
-    theme(axis.text=element_text(size=16), legend.position = "left", axis.title.x=element_blank(), axis.title.y=element_blank(),
-          axis.title=element_text(size=16,face="bold"), legend.text=element_text(size=16), legend.title=element_text(face="bold", size=16)) +
-    geom_segment(data=maxminS, mapping=aes(x=maxGenicSD, xend=minGenicSD,
-                                          y=minTGV,  yend=maxTGV,                                    
-                                          color=scenario, linetype=scenario, group=scenario), arrow=arrow(), show.legend=TRUE, size=1.5) 
-  number <-  number + 1
-}
-
 
 ####################################################3
-maxminOS <- maxmin[maxmin$strategy %in% c("OCS", "SU15"),]
-TGVsAll$strategy <- as.factor(TGVsAll$strategy)
+library(plyr)
+maxmin$scenario <- revalue(maxmin$scenario, c("Class" = "PT", "GenSLO" = "GS-PS", "OtherCowsGen" = "GS-C", "BmGen" = "GS-BD", "Gen" = "GS",
+                                              "15"="15", "30"="30", "45"="45", "60"="60", "75"="75"))
+TGVsAll$scenario <- revalue(TGVsAll$scenario, c("Class" = "PT", "GenSLO" = "GS-PS", "OtherCowsGen" = "GS-C", "BmGen" = "GS-BD", "Gen" = "GS",
+                                              "15"="15", "30"="30", "45"="45", "60"="60", "75"="75"))
+
+
+
+maxminOS <- maxmin[maxmin$scenario %in% c(15, 30, 45, 60, 75, "PT"),]
+#maxminOS$scenario <- factor(maxminOS$scenario, levels =c("PT", 15, 30, 45, 60, 75))
+maxminOS$PlotGroup <- paste0(maxminOS$strategy, maxminOS$scenario)
+maxminPT <- maxminOS[maxminOS$scenario=="PT",]
+maxmOCS <- maxminOS[maxminOS$scenario %in% c(15, 30, 45, 60, 75),]
+#maxminOS$strategy <- factor(maxminOS$strategy, levels =c("SU55", "OCS"))
+
+#maxminOS <- maxminOS[order(maxminOS$strategy, maxminOS$scenario),]
+
+
+TGVsStrategy <- TGVsAll[TGVsAll$Strategy %in% c("SU55", "OCS") & TGVsAll$scenario %in% c("PT", 15, 30, 45, 60, 75),]
+TGVsStrategy$strategy <- factor(TGVsStrategy$strategy, levels =c("SU55", "OCS"))
+TGVsStrategy$scenario <- factor(TGVsStrategy$scenario, levels =c("PT", 15, 30, 45, 60, 75))
+TGVsStrategy$PlotGroup <- paste0(TGVsStrategy$strategy, TGVsStrategy$scenario)
+TGVsStrategy <- TGVsStrategy[order(TGVsStrategy$strategy, TGVsStrategy$scenario),]
+
+# TGVsStrategy$PlotGroup <- factor(TGVsStrategy$PlotGroup, level=c("OCS15", "OCS30", "OCS45", "OCS60", "OCS75", "SU55PT", "SU51PT", "SU15PT"))
+# TGVsStrategy <- TGVsStrategy[order(TGVsStrategy$PlotGroup),]
+# maxminPT$PlotGroup <- factor(maxminPT$PlotGroup, level=c("OCS15", "OCS30", "OCS45", "OCS60", "OCS75", "SU55PT", "SU51PT", "SU15PT"))
+# maxminPT <- maxminPT[order(maxminPT$PlotGroup),]
+# maxminOCS$PlotGroup <- factor(maxminOCS$PlotGroup, level=c("OCS15", "OCS30", "OCS45", "OCS60", "OCS75", "SU55PT", "SU51PT", "SU15PT"))
+# maxminOCS <- maxminOCS[order(maxminOCS$PlotGroup),]
+
+TGVsStrategy$scenario <- as.factor(as.character(TGVsStrategy$scenario))
+maxminOS$scenario <- as.factor(as.character(maxminOS$scenario))
+#TGVsAll$strategy <- as.factor(TGVsAll$strategy)
 #plot za OCS
-ggplot(data = TGVsAll[TGVsAll$Strategy %in% c("SU15", "OCS"),], aes(x=SDGenicSt, y=zMeanGenic, group=group,colour=scenario, linetype=strategy)) + 
+#library(ggplot2)
+
+
+ggplot(data = TGVsStrategy, aes(x=SDGenicSt, y=zMeanGenic, group=group,colour=PlotGroup, linetype=PlotGroup)) + 
   scale_x_reverse(sec.axis=sec_axis(trans=~1-.,                                   
                                     name="Converted/Lost genic standard deviation")) +
-  geom_line(aes(linetype=strategy), size=0.5, alpha=0.2) + ggtitle(unique(TGVstrategy$strategy)) + 
-  xlab("Generation") + ylab("True genetic value")  + ylim(0,7) +coord_cartesian(xlim = c(1, 0.85)) +
+  geom_line(aes(linetype=PlotGroup), size=0.2, alpha=0.4) + 
+  ylim(0,7) + coord_cartesian(xlim = c(1, 0.85)) + theme_bw() +
+  scale_linetype_manual("Breeding program", 
+                        values=c("F1", "longdash",  "dashed", "longdash", "twodash", "solid", "solid", "solid"), 
+                        labels=c("15", "30", "45", "60", "75", "SU15", "SU51", "SU55")) + 
+  scale_colour_manual("Breeding program", 
+                      values=c("forestgreen", "orange", "purple", "darkblue", "red3", "black", "grey40", "grey60"),
+                      labels=c("15", "30", "45", "60", "75", "SU15", "SU51", "SU55")) + 
+  guides(linetype=guide_legend(nrow=3, keyheight = unit(1, "cm"), keywidth = unit(3, "cm"), override.aes = list(alpha = 1, size=1.2))) +
   xlab("Genic standard deviation") + ylab("Average True Genetic Value") + 
-  theme(axis.text=element_text(size=16), legend.position = "left", axis.title.x=element_blank(), axis.title.y=element_blank(),
-        axis.title=element_text(size=16,face="bold"), legend.text=element_text(size=16), legend.title=element_text(face="bold", size=16)) +
-  geom_segment(data=maxminOS, mapping=aes(x=maxGenicSD, xend=minGenicSD,
+  theme(axis.text=element_text(size=16), legend.position = "top", 
+        axis.title.x=element_text(size=16, vjust=-1), 
+        axis.title.y=element_text(size=16, vjust=2), 
+        legend.text=element_text(size=16), legend.title=element_text(size=16),
+        plot.title = element_text(margin = margin(t = 0, r = 0, b = 40, l = 0), size=16, hjust=0.5),
+        plot.margin = margin(t = 20, r = 10, b = 10, l = 10)) +
+  geom_segment(data=maxminPT, mapping=aes(x=maxGenicSD, xend=minGenicSD,
                                          y=minTGV,  yend=maxTGV,                                    
-                                         color=scenario, linetype=strategy, group=scenario), arrow=arrow(), show.legend=TRUE, size=1.5) 
+                                         color=PlotGroup, linetype=PlotGroup, group=PlotGroup), arrow=arrow(type="closed"), show.legend=FALSE, size=1.5) +
+  geom_segment(data=maxminOCS, mapping=aes(x=maxGenicSD, xend=minGenicSD,
+                                         y=minTGV,  yend=maxTGV,                                    
+                                         color=PlotGroup, linetype=PlotGroup, group=PlotGroup), arrow=arrow(), show.legend=FALSE, size=1.5) 
 
 
 library(gridExtra)
