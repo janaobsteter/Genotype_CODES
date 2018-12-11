@@ -871,6 +871,7 @@ class genZipPackage:
                 shutil.move(self.finalreportname.strip(".zip") + ".txt", self.name + '_FinalReport.txt')
             else:
                 self.zipFile.extract(self.finalreportname)
+                shutil.move(self.finalreportname, self.name + '_FinalReport.txt')
         else:
             return 'No FinalReport infile in ' + self.name
         

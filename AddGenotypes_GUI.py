@@ -71,37 +71,37 @@ class AddGenotypes(QtGui.QMainWindow, Ui_MainWindow):
             self.NoSNPs.setEnabled(False)
 
     def choose_zipFile(self):
-        zipfile = QtGui.QFileDialog.getOpenFileName(self, 'Choose Zip File')
+        zipfile = QtGui.QFileDialog.getOpenFileName()
         if zipfile:
             self.ZipFileShow.setText(zipfile)
 
     def choose_tempDir(self):
-        tempdir = QtGui.QFileDialog.getExistingDirectory(self, 'Choose Directory')
+        tempdir = QtGui.QFileDialog.getExistingDirectory()
         if tempdir:
             self.tempDirShow.setText(tempdir)
 
     def choose_zipDir(self):
-        zipdir = QtGui.QFileDialog.getExistingDirectory(self, 'Choose Directory')
+        zipdir = QtGui.QFileDialog.getExistingDirectory()
         if zipdir:
             self.ZipDirShow.setText(zipdir)
 
     def choose_mergeDir(self):
-        mergedir = QtGui.QFileDialog.getExistingDirectory(self, 'Choose Directory')
+        mergedir = QtGui.QFileDialog.getExistingDirectory()
         if mergedir:
             self.MergeDirShow.setText(mergedir)
 
     def choose_peddarowDir(self):
-        pdir = QtGui.QFileDialog.getExistingDirectory(self, 'Choose Directory')
+        pdir = QtGui.QFileDialog.getExistingDirectory()
         if pdir:
             self.PeddarowDirShow.setText(pdir)
 
     def choose_zanardiDir(self):
-        zdir = QtGui.QFileDialog.getExistingDirectory(self, 'Choose Directory')
+        zdir = QtGui.QFileDialog.getExistingDirectory()
         if zdir:
             self.ZanardiDirShow.setText(zdir)
 
     def choose_codeDir(self):
-        cdir = QtGui.QFileDialog.getExistingDirectory(self, 'Choose Directory')
+        cdir = QtGui.QFileDialog.getExistingDirectory()
         if cdir:
             self.CodeDirShow.setText(cdir)
 
@@ -127,7 +127,7 @@ class AddGenotypes(QtGui.QMainWindow, Ui_MainWindow):
         print(self.breed)
         print(self.alleleFormat)
         self.TEMPDIR = self.tempdir + "/Genotipi_" + str(self.date) + "/"
-        self.zipfile = self.TEMPDIR + "/" + str(self.ZipFileShow.text()).split("/")[-1]
+        self.zipfile = str(self.ZipFileShow.text()).split("/")[-1]
         print(self.zip)
         print(self.zipfile)
         print(self.TEMPDIR)
@@ -212,15 +212,15 @@ class AddGenotypes(QtGui.QMainWindow, Ui_MainWindow):
         onePackage.extractSNPMap()
         onePackage.extractSampleMap()
 
+
+
+        print(onePackage.name)
+        print(onePackage.snpmapname)
+        print(onePackage.samplemapname)
+        print(onePackage.finalreportname)
+
         # check for error IDs and replace the prior identified errouneous IDs
-        replaceIDs = [('SI 549458926', 'SI54945829'), ('SI549458926', 'SI54945829'), ('SI4574059', 'SI04574059'),
-                      ('SI84048801', 'SI84048802'), ('SI4384195', 'SI04384195'), ('Si24289407', 'SI24289407'),
-                      ('SI53595706_201851770050_R08C02', 'SI53595706'),
-                      ('SI53595706_201851770081_R03C02', 'SI53595706'), ('SI15036148 (COF)', 'SI15036148'),
-                      ('SI85036127 (ASUL)', 'SI85036127'), ('SI55035882 (HRABRI)', 'SI55035882'),
-                      ('SI95095002 (KINGSTON', 'SI95095002'),
-                      ('SI45094707 (VALDEN)', 'SI45094707'), ('SI34951462 (CAFIERO)', 'SI34951462'),
-                      ('SI85026654 (VAUDEK)', 'SI85026654'), ('SI74941696 VASK', 'SI74941696')]
+        replaceIDs = open(self.codeDir + "/ErrorIDs_genotipi.txt").read().strip().split("\n")
         errorIDs = onePackage.extractErrorNames()  # extract Sample Names if they exist - they shouldnt be in the file
         # to samo, če ti samo prav popravi!!!!!!!!!!!!!
         if errorIDs:
@@ -231,9 +231,9 @@ class AddGenotypes(QtGui.QMainWindow, Ui_MainWindow):
                 os.system('sed -i  "s|' + str(i[0]) + '|' + i[1] + '|g" ' + onePackage.name + '_Sample_Map.txt')
                 ###############
         for i in replaceIDs:
-            print('sed -i  "s|' + i[0] + '|' + i[
+            os.system('sed -i  "s|' + i[0] + '|' + i[
                 1] + '|g" ' + onePackage.name + "_FinalReport.txt")  # errorIDs are tuples, replace first element witht the second
-            print('sed -i  "s|' + i[0] + '|' + i[1] + '|g" ' + onePackage.name + '_Sample_Map.txt')
+            os.system('sed -i  "s|' + i[0] + '|' + i[1] + '|g" ' + onePackage.name + '_Sample_Map.txt')
 
         print(onePackage.name)
         print(onePackage.snpmapname)
@@ -245,22 +245,23 @@ class AddGenotypes(QtGui.QMainWindow, Ui_MainWindow):
         print("Finalreport replace")
         os.system(
             'sed -i "s|test_FinalReport.txt|' + onePackage.name + "_FinalReport.txt" + '|g" peddar.param')  # insert FinalReport name into peddar.param
-        print("Dominant replace")
+        print("Replace Dominant")
         os.system(
             'sed -i "s|Dominant |Dominant_|g" ' + onePackage.name + "_FinalReport.txt")  # problem Dominant Red with a space
-        print("Dominant replace SNPmap")
-        os.system('sed -i "s|Dominant |Dominant_|g" ' + onePackage.name + '_SNP_Map.txt')  ##problem Dominant Red with a space
-        print("Outputfile replace")
-        os.system('sed -i "s|test_outputfile|"' + onePackage.name + '"|g" peddar.param')  # insert OutPut name into peddar.param
-        print("SNPmap replace")
         os.system(
-            'sed -i "s|test_SNPMap.txt|"' + onePackage.name + '_SNP_Map.txt' + '"|g" peddar.param')  # insert SNPMap name into peddar.param
-        print("Allele format")
+            'sed -i "s|Dominant |Dominant_|g" ' + onePackage.name + '_SNP_Map.txt')  ##problem Dominant Red with a space
+        print("Replace output")
         os.system(
-            'sed -i "s/AlleleFormat/"' + self.alleleFormat + '"/g" peddar.param')  # insert desired AlleleFormat name into peddar.param
-        print("breed replace")
-        os.system('sed -i "s/TEST/"' + self.breed + '"/g" peddar.param')
-        os.system("python pedda_row.py")  # transform into ped and map file
+            'sed -i "s/test_outputfile/' + onePackage.name + '/g" peddar.param')  # insert OutPut name into peddar.param
+        print("replace SNPMap")
+        os.system(
+            'sed -i "s/test_SNPMap.txt/' + onePackage.name + '_SNP_Map.txt' + '/g" peddar.param')  # insert SNPMap name into peddar.param
+        print("replace AlleleFormat")
+        os.system(
+            'sed -i "s/AlleleFormat/' + self.alleleFormat + '/g" peddar.param')  # insert desired AlleleFormat name into peddar.param
+        print("Replace breed")
+        os.system('sed -i "s/TEST/' + self.breed + '/g" peddar.param')
+        os.system("python2.7 pedda_row.py")  # transform into ped and map file
 
         # ABFORMAT
         # shutil.copy((self.peddarow + "/peddar.param"), "peddar.param")
@@ -350,40 +351,40 @@ class AddGenotypes(QtGui.QMainWindow, Ui_MainWindow):
         #
 
 
+        if self.merge_ask == "Y":
+            # merge is outside the loop
+            # merge all the chips needed updating
+            print(PedFiles.keys())
+            for i in PedFiles.keys():
+                if not os.path.exists(self.MergeDir + str(i)):
+                    os.makedirs(self.MergeDir + str(i))
+                for pedfile, mapfile in zip(PedFiles[i], MapFiles[i]):
+                    shutil.copy(pedfile.split("/")[-1], self.MergeDir + str(i))
+                    shutil.copy(mapfile.split("/")[-1], self.MergeDir + str(i))
+                os.chdir(self.MergeDir + str(i))
+                shutil.copy(self.codeDir + "/PARAMFILE.txt", self.MergeDir + i)
+                pedToMerge = ",".join(PedFiles[i]).strip("'")
+                mapToMerge = ",".join(MapFiles[i]).strip("'")
+                if not os.path.isfile(self.MergeDir + i + '/PLINK_MERGED.ped'):
+                    mergeChipCommand = "plink --file {0} --cow --merge-list {1} --recode --out PLINK_MERGED".format(
+                        (PedFiles[i][0].strip(".ped")), 'MergeChip.txt')
+                    with open('MergeChip.txt', 'w') as csvfile:
+                        writer = csv.writer(csvfile, delimiter=" ")
+                        [writer.writerow(r) for r in
+                         zip(PedFiles[i][1:], MapFiles[i][1:])]  # leave the first one out - that goes in the plink command line
+                if os.path.isfile(self.MergeDir + i + '/PLINK_MERGED.ped'):
+                    mergeChipCommand = "plink --file PLINK_MERGED --cow --merge-list {0} --recode --out PLINK_MERGED".format(
+                        'MergeChip.txt')
+                    with open('MergeChip.txt', 'w') as csvfile:
+                        writer = csv.writer(csvfile, delimiter=" ")
+                        [writer.writerow(r) for r in zip(PedFiles[i], MapFiles[i])]
 
-        # merge is outside the loop
-        # merge all the chips needed updating
-        print(PedFiles.keys())
-        for i in PedFiles.keys():
-            if not os.path.exists(self.MergeDir + str(i)):
-                os.makedirs(self.MergeDir + str(i))
-            for pedfile, mapfile in zip(PedFiles[i], MapFiles[i]):
-                shutil.copy(pedfile.split("/")[-1], self.MergeDir + str(i))
-                shutil.copy(mapfile.split("/")[-1], self.MergeDir + str(i))
-            os.chdir(self.MergeDir + str(i))
-            shutil.copy(self.codeDir + "/PARAMFILE.txt", self.MergeDir + i)
-            pedToMerge = ",".join(PedFiles[i]).strip("'")
-            mapToMerge = ",".join(MapFiles[i]).strip("'")
-            if not os.path.isfile(self.MergeDir + i + '/PLINK_MERGED.ped'):
-                mergeChipCommand = "plink --file {0} --cow --merge-list {1} --recode --out PLINK_MERGED".format(
-                    (PedFiles[i][0].strip(".ped")), 'MergeChip.txt')
-                with open('MergeChip.txt', 'w') as csvfile:
-                    writer = csv.writer(csvfile, delimiter=" ")
-                    [writer.writerow(r) for r in
-                     zip(PedFiles[i][1:], MapFiles[i][1:])]  # leave the first one out - that goes in the plink command line
-            if os.path.isfile(self.MergeDir + i + '/PLINK_MERGED.ped'):
-                mergeChipCommand = "plink --file PLINK_MERGED --cow --merge-list {0} --recode --out PLINK_MERGED".format(
-                    'MergeChip.txt')
-                with open('MergeChip.txt', 'w') as csvfile:
-                    writer = csv.writer(csvfile, delimiter=" ")
-                    [writer.writerow(r) for r in zip(PedFiles[i], MapFiles[i])]
+                status, output = commands.getstatusoutput(mergeChipCommand)  # merge with plink
 
-            status, output = commands.getstatusoutput(mergeChipCommand)  # merge with plink
-
-            if status == 0:
-                print "Successfully merged " + str(i) + " " + self.MergeDir + " " + i
-            else:
-                print "Merging went wrong, error: " + str(status)
+                if status == 0:
+                    print "Successfully merged " + str(i) + " " + self.MergeDir + " " + i
+                else:
+                    print "Merging went wrong, error: " + str(status)
 
         for chip in PedFiles:
             PedFiles[chip] = [i.replace("ZipGenoFiles", "ZipGenoFiles/") for i in PedFiles[chip]]
@@ -425,6 +426,7 @@ class AddGenotypes(QtGui.QMainWindow, Ui_MainWindow):
         #        print "Merging went wrong, error: " + str(status)
 
 
+print("Job DONE!")
 
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
@@ -437,3 +439,4 @@ if __name__ == "__main__":
     window.ZanardiDirShow.setText("/home/jana/Genotipi/Genotipi_CODES/Zanardi/")
     window.CodeDirShow.setText("/home/jana/Genotipi/Genotipi_CODES/")
     sys.exit(app.exec_())
+

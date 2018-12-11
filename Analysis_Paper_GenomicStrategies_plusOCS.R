@@ -1,4 +1,4 @@
-qstatacc <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/AccuraciesALL_correlation.csv")
+acc <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/AccuraciesALL_correlation.csv")
 #acc <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/AccuraciesALL_Cat.csv")
 #accAcc <- acc[,paste0("X", 21:40)]
 #accNames <- acc[,c("cat", "Strategy", "Scenario", "Rep")]
@@ -6,7 +6,7 @@ qstatacc <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_Sire
 #acc <- accNames
 accA <- aggregate(acc$corEBV ~ acc$Scenario + acc$Strategy + acc$Cat + acc$Cycle, FUN="mean")
 accASc <- aggregate(acc$corEBV ~ acc$Strategy + acc$Cat + acc$Cycle, FUN="mean")
-accSc <- aggregate(acc$corEBV ~ acc$Scenario + acc$Strategy, FUN="mean")
+accSc <- aggregate(acc$corEBV ~ acc$Scenario + acc$Strategy + acc$Cat, FUN="mean")
 accSc <- aggregate(acc$corEBV ~ acc$Strategy + acc$Cat, FUN="mean")
 accS <- aggregate(acc$corEBV ~ acc$Strategy, FUN="mean")
 colnames(accA) <- c("Scenario", "Strategy", "Cat",  "Cycle", "corEBV")
@@ -23,8 +23,9 @@ mean(accA$corEBV[accA$Cat=="gpb"])
 accA[accA$Cat=="gpb",]
 acc[acc$Strategy=="SU55" & acc$Scenario=="Class" & acc$Cat=="mladi",]
 
+accSc[accSc$Cat=="cak",]
 
-accASc[accASc$Cat=="genTest",]
+accASc[accASc$Cat=="cak",]
 ggplot(data=accASc[accASc$Cat=="genTest",], aes(x=Cycle, y=corEBV, group=Strategy, colour=Strategy)) + geom_line()
 
 
@@ -51,6 +52,7 @@ TGVsAll <- rbind(TGVsAll, TGVsOCS)
 TGVsAll$strategy <-TGVsAll$Strategy
 TGVsAll <- TGVsAll[TGVsAll$Generation %in% 40:50,]
 TGVsAll$group <- paste0(TGVsAll$scenario, TGVsAll$Rep)
+library(plyr)
 TGVsAll$scenario <- revalue(TGVsAll$scenario, c("Class" = "PT", "GenSLO" = "GS-PS", "OtherCowsGen" = "GS-C", "BmGen" = "GS-BD", "Gen" = "GS",
                                                 "15"="15", "30"="30", "45"="45", "60"="60", "75"="75"))
 
@@ -90,7 +92,7 @@ Averages <- merge(Averages, Averages8, by=c( "strategy","scenario", "Generation"
 OCS60 <- TGVsAll[TGVsAll$Generation==50,]
 tgv60 <- data.frame()
 
-for (scenario in c("PT",15, 30, 45, 60, 75)) {
+for (scenario in c("PT","GS", 15, 30, 45, 60, 75)) {
   for (rep in 0:9) {
     #genetic gain
     base <- OCS60$zMean[OCS60$scenario=="PT" & OCS60$Strategy=="SU55" & OCS60$Rep==rep]
@@ -112,8 +114,10 @@ for (scenario in c("PT",15, 30, 45, 60, 75)) {
   }
 }
 
-OCS60 <- tgv60[tgv60$Strategy %in% c("SU55", "OCS"),]
-OCS60 <- tgv60[tgv60$scenario %in% c("PT", 15, 30, 45, 60, 75),]
+tgv60$PlotGroup <- paste0(tgv60$strategy, tgv60$scenario)
+#OCS60 <- tgv60[tgv60$Strategy %in% c("SU55", "OCS"),]
+#OCS60 <- tgv60[tgv60$scenario %in% c("PT","GS", 15, 30, 45, 60, 75),]
+OCS60 <- tgv60[tgv60$PlotGroup %in% c("SU55PT","SU55GS", "SU51GS", "OCS15", "OCS30", "OCS45", "OCS60", "OCS75"),]
 table(OCS60$Strategy, OCS60$scenario)
 OCS60$per_zMean <- OCS60$per_zMean*100 - 100 #tukaj ma osnoven scenarij 100: zato odštej 100
 OCS60$per_GenicSD <- (OCS60$per_GenicSD)*100 - 100#tukaj ma osnoven scenarij 0
@@ -148,19 +152,18 @@ MEAN60_OCS <- merge(MEAN60_OCS, SD60_OCSa, by=c("Strategy", "Scenario"))
 #to je povrepčje regresij
 library(nlme)
 regRep <- data.frame(Rep=NA, Intercept=NA, Slope=NA, Scenario=NA, Strategy=NA)
+TGVsAll$PlotGroup <- paste0(TGVsAll$Strategy, TGVsAll$scenario)
 
-for (sc in c("PT", 15, 30, 45, 60, 75)) {
-  for (strategy in c("SU55", "SU51", "SU15", "OCS")) {
+for (plotgroup in c("SU55PT","SU55GS", "SU51GS", "OCS15", "OCS30", "OCS45", "OCS60", "OCS75")) {
   #df <- TGVsAll[(TGVsAll$scenario==sc & TGVsAll$Strategy %in% c("SU55", "OCS")) & TGVsAll$Rep %in% 0:9,]
-  df <- TGVsAll[TGVsAll$scenario==sc & TGVsAll$Strategy==strategy & TGVsAll$Rep %in% 0:9,]
+  df <- TGVsAll[TGVsAll$PlotGroup==plotgroup & TGVsAll$Rep %in% 0:9,]
   if (nrow(df) > 0) {
     fm1 <- lmList(zMeanGenic ~ SDGenicStNeg | Rep, data=df, pool = TRUE)
     tmp <- data.frame(Rep=rownames(coef(fm1)),coef(fm1),check.names=FALSE)
     colnames(tmp) <- c("Rep", "Intercept", "Slope")
-    tmp$Scenario <- sc
+    tmp$Scenario <- unique(df$scenario)
     tmp$Strategy <- unique(df$Strategy)
     regRep <- rbind(regRep, tmp)
-  }
   }
 }
 
@@ -180,7 +183,7 @@ write.csv(avgReg, "~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse
 #efficiency of SU55
 EFF <- data.frame()
 
-for (scenario in c("PT", 15, 30, 45, 60, 75)) {
+for (scenario in c("PT", "GS", 15, 30, 45, 60, 75)) {
   for (rep in 0:9) {
     effBase <- regRep$Slope[regRep$Scenario=="PT"  & regRep$Strategy=="SU55" & regRep$Rep==rep]
     eff <- regRep[regRep$Scenario==scenario & regRep$Rep==rep,]
@@ -193,7 +196,7 @@ for (scenario in c("PT", 15, 30, 45, 60, 75)) {
 EFF <- EFF[!(is.na(EFF$Slope)),]
 EFF$per_Eff <-  EFF$per_Eff * 100 -100
 EFF$Name <- paste0(EFF$Strategy, EFF$Scenario)
-EFF$Name <- factor(EFF$Name, level=c("SU55PT","SU51PT","SU15PT","OCS15","OCS30","OCS45","OCS60","OCS75"))
+EFF$Name <- factor(EFF$Name, level=c("SU55PT","SU55GS","SU51GS","OCS15","OCS30","OCS45","OCS60","OCS75"))
 
 #efficiency
 eff <- summarySE(EFF, measurevar="per_Eff", groupvars=c("Strategy", "Scenario"))[,c(1,2,4,5)]
@@ -209,18 +212,19 @@ MEAN60_OCS <- merge(MEAN60_OCS, eff, by=c("Strategy", "Scenario"))
 library(emmeans)
 OCS60$scenario <- as.factor(OCS60$scenario)
 OCS60$Strategy <- as.factor(OCS60$Strategy)
-OCS60$scenario <- factor(OCS60$scenario, levels =c("PT", 15,30,45,60,75))
-MEAN60_OCS$Scenario <- factor(MEAN60_OCS$Scenario, levels =c("PT", 15,30,45,60,75))
+OCS60$scenario <- factor(OCS60$scenario, levels =c("PT", "GS", 15,30,45,60,75))
+MEAN60_OCS$Scenario <- factor(MEAN60_OCS$Scenario, levels =c("PT", "GS", 15,30,45,60,75))
 MEAN60_OCS$Strategy <- factor(MEAN60_OCS$Strategy, levels =c("SU55", "SU51", "SU15", "OCS"))
-OCS60$scenario <- factor(OCS60$scenario, levels =c("PT", 15,30,45,60,75))
+OCS60$scenario <- factor(OCS60$scenario, levels =c("PT", "GS", 15,30,45,60,75))
 OCS60$Strategy <- factor(OCS60$Strategy, levels =c("SU55", "SU51", "SU15", "OCS"))
-EFF$Scenario <- factor(EFF$Scenario, levels =c("PT", 15,30,45,60,75))
+EFF$Scenario <- factor(EFF$Scenario, levels =c("PT", "GS", 15,30,45,60,75))
 EFF$Strategy <- factor(EFF$Strategy, levels =c("SU55", "SU51", "SU15", "OCS"))
 
 OCS60$Name <- paste0(OCS60$Strategy, OCS60$scenario)
-OCS60$Name <- factor(OCS60$Name, level=c("SU55PT","SU51PT","SU15PT","OCS15","OCS30","OCS45","OCS60","OCS75"))
+OCS60$Name <- factor(OCS60$Name, level=c("SU55PT","SU55GS","SU51GS","OCS15","OCS30","OCS45","OCS60","OCS75"))
 
 #significane of genetic gain
+library(emmeans)
 model <- lm(per_zMean ~ scenario, data=OCS60)
 anova(model)
 marginal = emmeans(model, ~ scenario)

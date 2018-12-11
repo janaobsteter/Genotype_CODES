@@ -1,30 +1,41 @@
 gi <- read.csv("/home/jana/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/GENINTS_all_14082018.csv")
+gi_OCS <- read.csv("/home/jana/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/GENINTS_all_11122018_OCS.csv")
+gi_OCS$scenario <- as.character(gi_OCS$scenario)
+
+gi <- rbind(gi, gi_OCS)
 gi$LINE <- paste0(gi$line, gi$sex)
 gi <- gi[gi$Gen %in% 40:60,]
 gi$genInt <- as.numeric(as.character(gi$genInt))
 
+gi$scenario <- revalue(gi$scenario, c("Class" = "PT", "GenSLO" = "GS-PS", "OtherCowsGen" = "GS-C", "BmGen" = "GS-BD", "Gen" = "GS",
+                                            "15"="15", "30"="30", "45"="45", "60"="60", "75"="75"))
+
+gi$Group <- paste0(gi$strategy, gi$scenario)
+
 giA <- aggregate(gi$genInt ~ gi$LINE + gi$scenario + gi$strategy + gi$Rep, FUN="mean")
 colnames(giA) <- c("Line", "Scenario", "Strategy", "Rep", "genInt")
-giA$Strategy <- factor(giA$Strategy, levels =c("SU55", "SU51", "SU15"))
-giA$Scenario <- factor(giA$Scenario, levels =c("Class", "GenSLO", "OtherCowsGen", "BmGen", "Gen"))
+giA$Strategy <- factor(giA$Strategy, levels =c("SU55", "SU51", "SU15",  "OCS"))
+#giA$Scenario <- factor(giA$Scenario, levels =c("Class", "GenSLO", "OtherCowsGen", "BmGen", "Gen"))
 giA$genInt <- round(giA$genInt, 1)
 giA[order(giA$Strategy, giA$Scenario),][giA$Line=="sireM",]
 
+giA$Group <- paste0(giA$Strategy, giA$Scenario)
+giA <- giA[giA$Group %in% c("SU55PT","SU55GS", "SU51GS", "OCS15", "OCS30", "OCS45", "OCS60", "OCS75"),]
+
 giPer <- data.frame()
-for (strategy in c("SU55", "SU51", "SU15")) {
-  for (scenario in c("Class", "GenSLO", "OtherCowsGen", "BmGen", "Gen")) {
-    for (line in c("sireF", "sireM", "damF", "damM")) {
-      for (rep in 0:19) {
-        #genetic gain
-        base <- giA$genInt[giA$Scenario=="Class" & giA$Strategy=="SU55" & giA$Line==line & giA$Rep==rep]
-        giLINE <- giA[giA$Scenario==scenario & giA$Strategy==strategy & giA$Line==line & giA$Rep==rep,]
-        giLINE$per_gi <- giLINE$genInt / base
-        
-        giPer <- rbind(giPer, giLINE)
-      }
+for (group in c("SU55PT","SU55GS", "SU51GS", "OCS15", "OCS30", "OCS45", "OCS60", "OCS75")) {
+  for (line in c("sireF", "sireM", "damF", "damM")) {
+    for (rep in 0:1) {
+      #genetic gain
+      base <- giA$genInt[giA$Scenario=="PT" & giA$Strategy=="SU55" & giA$Line==line & giA$Rep==rep]
+      giLINE <- giA[giA$Group==group & giA$Line==line & giA$Rep==rep,]
+      giLINE$per_gi <- giLINE$genInt / base
+      
+      giPer <- rbind(giPer, giLINE)
     }
   }
 }
+
 giPer$per_gi <- (giPer$per_gi)*100-100
 giPer_a <- summarySE(giPer, measurevar="per_gi", groupvars=c("Strategy", "Scenario", "Line"))[,c(1,2,3,5,6)]
 colnames(giPer_a) <- c("Strategy", "Scenario", "Line", "per_gi", "per_giSD")
