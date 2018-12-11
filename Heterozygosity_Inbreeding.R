@@ -7,8 +7,10 @@ library(reshape2)
 #generacije 1 - 20 so generacije 40 - 60
 #Heterozygosity na QTNih
 hetQTN <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/MeanHet_QTNsALL_14082018.csv")[, -1]
-# colnames(hetQTN) <-  c("Strategy",  "Scenario", "Rep", "Gen", "Het")
-# hetQTN$Marker <- "QTN"
+hetQTN <- read.csv("~/Documents/Projects/inProgress/GenomicStrategies_SireUSe/MeanHet_QTNsALL_OCS_11122018.csv")[, -1]
+colnames(hetQTN) <-  c("Strategy",  "Scenario", "Rep", "Gen", "Het")
+colnames(hetQTN) <-  c( "Scenario", "Rep", "Gen", "Het")
+ hetQTN$Marker <- "QTN"
 # nQTN <- 10000
 # nAnim <- 8640
 # hetQTN$HetCorr <- hetQTN$Het *  nQTN / nAnim
@@ -97,7 +99,27 @@ for (strategy in c("SU55", "SU15", "SU51")) {
 }
 dF_DF <- dF_DF[-1,]
 
-
+####OCS
+hetDF <- hetQTN
+dF_DF <- data.frame(Strategy=NA, Scenario=NA, Rep=NA, Marker=NA, dF=NA, Ne=NA)
+for (scenario in c(15, 30, 45, 60, 75)) {
+  for (rep in 0:1) {
+    for (marker in c( "QTN")) {
+      #print(c(strategy, scenario, rep, marker))
+      tmp <- hetDF [(hetDF$Scenario==scenario) & (hetDF$Rep==rep) & (hetDF$Marker==marker),]
+      if (nrow(tmp) > 1) {
+        
+        tmp$y1 = log(tmp$HetCorr)
+        fit1 = MASS:::rlm(tmp$y1 ~ tmp$Gen, maxit=2000)
+        dF <-  1 - exp(coef(fit1)[2])t
+        Ne <-  1 / (2 * dF)
+        
+        dF_DF <- rbind(dF_DF, c("OCS", scenario, rep, marker, dF, Ne))
+      }
+    }
+  }
+}
+dF_DF <- dF_DF[-1,]
 
 
 dF_DF$dF <- as.numeric(dF_DF$dF )
