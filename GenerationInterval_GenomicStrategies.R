@@ -28,17 +28,20 @@ for (strategy in c("SU55", "SU51", "SU15")) {
 giPer$per_gi <- (giPer$per_gi)*100-100
 giPer_a <- summarySE(giPer, measurevar="per_gi", groupvars=c("Strategy", "Scenario", "Line"))[,c(1,2,3,5,6)]
 colnames(giPer_a) <- c("Strategy", "Scenario", "Line", "per_gi", "per_giSD")
-giPer_a$per_gi <- round(giPer_a$per_gi)
-giPer_a$per_giSD <- round(giPer_a$per_giSD)
+#giPer_a$per_gi <- round(giPer_a$per_gi)
+#giPer_a$per_giSD <- round(giPer_a$per_giSD)
 
 giPer_a$Strategy <- factor(giPer_a$Strategy, levels =c("SU55", "SU51", "SU15"))
 giPer_a$Scenario <- factor(giPer_a$Scenario, levels =c("Class", "GenSLO", "OtherCowsGen", "BmGen", "Gen"))
 giPer_a[order(giPer_a$Strategy, giPer_a$Scenario),][giPer_a$Line=="sireM",]
+giPer_a[order(giPer_a$Strategy, giPer_a$Scenario),][giPer_a$Line=="sireF",]
 
 giAS <- aggregate(giA$genInt ~ giA$Scenario + giA$Strategy, FUN="sum")
 colnames(giAS) <- c("Scenario", "Strategy", "genInt")
 
 giAS$genInt[giAS$Strategy=="SU55"] / giAS$genInt[giAS$Strategy=="SU55"]
+
+
 
 #gs-c
 cbind(giA[(giA$Line=="sireF") & (giA$Scenario=="OtherCowsGen"),], 
