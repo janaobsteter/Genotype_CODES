@@ -722,7 +722,7 @@ ggplot() +
                       values=c("forestgreen", "dodgerblue2", "purple", "red3", "orange1"), 
                       labels=c("PT", "GS-PS", "GS-C", "GS-BD", "GS")) + 
   xlab("Generation") + ylab("Average True Genetic Value") +
-  geom_line(data = MeanAverage[MeanAverage$Strategy=="SU55",], aes(x=Generation, y=MeanTGV, colour=scenario, linetype=scenario), size=1.2) + 
+  geom_line(data = MeanAverage[MeanAverage$scenario %in% c("Class", "Gen"),], aes(x=Generation, y=MeanTGV, colour=scenario, linetype=Strategy), size=1.2) + 
   #geom_ribbon(data=MeanAverage, aes(x=Generation, ymin=lower, ymax=upper, colour=scenario), alpha=0.1) + 
 ylim(c(0, 7)) +
   guides(group=guide_legend(nrow=6), fill=guide_legend(nrow=6), colour=guide_legend(nrow=6), linetype=guide_legend(nrow=6)) +

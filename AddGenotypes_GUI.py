@@ -49,8 +49,6 @@ class AddGenotypes(QtGui.QMainWindow, Ui_MainWindow):
         self.AlleleFormat.addItems(["top", "ab", "forward"])
         self.alleleFormat = str(self.AlleleFormat.currentText())
         self.ParentalVerificationYN.stateChanged.connect(self.enableNoSNPs)
-        self.merge_ask = self.mergeAsk.isChecked()
-        self.rmOriginalZip = self.removeZipAsk.isChecked()
         self.DoEverything.clicked.connect(self.performAddition)
 
         self.ZipFile.clicked.connect(self.choose_zipFile)
@@ -115,6 +113,8 @@ class AddGenotypes(QtGui.QMainWindow, Ui_MainWindow):
         ########################################################
         self.date = str(self.Date.text())
         self.zip = str(self.ZipFileShow.text())
+        self.merge_ask = self.mergeAsk.isChecked()
+        self.rmOriginalZip = self.removeZipAsk.isChecked()
         self.tempdir = str(self.tempDirShow.text())
         self.ZipDir = str(self.ZipDirShow.text())
         self.MergeDir = str(self.MergeDirShow.text())
@@ -333,7 +333,7 @@ class AddGenotypes(QtGui.QMainWindow, Ui_MainWindow):
         # create table for govedo
         #############################################################################################
         ###############################################################################################
-        print "The number of genotyped animals is {}.".format(len(SampleIDs))
+        print "The number of genotyped animals is {}, number of animals with ID_SEQ is {}.".format(len(pedfile.samples) ,len(SampleIDs))
         print "The number of genotype packages (different date of genotyping) is {}.".format(len(DateGenotyped))
         print "The number of different genotyping chips is {0}: {1}.".format(len(PedFiles), PedFiles.keys())
 
@@ -350,14 +350,16 @@ class AddGenotypes(QtGui.QMainWindow, Ui_MainWindow):
         print("Created table for Govedo.")
         #
 
-
-        if self.merge_ask == "Y":
+        print("Merge is " + str(self.merge_ask))
+        if self.merge_ask:
             # merge is outside the loop
             # merge all the chips needed updating
+            print("Merging the files!")
             print(PedFiles.keys())
             for i in PedFiles.keys():
                 if not os.path.exists(self.MergeDir + str(i)):
                     os.makedirs(self.MergeDir + str(i))
+                    print(self.MergeDir + str(i) +  " created!")
                 for pedfile, mapfile in zip(PedFiles[i], MapFiles[i]):
                     shutil.copy(pedfile.split("/")[-1], self.MergeDir + str(i))
                     shutil.copy(mapfile.split("/")[-1], self.MergeDir + str(i))

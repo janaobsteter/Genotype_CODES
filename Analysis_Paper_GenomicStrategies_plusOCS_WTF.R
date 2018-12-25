@@ -397,22 +397,21 @@ maxminOS$scenario <- as.factor(as.character(maxminOS$scenario))
 TGVsStrategy <- TGVsStrategy[TGVsStrategy$PlotGroup %in% c("OCS15", "OCS30", "OCS45", "OCS60", "OCS75","SU55PT", "SU55GS", "SU51GS"),]
 TGVsStrategy$PlotGroup <- factor(TGVsStrategy$PlotGroup, level=c("OCS15", "OCS30", "OCS45", "OCS60", "OCS75","SU55PT", "SU55GS", "SU51GS"))
 TGVsStrategy <- TGVsStrategy[order(TGVsStrategy$PlotGroup),]
-TGVsStrategy$Way <- ifelse(TGVsStrategy$strategy=="OCS", "OCS", "Truncation")
-table(TGVsStrategy$Way)
+
 #maxminPT$PlotGroup <- factor(maxminPT$PlotGroup, level=c("OCS15", "OCS30", "OCS45", "OCS60", "OCS75"," ", "SU55PT", "SU51PT", "SU15PT"))
 #plot za učinkovitost
 library(ggplot2)
 ggplot(data = TGVsStrategy, aes(x=SDGenicSt, y=zMeanGenic, group=group,colour=PlotGroup, linetype=PlotGroup)) + 
   scale_x_reverse(sec.axis=sec_axis(trans=~1-.,                                   
                                     name="Converted/Lost genic standard deviation")) +
-  geom_line(aes(linetype=scenario, colour=scenario), size=0.2, alpha=0.4) +
+  geom_line(aes(linetype=PlotGroup, colour=PlotGroup), size=0.2, alpha=0.4) +
   ylim(0,7) + coord_cartesian(xlim = c(1, 0.85)) + theme_bw() +
   scale_linetype_manual("Breeding program", breaks=c("OCS15", "OCS30", "OCS45", "OCS60", "OCS75", "SU55PT", "SU55GS", "SU51GS"),
                         values=c("F1", "longdash",  "dashed", "longdash", "twodash", "solid", "solid", "solid"),
-                        labels=c(15, 30, 45, 60, 75, "SU55 PT", "SU55 GS", "SU55 GS")) + 
+                        labels=c(expression(OCS[15]),expression(OCS[30]),expression(OCS[45]),expression(OCS[60]),expression(OCS[75]), "SU 5/5 PT", "SU 5/5 GS", "SU 5/1 GS")) + 
   scale_colour_manual("Breeding program", breaks=c("OCS15", "OCS30", "OCS45", "OCS60", "OCS75","SU55PT", "SU55GS", "SU51GS"),
                       values=c("forestgreen", "orange", "purple", "darkblue", "red3","grey40", "grey60", "black"),
-                      labels=c(15, 30, 45, 60, 75, "SU55 PT", "SU55 GS", "SU55 GS")) + 
+                      labels=c(expression(OCS[15]),expression(OCS[30]),expression(OCS[45]),expression(OCS[60]),expression(OCS[75]), "SU 5/5 PT", "SU 5/5 GS", "SU 5/1 GS")) + 
   guides(linetype=guide_legend(nrow=2, keyheight = unit(1, "cm"), keywidth = unit(3, "cm"), override.aes = list(alpha = 1, size=1.2))) +
   xlab("Genic standard deviation") + ylab("Average True Genetic Value") + 
   theme(axis.text=element_text(size=16), legend.position = "top", 

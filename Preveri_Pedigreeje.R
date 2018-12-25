@@ -10,6 +10,25 @@ ped <- read.csv("~/PEDGI.txt",sep=" ")
 
 pedL <- ped[ped$Generation %in% 40:60,]
 
+#age of sires of cakajoci biki
+Cak <- ped[ped$cat=="cak", c("Indiv", "Generation", "Father")]
+colnames(Cak) <- c("Male", "MaleBirth", "Sire")
+
+CakSire <- ped[ped$Indiv %in% Cak$Sire, c("Indiv", "Generation")]
+colnames(CakSire) <- c("Sire", "SireBirth")
+
+CAKSIRE <- merge(Cak, CakSire, by="Sire")
+CAKSIRE$SireAge <- CAKSIRE$MaleBirth - CAKSIRE$SireBirth
+CAKSIRE[order(CAKSIRE$MaleBirth),]
+
+#najdi stare očete
+ped[ped$Indiv %in% c(397358, 397394),]
+#najdi mlade očete čakajočih iste generacije
+ped[ped$Indiv ==431974,]
+#vsi očetje te generacije
+ped[ped$cat=="pb" & ped$Generation %in% c(46:50),]
+
+
 table(pedL$Father, pedL$Generation)
 
 ped50 <- ped[ped$Generation==50,]
