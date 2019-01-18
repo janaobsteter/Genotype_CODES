@@ -1,10 +1,21 @@
-acc <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/AccuraciesALL_correlation_14082018.csv")
+acc <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/ACCAge.csv")[,-1]
+acc$scenario <-  revalue(acc$scenario, c("Class" = "PT", "GenSLO" = "GS-PS", "OtherCowsGen" = "GS-C", "BmGen" = "GS-BD", "Gen" = "GS"))
+acc$scenario <- factor(acc$scenario, levels =c("PT", "GS-PS", "GS-C", "GS-BD", "GS"))
+acc <- acc[order(acc$scenario),]
 #acc <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/AccuraciesALL_Cat.csv")
 #accAcc <- acc[,paste0("X", 21:40)]
 #accNames <- acc[,c("cat", "Strategy", "Scenario", "Rep")]
 #accNames$corEBV <- as.numeric(rowMeans(accAcc))
 #acc <- accNames
-accA <- aggregate(acc$corEBV ~ acc$Scenario + acc$Strategy + acc$Cat, FUN="mean")
+accA <- summarySE(data=acc, measurevar = "COR" , groupvars = c("scenario", "strategy", "AgeCat"))[,c(1,2,3,5,6)]
+colnames(accA) <- c("Scenario", "Strategy", "CatAge", "meanAcc", "sdAcc")
+table(accA$CatAge)
+accA[accA$Strategy=="SU55" & accA$CatAge %in% c("genTest1", "cak5", "vhlevljeni1", "mladi2", "potomciNP0", "telF1"),]
+
+accA[accA$Strategy=="SU51" & accA$CatAge %in% c("genTest1", "cak5", "vhlevljeni1", "mladi2", "potomciNP0", "telF1"),]
+accA[accA$Strategy=="SU15" & accA$CatAge %in% c("genTest1", "cak5", "vhlevljeni1", "mladi2", "potomciNP0", "telF1"),]
+
+
 accASc <- aggregate(acc$corEBV ~ acc$Strategy + acc$Cat + acc$Cycle, FUN="mean")
 accSc <- aggregate(acc$corEBV ~ acc$Scenario + acc$Strategy + acc$Cat, FUN="mean")
 accS <- summarySE(data=acc, measurevar="corEBV", groupvars=c("Strategy", "Cat"))
@@ -14,7 +25,7 @@ colnames(accA) <- c("Scenario", "Strategy", "Cat",  "Cycle", "corEBV")
 colnames(accSc) <- c("Scenario", "Strategy", "Cat", "corEBV")
 colnames(accASc) <- c("Strategy", "Cat", "Cycle", "corEBV")
 colnames(accS) <- c("Strategy", "Cat",  "corEBV")
-write.csv(accA, "~/Documents/PhD/Simulaton/Accuracies_genomicStrategies.csv", quote=FALSE)
+#write.csv(accA, "~/Documents/PhD/Simulaton/Accuracies_genomicStrategies.csv", quote=FALSE)
 
 
 accSc$Strategy <- factor(accSc$Strategy, levels =c("SU55", "SU51", "SU15"))
@@ -59,7 +70,6 @@ setwd("/home/jana/Documents/Projects/inProgress/GenomicStrategies_SireUSe/")
 #TGVsAll <- read.csv("~/TGVSALL_11062018.csv")
 TGVsAll <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/TGVSALL_14082018.csv")
 #TGVsAll <- read.csv("~/Documents/Projects/inProgress/GenomicStrategies_SireUSe/TGVSALL_14082018.csv")
-TGVsAll <- read.csv("TGVSALL_14082018.csv")
 #TGVsOCS <- read.csv("~/TGVsAll_OCS_10102018.csv")
 #TGVsAll <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_ReferenceSize//Results/TGVSALL_22082018.csv")
 TGVsAll$strategy <-TGVsAll$Strategy
@@ -117,8 +127,8 @@ Averages <- merge(Averages, Averages7, by=c( "strategy","scenario", "Generation"
 Averages <- merge(Averages, Averages8, by=c( "strategy","scenario", "Generation"))
 
 
-write.csv(Averages[Averages$Generation==60,], "~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results//Averages_3strategies_14082018.csv", quote=FALSE)
-write.csv(Averages[Averages$Generation==60,], "Averages_3strategies_14082018.csv", quote=FALSE)
+#write.csv(Averages[Averages$Generation==60,], "~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results//Averages_3strategies_14082018.csv", quote=FALSE)
+#write.csv(Averages[Averages$Generation==60,], "Averages_3strategies_14082018.csv", quote=FALSE)
 #AveragesA <- Averages
 #to je max min za gensko varianco standardizirano
 maxmin <- data.frame(strategy=NA, scenario=NA, minGenicSD=NA, maxGenicSD=NA, minTGV=NA, maxTGV=NA)
@@ -327,7 +337,7 @@ colnames(avgReg) <- c("Scenario", "Strategy",  "Intercept", "Slope")
 #and Sd
 sdSlope <- aggregate(regRep$Slope ~ regRep$Scenario + regRep$Strategy, FUN="sd")
 colnames(sdSlope) <- c("Scenario", "Strategy",  "SDSlope")
-write.csv(SD, "~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results//StandardDeviation_Efficiency_14082018.csv", quote=FALSE)
+#write.csv(SD, "~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results//StandardDeviation_Efficiency_14082018.csv", quote=FALSE)
 
 #efficiency
 regRep <- data.frame(Rep=NA, Intercept=NA, Slope=NA, Scenario=NA, Strategy=NA)
@@ -356,7 +366,7 @@ avgReg <- merge(avgReg, avgIntSD, by=c("regRep$Scenario", "regRep$Strategy"))
 colnames(avgReg) <- c("Scenario", "Strategy",  "Slope", "SlopeSD", "Intercept", "InterceptSD")
 avgReg$Eff <- round(avgReg$Slope, 0)
 avgReg$EffSd <- round(avgReg$SlopeSD, 0)
-write.csv(avgReg, "~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results//Efficiency_genomicstrategies_14082018.csv", quote=FALSE)
+#write.csv(avgReg, "~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results//Efficiency_genomicstrategies_14082018.csv", quote=FALSE)
 
 
 
@@ -493,7 +503,7 @@ MEAN60[MEAN60$Strategy=="SU51",]
 MEAN60[MEAN60$Strategy=="SU15",]
 MEAN60$per_zMean[MEAN60$Strategy=="SU51"] - MEAN60$per_zMean[MEAN60$Strategy=="SU55"]
 MEAN60$per_zMean[MEAN60$Strategy=="SU15"] - MEAN60$per_zMean[MEAN60$Strategy=="SU55"]
-write.csv(MEAN60, "~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results//StandardDeviation_GeneticGain_gen60_16112018.csv", quote=FALSE)
+#write.csv(MEAN60, "~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results//StandardDeviation_GeneticGain_gen60_16112018.csv", quote=FALSE)
 
 colnames(VAR60a) <- c("Strategy", "Scenario", "Value", "SD")
 VAR60a$Type <- "Genetic"
@@ -722,7 +732,7 @@ ggplot() +
                       values=c("forestgreen", "dodgerblue2", "purple", "red3", "orange1"), 
                       labels=c("PT", "GS-PS", "GS-C", "GS-BD", "GS")) + 
   xlab("Generation") + ylab("Average True Genetic Value") +
-  geom_line(data = MeanAverage[MeanAverage$scenario %in% c("Class", "Gen"),], aes(x=Generation, y=MeanTGV, colour=scenario, linetype=Strategy), size=1.2) + 
+  geom_line(data = MeanAverage[MeanAverage$Strategy=="SU55",], aes(x=Generation, y=MeanTGV, colour=scenario, linetype=scenario), size=1.2) + 
   #geom_ribbon(data=MeanAverage, aes(x=Generation, ymin=lower, ymax=upper, colour=scenario), alpha=0.1) + 
 ylim(c(0, 7)) +
   guides(group=guide_legend(nrow=6), fill=guide_legend(nrow=6), colour=guide_legend(nrow=6), linetype=guide_legend(nrow=6)) +

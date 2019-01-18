@@ -9,7 +9,7 @@ class MoviePlayer(QWidget):
         super(MoviePlayer, self).__init__(parent)
 
         self.setGeometry(200, 200, 400, 400)
-        self.setWindowTitle("A je Vid mal trmast????")
+        self.setWindowTitle("Odgovori")
 
         self.movie_screen = QLabel()
         self.movie_screen.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -18,7 +18,7 @@ class MoviePlayer(QWidget):
         self.gif2 = gif2
 
         btn_start = QLabel()
-        btn_start.setText("A je Vid mal trmast?")
+        btn_start.setText("Kaj gleda tvoje sefe?")
 
 
         self.entered = QLineEdit()
@@ -41,36 +41,33 @@ class MoviePlayer(QWidget):
         """
         Start animation
         """
-        if str(self.entered.text().toUtf8()).upper() == "JA":
+        if str(self.entered.text().toUtf8()).upper() == "KURC":
             self.movie = QMovie(self.gif1, QByteArray(), self)
             self.movie.setCacheMode(QMovie.CacheAll)
             self.movie.setSpeed(100)
             self.movie_screen.setMovie(self.movie)
-        if str(self.entered.text().toUtf8()).upper() == "NE":
+        if str(self.entered.text().toUtf8()).upper() != "KURC":
             self.movie = QMovie(self.gif2, QByteArray(), self)
             self.movie.setCacheMode(QMovie.CacheAll)
             self.movie.setSpeed(100)
             self.movie_screen.setMovie(self.movie)
+
         self.movie.start()
 
     def stop(self):
         """
         Stop the animation
         """
-        if str(self.entered.text().toUtf8()).upper() != "JA":
+        if str(self.entered.text().toUtf8()).upper() != "kurc":
             self.movie = QMovie(self.gif1, QByteArray(), self)
             self.movie.setCacheMode(QMovie.CacheAll)
             self.movie.setSpeed(100)
             self.movie_screen.setMovie(self.movie)
-        if str(self.entered.text().toUtf8()).upper() != "NE":
-            self.movie = QMovie(self.gif2, QByteArray(), self)
-            self.movie.setCacheMode(QMovie.CacheAll)
-            self.movie.setSpeed(100)
-            self.movie_screen.setMovie(self.movie)
+
         self.movie.stop()
 
 
 app = QApplication(sys.argv)
-player = MoviePlayer("/home/jana/Downloads/giphy.gif", "/home/jana/Downloads/giphy1.gif" )
+player = MoviePlayer("/home/jana/Downloads/tenor.gif", "/home/jana/Downloads/tryagain.gif" )
 player.show()
 sys.exit(app.exec_())

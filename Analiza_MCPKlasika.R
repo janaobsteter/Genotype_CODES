@@ -3,15 +3,147 @@ outersect <- function(x, y) {
          setdiff(y, x)))
 }
 
-MCP <- read.csv("/home/jana/Documents/F4F/Rezultati_MCPKlasiak/Skupni_rezultati_popravljeni_11122017.csv", header=TRUE, colClasses = 'character')
-KontroleReje <- read.csv('/home/jana/Documents/F4F/Rezultati_MCPKlasiak/Rejci_kontrole.csv')
+MCP <- read.csv("/home/jana/Documents/F4F/Rezultati_MCPKlasiak/Skupni_rezultati_popravljeni_11122017.csv", header=TRUE)
+#dodaj SI pred ID-je. Če se začne s 4, dodaj 0 na začetek
+IDs <- c()
+for (id in MCP$ID) {
+  name <- ifelse( nchar(id) == 7, paste0("SI0", id), paste0("SI", id)) #substr(id, 1, 1)==4 &&
+  IDs <- c(IDs, name)
+}
+MCP$ID <- IDs
+
+MCP2 <- read.csv("/home/jana/Documents/F4F/Rezultati_MCPKlasiak/Rezultati april-maj 2018.csv", header=TRUE)
+MCP2$Rejec <- as.character(MCP2$Rejec)
+MCP2$Rejec[which(MCP2$Rejec=="Leskovšek")] <- "Vasle"
+MCP2$Rejec <- as.factor(MCP2$Rejec)
+MCP$Season <- "Zima"
+MCP2$Season <- "Pomlad"
+MCP2$KappaKazein <- NA
+summary(MCP$r)
+summary(MCP2$r)
+par(mfrow=c(2,1))
+hist(MCP$a30)
+hist(MCP2$a30)
+hist(as.numeric(MCP$r.s.))
+hist(as.numeric(MCP2$r.s.))
+
+
+MCPA <- rbind(MCP, MCP2)
+KontroleReje <- read.csv('/home/jana/Documents/F4F/Rezultati_MCPKlasiak/Rejci_kontrole.csv', header=TRUE)
+KontroleReje$Datum <- as.Date(KontroleReje$Datum, format="%d.%m.%Y")
+MCPA <- merge(MCPA, KontroleReje, by=c("Rejec", "Season"))
+hist(MCPA$r.s.)
+hist(MCPA$a30.mm.)
+
+MCPA$r.s.[MCPA$r.s. == 0] <- NA
+MCPA$a30.mm.[MCPA$a30.mm. == 0] <- NA
+MCPA$k20.s.[MCPA$k20.s. == 0] <- NA
+MCPA$STEV_ORIG <- gsub("SI", "", MCPA$ID)
+
+#reda in kappa kazein
+MCPA$IME[MCPA$IME =="Sivka II"] <- "Sivka"
+MCPA$ID[MCPA$ID == "SI97158890"] <- "SI94158890"
+MCPA$STEV_ORIG[MCPA$STEV_ORIG == 97158890] <- 94158890
+MCPA$ID[MCPA$ID == "SI63817455"] <- "SI63817445"
+MCPA$STEV_ORIG[MCPA$STEV_ORIG == 63817455] <- 63817445
+kk <- read.csv("~/Documents/F4F/MlecniProteini/KappaCaseinGenotype_python.csv")
+length(intersect(MCPA$ID, kk$ID))
+length(unique(MCPA$ID))
+length(unique(kk$ID))
+unique(MCPA$ID[!(MCPA$ID %in% kk$ID)])
+length(unique(MCPA$ID[!(MCPA$ID %in% kk$ID)]))
+MCPA <- merge(MCPA, kk[,c("ID", "SKUPEN")], by="ID", all.x=TRUE)
+breed <- unique(read.csv("~/Documents/F4F/AnimalBreed.csv", colClasses = c(STEV_ORIG = "character")))
+MCPA$STEV_ORIG[!(MCPA$STEV_ORIG %in% breed$STEV_ORIG)]
+outersect(MCPA$STEV_ORIG, breed$STEV_ORIG)
+MCPA <- merge(MCPA, breed, by="STEV_ORIG", all.x = TRUE)
+
+tel <- read.csv("~/Documents/F4F/Rezultati_MCPKlasiak/Telitve.csv")
+IDs <- c()
+
+for (id in tel$STEV_ORIG) {
+  name <- ifelse( nchar(id) == 7, paste0("0", id), id) #substr(id, 1, 1)==4 &&
+  IDs <- c(IDs, name)
+}
+tel$STEV_ORIG <- as.character(IDs)
+
+length(unique(tel$STEV_ORIG))
+length(unique(MCPA$STEV_ORIG))
+tel$DAT_TELITEV <- as.Date(tel$DAT_TELITEV, format="%d-%m-%y")
+
+nrow(MCPA)
+length(unique(MCPA$STEV_ORIG[(MCPA$STEV_ORIG %in% tel$STEV_ORIG)]))
+unique(MCPA$STEV_ORIG[!(MCPA$STEV_ORIG %in% tel$STEV_ORIG)])
+MCPA$STEV_ORIG[!(MCPA$STEV_ORIG %in% tel$STEV_ORIG)]
+
+tel <- merge(MCPA, tel, by="STEV_ORIG")
+tel <- tel[tel$Datum > tel$DAT_TELITEV,]
+tel$dnPoLakt <- difftime(tel$Datum, tel$DAT_TELITEV, unit="days")
+tel <- unique(tel)
+
+#izberi samo ustrezne laktacije
+tel$DatID <- paste0(tel$STEV_ORIG, tel$Datum)
+TEL <- data.frame()
+for (datID in unique(tel$DatID)) {
+  tmp <- tel[tel$DatID==datID,]
+  TEL <- rbind(TEL, tmp[order(tmp$dnPoLakt),][1,])
+}
+
+MCPA <- merge(MCPA, TEL[,c("STEV_ORIG", "Datum", "DAT_TELITEV", "dnPoLakt")], by=c("STEV_ORIG", "Datum"))
+MCPA$StLakt <- ifelse(MCPA$dnPoLakt< 100, 1, ifelse(100 <= MCPA$dnPoLakt & MCPA$dnPoLakt < 200, 2, ifelse(200 <= MCPA$dnPoLakt & MCPA$dnPoLakt < 300, 3, 4)))
+aggregate(MCPA$a30.mm. ~ MCPA$StLakt, FUN="mean")
+
+write.csv(unique(MCPA), "~/Documents/F4F/Rezultati_MCPKlasiak/SkupniRezultati_Klasika.csv", quote=FALSE, row.names=FALSE)
+
+
+#analiza vplivov
+MCPA$Season <- as.factor(MCPA$Season)
+MCPA$StLakt <- as.factor(MCPA$StLakt)
+MCPA$Cas <- as.factor(MCPA$Cas)
+MCPA$KappaKazein <- as.factor(MCPA$KappaKazein)
+MCPA$SP1_SIFRA_PASMA <- as.factor(MCPA$SP1_SIFRA_PASMA)
+MCPA$a30.mm. <- as.numeric(MCPA$a30.mm.)
+MCPA$Cas[MCPA$Cas=="zjvečer"] <- "zvečer"
+MCPA$Cas[MCPA$Cas=="zvecer"] <- "zvečer"
+MCPA$Cas[MCPA$Cas=="/"] <-NA
+MCPA$KappaKazein[MCPA$KappaKazein==""] <-NA
+model1 <- lm(MCPA$a30.mm. ~ MCPA$Season  + MCPA$Cas + MCPA$proteini + MCPA$Mascoba + MCPA$SP1_SIFRA_PASMA + MCPA$StLakt)
+plot(model1)
+summary(model1)
+anova(model1)
+
 intersect(KontroleReje$Rejec, MCP$Rejec)
+intersect(KontroleReje$Rejec, MCPA$Rejec)
+length(intersect(KontroleReje$Rejec, MCPA$Rejec))
+length(intersect(KontroleReje$Rejec, MCP$Rejec))
+length(unique(KontroleReje$Rejec))
+length(unique(MCP$Rejec))
+unique(MCP$Rejec)
 outersect(KontroleReje$Rejec, MCP$Rejec)
 
 
 MCP <- merge(MCP, KontroleReje, by="Rejec", all.x=TRUE)
 MCP$Datum <- as.Date(MCP$Datum, format="%d.%m.%Y")
 if (length(unique(MCP$ID)) == nrow(MCP)) {print("No duplicates in the data")} 
+
+#primerjaj pomlad-zimo
+library(tidyr)
+MCPA$MonthKl <- format(MCPA$Datum, "%m-%y")
+zima <- MCPA[MCPA$Season=="Zima", ]
+colnames(zima)[3:23] <- paste0(colnames(zima)[3:23], "_Z")
+pomlad <- MCPA[MCPA$Season=="Pomlad", ]
+colnames(pomlad)[3:23] <- paste0(colnames(pomlad)[3:23], "_P")
+compare <- merge(zima, pomlad, by=c("ID", "STEV_ORIG"))
+cor(compare$a30.mm._P, compare$a30.mm._Z, use = "pairwise.complete.obs")
+cor(compare$k20.s._P, compare$k20.s._Z, use = "pairwise.complete.obs")
+cor(compare$r.s._Z, compare$r.s._P, use = "pairwise.complete.obs")
+plot(compare$a30.mm._Z, compare$a30.mm._P)
+
+# #repeatability
+# library(heritability)
+# repa30 <- lm(MCPA$a30.mm. ~ MCPA$ID )
+# repeatability(repa30)
+
 
 
 #Tukaj pridobi podatke o teh živalih iz baze

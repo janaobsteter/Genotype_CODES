@@ -2386,10 +2386,10 @@ class AlphaMate(object):
         self.AlphaMateSpec_gen = AlphaMateDir + "/AlphaMateSpec_gen.txt"
         shutil.copy(self.AlphaMateSpec_gen, AlphaMateDir + "/AlphaMateSpec.txt")
         self.AlphaMateSpec = AlphaMateDir + "/AlphaMateSpec.txt"
-	try:      
-		shutil.copy(AlphaSimDir + "/IndOpt.txt", AlphaMateDir)
-	except:
-		pass
+        try:
+            shutil.copy(AlphaSimDir + "/IndOpt.txt", AlphaMateDir)
+        except:
+            pass
         self.indopt = sorted(list(pd.read_table("IndOpt.txt", header=None).loc[:, 0]))
         self.ped = pd.read_csv(self.AlphaSimDir + "/SimulatedData/PedigreeAndGeneticValues_cat.txt", sep="\s+")
 #        self.round = max(self.ped.Generation)
@@ -2400,7 +2400,7 @@ class AlphaMate(object):
 
     def prepareGender(self):
         ped = self.ped
-	ped.loc[:, "sex1"] = [1 if x == "M" else 2 for x in ped.sex]
+    	ped.loc[:, "sex1"] = [1 if x == "M" else 2 for x in ped.sex]
         ped[ped.Indiv.isin(self.indopt)][["Indiv", "sex1"]].to_csv(self.AlphaMateDir + "/GENDER.txt", sep=" ", index=None, header=None)
 
     def countFemaleSel(self):

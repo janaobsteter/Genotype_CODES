@@ -36,6 +36,30 @@ giPer_a$Scenario <- factor(giPer_a$Scenario, levels =c("Class", "GenSLO", "Other
 giPer_a[order(giPer_a$Strategy, giPer_a$Scenario),][giPer_a$Line=="sireM",]
 giPer_a[order(giPer_a$Strategy, giPer_a$Scenario),][giPer_a$Line=="sireF",]
 
+#Sires of dams
+model <- lm(per_gi ~ Scenario + Strategy + Scenario:Strategy, data=giPer[giPer$Line %in% c("sireF"),])
+marginal = emmeans(model, ~ Scenario:Strategy)
+CLD = cld(marginal, sort=FALSE, by="Strategy",
+          alpha   = 0.05,
+          Letters = letters, adjust="tukey") 
+CLD = cld(marginal, sort=FALSE, by="Scenario",
+          alpha   = 0.05,
+          Letters = letters, adjust="tukey") 
+CLD
+
+#Sires of sires
+model <- lm(per_gi ~ Scenario + Strategy + Scenario:Strategy, data=giPer[giPer$Line %in% c("sireM"),])
+marginal = emmeans(model, ~ Scenario:Strategy)
+CLD = cld(marginal, sort=FALSE, by="Strategy",
+          alpha   = 0.05,
+          Letters = letters, adjust="tukey") 
+CLD
+CLD = cld(marginal, sort=FALSE, by="Scenario",
+          alpha   = 0.05,
+          Letters = letters, adjust="tukey") 
+CLD
+
+
 giAS <- aggregate(giA$genInt ~ giA$Scenario + giA$Strategy, FUN="sum")
 colnames(giAS) <- c("Scenario", "Strategy", "genInt")
 
