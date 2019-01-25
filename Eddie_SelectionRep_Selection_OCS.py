@@ -212,8 +212,8 @@ for roundNo in range(21,41): #za vsak krog selekcije
     # dodaj očete
     print(len(Ocetje))
     if len(Ocetje) == selPar.get('stNBn'):
-    	ped.ped.loc[ped.ped.cat.isin(['nr', 'potomciNP']), 'Father'] = Ocetje
-	ped.ped.Father = ped.ped.Father.astype(int)
+        ped.ped.loc[ped.ped.cat.isin(['nr', 'potomciNP']), 'Father'] = Ocetje
+        ped.ped.Father = ped.ped.Father.astype(int)
     else:
         print("Not enough fathers!!!!")
 

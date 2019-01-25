@@ -354,7 +354,7 @@ maxminOS <- maxmin[maxmin$scenario %in% c(15, 30, 45, 60, 75, "PT", "GS"),]
 #maxminOS$scenario <- factor(maxminOS$scenario, levels =c("PT", 15, 30, 45, 60, 75))
 maxminOS$PlotGroup <- paste0(maxminOS$strategy, maxminOS$scenario)
 maxminPT <- maxminOS[maxminOS$PlotGroup %in% c("SU55PT", "SU55GS", "SU51GS"),]
-maxmOCS <- maxminOS[maxminOS$scenario %in% c(15, 30, 45, 60, 75),]
+maxminOCS <- maxminOS[maxminOS$scenario %in% c(15, 30, 45, 60, 75),]
 #maxminOS$strategy <- factor(maxminOS$strategy, levels =c("SU55", "OCS"))
 
 #maxminOS <- maxminOS[order(maxminOS$strategy, maxminOS$scenario),]
@@ -392,13 +392,14 @@ ggplot(data = TGVsStrategy, aes(x=SDGenicSt, y=zMeanGenic, group=group, colour=P
   scale_linetype_manual("Breeding program", 
                         breaks=c("OCS15", "OCS30", "OCS45", "OCS60", "OCS75","SU55PT", "SU55GS", "SU51GS"),
                         values=c("F1", "longdash",  "dashed", "longdash", "twodash", "solid", "solid", "solid"),
-                        labels=c("OCS15", "OCS30", "OCS45", "OCS60", "OCS75","SU55PT", "SU55GS", "SU51GS")) + 
+                        labels=c(expression("OCS"["15"]), expression("OCS"["30"]), expression("OCS"["45"]),
+                                                                                            expression("OCS"["60"]), expression("OCS"["75"]) ,"SU 5/5 PT", "SU 5/5 GS", "SU 5/1 GS")) + 
   scale_colour_manual("Breeding program", 
                       breaks=c("OCS15", "OCS30", "OCS45", "OCS60", "OCS75","SU55PT", "SU55GS", "SU51GS"),
                       values=c("forestgreen", "orange", "purple", "darkblue", "red3","grey40", "grey60", "black"),
                       labels=c("OCS15", "OCS30", "OCS45", "OCS60", "OCS75","SU55PT", "SU55GS", "SU51GS")) + 
-  guides(linetype=guide_legend(nrow=2, keyheight = unit(1, "cm"), keywidth = unit(3, "cm"), override.aes = list(alpha = 1, size=1.2))) +
-  xlab("Genic standard deviation") + ylab("Average True Genetic Value") + 
+  guides(linetype=guide_legend(nrow=2, keyheight = unit(1, "cm"), keywidth = unit(3, "cm"), override.aes = list(alpha = 2, size=2))) +
+  xlab("Genic standard deviation") + ylab("Genetic Mean") + 
   theme(axis.text=element_text(size=16), legend.position = "top", 
         axis.title.x=element_text(size=16, vjust=-1), 
         axis.title.y=element_text(size=16, vjust=2), 
@@ -514,6 +515,7 @@ TGVsAll$group <- paste0(TGVsAll$scenario, TGVsAll$Rep)
 TGVsAll <- TGVsAll[!(is.na(TGVsAll$scenario)),]
 #plotaj replike
 ggplot(data = TGVsAll[TGVsAll$Strategy %in% c("SU55", "OCS"),], aes(x = Generation, y = zMean, colour=scenario, group=group, linetype=Strategy) ) + geom_line()
+ggplot(data = TGVsAll[TGVsAll$Strategy %in% c("OCS"),], aes(x = Generation, y = zMean, colour=scenario, group=group, linetype=Strategy) ) + geom_line()
 
 #genetic variance plot
 MeanAverageSD$Generation <- as.factor(MeanAverageSD$Generation)
@@ -559,80 +561,3 @@ ggplot() +
 
 
 
-
-#standard deviations of the measures
-#genetic gain in gen 60
-TGV60 <- TGVsAll[TGVsAll$Generation==60,]
-Mean60 <- aggregate(TGV60$zMean ~ TGV60$strategy + TGV60$scenario + TGV60$Rep, FUN="mean")
-colnames(Mean60) <- c("Strategy", "Scenario", "Rep", "MeanTGV")
-MEAN60 <- aggregate(Mean60$MeanTGV ~Mean60$Strategy + Mean60$Scenario, FUN="mean")
-Sd60 <- aggregate(Mean60$MeanTGV ~Mean60$Strategy + Mean60$Scenario, FUN="sd")
-colnames(Sd60) <- c("Strategy", "Scenario", "SdTGV")
-colnames(MEAN60) <- c("Strategy", "Scenario", "MeanTGV")
-
-SD <- merge(MEAN60, Sd60, by=c("Strategy", "Scenario")) 
-SD$percentage <- round(SD$MeanTGV / SD$MeanTGV[SD$Strategy=="SU55" & SD$Scenario=="Class"]*100,0)
-SD[SD$Strategy=="SU55",]
-SD[SD$Strategy=="SU15",]
-SD[SD$Strategy=="SU51",]
-SD$percentage[SD$Strategy=="SU51"] - SD$percentage[SD$Strategy=="SU55"]
-write.csv(SD, "~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results//StandardDeviation_GeneticGain_gen60_2018.csv", quote=FALSE)
-
-
-
-'
-####
-pedQ <- read.table("~/PedQTN.txt", header=TRUE)
-varQ <- read.table("~/VarQTN.txt", header=TRUE)
-
-
-TGVs <- data.frame(Generation=40:60)
-ped <- pedQ
-#to standardise onto the generation 40 - which is the generation of comparison
-ped <- ped[ped$Generation %in% 40:60,]
-#obtain mean and sd of genetic values
-TGV <- summarySE(ped, measurevar = "gvNormUnres1", groupvars = "Generation")[,c(1,3,4)]
-#variance of genetic values
-TGV$var <- (TGV$sd)^2
-colnames(TGV)[1] <- c("Generation")
-#standardise genetic standard devistion
-TGV$SDSt <- TGV$sd / TGV$sd[1]
-#standardise genetic values with genetic standard deviation
-TGV$zMean <- (TGV$gvNormUnres1 - TGV$gvNormUnres1[1]) / TGV$sd[1]
-TGVs <- merge(TGVs, TGV, by="Generation")
-#read in genic variance
-Var <-varQ
-#Qtn model 1 is unrestricted
-Var <- Var[Var$QtnModel==1,c(1,3)]
-TGVs <- merge(TGVs, Var, by="Generation")
-#obtain genic standard deviation
-TGVs$SDGenic <- (sqrt(TGVs$AdditGenicVar1))
-#standarise genic standard devistion
-TGVs$SDGenicSt <- TGVs$SDGenic / TGVs$SDGenic[1]
-#standardise genetic values with genic standard devistion
-TGVs$zMeanGenic <- (TGVs$gvNormUnres1 - TGVs$gvNormUnres1[1]) / TGVs$SDGenic[1]
-#reciprocated genic standard deviation
-TGVs$SDGenicStNeg <- 1 - (TGVs$SDGenic / TGVs$SDGenic[1])
-#genic variance standardised onto genetic variance
-koef <- TGVs$var[1] / TGVs$AdditGenicVar1[1]
-TGVs$Genic_Genetic_VAR <- TGVs$AdditGenicVar1 * koef
-TGVs$Genic_Genetic_SD <- sqrt(TGVs$Genic_Genetic_VAR)
-#standardise genic_genetic standard deviation
-TGVs$Genic_Genetic_SDSt <- TGVs$Genic_Genetic_SD / TGVs$Genic_Genetic_SD[1]
-#standarise genetic values with genic_genetic standard deviation
-TGVs$zMeanGenic_Genetic <- (TGVs$gvNormUnres1 - TGVs$gvNormUnres1[1]) / TGVs$Genic_Genetic_SD[1]
-#TGVsAll$zSdGenic <- (sqrt(TGVsAll$AdditGenicVar1) - sqrt(TGVsAll$))
-TGVs$scenario <- "Gen_noQTN"
-TGVs$Rep <- 21
-TGVs$Strategy <- "10K_Ref_20Rep"
-
-#TGVs Gen0_noQTN
-TGVQ <- TGVsAll[(TGVsAll$Rep %in% 0:19) & (TGVsAll$scenario=="Gen") & (TGVsAll$Strategy=="10K_Ref_20Rep"),]
-
-TGVc <- rbind(TGVQ, TGVs)
-ggplot(data=TGVc, aes(x=Generation, y=zMean, group=Rep, fill=Rep, colour=scenario))  + geom_path() + #y=SDGenicSt, 
-  scale_colour_manual("Scenario", breaks = c("Gen_noQTN", "Gen"), values=c("forestgreen", "red"), labels=c("Gen_noQTNsOnChip", "Gen")) + 
-  xlab("Generation") + ylab("Genic Standard Deviation") + #ylab("Average True Genetic Value") +
-  theme(axis.text=element_text(size=16), legend.position = "left",
-        axis.title=element_text(size=16,face="bold"), legend.text=element_text(size=16), legend.title=element_text(size=16))  
-'
