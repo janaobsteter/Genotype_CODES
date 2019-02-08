@@ -46,17 +46,36 @@ MCPA$ID[MCPA$ID == "SI97158890"] <- "SI94158890"
 MCPA$STEV_ORIG[MCPA$STEV_ORIG == 97158890] <- 94158890
 MCPA$ID[MCPA$ID == "SI63817455"] <- "SI63817445"
 MCPA$STEV_ORIG[MCPA$STEV_ORIG == 63817455] <- 63817445
+
+#dodaj pasmo
+breed <- unique(read.csv("~/Documents/F4F/AnimalBreed.csv", colClasses = c(STEV_ORIG = "character")))
+MCPA$STEV_ORIG[!(MCPA$STEV_ORIG %in% breed$STEV_ORIG)]
+outersect(MCPA$STEV_ORIG, breed$STEV_ORIG)
+MCPA <- merge(MCPA, breed, by="STEV_ORIG", all.x = TRUE)
+
+
+#tukaj preveri, koliko krav je dejansko iz projekta
+zivali <- read.csv("~/Documents/F4F/OdbiraZivali/F4F_GenotipiziraneZivali.csv")
+colnames(zivali) <- "ID"
+length(intersect(zivali$ID, MCPA$ID))
+unique(MCPA[!(MCPA$ID %in% zivali$ID),])
+unique(MCPA[!(MCPA$ID %in% zivali$ID) & MCPA$SP1_SIFRA_PASMA == 1,])
+table(MCPA$SP1_SIFRA_PASMA[!(MCPA$ID %in% zivali$ID)])
+unique(MCPA[(MCPA$ID %in% zivali$ID),])
+table((MCPA$SP1_SIFRA_PASMA[(MCPA$ID %in% zivali$ID)]))
+#te živali, ki jih ni med genotipiziranimi, so večinoma druge pasme
+
+#dodaj kapa kazein
 kk <- read.csv("~/Documents/F4F/MlecniProteini/KappaCaseinGenotype_python.csv")
 length(intersect(MCPA$ID, kk$ID))
 length(unique(MCPA$ID))
 length(unique(kk$ID))
 unique(MCPA$ID[!(MCPA$ID %in% kk$ID)])
 length(unique(MCPA$ID[!(MCPA$ID %in% kk$ID)]))
+unique(MCPA$ID[!(MCPA$ID %in% kk$ID)])
 MCPA <- merge(MCPA, kk[,c("ID", "SKUPEN")], by="ID", all.x=TRUE)
-breed <- unique(read.csv("~/Documents/F4F/AnimalBreed.csv", colClasses = c(STEV_ORIG = "character")))
-MCPA$STEV_ORIG[!(MCPA$STEV_ORIG %in% breed$STEV_ORIG)]
-outersect(MCPA$STEV_ORIG, breed$STEV_ORIG)
-MCPA <- merge(MCPA, breed, by="STEV_ORIG", all.x = TRUE)
+
+
 
 tel <- read.csv("~/Documents/F4F/Rezultati_MCPKlasiak/Telitve.csv")
 IDs <- c()
@@ -105,12 +124,38 @@ MCPA$SP1_SIFRA_PASMA <- as.factor(MCPA$SP1_SIFRA_PASMA)
 MCPA$a30.mm. <- as.numeric(MCPA$a30.mm.)
 MCPA$Cas[MCPA$Cas=="zjvečer"] <- "zvečer"
 MCPA$Cas[MCPA$Cas=="zvecer"] <- "zvečer"
-MCPA$Cas[MCPA$Cas=="/"] <-NA
-MCPA$KappaKazein[MCPA$KappaKazein==""] <-NA
-model1 <- lm(MCPA$a30.mm. ~ MCPA$Season  + MCPA$Cas + MCPA$proteini + MCPA$Mascoba + MCPA$SP1_SIFRA_PASMA + MCPA$StLakt)
+MCPA$Cas[MCPA$Cas=="/"] <- NA
+MCPA$SKUPEN[MCPA$SKUPEN==""] <- NA
+MCPA$SKUPEN[MCPA$SKUPEN %in% c("BC", "AC", "BE")] <-NA
+MCPA$SKUPEN <- as.factor(MCPA$SKUPEN)
+MCPA$SKUPEN <- factor(MCPA$SKUPEN, levels = c("AA", "AB", "BB"))
+library(lme4)
+model <- lme(r ~  Rejec + Mascoba + proteini, data=Data1, na.action=na.omit, random = Rejec)
+model1 <- lmer(MCPA$a30.mm. ~  1+ (1 | Rejec) + MCPA$Season  + MCPA$Cas + MCPA$proteini + MCPA$Mascoba + MCPA$SKUPEN + MCPA$dnPoLakt)
 plot(model1)
 summary(model1)
 anova(model1)
+
+ggplot(data=MCPA[MCPA$dnPoLakt < 300,], aes(x = dnPoLakt, y=r.s.)) + geom_line() + geom_smooth() + ylab("RCT [s]") +  xlab("Dni po laktaciji")
+ggplot(data=MCPA, aes(x=Season, y=r.s., fill=Season)) + stat_summary(fun.y="mean", geom="bar") + ylab("RCT [s]") +  xlab("Sezona") + theme(legend.position = "none") +
+  theme(legend.position = "none", axis.title =  element_text(size=14), axis.text = element_text(size=12), legend.text = element_text(size=12)) 
+ggplot(data=MCPA, aes(x=Season, y=a30.mm.)) + stat_summary(fun.y="mean", geom="bar") + ylab("a30 [mm]") +  xlab("Sezona")+ theme(legend.position = "none")
+ggplot(data=MCPA, aes(x=Season, y=k20.s.)) + stat_summary(fun.y="mean", geom="bar") + ylab("k20 [mm]") +  xlab("Sezona")
+ggplot(data=MCPA, aes(x=Cas, y=r.s., fill=Cas)) + stat_summary(fun.y="mean", geom="bar") + ylab("RCT [s]") +  xlab("Čas") + theme(legend.position = "none")+
+  theme(legend.position = "none", axis.title =  element_text(size=14), axis.text = element_text(size=12), legend.text = element_text(size=12)) 
+ggplot(data=MCPA, aes(x=Cas, y=a30.mm., fill=Cas)) + stat_summary(fun.y="mean", geom="bar")  + theme(legend.position = "none")
+ggplot(data=MCPA[!(is.na(MCPA$proteini)),], aes(x=proteini, y=r.s.)) + geom_line() + geom_smooth()
+ggplot(data=MCPA, aes(x=SP1_SIFRA_PASMA, y=r.s.)) + stat_summary(fun.y="mean", geom="bar")
+ggplot(data=MCPA, aes(x=SP1_SIFRA_PASMA, y=a30.mm.)) + stat_summary(fun.y="mean", geom="bar")
+ggplot(data=MCPA[!(is.na(MCPA$KappaKazein)) & MCPA$KappaKazein != "",], aes(x=KappaKazein, y=a30.mm., fill=KappaKazein)) + stat_summary(fun.y="mean", geom="bar", position="stack") +
+  theme(legend.position = "none", axis.title =  element_text(size=14), axis.text = element_text(size=12), legend.text = element_text(size=12)) + xlab("Kapa kazein") + ylab("a30 [s]")
+ggplot(data=MCPA[!(is.na(MCPA$KappaKazein)) & MCPA$KappaKazein != "",], aes(x=KappaKazein, y=r.s., fill=KappaKazein)) + stat_summary(fun.y="mean", geom="bar", position="stack") +
+  theme(legend.position = "none", axis.title =  element_text(size=14), axis.text = element_text(size=12), legend.text = element_text(size=12)) + xlab("Kapa kazein") + ylab("RCT [s]")
+ggplot(data=MCPA[!(is.na(MCPA$KappaKazein)) & MCPA$KappaKazein != "",], aes(x=KappaKazein, y=k20.s., fill=KappaKazein)) + stat_summary(fun.y="mean", geom="bar", position="stack")
+ggplot(data=MCPA[!(is.na(MCPA$KappaKazein)) & MCPA$KappaKazein != "",], aes(x=KappaKazein, y=proteini, fill=Season)) + stat_summary(fun.y="mean", geom="bar", position="stack")
+ggplot(data=MCPA[!(is.na(MCPA$SSC)),], aes(x=SSC, y=a30.mm.)) + geom_line() + geom_smooth() + xlim(c(0, 1000))
+ggplot(data=MCPA[!(is.na(MCPA$SSC)),], aes(x=SSC, y=r.s.)) + geom_line() + geom_smooth() + xlim(c(0, 1000))
+
 
 intersect(KontroleReje$Rejec, MCP$Rejec)
 intersect(KontroleReje$Rejec, MCPA$Rejec)

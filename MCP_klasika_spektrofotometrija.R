@@ -10,6 +10,19 @@ hist(MCPA$r)
 hist(mcp$A30, breaks=50)
 hist(MCPA$a30.mm.)
 
+library(ggplot2)
+library(plyr)
+mcp$SP1_SIFRA_PASMA <- revalue(factor(mcp$SP1_SIFRA_PASMA), c("1" = "Rjava", "2" = "Lisasta", "3" = "Črno bela", "5" = "Cika"))
+ggplot(data=mcp[mcp$SP1_SIFRA_PASMA %in% c("Rjava", "Lisasta", "Črno bela"),], aes(x = SP1_SIFRA_PASMA, y = RCT, fill=SP1_SIFRA_PASMA)) + stat_summary(fun.y="mean", geom="bar") + 
+  scale_fill_discrete("PASMA") + xlab("PASMA") + theme(legend.position = "none", axis.title =  element_text(size=14), axis.text = element_text(size=14), legend.text = element_text(size=12)) 
+ggplot(data=mcp[mcp$SP1_SIFRA_PASMA %in% c("Rjava", "Lisasta", "Črno bela"),], aes(x = SP1_SIFRA_PASMA, y = A30, fill=SP1_SIFRA_PASMA)) + stat_summary(fun.y="mean", geom="bar") + 
+  scale_fill_discrete("PASMA") + xlab("PASMA")  + theme(legend.position = "none", axis.title =  element_text(size=14), axis.text = element_text(size=14), legend.text = element_text(size=12)) 
+scale_fill_discrete("PASMA") + xlab("PASMA") 
+ggplot(data=mcp[mcp$SP1_SIFRA_PASMA %in% c("Rjava", "Lisasta", "Črno bela") & mcp$RCT != 0 & mcp$BELJ > 2 & mcp$BELJ < 5.5,], aes(x = BELJ, y = RCT)) + geom_point(alpha=0.1) + geom_smooth()  + ylim(c(0, 10))
+ggplot(data=mcp[mcp$SP1_SIFRA_PASMA %in% c("Rjava", "Lisasta", "Črno bela") & mcp$RCT != 0 & mcp$MASC > 2 & mcp$MASC < 5.5,], aes(x = MASC, y = RCT)) + geom_point() + geom_smooth() 
+ggplot(data=mcp[mcp$SP1_SIFRA_PASMA %in% c("Rjava", "Lisasta", "Črno bela") & mcp$A30 != 0 & mcp$BELJ > 2 & mcp$BELJ < 5.5,], aes(x = BELJ, y = A30)) + geom_point() + geom_smooth() 
+
+  scale_fill_discrete("PASMA")
 
 aggregate(mcp$A30 ~ mcp$SP1_SIFRA_PASMA, FUN="mean")
 mcp[mcp$SP1_SIFRA_PASMA == 0,]

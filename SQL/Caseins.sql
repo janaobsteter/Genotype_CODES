@@ -39,6 +39,7 @@ SELECT
 FROM
   GOVEDO.SIFRANT_GP_LASTNOSTI;
   
+  
   --kapa = 100, beta = 103
 SELECT
   ziv.ZIV_ID_SEQ seq,
