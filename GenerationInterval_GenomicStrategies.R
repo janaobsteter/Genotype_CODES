@@ -27,7 +27,9 @@ for (strategy in c("SU55", "SU51", "SU15")) {
 }
 giPer$per_gi <- (giPer$per_gi)*100-100
 giPer_a <- summarySE(giPer, measurevar="per_gi", groupvars=c("Strategy", "Scenario", "Line"))[,c(1,2,3,5,6)]
+giPer_abs <- summarySE(giPer, measurevar="genInt", groupvars=c("Strategy", "Scenario", "Line"))[,c(1,2,3,5,6)]
 colnames(giPer_a) <- c("Strategy", "Scenario", "Line", "per_gi", "per_giSD")
+colnames(giPer_abs) <- c("Strategy", "Scenario", "Line", "gi", "giSD")
 #giPer_a$per_gi <- round(giPer_a$per_gi)
 #giPer_a$per_giSD <- round(giPer_a$per_giSD)
 
@@ -36,12 +38,21 @@ giPer_a$Scenario <- factor(giPer_a$Scenario, levels =c("Class", "GenSLO", "Other
 giPer_a[order(giPer_a$Strategy, giPer_a$Scenario),][giPer_a$Line=="sireM",]
 giPer_a[order(giPer_a$Strategy, giPer_a$Scenario),][giPer_a$Line=="sireF",]
 
+
+giPer_abs$Strategy <- factor(giPer_abs$Strategy, levels =c("SU55", "SU51", "SU15"))
+giPer_abs$Scenario <- factor(giPer_abs$Scenario, levels =c("Class", "GenSLO", "OtherCowsGen", "BmGen", "Gen"))
+giPer_abs[,4:5] <- round(giPer_abs[,4:5],2)
+giPer_abs[order(giPer_abs$Strategy, giPer_a$Scenario),][giPer_abs$Line=="sireM",]
+giPer_abs[order(giPer_abs$Strategy, giPer_a$Scenario),][giPer_abs$Line=="sireF",]
+
 #Sires of dams
 model <- lm(per_gi ~ Scenario + Strategy + Scenario:Strategy, data=giPer[giPer$Line %in% c("sireF"),])
+model <- lm(genInt ~ Scenario + Strategy + Scenario:Strategy, data=giPer[giPer$Line %in% c("sireF"),])#absolute
 marginal = emmeans(model, ~ Scenario:Strategy)
 CLD = cld(marginal, sort=FALSE, by="Strategy",
           alpha   = 0.05,
           Letters = letters, adjust="tukey") 
+CLD
 CLD = cld(marginal, sort=FALSE, by="Scenario",
           alpha   = 0.05,
           Letters = letters, adjust="tukey") 
@@ -49,6 +60,7 @@ CLD
 
 #Sires of sires
 model <- lm(per_gi ~ Scenario + Strategy + Scenario:Strategy, data=giPer[giPer$Line %in% c("sireM"),])
+model <- lm(genInt ~ Scenario + Strategy + Scenario:Strategy, data=giPer[giPer$Line %in% c("sireM"),])
 marginal = emmeans(model, ~ Scenario:Strategy)
 CLD = cld(marginal, sort=FALSE, by="Strategy",
           alpha   = 0.05,

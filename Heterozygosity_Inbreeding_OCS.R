@@ -52,7 +52,7 @@ library(reshape2)
 #Heterozygosity na QTNih
 hetQTN <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/MeanHet_QTNsALL_14082018.csv")[]
 hetQTN$Gen <- hetQTN$Gen + 40
-hetQTN_OCS <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/MeanHet_ALL_17012019_OCS.csv")
+hetQTN_OCS <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/MeanHet_ALL_11022019_OCS.csv")
 hetQTN_OCS <- hetQTN_OCS[hetQTN_OCS$Marker == "QTN",]
 hetQTN_OCS$Scenario <- hetQTN_OCS$degree
 hetQTN_OCS <- hetQTN_OCS[,1:6]

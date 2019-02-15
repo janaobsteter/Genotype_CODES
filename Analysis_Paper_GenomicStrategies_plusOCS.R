@@ -1,48 +1,48 @@
-acc <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/AccuraciesALL_correlation.csv")
-#acc <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/AccuraciesALL_Cat.csv")
-#accAcc <- acc[,paste0("X", 21:40)]
-#accNames <- acc[,c("cat", "Strategy", "Scenario", "Rep")]
-#accNames$corEBV <- as.numeric(rowMeans(accAcc))
-#acc <- accNames
-accA <- agagregate(acc$corEBV ~ acc$Scenario + acc$Strategy + acc$Cat + acc$Cycle, FUN="mean")
-accASc <- aggregate(acc$corEBV ~ acc$Strategy + acc$Cat + acc$Cycle, FUN="mean")
-accSc <- aggregate(acc$corEBV ~ acc$Scenario + acc$Strategy + acc$Cat, FUN="mean")
-accSc <- aggregate(acc$corEBV ~ acc$Strategy + acc$Cat, FUN="mean")
-accS <- aggregate(acc$corEBV ~ acc$Strategy, FUN="mean")
-colnames(accA) <- c("Scenario", "Strategy", "Cat",  "Cycle", "corEBV")
-colnames(accSc) <- c("Scenario", "Strategy", "Cat", "corEBV")
-colnames(accASc) <- c("Strategy", "Cat", "Cycle", "corEBV")
-write.csv(accA, "~/Documents/PhD/Simulaton/Accuracies_genomicStrategies.csv", quote=FALSE)
-
-mean(accA$corEBV[accA$Scenario=="Class" & accA$Cat=="potomciNP"])
-mean(accA$corEBV[accA$Cat=="genTest"])
-
-mean(accA$corEBV[accA$Scenario %in% c("Class", "GenSLO") & accA$Cat=="pb"])
-mean(accA$corEBV[accA$Cat=="pb"])
-mean(accA$corEBV[accA$Cat=="gpb"])
-accA[accA$Cat=="gpb",]
-acc[acc$Strategy=="SU55" & acc$Scenario=="Class" & acc$Cat=="mladi",]
-
-accSc[accSc$Cat=="cak",]
-
-accASc[accASc$Cat=="cak",]
-ggplot(data=accASc[accASc$Cat=="genTest",], aes(x=Cycle, y=corEBV, group=Strategy, colour=Strategy)) + geom_line()
+#Accuracy of sires in OCS
+accOCS <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/ACC_OCS.csv")
+meanRep <- summarySE(accOCS, measurevar = "Cor", groupvars = c("Degree", "Rep"))
+meanDegree <- summarySE(meanRep, measurevar = "Cor", groupvars = "Degree")
+meanDegree
 
 
-accA[(accA$Cat %in% c("vhlevljeni", "genTest", "mladi", "potomciNP")) & (accA$Strategy=="SU55"),]
-comp <- cbind(accSc[(accSc$Cat %in% c("mladi", "genTest")) & (accSc$Strategy=="SU55"),], accSc[(accSc$Cat %in% c("mladi", "genTest")) & (accSc$Strategy=="SU51"),])
-comp$diff <- accSc$corEBV[(accSc$Cat %in% c( "genTest")) & (accSc$Strategy=="SU55")] - accSc$corEBV[(accSc$Cat %in% c( "genTest")) & (accSc$Strategy=="SU51")]
-diffK <- accSc$corEBV[(accSc$Cat %in% c( "k")) & (accSc$Strategy=="SU55")] - accSc$corEBV[(accSc$Cat %in% c( "k")) & (accSc$Strategy=="SU51")]
-mean(comp$diff)
-mean(acc$corEBV[acc$Strategy=="SU55"], na.rm=TRUE) - mean(acc$corEBV[acc$Strategy=="SU51"], na.rm=TRUE)
-sd(acc$corEBV[acc$Strategy=="SU55"], na.rm=TRUE) 
-sd(acc$corEBV[acc$Strategy=="SU51"], na.rm=TRUE)
+#test significance of sires accuracy
+acc <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/ACCAge.csv")[,-1]
+acc$scenario <- revalue(acc$scenario, c("Class" = "PT", "GenSLO" = "GS-PS", "OtherCowsGen" = "GS-C", "BmGen" = "GS-BD", "Gen" = "GS"))
+acc$Group <- paste0(acc$strategy, acc$scenario)
+acc <-  acc[acc$Group %in% c("SU55PT", "SU55GS", "SU51GS") & acc$AgeCat %in% c("cak5", "genTest"),]
+head(acc)
+head(accOCS)
+
+accOCSa <- summarySE(data = accOCS, measurevar = "Cor", groupvars =  c("Degree", "Rep"))
+accOCSa$Strategy <- "OCS"
+
+acc <- acc[c("COR", "strategy", "scenario", "rep")]
+colnames(acc) <- c("Cor", "Strategy", "Scenario", "Rep")
+accOCSa <- accOCSa[c("Degree", "Rep", "Cor", "Strategy")]
+colnames(accOCSa)[1] <- "Scenario"
+
+accOCSa$Scenario <- as.factor(accOCSa$Scenario)
+acc$Scenario <- as.factor(acc$Scenario)
+accCompare <- rbind(acc, accOCSa)
+accCompare$Group <- paste0(accCompare$Strategy, accCompare$Scenario)
+
+accCompare$Group <- factor(accCompare$Group, level=c("SU55PT","SU55GS","SU51GS","OCS15","OCS30","OCS45","OCS60","OCS75"))
+
+model <- lm(Cor ~ Group, data=accCompare)
+marginal = emmeans(model, ~ Group)
+pairs(marginal,
+      adjust="tukey")
+CLD = cld(marginal, sort=FALSE,
+          alpha   = 0.05,
+          Letters = letters, adjust="tukey") 
+CLD
+
 ######################################################################################################
 ######################################################################################################
 ######################################################################################################
 #TGVsAll <- read.csv("~/TGVSALL_11062018.csv")
 TGVsAll <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/TGVSALL_14082018.csv")
-TGVsOCS <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results//TGVsAll_OCS_17012019.csv", sep=" ")
+TGVsOCS <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results//TGVsAll_OCS_11022019.csv", sep=" ")
 #TGVsOCS <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results//TGVsAll_OCS_11122018.csv", sep=" ")
 
 TGVsOCS$degree <- as.factor(TGVsOCS$degree)
@@ -146,24 +146,30 @@ OCS60$per_GeneticSD <- (OCS60$per_GeneticSD)*100 - 100
 MEAN60_OCS <- summarySE(OCS60, measurevar="per_zMean", groupvars=c("Strategy", "scenario"))[,c(1,2,4,5)]
 MEAN60_OCS_abs <- summarySE(OCS60, measurevar="zMean", groupvars=c("Strategy", "scenario"))[,c(1,2,4,5)]
 colnames(MEAN60_OCS) <- c("Strategy", "Scenario", "per_zMean", "per_zMeanSD")
+colnames(MEAN60_OCS_abs) <- c("Strategy", "Scenario", "zMean", "zMeanSD")
 
 #genetic sd
 SD60_OCS <- summarySE(OCS60, measurevar="per_GeneticSD", groupvars=c("Strategy", "scenario"))[,c(1,2,4,5)]
 colnames(SD60_OCS) <- c("Strategy", "Scenario", "per_GeneticSD", "per_GeneticSDSD")
+SD60_OCS_abs <- summarySE(OCS60, measurevar="SDSt", groupvars=c("Strategy", "scenario"))[,c(1,2,4,5)]
+colnames(SD60_OCS_abs) <- c("Strategy", "Scenario", "GeneticSD", "GeneticSDSD")
 #SD60a$per_GeneticSD <- round(SD60a$per_GeneticSD, 3)
 #SD60a$per_GeneticSDSD <- round(SD60a$per_GeneticSDSD, 3)
 
 MEAN60_OCS <- merge(MEAN60_OCS, SD60_OCS, by=c("Strategy", "Scenario"))
+MEAN60_OCS_abs <- merge(MEAN60_OCS_abs, SD60_OCS_abs, by=c("Strategy", "Scenario"))
 
 #genic sd
 SD60_OCSa <- summarySE(OCS60, measurevar="per_GenicSD", groupvars=c("Strategy", "scenario"))[,c(1,2,4,5)]
 SD60_OCSa_abs <- summarySE(OCS60, measurevar="SDGenicSt", groupvars=c("Strategy", "scenario"))[,c(1,2,4,5)]
 #SD60b <- summarySE(TGV60, measurevar="SDGenicSt", groupvars=c("Strategy", "scenario"))[,c(1,2,4,5)]
 colnames(SD60_OCSa) <- c("Strategy", "Scenario", "per_GenicSD", "per_GenicSDSD")
+colnames(SD60_OCSa_abs) <- c("Strategy", "Scenario", "GenicSD", "GenicSDSD")
 #SD60b$per_GenicSD <- round(SD60b$per_GenicSD, 3)
 #SD60b$per_GenicSDSD <- round(SD60b$per_GenicSDSD, 3)
 
 MEAN60_OCS <- merge(MEAN60_OCS, SD60_OCSa, by=c("Strategy", "Scenario"))
+MEAN60_OCS_abs <- merge(MEAN60_OCS_abs, SD60_OCSa_abs, by=c("Strategy", "Scenario"))
 
 
 
@@ -220,11 +226,14 @@ EFF$Name <- factor(EFF$Name, level=c("SU55PT","SU55GS","SU51GS","OCS15","OCS30",
 
 #efficiency
 eff <- summarySE(EFF, measurevar="per_Eff", groupvars=c("Strategy", "Scenario"))[,c(1,2,4,5)]
+eff_abs <- summarySE(EFF, measurevar="Slope", groupvars=c("Strategy", "Scenario"))[,c(1,2,4,5)]
 colnames(eff) <- c("Strategy", "Scenario", "per_Eff", "per_EffSD")
+colnames(eff_abs) <- c("Strategy", "Scenario", "Eff", "EffSD")
 #eff$per_Eff <- round(eff$per_Eff)
 #eff$per_EffSD <- round(eff$per_EffSD)
 
 MEAN60_OCS <- merge(MEAN60_OCS, eff, by=c("Strategy", "Scenario"))
+MEAN60_OCS_abs <- merge(MEAN60_OCS_abs, eff_abs, by=c("Strategy", "Scenario"))
 
 
 
@@ -235,6 +244,8 @@ OCS60$Strategy <- as.factor(OCS60$Strategy)
 OCS60$scenario <- factor(OCS60$scenario, levels =c("PT", "GS", 15,30,45,60,75))
 MEAN60_OCS$Scenario <- factor(MEAN60_OCS$Scenario, levels =c("PT", "GS", 15,30,45,60,75))
 MEAN60_OCS$Strategy <- factor(MEAN60_OCS$Strategy, levels =c("SU55", "SU51",  "OCS"))
+MEAN60_OCS_abs$Scenario <- factor(MEAN60_OCS_abs$Scenario, levels =c("PT", "GS", 15,30,45,60,75))
+MEAN60_OCS_abs$Strategy <- factor(MEAN60_OCS_abs$Strategy, levels =c("SU55", "SU51",  "OCS"))
 OCS60$scenario <- factor(OCS60$scenario, levels =c("PT", "GS", 15,30,45,60,75))
 OCS60$Strategy <- factor(OCS60$Strategy, levels =c("SU55", "SU51", "SU15", "OCS"))
 EFF$Scenario <- factor(EFF$Scenario, levels =c("PT", "GS", 15,30,45,60,75))
@@ -243,13 +254,14 @@ EFF$Strategy <- factor(EFF$Strategy, levels =c("SU55", "SU51", "SU15", "OCS"))
 OCS60$Name <- paste0(OCS60$Strategy, OCS60$scenario)
 OCS60$Name <- factor(OCS60$Name, level=c("SU55PT","SU55GS","SU51GS","OCS15","OCS30","OCS45","OCS60","OCS75"))
 MEAN60_OCS[order(MEAN60_OCS$Strategy, MEAN60_OCS$Scenario),]
+MEAN60_OCS_abs[,3:ncol(MEAN60_OCS_abs)] <- round(MEAN60_OCS_abs[,3:ncol(MEAN60_OCS_abs)], 2)
+MEAN60_OCS_abs[order(MEAN60_OCS_abs$Strategy, MEAN60_OCS_abs$Scenario),]
 
 #significane of genetic gain
 library(emmeans)
 model <- lm(per_zMean ~ scenario + Strategy + scenario:Strategy, data=OCS60)
 anova(model)
 marginal = emmeans(model, ~ scenario:Strategy)
-marginal = emmeans(model, ~ Strategy)
 CLD = cld(marginal, sort=FALSE, by="Strategy",
           alpha   = 0.05,
           Letters = letters, adjust="tukey") 
@@ -384,28 +396,32 @@ TGVsStrategy$PlotGroup <- factor(TGVsStrategy$PlotGroup, level=c("OCS15", "OCS30
 TGVsStrategy <- TGVsStrategy[order(TGVsStrategy$PlotGroup),]
 #maxminPT$PlotGroup <- factor(maxminPT$PlotGroup, level=c("OCS15", "OCS30", "OCS45", "OCS60", "OCS75"," ", "SU55PT", "SU51PT", "SU15PT"))
 #plot za učinkovitost
-ggplot(data = TGVsStrategy, aes(x=SDGenicSt, y=zMeanGenic, group=group, colour=PlotGroup)) + 
+ggplot(data = TGVsStrategy, aes(x=SDGenicSt, y=zMeanGenic, group=group, colour=PlotGroup, linetype=PlotGroup)) + 
   scale_x_reverse(sec.axis=sec_axis(trans=~1-.,                                   
                                     name="Converted/Lost genic standard deviation")) +
-  geom_line(size=0.2, alpha=0.4) + 
+  geom_line(aes(linetype = PlotGroup, colour = PlotGroup, group=group), size=0.2, alpha=0.4) + 
   ylim(0,7) + coord_cartesian(xlim = c(1, 0.75)) + theme_bw() +
   scale_linetype_manual("Breeding program", 
                         breaks=c("OCS15", "OCS30", "OCS45", "OCS60", "OCS75","SU55PT", "SU55GS", "SU51GS"),
                         values=c("F1", "longdash",  "dashed", "longdash", "twodash", "solid", "solid", "solid"),
                         labels=c(expression("OCS"["15"]), expression("OCS"["30"]), expression("OCS"["45"]),
-                                                                                            expression("OCS"["60"]), expression("OCS"["75"]) ,"SU 5/5 PT", "SU 5/5 GS", "SU 5/1 GS")) + 
+                                                                                            expression("OCS"["60"]), expression("OCS"["75"]) ,
+                                 "5 sires/year, use 5 years, PT", "5 sires/year, use 5 years, GS", "5 sires/year, use 1 year, GS")) + 
   scale_colour_manual("Breeding program", 
                       breaks=c("OCS15", "OCS30", "OCS45", "OCS60", "OCS75","SU55PT", "SU55GS", "SU51GS"),
-                      values=c("forestgreen", "orange", "purple", "darkblue", "red3","grey40", "grey60", "black"),
-                      labels=c("OCS15", "OCS30", "OCS45", "OCS60", "OCS75","SU55PT", "SU55GS", "SU51GS")) + 
-  guides(linetype=guide_legend(nrow=2, keyheight = unit(1, "cm"), keywidth = unit(3, "cm"), override.aes = list(alpha = 2, size=2))) +
+                      values=c("forestgreen", "orange", "purple", "darkblue", "red3","grey35", "grey55", "black"),
+                      labels=c(expression("OCS"["15"]), expression("OCS"["30"]), expression("OCS"["45"]),
+                               expression("OCS"["60"]), expression("OCS"["75"]) ,
+                               "5 sires/year, use 5 years, PT", "5 sires/year, use 5 years, GS", "5 sires/year, use 1 year, GS")) +
+  guides(linetype=guide_legend(nrow=2,  label.position = "right", keyheight = unit(1, "cm"), keywidth = unit(3, "cm"), override.aes = list(alpha = 1, size=2))) +
   xlab("Genic standard deviation") + ylab("Genetic Mean") + 
   theme(axis.text=element_text(size=16), legend.position = "top", 
         axis.title.x=element_text(size=16, vjust=-1), 
         axis.title.y=element_text(size=16, vjust=2), 
         legend.text=element_text(size=16), legend.title=element_text(size=16), legend.box = "horizontal",
         plot.title = element_text(margin = margin(t = 0, r = 0, b = 40, l = 0), size=16, hjust=0.5),
-        plot.margin = margin(t = 20, r = 10, b = 10, l = 10)) +
+        plot.margin = margin(t = 20, r = 10, b = 10, l = 10),
+        legend.text.align = 0) +
   geom_segment(data=maxminPT, mapping=aes(x=maxGenicSD, xend=minGenicSD,
                                          y=minTGV,  yend=maxTGV,                                    
                                          color=PlotGroup, linetype=PlotGroup, group=PlotGroup), arrow=arrow(type="closed"), show.legend=FALSE, size=1.5) +
@@ -501,20 +517,27 @@ ggplot() +
         plot.title = element_text(margin = margin(t = 0, r = 0, b = 40, l = 0), size=16, hjust=0.5),
         plot.margin = margin(t = 20, r = 10, b = 10, l = 10))
 
-'''
-  scale_linetype_manual("Scenario", breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), 
-                        values=c("solid", "dashed", "dotted", "dotdash", "twodash"), 
-                        labels=c("PT", "GS-PS", "GS-C", "GS-BD", "GS")) + 
-  scale_colour_manual("Scenario", breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), 
-                      values=c("forestgreen", "dodgerblue2", "purple", "red3", "orange1"), 
-                      labels=c("PT", "GS-PS", "GS-C", "GS-BD", "GS")) + 
-  xlab("Generation") + ylab("Average True Genetic Value") +
-'''
 
 TGVsAll$group <- paste0(TGVsAll$scenario, TGVsAll$Rep)
 TGVsAll <- TGVsAll[!(is.na(TGVsAll$scenario)),]
-#plotaj replike
+TGVsAll$Rep <- as.factor(TGVsAll$Rep)
+#plotaj replike - preveri, katere replike so zalutale
 ggplot(data = TGVsAll[TGVsAll$Strategy %in% c("SU55", "OCS"),], aes(x = Generation, y = zMean, colour=scenario, group=group, linetype=Strategy) ) + geom_line()
+ggplot(data = TGVsAll[TGVsAll$scenario==15,], aes(x = Generation, y = zMean, colour=Rep, group=Rep) ) + geom_line()
+ggplot(data = TGVsAll[TGVsAll$scenario==30,], aes(x = Generation, y = zMean, colour=Rep, group=Rep) ) + geom_line()
+ggplot(data = TGVsAll[TGVsAll$scenario==45,], aes(x = Generation, y = zMean, colour=Rep, group=Rep) ) + geom_line()
+ggplot(data = TGVsAll[TGVsAll$scenario==60,], aes(x = Generation, y = zMean, colour=Rep, group=Rep) ) + geom_line()
+ggplot(data = TGVsAll[TGVsAll$scenario==75,], aes(x = Generation, y = zMean, colour=Rep, group=Rep) ) + geom_line()
+
+gen60 <- TGVsAll[TGVsAll$Generation==60,]
+ggplot(data=gen60[gen60$scenario==15,], aes(x=Rep, y=zMean)) + geom_point()
+ggplot(data=gen60[gen60$scenario==30,], aes(x=Rep, y=zMean)) + geom_point()
+ggplot(data=gen60[gen60$scenario==45,], aes(x=Rep, y=zMean)) + geom_point()
+ggplot(data=gen60[gen60$scenario==60,], aes(x=Rep, y=zMean)) + geom_point()
+ggplot(data=gen60[gen60$scenario==75,], aes(x=Rep, y=zMean)) + geom_point()
+
+
+
 ggplot(data = TGVsAll[TGVsAll$Strategy %in% c("OCS"),], aes(x = Generation, y = zMean, colour=scenario, group=group, linetype=Strategy) ) + geom_line()
 
 #genetic variance plot
@@ -561,3 +584,77 @@ ggplot() +
 
 
 
+####
+#MST
+
+m <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/MST.csv")
+mCat <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/MSTCat.csv")
+m$Scenario <- revalue(m$Scenario, c("Class" = "PT", "GenSLO" = "GS-PS", "OtherCowsGen" = "GS-C", "BmGen" = "GS-BD", "Gen" = "GS"))
+m$Strategy <- revalue(m$Strategy, c("SU55" = "5 sires/year, use 5 years","SU51" = "5 sires/year, use 1 year","SU15" = "1 sire/year, use 5 years"))
+m$Scenario <- factor(m$Scenario, levels =c("PT", "GS-PS", "GS-C", "GS-BD", "GS"))
+m$Strategy <- factor(m$Strategy, levels =c("5 sires/year, use 5 years", "5 sires/year, use 1 year", "1 sire/year, use 5 years"))
+
+
+table(m$Strategy)
+table(m$Scenario, m$Generation) #klasični scenariji imajo poadtke samo do generaije 54 - ker je to zadnja generacije PB, genomski imajo do 58
+
+m$diff <- m$PAmean_PB - m$PAmean
+PA <- summarySE(data=m, measurevar = "diff", groupvars = c("Scenario", "Strategy"))[,c(1,2,4,5)]
+colnames(PA) <- c("Scenario", "Strategy", "PAdiff_mean", "PAdiff_sd")
+MST <- summarySE(data=m, measurevar = "MSTmean_PB", groupvars = c("Scenario", "Strategy"))[,c(1,2,4,5)]
+colnames(MST) <- c("Scenario", "Strategy", "MSTpb_mean", "MSTpb_sd")
+MSTt <- summarySE(data=m, measurevar = "MSTmean", groupvars = c("Scenario", "Strategy"))[,c(1,2,4,5)]
+colnames(MSTt) <- c("Scenario", "Strategy", "MST_mean", "MST_sd")
+
+VSE <- merge(PA, MST, by=c("Scenario", "Strategy"))
+VSE <- merge(VSE, MSTt, by=c("Scenario", "Strategy"))
+VSE$Scenario <- revalue(VSE$Scenario, c("Class" = "PT", "GenSLO" = "GS-PS", "OtherCowsGen" = "GS-C", "BmGen" = "GS-BD", "Gen" = "GS"))
+VSE$Strategy <- revalue(VSE$Strategy, c("SU55" = "5 sires/year, use 5 years","SU51" = "5 sires/year, use 1 year","SU15" = "1 sire/year, use 5 years"))
+VSE$Scenario <- factor(VSE$Scenario, levels =c("PT", "GS-PS", "GS-C", "GS-BD", "GS"))
+VSE$Strategy <- factor(VSE$Strategy, levels =c("5 sires/year, use 5 years", "5 sires/year, use 1 year", "1 sire/year, use 5 years"))
+
+VSE <- VSE[order(VSE$Strategy, VSE$Scenario),]
+VSE[,3:6] <- round(VSE[,3:6],2)
+VSE[,7:8] <- round(VSE[,7:8],4)
+VSE[,c(1,2,3,5)]
+VSE
+
+library(ggplot2)
+VSE$Scenario <- as.factor(VSE$Scenario)
+PAplot <- ggplot(data=VSE, aes(y=PAdiff_mean, x=Scenario, group=Strategy, fill=Strategy)) + geom_bar(stat="identity", position="dodge") + 
+  ylab("PA selected - PA population") + theme_bw() + theme(legend.position="top", legend.text=element_text(size=14), axis.title = element_text(size=14), axis.text = element_text(size=14)) 
+MSTplot <- ggplot(data=VSE, aes(y=MSTpb_mean, x=Scenario, group=Strategy, fill=Strategy)) + geom_bar(stat="identity", position="dodge") + 
+  ylab("MST selected") + theme_bw() + theme(legend.position="none", axis.title = element_text(size=14), axis.text = element_text(size=14))
+#library(Rmisc)
+multiplot(PAplot, MSTplot)
+
+
+#significance PA diff
+library(emmeans)
+model <- lm(diff ~ Scenario + Strategy + Scenario:Strategy, data=m)
+marginal = emmeans(model, ~ Scenario:Strategy)
+pairs(marginal,
+      adjust="tukey")
+CLD = cld(marginal, sort=FALSE,
+          alpha   = 0.05, by = "Strategy",
+          Letters = letters, adjust="tukey") 
+CLD
+CLD = cld(marginal, sort=FALSE,
+          alpha   = 0.05, by = "Scenario",
+          Letters = letters, adjust="tukey") 
+CLD
+
+#significance MST
+library(emmeans)
+model <- lm(MSTmean_PB ~ Scenario + Strategy + Scenario:Strategy, data=m)
+marginal = emmeans(model, ~ Scenario:Strategy)
+pairs(marginal,
+      adjust="tukey")
+CLD = cld(marginal, sort=FALSE,
+          alpha   = 0.05, by = "Strategy",
+          Letters = letters, adjust="tukey") 
+CLD
+CLD = cld(marginal, sort=FALSE,
+          alpha   = 0.05, by = "Scenario",
+          Letters = letters, adjust="tukey") 
+CLD

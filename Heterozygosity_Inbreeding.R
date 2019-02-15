@@ -6,10 +6,10 @@ library(reshape2)
 #povprečna hetero/homozigotnost --> dF / Ne
 #generacije 1 - 20 so generacije 40 - 60
 #Heterozygosity na QTNih
-hetQTN <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/MeanHet_QTNsALL_14082018.csv")[, -1]
-hetQTN <- read.csv("~/Documents/Projects/inProgress/GenomicStrategies_SireUSe/MeanHet_QTNsALL_OCS_11122018.csv")[, -1]
-colnames(hetQTN) <-  c("Strategy",  "Scenario", "Rep", "Gen", "Het")
-colnames(hetQTN) <-  c( "Scenario", "Rep", "Gen", "Het")
+hetQTN <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/MeanHet_QTNsALL_14082018.csv")
+#hetQTN <- read.csv("~/Documents/Projects/inProgress/GenomicStrategies_SireUSe/MeanHet_QTNsALL_OCS_11122018.csv")[, -1]
+#colnames(hetQTN) <-  c("Strategy",  "Scenario", "Rep", "Gen", "Het")
+#colnames(hetQTN) <-  c( "Scenario", "Rep", "Gen", "Het")
  hetQTN$Marker <- "QTN"
 # nQTN <- 10000
 # nAnim <- 8640
@@ -99,35 +99,10 @@ for (strategy in c("SU55", "SU15", "SU51")) {
 }
 dF_DF <- dF_DF[-1,]
 
-####OCS
-hetDF <- hetQTN
-dF_DF <- data.frame(Strategy=NA, Scenario=NA, Rep=NA, Marker=NA, dF=NA, Ne=NA)
-for (scenario in c(15, 30, 45, 60, 75)) {
-  for (rep in 0:1) {
-    for (marker in c( "QTN")) {
-      #print(c(strategy, scenario, rep, marker))
-      tmp <- hetDF [(hetDF$Scenario==scenario) & (hetDF$Rep==rep) & (hetDF$Marker==marker),]
-      if (nrow(tmp) > 1) {
-        
-        tmp$y1 = log(tmp$HetCorr)
-        fit1 = MASS:::rlm(tmp$y1 ~ tmp$Gen, maxit=2000)
-        dF <-  1 - exp(coef(fit1)[2])t
-        Ne <-  1 / (2 * dF)
-        
-        dF_DF <- rbind(dF_DF, c("OCS", scenario, rep, marker, dF, Ne))
-      }
-    }
-  }
-}
-dF_DF <- dF_DF[-1,]
 
 
-dF_DF$dF <- as.numeric(dF_DF$dF )
+
 dF_DF$Ne <- as.numeric(dF_DF$Ne)
-dF_DF <- dF_DF[dF_DF$Ne > 0,]
-
-
-
 HET <- data.frame()
 for (strategy in c("SU55", "SU51", "SU15")) {
   for (scenario in c("Class", "GenSLO", "OtherCowsGen", "BmGen", "Gen")) {
@@ -151,7 +126,10 @@ colnames(HETavg) <- c("Strategy", "Scenario", "Marker", "dF")
 ##################################################################
 #HETa <- summarySE(HET, measurevar="Ne", groupvars=c("Strategy", "Scenario", "Marker"))[,c(1,2,3,5,6)] to je za ABSOLUTNE vrednosti
 HETa <- summarySE(HET, measurevar="per_het", groupvars=c("Strategy", "Scenario", "Marker"))[,c(1,2,3,5,6)]
+HETa_abs <- summarySE(HET, measurevar="Ne", groupvars=c("Strategy", "Scenario", "Marker"))[,c(1,2,3,5,6)]
 colnames(HETa) <- c("Strategy", "Scenario", "Marker", "per_het", "per_hetSD")
+colnames(HETa_abs) <- c("Strategy", "Scenario", "Marker", "het", "hetSD")
+write.csv(HETa_abs, "~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/Absolute_heterozygosity_final.csv", quote=FALSE, row.names=FALSE)
 HETa$per_het <- round(HETa$per_het)
 HETa$per_hetSD <- round(HETa$per_hetSD)
 
@@ -159,6 +137,14 @@ HETa$Strategy <- factor(HETa$Strategy, levels =c("SU55", "SU51", "SU15"))
 HETa$Scenario <- factor(HETa$Scenario, levels =c("Class", "GenSLO", "OtherCowsGen", "BmGen", "Gen"))
 HETa$Marker <- factor(HETa$Marker, levels =c("NTR", "M", "QTN"))
 HETa[order(HETa$Marker, HETa$Strategy, HETa$Scenario),]
+
+HETa_abs$Strategy <- factor(HETa_abs$Strategy, levels =c("SU55", "SU51", "SU15"))
+HETa_abs$Scenario <- factor(HETa_abs$Scenario, levels =c("Class", "GenSLO", "OtherCowsGen", "BmGen", "Gen"))
+HETa_abs$Marker <- factor(HETa_abs$Marker, levels =c("NTR", "M", "QTN"))
+HETa_abs[order(HETa_abs$Marker, HETa_abs$Strategy, HETa_abs$Scenario),]
+hetQTN <- HETa_abs[HETa_abs$Marker=="QTN",]
+hetQTN[,4:5] <- round(hetQTN[,4:5],0)
+hetQTN[order(hetQTN$Strategy, hetQTN$Scenario),]
 
 write.csv(HETa, "~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/NEs_HET_relative_21112018.csv", row.names=FALSE, quote=FALSE)
 
@@ -172,8 +158,9 @@ HET$Scenario <- factor(HET$Scenario, levels =c("Class", "GenSLO", "OtherCowsGen"
 
 
 model <- lm(per_het ~ Strategy + Scenario + Strategy + Marker + Marker: Strategy : Scenario, data=HET)
+model <- lm(Ne ~ Strategy + Scenario + Strategy + Strategy : Scenario, data=HET[HET$Marker == "QTN",]) #abs"
 anova(model)
-marginal = emmeans(model, ~ Strategy:Scenario:Marker)
+marginal = emmeans(model, ~ Strategy:Scenario)
 CLD = cld(marginal, by="Strategy",
           alpha   = 0.05, sort=FALSE,
           Letters = letters,         ###  Use lowercase letters for .group
@@ -442,4 +429,8 @@ InbALL$dF_sd <- round(InbALL$dF_sd, 5)
 write.csv(InbALL, "/home/jana/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/Compare_PedHet_Inbreeding.csv", quote=FALSE, row.names = FALSE)
 ####################################################################
 
-
+#compare absolute ped and genomic NE
+INBavg_abs <- read.csv( "~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/Absolute_pedigreeinbreeding_final.csv")
+compare <- merge(HETa_abs[HETa_abs$Marker == "QTN",], INBavg_abs, by=c("Strategy", "Scenario"))
+compare$per <- compare$inb / compare$het
+compare[order(-compare$per),]

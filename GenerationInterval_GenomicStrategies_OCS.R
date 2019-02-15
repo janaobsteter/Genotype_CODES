@@ -1,5 +1,5 @@
 gi <- read.csv("/home/jana/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/GENINTS_all_14082018.csv")
-gi_OCS <- read.csv("/home/jana/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/GENINTS_all_17012019_OCS.csv")
+gi_OCS <- read.csv("/home/jana/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/GENINTS_all_11022019_OCS.csv")
 gi_OCS$scenario <- as.character(gi_OCS$scenario)
 #zaenkrat izključi OCS30, rep 7
 gi_OCS$genInt[gi_OCS$Rep==7 & gi_OCS$strategy=="OCS" & gi_OCS$scenario==30] <- NA
@@ -47,8 +47,14 @@ for (group in c("SU55PT","SU55GS", "SU51GS", "OCS15", "OCS30", "OCS45", "OCS60",
 giPer$per_gi <- (giPer$per_gi)*100-100
 giPer[giPer$Group=="OCS30",]
 
+giPer$Strategy <- factor(giPer$Strategy, levels =c("SU55", "SU51", "OCS"))
+giPer$Scenario <- factor(giPer$Scenario, levels =c("PT", "GS", 15, 30, 45, 60, 75))
+giPer <- giPer[order(giPer$Strategy, giPer$Scenario),]
+
 giPer_a <- summarySE(giPer, measurevar="per_gi", groupvars=c("Strategy", "Scenario", "Line"))[,c(1,2,3,5,6)]
 colnames(giPer_a) <- c("Strategy", "Scenario", "Line", "per_gi", "per_giSD")
+giPer_abs <- summarySE(giPer, measurevar="genInt", groupvars=c("Strategy", "Scenario", "Line"))[,c(1,2,3,5,6)]
+colnames(giPer_abs) <- c("Strategy", "Scenario", "Line", "gi", "giSD")
 #giPer_a$per_gi <- round(giPer_a$per_gi)
 #giPer_a$per_giSD <- round(giPer_a$per_giSD)
 
@@ -57,9 +63,17 @@ giPer_a$Scenario <- factor(giPer_a$Scenario, levels =c("PT", "GS", 15, 30, 45, 6
 giPer_a[order(giPer_a$Strategy, giPer_a$Scenario),][giPer_a$Line=="sireM",]
 giPer_a[order(giPer_a$Strategy, giPer_a$Scenario),][giPer_a$Line=="sireF",]
 
+giPer_abs$Strategy <- factor(giPer_abs$Strategy, levels =c("SU55", "SU51", "OCS"))
+giPer_abs$Scenario <- factor(giPer_abs$Scenario, levels =c("PT", "GS", 15, 30, 45, 60, 75))
+giPer_abs[order(giPer_abs$Strategy, giPer_abs$Scenario),][giPer_abs$Line=="sireM",]
+giPer_abs <- giPer_abs[order(giPer_abs$Strategy, giPer_abs$Scenario),][giPer_abs$Line=="sireF",]
+
 #končna tabela
 giPer_a[giPer_a$Line=="sireM",]
 giPer_a[giPer_a$Line=="sireF",]
+
+giPer_abs[giPer_abs$Line=="sireM",]
+giPer_abs[giPer_abs$Line=="sireF",]
 #giPer$Group <- factor(giPer$Group, level=c("SU55PT","SU55GS","SU51GS","OCS15","OCS30","OCS45","OCS60","OCS75"))
 
 #preveri, kaj se dogaja z OCS30
@@ -72,6 +86,13 @@ sd(gi$genInt[gi$strategy=="OCS" & gi$scenario==45 & gi$LINE == "sireF"])
 giPer$Group <- factor(giPer$Group, level=c("SU55PT","SU55GS","SU51GS","OCS15","OCS30","OCS45","OCS60","OCS75"))
 
 model <- lm(per_gi ~ Group + Line + Group:Line, data=giPer)
+marginal = emmeans(model, ~ Group:Line)
+CLD = cld(marginal, sort=FALSE, by="Line",
+          alpha   = 0.05,
+          Letters = letters, adjust="tukey") 
+CLD
+
+model <- lm(genInt ~ Group + Line + Group:Line, data=giPer)
 marginal = emmeans(model, ~ Group:Line)
 CLD = cld(marginal, sort=FALSE, by="Line",
           alpha   = 0.05,

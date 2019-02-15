@@ -1,7 +1,7 @@
 ################
 #Funkcija summarySE
 #####################
-summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
+summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=TRUE,
                       conf.interval=.95, .drop=TRUE) {
   library(plyr)
   
