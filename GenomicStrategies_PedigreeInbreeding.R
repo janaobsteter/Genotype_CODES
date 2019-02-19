@@ -94,7 +94,10 @@ for (strategy in c("SU55", "SU51", "SU15")) {
 INBavg$per_inb <- (INBavg$per_inb)*100 - 100
 #INBa <- summarySE(INB, measurevar="Ne", groupvars=c("Strategy", "Scenario"))[,c(1,2,4,5)] to je za ABSOLUTNE
 INBavg_a <- summarySE(INBavg, measurevar="per_inb", groupvars=c("Strategy", "Scenario"))[,c(1,2,4,5)]
+INBavg_abs <- summarySE(INBavg, measurevar="Ne", groupvars=c("Strategy", "Scenario"))[,c(1,2,4,5)]
+write.csv(INBavg_abs, "~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/Absolute_pedigreeinbreeding_final.csv", quote=FALSE, row.names=FALSE)
 colnames(INBavg_a) <- c("Strategy", "Scenario", "per_inb", "per_inbSD")
+colnames(INBavg_abs) <- c("Strategy", "Scenario", "inb", "inbSD")
 INBavg_a$per_inb <- round(INBavg_a$per_inb)
 INBavg_a$per_inbSD <- round(INBavg_a$per_inbSD)
 

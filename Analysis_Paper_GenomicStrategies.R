@@ -1,4 +1,46 @@
-acc <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/ACCAge.csv")[,-1]
+
+################
+#Funkcija summarySE
+#####################
+summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
+                      conf.interval=.95, .drop=TRUE) {
+  library(plyr)
+  
+  # New version of length which can handle NA's: if na.rm==T, don't count them
+  length2 <- function (x, na.rm=FALSE) {
+    if (na.rm) sum(!is.na(x))
+    else       length(x)
+  }
+  
+  # This does the summary. For each group's data frame, return a vector with
+  # N, mean, and sd
+  datac <- ddply(data, groupvars, .drop=.drop,
+                 .fun = function(xx, col) {
+                   c(N    = length2(xx[[col]], na.rm=na.rm),
+                     mean = mean   (xx[[col]], na.rm=na.rm),
+                     sd   = sd     (xx[[col]], na.rm=na.rm)
+                   )
+                 },
+                 measurevar
+  )
+  
+  # Rename the "mean" column    
+  colnames(datac)[colnames(datac) == "mean"] <- measurevar
+  
+  datac$se <- datac$sd / sqrt(datac$N)  # Calculate standard error of the mean
+  
+  # Confidence interval multiplier for standard error
+  # Calculate t-statistic for confidence interval: 
+  # e.g., if conf.interval is .95, use .975 (above/below), and use df=N-1
+  ciMult <- qt(conf.interval/2 + .5, datac$N-1)
+  datac$ci <- datac$se * ciMult
+  
+  return(datac)
+}
+######################################################################
+
+acc <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/ACCAge.csv")
+library(plyr)
 acc$scenario <-  revalue(acc$scenario, c("Class" = "PT", "GenSLO" = "GS-PS", "OtherCowsGen" = "GS-C", "BmGen" = "GS-BD", "Gen" = "GS"))
 acc$scenario <- factor(acc$scenario, levels =c("PT", "GS-PS", "GS-C", "GS-BD", "GS"))
 acc <- acc[order(acc$scenario),]
@@ -10,58 +52,34 @@ acc <- acc[order(acc$scenario),]
 accA <- summarySE(data=acc, measurevar = "COR" , groupvars = c("scenario", "strategy", "AgeCat"))[,c(1,2,3,5,6)]
 colnames(accA) <- c("Scenario", "Strategy", "CatAge", "meanAcc", "sdAcc")
 table(accA$CatAge)
-accA[accA$Strategy=="SU55" & accA$CatAge %in% c("genTest1", "cak5", "vhlevljeni1", "mladi2", "potomciNP0", "telF1"),]
 
+accA[accA$Strategy=="SU55" & accA$CatAge %in% c("genTest1", "cak5", "vhlevljeni1", "mladi2", "potomciNP0", "telF1"),]
 accA[accA$Strategy=="SU51" & accA$CatAge %in% c("genTest1", "cak5", "vhlevljeni1", "mladi2", "potomciNP0", "telF1"),]
 accA[accA$Strategy=="SU15" & accA$CatAge %in% c("genTest1", "cak5", "vhlevljeni1", "mladi2", "potomciNP0", "telF1"),]
 
-
-accASc <- aggregate(acc$corEBV ~ acc$Strategy + acc$Cat + acc$Cycle, FUN="mean")
-accSc <- aggregate(acc$corEBV ~ acc$Scenario + acc$Strategy + acc$Cat, FUN="mean")
-accS <- summarySE(data=acc, measurevar="corEBV", groupvars=c("Strategy", "Cat"))
-#accSc <- aggregate(acc$corEBV ~ acc$Strategy + acc$Cat, FUN="mean")
-accS <- aggregate(acc$corEBV ~ acc$Strategy, FUN="mean")
-colnames(accA) <- c("Scenario", "Strategy", "Cat",  "Cycle", "corEBV")
-colnames(accSc) <- c("Scenario", "Strategy", "Cat", "corEBV")
-colnames(accASc) <- c("Strategy", "Cat", "Cycle", "corEBV")
-colnames(accS) <- c("Strategy", "Cat",  "corEBV")
-#write.csv(accA, "~/Documents/PhD/Simulaton/Accuracies_genomicStrategies.csv", quote=FALSE)
+accSig <- acc[acc$AgeCat %in% c("genTest1", "cak5", "vhlevljeni1", "mladi2", "potomciNP0", "telF1"),]
 
 
-accSc$Strategy <- factor(accSc$Strategy, levels =c("SU55", "SU51", "SU15"))
-accSc$Scenario <- factor(accSc$Scenario, levels =c("Class", "GenSLO", "OtherCowsGen", "BmGen", "Gen"))
-accSc <- accSc[order(accSc$Strategy, accSc$Scenario),]
-mean(accA$corEBV[accA$Scenario=="Class" & accA$Cat=="potomciNP"])
-mean(accA$corEBV[accA$Cat=="genTest"])
+#significance of significances
+library(emmeans)
+model <- lm(COR ~ strategy + scenario + AgeCat + strategy : scenario : AgeCat, data=accSig)
+marginal = emmeans(model, ~ strategy:scenario:AgeCat)
+CLD = cld(marginal, by=c("AgeCat", "strategy"),
+          alpha   = 0.05, sort=FALSE,
+          Letters = letters,         ###  Use lowercase letters for .group
+          adjust  = "tukey") 
+CLD
+CLD = cld(marginal, by="scenario",
+          alpha   = 0.05, sort=FALSE,
+          Letters = LETTERS,         ###  Use lowercase letters for .group
+          adjust  = "tukey") 
+CLD
 
-mean(accA$corEBV[accA$Scenario %in% c("Class", "GenSLO") & accA$Cat=="pb"])
-mean(accA$corEBV[accA$Cat=="pb"])
-mean(accA$corEBV[accA$Cat=="gpb"])
-accA[accA$Cat=="gpb",]
-accA[accA$Cat=="k",]
-accS[accS$Cat=="k",]
-acc[acc$Strategy=="SU55" & acc$Scenario=="Class" & acc$Cat=="mladi",]
-
-
-accASc[accASc$Cat=="genTest",]
-accASc[accASc$Cat=="k",]
-accSc[accSc$Cat=="genTest",]
-accSc[accSc$Cat=="gpb",]
-accSc[accSc$Cat=="k",]
-accSc[order(accSc$Strategy, accSc$Scenario),][accSc$Cat=="genTest",]
-accSc[order(accSc$Strategy, accSc$Scenario),][accSc$Cat=="vhlevljeni",]
-accSc[order(accSc$Strategy, accSc$Scenario),][accSc$Cat=="cak",]
-ggplot(data=accASc[accASc$Cat=="genTest",], aes(x=Cycle, y=corEBV, group=Strategy, colour=Strategy)) + geom_line()
+#mean za gentest in cak5
+mean(acc$COR[acc$AgeCat == "cak5"])
+mean(acc$COR[acc$AgeCat == "genTest1"])
 
 
-accA[(accA$Cat %in% c("vhlevljeni", "genTest", "mladi", "potomciNP")) & (accA$Strategy=="SU55"),]
-comp <- cbind(accSc[(accSc$Cat %in% c("mladi", "genTest")) & (accSc$Strategy=="SU55"),], accSc[(accSc$Cat %in% c("mladi", "genTest")) & (accSc$Strategy=="SU51"),])
-comp$diff <- accSc$corEBV[(accSc$Cat %in% c( "genTest")) & (accSc$Strategy=="SU55")] - accSc$corEBV[(accSc$Cat %in% c( "genTest")) & (accSc$Strategy=="SU51")]
-diffK <- accSc$corEBV[(accSc$Cat %in% c( "k")) & (accSc$Strategy=="SU55")] - accSc$corEBV[(accSc$Cat %in% c( "k")) & (accSc$Strategy=="SU51")]
-mean(comp$diff)
-mean(acc$corEBV[acc$Strategy=="SU55"], na.rm=TRUE) - mean(acc$corEBV[acc$Strategy=="SU51"], na.rm=TRUE)
-sd(acc$corEBV[acc$Strategy=="SU55"], na.rm=TRUE) 
-sd(acc$corEBV[acc$Strategy=="SU51"], na.rm=TRUE)
 ######################################################################################################
 ######################################################################################################
 ######################################################################################################""
@@ -781,7 +799,7 @@ ylim(c(0, 7)) +
   guides(group=guide_legend(nrow=6), fill=guide_legend(nrow=6), colour=guide_legend(nrow=6), linetype=guide_legend(nrow=6)) +
   theme(axis.text=element_text(size=18), legend.position = "left",
         axis.title=element_text(size=18,face="bold"), legend.text=element_text(size=18), legend.title=element_text(face="bold", size=18), 
-        strip.text = element_text(face="bold", size=16))   #+ 
+        strip.text = element_text(face="bold", size=16))   + 
 facet_grid(order ~ ., scales = "free_y") + theme(legend.position = "right") 
 
 #genetic variance plot

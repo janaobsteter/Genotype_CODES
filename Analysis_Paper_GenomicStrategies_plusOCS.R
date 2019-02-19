@@ -372,11 +372,12 @@ maxminOCS <- maxminOS[maxminOS$scenario %in% c(15, 30, 45, 60, 75),]
 #maxminOS <- maxminOS[order(maxminOS$strategy, maxminOS$scenario),]
 
 
-TGVsStrategy <- TGVsAll[TGVsAll$Strategy %in% c("SU55", "SU51", "OCS") & TGVsAll$scenario %in% c("PT", "GS", 15, 30, 45, 60, 75),]
+TGVsStrategy <- TGVsAll[TGVsAll$PlotGroup %in% c("SU55PT", "SU55GS", "SU51GS", "OCS15", "OCS30", "OCS45", "OCS60", "OCS75"),]
 TGVsStrategy$strategy <- factor(TGVsStrategy$strategy, levels =c("SU55", "SU51", "OCS"))
 TGVsStrategy$scenario <- factor(TGVsStrategy$scenario, levels =c("PT","GS", 15, 30, 45, 60, 75))
-TGVsStrategy$PlotGroup <- paste0(TGVsStrategy$strategy, TGVsStrategy$scenario)
-TGVsStrategy <- TGVsStrategy[order(TGVsStrategy$strategy, TGVsStrategy$scenario),]
+TGVsStrategy$PlotGroup <- factor(TGVsStrategy$PlotGroup, level= c("SU55PT", "SU55GS", "SU51GS", "OCS15", "OCS30", "OCS45", "OCS60", "OCS75"))
+
+TGVsStrategy <- TGVsStrategy[order(TGVsStrategy$PlotGroup),]
 
 # TGVsStrategy$PlotGroup <- factor(TGVsStrategy$PlotGroup, level=c("OCS15", "OCS30", "OCS45", "OCS60", "OCS75", "SU55PT", "SU51PT", "SU15PT"))
 # TGVsStrategy <- TGVsStrategy[order(TGVsStrategy$PlotGroup),]
@@ -391,15 +392,15 @@ maxminOS$scenario <- as.factor(as.character(maxminOS$scenario))
 #plot za OCS
 #library(ggplot2)
 
-
-TGVsStrategy$PlotGroup <- factor(TGVsStrategy$PlotGroup, level=c("OCS15", "OCS30", "OCS45", "OCS60", "OCS75","SU55PT", "SU55GS", "SU51GS"))
-TGVsStrategy <- TGVsStrategy[order(TGVsStrategy$PlotGroup),]
-#maxminPT$PlotGroup <- factor(maxminPT$PlotGroup, level=c("OCS15", "OCS30", "OCS45", "OCS60", "OCS75"," ", "SU55PT", "SU51PT", "SU15PT"))
-#plot za učinkovitost
-ggplot(data = TGVsStrategy, aes(x=SDGenicSt, y=zMeanGenic, group=group, colour=PlotGroup, linetype=PlotGroup)) + 
+summary(TGVsStrategy$SDGenicSt)
+summary(TGVsStrategy$zMeanGenic)
+table(TGVsStrategy$PlotGroup)
+summary(TGVsStrategy$PlotGroup)
+TGVsStrategy$PlotGroup <- as.character(TGVsStrategy$PlotGroup)
+ggplot(data = TGVsStrategy, aes(x=SDGenicSt, y=zMeanGenic, group=group, colour=PlotGroup)) + 
   scale_x_reverse(sec.axis=sec_axis(trans=~1-.,                                   
                                     name="Converted/Lost genic standard deviation")) +
-  geom_line(aes(linetype = PlotGroup, colour = PlotGroup, group=group), size=0.2, alpha=0.4) + 
+  geom_line(size=0.2, alpha=0.2) + 
   ylim(0,7) + coord_cartesian(xlim = c(1, 0.75)) + theme_bw() +
   scale_linetype_manual("Breeding program", 
                         breaks=c("OCS15", "OCS30", "OCS45", "OCS60", "OCS75","SU55PT", "SU55GS", "SU51GS"),
@@ -413,12 +414,12 @@ ggplot(data = TGVsStrategy, aes(x=SDGenicSt, y=zMeanGenic, group=group, colour=P
                       labels=c(expression("OCS"["15"]), expression("OCS"["30"]), expression("OCS"["45"]),
                                expression("OCS"["60"]), expression("OCS"["75"]) ,
                                "5 sires/year, use 5 years, PT", "5 sires/year, use 5 years, GS", "5 sires/year, use 1 year, GS")) +
-  guides(linetype=guide_legend(nrow=2,  label.position = "right", keyheight = unit(1, "cm"), keywidth = unit(3, "cm"), override.aes = list(alpha = 1, size=2))) +
+  guides(linetype=guide_legend(nrow=3,  label.position = "right", keyheight = unit(1, "cm"), keywidth = unit(3, "cm"), override.aes = list(alpha = 1, size=2))) +
   xlab("Genic standard deviation") + ylab("Genetic Mean") + 
-  theme(axis.text=element_text(size=16), legend.position = "top", 
-        axis.title.x=element_text(size=16, vjust=-1), 
-        axis.title.y=element_text(size=16, vjust=2), 
-        legend.text=element_text(size=16), legend.title=element_text(size=16), legend.box = "horizontal",
+  theme(axis.text=element_text(size=18), legend.position = "top", 
+        axis.title.x=element_text(size=18, vjust=-1), 
+        axis.title.y=element_text(size=18, vjust=2), 
+        legend.text=element_text(size=18), legend.title=element_text(size=14), legend.box = "horizontal",
         plot.title = element_text(margin = margin(t = 0, r = 0, b = 40, l = 0), size=16, hjust=0.5),
         plot.margin = margin(t = 20, r = 10, b = 10, l = 10),
         legend.text.align = 0) +
@@ -430,7 +431,7 @@ ggplot(data = TGVsStrategy, aes(x=SDGenicSt, y=zMeanGenic, group=group, colour=P
                                          color=PlotGroup, linetype=PlotGroup, group=PlotGroup), arrow=arrow(), show.legend=FALSE, size=1.5) 
 
 
-library(gridExtra)
+# library(gridExtra)
 library(grid)
 library(gtable)
 #Tole je bolj na majavih tleh
