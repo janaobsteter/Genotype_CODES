@@ -32,7 +32,7 @@ colnames(rejci) <- c("Ime", "CRE_SIFRA_CREDA", "Kontrola")
 rejci <- rejci[,1:2]
 length(unique(kapaCSN$CRE_SIFRA_CREDA))
 
-kapaCSN <- merge(kapaCSN, rejci, by="CRE_SIFRA_CREDA", all.x=TRUE)
+kapaCSN <- unique(merge(kapaCSN, rejci, by="CRE_SIFRA_CREDA", all.x=TRUE))
 
 library(plyr)
 A <- t(table(kapaCSN$KapaCSN, kapaCSN$Ime) )

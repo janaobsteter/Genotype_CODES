@@ -260,3 +260,116 @@ classMean <-  summarySE(class, measurevar = "value", groupvars = c("Generation",
 table(classMean$Action, classMean$Generation)
 ggplot(data = classMean[classMean$scenario == "Class" & classMean$way == "abs",], 
        aes(x=Generation, y=value, group=Action, colour=Action)) + geom_path()
+
+
+####naredi ločeno particijo na enem pedigreju
+ped <- read.csv("~/SU55_OtherCowsGen0_GenPed_EBV_CATS.txt")[,-1]
+ped <- ped[ped$Generation %in% 40:60,]
+
+ped$Cat <-  apply(ped[, paste0("Category", 40:60)], 1, function(x) ifelse(sum(x=="izl", na.rm=TRUE)==21, "izl", tail(x[x != "izl"], n=1) ) )
+ped$FirstGen <-  apply(ped[, paste0("Category", 40:60)], 1, function(x) ifelse(any(x=="genTest", na.rm=TRUE), "gen", "clas" ))
+
+ped$GenGen <- apply(ped, 1, function(x) substr(colnames(ped)[which(x == "genTest")], 9, 10)[1])
+#tukaj določiš zadnjo generacijo, predno so izločeni
+ped$ClassGen <- apply(ped[, paste0("Category", 40:60)], 1, function(x) ifelse(sum(x=="izl", na.rm=TRUE)==21, "izl", tail(which(x != "izl"), n=1) + 39 ) )
+
+
+sols <- read.csv("~/PedSolutions.txt")         
+sols <- sols[sols$Generation %in% 40:60,]
+nrow(sols)
+nrow(ped)
+ped <- merge(ped, sols, by="Indiv")
+
+#določi EBV pri genomskem testiranju
+ped$genEBV <- NA
+for (row in 1:nrow(ped)) {
+  if (ped$FirstGen[row] == "gen") {
+    ped$genEBV[row] <-  ped[row, paste0("X", (ped$GenGen[row]))]
+  }
+}
+head(ped)
+summary(ped$genEBV)    
+
+#določi zadnjo EBV pred izločenje
+ped$classEBV <- NA
+for (row in 1:nrow(ped)) {
+  if (ped$FirstGen[row] == "clas") {
+    ped$classEBV[row] <-  ped[row, paste0("X", (ped$ClassGen[row]))]
+  }
+}
+head(ped)
+
+#združi genomske EBV ni klasične
+ped$genPart <- ifelse(ped$FirstGen == "gen", ped$genEBV, ped$classEBV)
+summary(ped$classEBV)    
+
+#zdaj pa naredi še, ko so progeno testirani
+table(ped$LastCat[ped$FirstGen == "gen"])
+ped[ped$FirstGen == "gen" & ped$LastCat == "pb",] 
+nrow(ped[ped$FirstGen == "gen" & ped$LastCat == "pb",] )
+nrow(ped[ped$LastCat == "pb",] )
+ped[ped$LastCat == "pb",]
+#zadnje leto, ko so genomsko testirani --> potem gredo v progeno testirane
+ped$LastGenGen <- apply(ped[, paste0("Category", 40:60)], 1, function(x) tail(which(x == "gpb"), n=1) + 39)
+ped[ped$LastCat == "pb",]
+
+#določi zadnjo EBV preden, da grejo v progeno testirane bike
+ped$cakEBV <- NA
+for (row in 1:nrow(ped)) {
+  if (ped$LastCat[row] == "pb") {
+    ped$cakEBV[row] <-  ped[row, paste0("X", (ped$LastGenGen[row]))]
+  }
+}
+ped[ped$LastCat == "pb",]
+tail(ped[ped$LastCat == "pb",])
+
+#določi klasične EBV za vse ostale
+ped$class1EBV <- NA
+for (row in 1:nrow(ped)) {
+  if (ped$LastCat[row] != "pb") {
+    ped$class1EBV[row] <-  ped[row, paste0("X", (ped$ClassGen[row]))]
+  }
+}
+head(ped)
+
+ped$clasPart <- ifelse(ped$LastCat == "pb", ped$cakEBV, ped$class1EBV)
+summary(ped$clasPart)
+
+library(partAGV)
+part = data.frame()
+PartPed = partAGV(x = as.data.frame(ped), sort = FALSE,
+                  colId = "Indiv", colFid = "Father.x", colMid = "Mother.x",
+                  colPath = "Sex", colAGV = c("genPart", "clasPart"))
+PartPedSummary = summary(object = PartPed, by = "Generation.x")
+relTmpG <- PartPedSummary$genPart$rel
+relTmpG$way <- "rel"
+relTmpG$method <- "gen"
+part <- rbind(part, relTmpG)
+
+absTmpG <- PartPedSummary$genPart$abs
+absTmpG$way <- "abs"
+absTmpG$method <- "gen"
+
+part <- rbind(part, absTmpG)
+
+relTmpC <- PartPedSummary$clasPart$rel
+relTmpC$way <- "rel"
+relTmpC$method <- "clas"
+part <- rbind(part, relTmpC)
+
+absTmpC <- PartPedSummary$clasPart$abs
+absTmpC$way <- "abs"
+absTmpC$method <- "clas"
+
+part <- rbind(part, absTmpC)
+head(part)
+part$Total <- part$F +  part$M
+
+partM <- melt(part, measure.vars = c("M", "F", "Total"), id.vars = c("Generation.x", "way", "method"))
+partM$group <- paste0(partM$method, partM$variable)
+ggplot(data=partM[partM$way == "abs",], aes(x = Generation.x, y = value, group=group, colour=group )) + geom_path() + ylim(0, 12)
+
+
+#zakaj total ni isti?
+aggregate(ped$genPart ~ped$Generation.x, FUN="mean")
+aggregate(ped$clasPart ~ped$Generation.x, FUN="mean")

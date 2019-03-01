@@ -123,6 +123,7 @@ os.system("chmod a+x renumf90")
 os.system("chmod a+x blupf90")
 
 par = pd.read_csv(WorkingDir + "/Essentials/" + refSize + "/" + strategy + "SelPar/SelectionParam_" + scenario + ".csv", header=None, names=["Keys", "Vals"])
+par = pd.read_csv("/home/jana/SelectionParam_class.csv", header=None, names=["Keys", "Vals"])
 par.to_dict()
 selPar = defaultdict()
 for key, val in zip(par.Keys, par.Vals):
