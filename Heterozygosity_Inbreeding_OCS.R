@@ -149,15 +149,19 @@ HET$per_dF <- HET$per_dF*100 - 100
 
 #NAJPREJ izračunaj povprečje in SD
 ##################################################################
-#HETabs <- summarySE(HET, measurevar="Ne", groupvars=c("Strategy", "Scenario", "Marker"))[,c(1,2,3,5,6)] #to je za ABSOLUTNE vrednosti!
+#HET<- summarySE(HET, measurevar="Ne", groupvars=c("Strategy", "Scenario", "Marker"))[,c(1,2,3,5,6)] #to je za ABSOLUTNE vrednosti!
 #HETabs <- summarySE(HET, measurevar="dF", groupvars=c("Strategy", "Scenario", "Marker"))[,c(1,2,3,5,6)] #to je za ABSOLUTNE vrednosti!
 #to je za odstotek razlike v NE!
 HETa <- summarySE(HET, measurevar="per_Ne", groupvars=c("Strategy", "Scenario", "Marker"))[,c(1,2,3,5,6)]
+HETa_abs <- summarySE(HET, measurevar="Ne", groupvars=c("Strategy", "Scenario", "Marker"))[,c(1,2,3,5,6)]
 #odstotek razlike zas delta F, ki je v bistvu delta coancestry (rate of coancestry) - ker je izračunano iz genomskega inbridinga
 HETb <- summarySE(HET, measurevar="per_dF", groupvars=c("Strategy", "Scenario", "Marker"))[,c(1,2,3,5,6)]
+HETb_abs <- summarySE(HET, measurevar="dF", groupvars=c("Strategy", "Scenario", "Marker"))[,c(1,2,3,5,6)]
 
 colnames(HETa) <- c("Strategy", "Scenario", "Marker", "per_Ne", "per_NeSD")
+colnames(HETa_abs) <- c("Strategy", "Scenario", "Marker", "Ne", "NeSD")
 colnames(HETb) <- c("Strategy", "Scenario", "Marker", "per_dF", "per_dFSD")
+colnames(HETb_abs) <- c("Strategy", "Scenario", "Marker", "dF", "dFSD")
 
 #zaokroži
 HETa$per_Ne <- round(HETa$per_Ne)
@@ -166,10 +170,16 @@ HETb$per_dF <- round(HETb$per_dF)
 HETb$per_dFSD <- round(HETb$per_dFSD)
 
 HETa <- merge(HETa, HETb, by=c("Strategy", "Scenario", "Marker"))
+HETabs <- merge(HETa_abs, HETb_abs, by=c("Strategy", "Scenario", "Marker"))
 
 HETa$Strategy <- factor(HETa$Strategy, levels =c("SU55", "SU51", "OCS"))
 HETa$Scenario <- factor(HETa$Scenario, levels =c("PT", "GS", 15, 30, 45, 60, 75))
 HETa <- HETa[order(HETa$Strategy, HETa$Scenario),]
+HETa
+HETabs$Strategy <- factor(HETabs$Strategy, levels =c("SU55", "SU51", "OCS"))
+HETabs$Scenario <- factor(HETabs$Scenario, levels =c("PT", "GS", 15, 30, 45, 60, 75))
+HETabs <- HETabs[order(HETabs$Strategy, HETabs$Scenario),]
+HETabs
 
 write.csv(HETa, "~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/NEs_HET_relative_17012019.csv", row.names=FALSE, quote=FALSE)
 
@@ -192,6 +202,28 @@ CLD
 
 #deltaC
 model <- lm(per_dF ~ Group, data=HET)
+anova(model)
+marginal = emmeans(model, ~ Group)
+CLD = cld(marginal, 
+          alpha   = 0.05, sort=FALSE,
+          Letters = letters,         ###  Use lowercase letters for .group
+          adjust  = "tukey") 
+CLD
+
+
+#abs
+#Ne
+model <- lm(Ne ~ Group, data=HET)
+anova(model)
+marginal = emmeans(model, ~ Group)
+CLD = cld(marginal, 
+          alpha   = 0.05, sort=FALSE,
+          Letters = letters,         ###  Use lowercase letters for .group
+          adjust  = "tukey") 
+CLD
+
+#deltaC
+model <- lm(dF ~ Group, data=HET)
 anova(model)
 marginal = emmeans(model, ~ Group)
 CLD = cld(marginal, 

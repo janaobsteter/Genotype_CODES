@@ -1466,7 +1466,7 @@ def selekcija_total(pedFile, externalPedName = "ExternalPedigree.txt",group=Fals
             'less IndForGeno.txt | wc -l > ReferenceSize_new.txt && cat ReferenceSize_new.txt ReferenceSize.txt > Reftmp && mv Reftmp ReferenceSize.txt')
     ped.write_ped(kwargs.get('AlphaSimDir') + "/" + externalPedName + ".txt")
     ped.write_pedTotal(kwargs.get('AlphaSimDir') + "/" + externalPedName + "Total.txt")
-#    ped.write_pedTotal("/home/jana/PedTotal.txt")
+    ped.write_pedTotal("/home/jana/PedTotal.txt")
 
     return ped, ped.save_cat(), ped.save_sex(), ped.save_active()
 
@@ -2411,6 +2411,7 @@ class AlphaMate(object):
     def countMaleSel(self):
         gender = pd.read_table(self.AlphaMateDir + "/GENDER.txt", header=None, sep=" ")
 	gender.columns = ["ID", "Sex"]
+	gender.columns = ["ID", "Sex"]
         return (int(sum(gender.Sex == 1)))
 
 
@@ -2423,6 +2424,8 @@ class AlphaMate(object):
 	os.system('sed -i "s|KINSHIPMATRIX|' + KinshipMatrix + '|g" ' + self.AlphaMateSpec)
         os.system('sed -i "s|NoMating|' + str(NoMatings) + '|g" ' + self.AlphaMateSpec)
         os.system('sed -i "s|NoMaleParents|' + str(NoMaleParents) + '|g" ' + self.AlphaMateSpec)
+        os.system('sed -i "s|NoFemaleParents|' + str(NoFemaleParents) + '|g" ' + self.AlphaMateSpec)
+        os.system('sed -i "s|NoFemaleParents|' + str(NoFemaleParents) + '|g" ' + self.AlphaMateSpec)
         os.system('sed -i "s|NoFemaleParents|' + str(NoFemaleParents) + '|g" ' + self.AlphaMateSpec)
         os.system('sed -i "s|SetDegree|' + str(Degree) + '|g" ' + self.AlphaMateSpec)
 
@@ -2689,7 +2692,7 @@ def nastavi_cat(PedFile, externalPedName = "ExternalPedigree.txt", group=False, 
         ped.saveIndForGeno(kwargs.get('genotyped'))
     ped.write_ped(kwargs.get('AlphaSimDir') + "/" + externalPedName + ".txt")
     ped.write_pedTotal(kwargs.get('AlphaSimDir') + "/" + externalPedName + "Total.txt")
-#    ped.write_pedTotal("/home/jana/PedTotal.txt")
+    ped.write_pedTotal("/home/jana/PedTotal.txt")
 
     return ped, ped.save_cat(), ped.save_sex(), ped.save_active()
 

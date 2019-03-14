@@ -78,8 +78,124 @@ summarySE1 <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
 }
 ######################################################################
 partSex <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/PartSex_18022019_gen40.csv")
+partSex$Total <- partSex$F + partSex$M
+#naredi razliko class in genSlo
+head(partSex)
+class55 <- partSex[partSex$scenario == "Class" & partSex$strategy == "SU55" & partSex$way == "abs", c("Generation", "rep", "F", "M", "Total")]
+head(class55)
+colnames(class55) <- c("Generation", "Rep", "F_PT", "M_PT", "PT_Total")
+head(class55)
+gsps55 <- partSex[partSex$scenario == "GenSLO" & partSex$strategy == "SU55" & partSex$way == "abs", c("Generation", "rep", "F", "M", "Total" )]
+colnames(gsps55) <- c("Generation", "Rep", "F_GSPS", "M_GSPS", "GSPS_Total")
+head(gsps55)
+gs55 <- partSex[partSex$scenario == "Gen" & partSex$strategy == "SU55" & partSex$way == "abs", c("Generation", "rep", "F", "M", "Total" )]
+colnames(gs55) <- c("Generation", "Rep", "F_GS", "M_GS", "GS_Total")
+head(gs55)
+dif1 <- merge(class55, gsps55, by=c("Generation", "Rep"))
+dif1 <- merge(dif1, gs55, by=c("Generation", "Rep"))
+head(dif1)
 
+dif1$DIFF_F_PT_GSPS <- dif1$F_GSPS - dif1$F_PT
+dif1$DIFF_M_PT_GSPS <- dif1$M_GSPS - dif1$M_PT
+dif1$DIFF_F_PT_GS <- dif1$F_GS - dif1$F_PT
+dif1$DIFF_M_PT_GS <- dif1$M_GS - dif1$M_PT
+head(dif1)
+ggplot(data=dif1, aes(x=PT_Total, y=M_PT)) + geom_line()
+summary(glm(dif1$M_PT ~dif1$PT_Total + dif1$Generation))
+summary(glm(dif1$M_GSPS ~dif1$GSPS_Total + dif1$Generation))
+summary(glm(dif1$M_GS ~dif1$GS_Total + dif1$Generation))
+ggplot(data=dif1, aes(x=GS_Total, y=M_GS)) + geom_line()
+dif1$Rep <- as.factor(dif1$Rep)
 
+ggplot(data=dif1, aes(x=Generation, y=DIFF_M, group=Rep, colour=Rep)) + geom_path()
+ggplot(data=dif1, aes(x=Generation, y=DIFF_F, group=Rep, colour=Rep)) + geom_path()
+dif1M <- melt(dif1, measure.vars = c("M_PT", "M_GSPS", "DIFF_M"), id.vars = c("Generation", "Rep"))
+ggplot(data=dif1M, aes(x=Generation, y=value, group=variable, colour=variable)) + geom_path()
+
+#average
+dif1$Generation <- as.factor(dif1$Generation)
+dif1Avga <- summarySE(data=dif1, measurevar = c("M_PT"), groupvars = "Generation")[,c(1,3,4)]
+colnames(dif1Avga)[3] <- "M_PTsd"
+dif1Avgb <- summarySE(data=dif1, measurevar = c("M_GSPS"), groupvars = "Generation")[,c(1,3,4)]
+colnames(dif1Avgb)[3] <- "M_GSPSsd"
+dif1Avgc <- summarySE(data=dif1, measurevar = c("M_GS"), groupvars = "Generation")[,c(1,3,4)]
+colnames(dif1Avgc)[3] <- "M_GSsd"
+dif1Avgd <- summarySE(data=dif1, measurevar = c("DIFF_M_PT_GSPS"), groupvars = "Generation")[,c(1,3,4)]
+colnames(dif1Avgd)[3] <- "DIFF_M_PT_GSPSsd"
+dif1Avge <- summarySE(data=dif1, measurevar = c("DIFF_M_PT_GS"), groupvars = "Generation")[,c(1,3,4)]
+colnames(dif1Avge)[3] <- "DIFF_M_PT_GSsd"
+
+diffAvg <- merge(dif1Avga, dif1Avgb, by="Generation")
+diffAvg <- merge(diffAvg, dif1Avgc, by="Generation")
+diffAvg <- merge(diffAvg, dif1Avgd, by="Generation")
+diffAvg <- merge(diffAvg, dif1Avge, by="Generation")
+head(diffAvg)
+
+diffSD <- melt(diffAvg[,c(1,3,5,7,9, 11)], id.vars = c("Generation"))
+diffAvg <- melt(diffAvg[,c(1,2,4,6,8, 10)], id.vars = c("Generation"))
+colnames(diffSD) <- c("Generation", "Variable", "SD")
+diffSD$Variable <- as.character(diffSD$Variable)
+diffSD$variable <- substr(diffSD$Variable,1,nchar(diffSD$Variable)-2)
+
+diffAvg <- unique(merge(diffAvg, diffSD, by=c("Generation", "variable")))
+
+head(diffSD)
+head(diffAvg)
+head(diffAvg)
+diffAvg$what <- ifelse(diffAvg$variable %in% c("DIFF_M_PT_GSPS", "DIFF_M_PT_GS"), "Difference", "Male Partition")
+Mplot <- ggplot(data=diffAvg[diffAvg$Generation != 40,], aes(x=Generation, y=value, group=variable, colour=variable, linetype=what)) +
+  geom_ribbon(aes(ymin = value - SD, ymax=value + SD), fill = "grey80", colour=NA) +  geom_line(aes(y=value), size=0.7) + 
+  ylab("Genetic mean") + scale_linetype_manual("", values=c("solid", "dashed")) + scale_color_discrete("Scenario") + theme_bw() +
+  theme(axis.text=element_text(size=18), 
+        axis.title.x=element_text(size=16, vjust=-1),
+        axis.title.y=element_text(size=16, vjust=2),
+        legend.text=element_text(size=16), legend.title=element_text(size=16), 
+        plot.title = element_text(margin = margin(t = 0, r = 0, b = 40, l = 0), size=16, hjust=0.5),
+        plot.margin = margin(t = 20, r = 10, b = 10, l = 10))
+
+library(reshape)
+#averages for females
+fdif1$Generation <- as.factor(dif1$Generation)
+fdif1Avga <- summarySE(data=dif1, measurevar = c("F_PT"), groupvars = "Generation")[,c(1,3,4)]
+colnames(fdif1Avga)[3] <- "F_PTsd"
+fdif1Avgb <- summarySE(data=dif1, measurevar = c("F_GSPS"), groupvars = "Generation")[,c(1,3,4)]
+colnames(fdif1Avgb)[3] <- "F_GSPSsd"
+fdif1Avgc <- summarySE(data=dif1, measurevar = c("F_GS"), groupvars = "Generation")[,c(1,3,4)]
+colnames(fdif1Avgc)[3] <- "F_GSsd"
+fdif1Avgd <- summarySE(data=dif1, measurevar = c("DIFF_F_PT_GSPS"), groupvars = "Generation")[,c(1,3,4)]
+colnames(fdif1Avgd)[3] <- "DIFF_F_PT_GSPSsd"
+fdif1Avge <- summarySE(data=dif1, measurevar = c("DIFF_F_PT_GS"), groupvars = "Generation")[,c(1,3,4)]
+colnames(fdif1Avge)[3] <- "DIFF_F_PT_GSsd"
+
+fdiffAvg <- merge(fdif1Avga, fdif1Avgb, by="Generation")
+fdiffAvg <- merge(fdiffAvg, fdif1Avgc, by="Generation")
+fdiffAvg <- merge(fdiffAvg, fdif1Avgd, by="Generation")
+fdiffAvg <- merge(fdiffAvg, fdif1Avge, by="Generation")
+head(fdiffAvg)
+
+fdiffSD <- melt(fdiffAvg[,c(1,3,5,7,9, 11)], id.vars = c("Generation"))
+fdiffAvg <- melt(fdiffAvg[,c(1,2,4,6,8, 10)], id.vars = c("Generation"))
+colnames(fdiffSD) <- c("Generation", "Variable", "SD")
+fdiffSD$Variable <- as.character(fdiffSD$Variable)
+fdiffSD$variable <- substr(fdiffSD$Variable,1,nchar(fdiffSD$Variable)-2)
+
+fdiffAvg <- unique(merge(fdiffAvg, fdiffSD, by=c("Generation", "variable")))
+
+head(fdiffSD)
+head(fdiffAvg)
+head(fdiffAvg)
+fdiffAvg$what <- ifelse(fdiffAvg$variable %in% c("DIFF_F_PT_GSPS", "DIFF_F_PT_GS"), "Difference", "Female Partition")
+Fplot <- ggplot(data=fdiffAvg, aes(x=Generation, y=value, group=variable, colour=variable, linetype=what)) +
+  geom_ribbon(aes(ymin = value - SD, ymax=value + SD), fill = "grey80", colour=NA) +  geom_line(aes(y=value), size=0.7) + 
+  ylab("Genetic mean") + scale_linetype_manual("", values=c("solid", "dashed")) + scale_color_discrete("Scenario") + theme_bw() +
+  theme(axis.text=element_text(size=18), 
+        axis.title.x=element_text(size=16, vjust=-1),
+        axis.title.y=element_text(size=16, vjust=2),
+        legend.text=element_text(size=16), legend.title=element_text(size=16), 
+        plot.title = element_text(margin = margin(t = 0, r = 0, b = 40, l = 0), size=16, hjust=0.5),
+        plot.margin = margin(t = 20, r = 10, b = 10, l = 10))
+
+multiplot(Mplot, Fplot, cols=2)
 library(reshape)
 
 #preuredi, da dobiš vse skupine (sex, cat) v en stolpec
@@ -88,6 +204,10 @@ partSex <- melt(partSex, measure.vars = c("M", "F"), id.vars = c("Generation", "
 class0 <- partSex[partSex$strategy == "SU55" & partSex$scenario == "Class" & partSex$rep == 0 & partSex$way == "abs",]
 library(ggplot2)
 ggplot(class0[class0$Generation != 41,], aes(x=Generation, y=value, group = variable, colour=variable)) + geom_line()
+
+
+
+
 
 #dobi povprečja replik
 Means <- summarySE(data = partSex, measurevar = "value", groupvars = c("Generation", "scenario", "strategy", "variable", "way"))
