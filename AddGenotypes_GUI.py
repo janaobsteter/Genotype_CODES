@@ -323,7 +323,7 @@ class AddGenotypes(QtGui.QMainWindow, Ui_MainWindow):
             if i in Rj_IDSeq_Dict:
                 SampleIDs[i] = [i, Rj_IDSeq_Dict.get(i)[0], onePackage.genodate, pedfile.chip, self.date]
             else:
-                print "Sample ID " + i + " in " + pedfile.name + " not found!!!"
+                print("Sample ID " + i + " in " + pedfile.name + " not found!!!")
 
         ################################################################################################
         ###############################################################################################
@@ -333,9 +333,9 @@ class AddGenotypes(QtGui.QMainWindow, Ui_MainWindow):
         # create table for govedo
         #############################################################################################
         ###############################################################################################
-        print "The number of genotyped animals is {}, number of animals with ID_SEQ is {}.".format(len(pedfile.samples) ,len(SampleIDs))
-        print "The number of genotype packages (different date of genotyping) is {}.".format(len(DateGenotyped))
-        print "The number of different genotyping chips is {0}: {1}.".format(len(PedFiles), PedFiles.keys())
+        print("The number of genotyped animals is {}, number of animals with ID_SEQ is {}.".format(len(pedfile.samples) ,len(SampleIDs)))
+        print("The number of genotype packages (different date of genotyping) is {}.".format(len(DateGenotyped)))
+        print("The number of different genotyping chips is {0}: {1}.".format(len(PedFiles), PedFiles.keys()))
 
         # Perform QC!!!
 
@@ -384,9 +384,9 @@ class AddGenotypes(QtGui.QMainWindow, Ui_MainWindow):
                 status, output = commands.getstatusoutput(mergeChipCommand)  # merge with plink
 
                 if status == 0:
-                    print "Successfully merged " + str(i) + " " + self.MergeDir + " " + i
+                    print("Successfully merged " + str(i) + " " + self.MergeDir + " " + i)
                 else:
-                    print "Merging went wrong, error: " + str(status)
+                    print("Merging went wrong, error: " + str(status))
 
         for chip in PedFiles:
             PedFiles[chip] = [i.replace("ZipGenoFiles", "ZipGenoFiles/") for i in PedFiles[chip]]

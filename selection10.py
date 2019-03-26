@@ -2351,7 +2351,7 @@ class AlphaRelate(object):
             self.AlphaRelateDir = AlphaRelateDir
             self.AlphaSimDir = AlphaSimDir
             self.AlphaRelateSpec = self.AlphaRelateDir + "/AlphaRelateSpec.txt"
-	    self.chipFile = self.AlphaSimDir + '/SimulatedData/AllIndividualsSnpChips/Chip1Genotype.txt'
+	        self.chipFile = self.AlphaSimDir + '/SimulatedData/AllIndividualsSnpChips/Chip1Genotype.txt'
             try:
 	        shutil.copy(AlphaSimDir + "/IndOpt.txt", AlphaRelateDir)
 	    except:
@@ -2410,8 +2410,8 @@ class AlphaMate(object):
 
     def countMaleSel(self):
         gender = pd.read_table(self.AlphaMateDir + "/GENDER.txt", header=None, sep=" ")
-	gender.columns = ["ID", "Sex"]
-	gender.columns = ["ID", "Sex"]
+	    gender.columns = ["ID", "Sex"]
+	    gender.columns = ["ID", "Sex"]
         return (int(sum(gender.Sex == 1)))
 
 
@@ -2421,7 +2421,7 @@ class AlphaMate(object):
         sol.loc[sol.ID.isin(self.indopt)][["ID", "EBV"]].to_csv(self.AlphaMateDir + "/CRITERION.txt", header=None, index=None)
 
     def prepareSpecFile(self, KinshipMatrix, NoMatings, NoMaleParents, NoFemaleParents, Degree):
-	os.system('sed -i "s|KINSHIPMATRIX|' + KinshipMatrix + '|g" ' + self.AlphaMateSpec)
+	    os.system('sed -i "s|KINSHIPMATRIX|' + KinshipMatrix + '|g" ' + self.AlphaMateSpec)
         os.system('sed -i "s|NoMating|' + str(NoMatings) + '|g" ' + self.AlphaMateSpec)
         os.system('sed -i "s|NoMaleParents|' + str(NoMaleParents) + '|g" ' + self.AlphaMateSpec)
         os.system('sed -i "s|NoFemaleParents|' + str(NoFemaleParents) + '|g" ' + self.AlphaMateSpec)

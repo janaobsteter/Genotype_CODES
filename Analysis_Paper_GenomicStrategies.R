@@ -41,8 +41,8 @@ summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
 
 acc <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/ACCAge.csv")
 library(plyr)
-acc$scenario <-  revalue(acc$scenario, c("Class" = "PT", "GenSLO" = "GS-PS", "OtherCowsGen" = "GS-C", "BmGen" = "GS-BD", "Gen" = "GS"))
-acc$scenario <- factor(acc$scenario, levels =c("PT", "GS-PS", "GS-C", "GS-BD", "GS"))
+acc$scenario <-  revalue(acc$scenario, c("Class" = "PT", "GenSLO" = "GT-PT", "OtherCowsGen" = "GT-C", "BmGen" = "GT-BD", "Gen" = "GT"))
+acc$scenario <- factor(acc$scenario, levels =c("PT", "GT-PT", "GT-C", "GT-BD", "GT"))
 acc <- acc[order(acc$scenario),]
 #acc <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/AccuraciesALL_Cat.csv")
 #accAcc <- acc[,paste0("X", 21:40)]
@@ -210,11 +210,11 @@ for (strategy in c("SU55", "SU51", "SU15")) {
     scale_linetype_manual(breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), 
                           "Breeding program", 
                           values=c("solid", "longdash","dashed", "twodash", "F1"), 
-                          labels=c("PT", "GS-PS", "GS-C", "GS-BD", "GS")) + 
+                          labels=c("PT", "GT-PT", "GT-C", "GT-BD", "GT")) + 
     scale_colour_manual(breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), 
                         "Breeding program", 
                         values=c("black", "forestgreen", "dodgerblue2", "purple", "red3"), 
-                        labels=c("PT", "GS-PS", "GS-C", "GS-BD", "GS")) + 
+                        labels=c("PT", "GT-PT", "GT-C", "GT-BD", "GT")) + 
     guides(linetype=guide_legend(nrow=1, keyheight = unit(1.2, "cm"), keywidth = unit(3, "cm"), override.aes = list(alpha = 1, size=1.2))) +
    # xlab("Genic standard deviation") + ylab("Average True Genetic Value") + 
     theme(axis.text=element_text(size=16), legend.position = "top", 
@@ -229,15 +229,16 @@ for (strategy in c("SU55", "SU51", "SU15")) {
 }
 
 
-# library(gridExtra)
-# library(grid)
-# library(gtable)
+library(gridExtra)
+library(grid)
+library(gtable)
 #Tole je bolj na majavih tleh
 #maxmin$slope <- (maxmin$maxTGV - maxmin$minTGV) / (maxmin$maxGenicSD - maxmin$minGenicSD)
 #mA <- aggregate(maxmin$slope ~ maxmin$strategy, FUN="summary")
 #aggregate(maxmin$minGenicSD ~ maxmin$strategy, FUN="summary")
 # 
-# library(pgru)
+install.packages("ggpubr")
+library(ggpubr)
 
 #legend = gtable_filter(ggplotGrob(plotList[[1]]), "axis-b") 
 
@@ -348,9 +349,9 @@ for (str in c("SU55", "SU51", "SU15")) {
 }
 
 #povprečje regresijskih koefificentov
-avgSlope <- aggregate(regRep$Slope ~ regRep$Scenario + regRep$Strategy, FUN="mean")
+avGTlope <- aggregate(regRep$Slope ~ regRep$Scenario + regRep$Strategy, FUN="mean")
 avgInt <- aggregate(regRep$Intercept ~ regRep$Scenario + regRep$Strategy, FUN="mean")
-avgReg <- cbind(avgInt, avgSlope[,2])
+avgReg <- cbind(avgInt, avGTlope[,2])
 colnames(avgReg) <- c("Scenario", "Strategy",  "Intercept", "Slope")
 #and Sd
 sdSlope <- aggregate(regRep$Slope ~ regRep$Scenario + regRep$Strategy, FUN="sd")
@@ -374,11 +375,11 @@ regRep <- regRep[-1,]
 
 
 #povprečje regresijskih koefificentov - efficiency
-avgSlope <- aggregate(regRep$Slope ~ regRep$Scenario + regRep$Strategy, FUN="mean")
-avgSlopeSD <- aggregate(regRep$Slope ~ regRep$Scenario + regRep$Strategy, FUN="sd")
+avGTlope <- aggregate(regRep$Slope ~ regRep$Scenario + regRep$Strategy, FUN="mean")
+avGTlopeSD <- aggregate(regRep$Slope ~ regRep$Scenario + regRep$Strategy, FUN="sd")
 avgInt <- aggregate(regRep$Intercept ~ regRep$Scenario + regRep$Strategy, FUN="mean")
 avgIntSD <- aggregate(regRep$Intercept ~ regRep$Scenario + regRep$Strategy, FUN="sd")
-avgReg <- merge(avgSlope, avgSlopeSD, by=c("regRep$Scenario", "regRep$Strategy"))
+avgReg <- merge(avGTlope, avGTlopeSD, by=c("regRep$Scenario", "regRep$Strategy"))
 avgReg <- merge(avgReg, avgInt, by=c("regRep$Scenario", "regRep$Strategy"))
 avgReg <- merge(avgReg, avgIntSD, by=c("regRep$Scenario", "regRep$Strategy"))
 colnames(avgReg) <- c("Scenario", "Strategy",  "Slope", "SlopeSD", "Intercept", "InterceptSD")
@@ -581,14 +582,22 @@ VARSD <- rbind(VAR60a, VAR60b)
 VARSD <- rbind(VARSD, SD60a)
 VARSD <- rbind(VARSD, SD60b)
 
-VARSD <- rbind(VAR60a_abs, VAR60b_abs)
-VARSD <- rbind(VARSD, SD60a_abs)
-VARSD <- rbind(VARSD, SD60b_abs)
+VARSD_abs <- rbind(VAR60a_abs, VAR60b_abs)
+VARSD_abs <- rbind(VARSD_abs, SD60a_abs)
+VARSD_abs <- rbind(VARSD_abs, SD60b_abs)
 
-VARSD$Scenario <- revalue(VARSD$Scenario, c("Class" = "PT", "GenSLO" = "GS-PS", "OtherCowsGen" = "GS-C", "BmGen" = "GS-BD", "Gen" = "GS"))
+
+VARSD$Scenario <- revalue(VARSD$Scenario, c("Class" = "PT", "GenSLO" = "GT-PT", "OtherCowsGen" = "GT-C", "BmGen" = "GT-BD", "Gen" = "GT"))
 VARSD$Strategy1 <- revalue(VARSD$Strategy, c("SU55" = "5 sires/year, use 5 years","SU51" = "5 sires/year, use 1 year","SU15" = "1 sire/year, use 5 years"))
-VARSD$Scenario <- factor(VARSD$Scenario, levels =c("PT", "GS-PS", "GS-C", "GS-BD", "GS"))
+VARSD$Scenario <- factor(VARSD$Scenario, levels =c("PT", "GT-PT", "GT-C", "GT-BD", "GT"))
+VARSD$Strategy1 <- factor(VARSD$Strategy1, levels =c("5 sires/year, use 5 years", "5 sires/year, use 1 year", "1 sire/year, use 5 years"))
 VARSD$Type <- factor(VARSD$Type, levels =c("Genic", "Genetic"))
+VARSD <- VARSD[order(VARSD$Strategy1, VARSD$Scenario),]
+
+VARSD_abs$Scenario <- revalue(VARSD_abs$Scenario, c("Class" = "PT", "GenSLO" = "GT-PT", "OtherCowsGen" = "GT-C", "BmGen" = "GT-BD", "Gen" = "GT"))
+VARSD_abs$Strategy1 <- revalue(VARSD_abs$Strategy, c("SU55" = "5 sires/year, use 5 years","SU51" = "5 sires/year, use 1 year","SU15" = "1 sire/year, use 5 years"))
+VARSD_abs$Scenario <- factor(VARSD_abs$Scenario, levels =c("PT", "GT-PT", "GT-C", "GT-BD", "GT"))
+VARSD_abs$Type <- factor(VARSD_abs$Type, levels =c("Genic", "Genetic"))
 
 
 wrapit <- function(text) {
@@ -600,10 +609,30 @@ wrapit <- function(text) {
 #barplot for genicSd
 VARSD$wrapped_text <- llply(VARSD$Strategy1, wrapit)
 VARSD$wrapped_text <- unlist(VARSD$wrapped_text)
+VARSD_abs$wrapped_text <- llply(VARSD_abs$Strategy1, wrapit)
+VARSD_abs$wrapped_text <- unlist(VARSD_abs$wrapped_text)
 library(grid)
 ggplot(data=VARSD[VARSD$measure=="SD",], aes(y=Value,x=Scenario,  fill=Type)) + geom_bar(position="dodge", stat="identity") +
   scale_fill_manual("Standard deviation", breaks = c("Genic", "Genetic"), 
                       values=c("darkgreen", "steelblue1")) + ylim(-15, 6) +
+  xlab("Breeding program") + ylab("Percentage change to the baseline scenario") +
+  guides(group=guide_legend(nrow=6), fill=guide_legend(nrow=3)) + theme_bw() + 
+  theme(axis.text=element_text(size=14), legend.position = "top",
+        axis.title=element_text(size=16),
+        axis.title.y = element_text(margin = margin(t = 0, r = 8, b = 0, l = 0)),
+        axis.title.x = element_text(margin = margin(t = 10, r = 0, b = 0, l = 0)),
+        legend.text=element_text(size=14), 
+        legend.title=element_text(size=14), 
+        strip.text = element_text( size=16))   +
+        theme(panel.spacing = unit(2, "lines")) + 
+        geom_errorbar(aes(ymin=Value-SD, ymax=Value+SD), width=.2,
+                position=position_dodge(.9)) +
+       guides(fill=guide_legend(nrow=1)) +
+       facet_grid(Strategy1 ~ ., scales = "free_y", labeller = label_wrap_gen(width=15)) 
+#absolute
+ggplot(data=VARSD_abs[VARSD_abs$measure=="SD",], aes(y=Value,x=Scenario,  fill=Type)) + geom_bar(position="dodge", stat="identity") +
+  scale_fill_manual("Standard deviation", breaks = c("Genic", "Genetic"), 
+                      values=c("darkgreen", "steelblue1")) + ylim(0, 1) +
   xlab("Breeding program") + ylab("Percentage change to the baseline scenario") +
   guides(group=guide_legend(nrow=6), fill=guide_legend(nrow=3)) + theme_bw() + 
   theme(axis.text=element_text(size=14), legend.position = "top",
@@ -788,10 +817,10 @@ ggplot() +
   xlab("Generation") + ylab("True genetic value")  + 
   scale_linetype_manual("Scenario", breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), 
                         values=c("solid", "dashed", "dotted", "dotdash", "twodash"), 
-                        labels=c("PT", "GS-PS", "GS-C", "GS-BD", "GS")) + 
+                        labels=c("PT", "GT-PT", "GT-C", "GT-BD", "GT")) + 
   scale_colour_manual("Scenario", breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), 
                       values=c("forestgreen", "dodgerblue2", "purple", "red3", "orange1"), 
-                      labels=c("PT", "GS-PS", "GS-C", "GS-BD", "GS")) + 
+                      labels=c("PT", "GT-PT", "GT-C", "GT-BD", "GT")) + 
   xlab("Generation") + ylab("Average True Genetic Value") +
   geom_line(data = MeanAverage[MeanAverage$Strategy=="SU55",], aes(x=Generation, y=MeanTGV, colour=scenario, linetype=scenario), size=1.2) + 
   #geom_ribbon(data=MeanAverage, aes(x=Generation, ymin=lower, ymax=upper, colour=scenario), alpha=0.1) + 
@@ -809,10 +838,10 @@ ggplot() +
   xlab("Generation") + ylab("True genetic value")  + 
   scale_linetype_manual("Scenario", breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), 
                         values=c("solid", "dashed", "dotted", "dotdash", "twodash"), 
-                        labels=c("PT", "GS-PS", "GS-C", "GS-BD", "GS")) + 
+                        labels=c("PT", "GT-PT", "GT-C", "GT-BD", "GT")) + 
   scale_colour_manual("Scenario", breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), 
                       values=c("forestgreen", "dodgerblue2", "purple", "red3", "orange1"), 
-                      labels=c("PT", "GS-PS", "GS-C", "GS-BD", "GS")) + 
+                      labels=c("PT", "GT-PT", "GT-C", "GT-BD", "GT")) + 
   xlab("Generation") + ylab("Average True Genetic Value") +
   geom_line(data = MeanAverageSD, aes(x=Generation, y=SdTGV, colour=scenario, linetype=scenario), size=1.2) + 
   ylim(c(0.85, 1)) +
@@ -829,10 +858,10 @@ ggplot() +
   xlab("Generation") + ylab("True genetic value")  + 
   scale_linetype_manual("Scenario", breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), 
                         values=c("solid", "dashed", "dotted", "dotdash", "twodash"), 
-                        labels=c("PT", "GS-PS", "GS-C", "GS-BD", "GS")) + 
+                        labels=c("PT", "GT-PT", "GT-C", "GT-BD", "GT")) + 
   scale_colour_manual("Scenario", breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), 
                       values=c("forestgreen", "dodgerblue2", "purple", "red3", "orange1"), 
-                      labels=c("PT", "GS-PS", "GS-C", "GS-BD", "GS")) + 
+                      labels=c("PT", "GT-PT", "GT-C", "GT-BD", "GT")) + 
   xlab("Generation") + ylab("Average True Genetic Value") +
   geom_line(data = MeanAverageSDGenic, aes(x=Generation, y=SdGenic, colour=scenario, linetype=scenario), size=1.2) + 
   ylim(c(0.85, 1)) +

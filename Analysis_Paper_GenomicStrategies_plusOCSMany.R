@@ -83,8 +83,9 @@ CLD
 #TGVsAll <- read.csv("~/TGVSALL_11062018.csv")
 TGVsAll <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/TGVSALL_14082018.csv")
 TGVsAllx <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/TGVSALL_SUx_06032019.csv")
+table(TGVsAllx$Rep, TGVsAllx$Strategy, TGVsAllx$Generation)
 TGVsOCS <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results//TGVsAll_OCS_11022019.csv", sep=" ")
-TGVsOCS1 <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results//TGVsAll_OCS_11032019.csv", sep=" ")
+TGVsOCS1 <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results//TGVsAll_OCS_19032019.csv", sep=" ")
 #TGVsOCS <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results//TGVsAll_OCS_11122018.csv", sep=" ")
 TGVsOCS <- rbind(TGVsOCS, TGVsOCS1)
 
@@ -122,7 +123,7 @@ TGVsAll <- TGVsAll1
 TGVsAll$PlotGroup <- paste0(TGVsAll$Strategy, TGVsAll$scenario)
 #imaš samo eno repliko
 table(TGVsAll$Rep, TGVsAll$Strategy)
-TGVsAll <- TGVsAll[TGVsAll$Rep  %in% 0:10,]
+TGVsAll <- TGVsAll[TGVsAll$Rep  %in% 0:9,]
 #TGVsAll <- TGVsAll[TGVsAll$Generation %in% 40:51,]
 
 
@@ -168,8 +169,8 @@ OCS60 <- TGVsAll[TGVsAll$Generation==60,]
 summarySE(data=OCS60 , measurevar = "zMean", groupvars = c("Strategy", "scenario"))
 tgv60 <- data.frame()
 
-for (scenario in c("PT","GS", 15, 30, 45, 60, 75)) {
-  for (rep in 0:19) {
+for (scenario in c("PT","GS", 15, 30, 45, 50, 55, 60, 75)) {
+  for (rep in 0:9) {
     #genetic gain
     base <- OCS60$zMean[OCS60$scenario=="PT" & OCS60$Strategy=="SU55" & OCS60$Rep==rep]
     tgv <- OCS60[OCS60$scenario==scenario & OCS60$Rep==rep,]
@@ -192,41 +193,9 @@ for (scenario in c("PT","GS", 15, 30, 45, 60, 75)) {
 
 tgv60$PlotGroup <- paste0(tgv60$strategy, tgv60$scenario)
 #OCS60 <- tgv60[tgv60$Strategy %in% c("SU55", "OCS"),]
-#OCS60 <- tgv60[tgv60$scenario %in% c("PT","GS", 15,ggplot(data = TGVsStrategy, aes(x=SDGenicSt, y=zMeanGenic, group=group, colour=PlotGroup)) +
-scale_x_reverse(sec.axis=sec_axis(trans=~1-.,
-                                  name="Converted/Lost genic standard deviation")) +
-  geom_line(size=0.2, alpha=0.2) +
-  ylim(0,7) + coord_cartesian(xlim = c(1, 0.75)) + theme_bw() +
-  scale_linetype_manual("Breeding program",
-                        breaks=c("OCS15", "OCS30", "OCS45", "OCS50", "OCS55","OCS60", "OCS75","SU55PT", "SU55GS", "SU51GS",  "SU52GS", "SU53GS", "SU54GS"),
-                        values=c("F1", "longdash",  "dashed", "longdash", "twodash","longdash", "twodash", "solid", "solid", "solid","solid", "solid", "solid"),
-                        labels=c(expression("OCS"["15"]), expression("OCS"["30"]), expression("OCS"["45"]),expression("OCS"["50"]), expression("OCS"["55"]),
-                                 expression("OCS"["60"]), expression("OCS"["75"]) ,
-                                 "5 sires/year, use 5 years, PT", "5 sires/year, use 5 years, GS", "5 sires/year, use 1 year, GS",
-                                 "5 sires/year, use 2 years, PT", "5 sires/year, use 3 years, GS", "5 sires/year, use 4 year, GS")) +
-  scale_colour_manual("Breeding program",
-                      breaks=c("OCS15", "OCS30", "OCS45","OCS50", "OCS55", "OCS60", "OCS75","SU55PT", "SU55GS", "SU51GS",  "SU52GS", "SU53GS", "SU54GS"),
-                      values=c("forestgreen", "orange", "purple", "darkblue", "yellow", "red", "red3","grey55", "grey35", "black", "grey30", "grey20", "grey80"),
-                      labels=c(expression("OCS"["15"]), expression("OCS"["30"]), expression("OCS"["45"]),expression("OCS"["50"]), expression("OCS"["55"]),
-                               expression("OCS"["60"]), expression("OCS"["75"]) ,
-                               "5 sires/year, use 5 years, PT", "5 sires/year, use 5 years, GS", "5 sires/year, use 1 year, GS",
-                               "5 sires/year, use 2 years, PT", "5 sires/year, use 3 years, GS", "5 sires/year, use 4 year, GS")) +
-  guides(linetype=guide_legend(nrow=3,  label.position = "right", keyheight = unit(1, "cm"), keywidth = unit(3, "cm"), override.aes = list(alpha = 1, size=2))) +
-  xlab("Genic standard deviation") + ylab("Genetic Mean") +
-  theme(axis.text=element_text(size=18), legend.position = "top",
-        axis.title.x=element_text(size=18, vjust=-1),
-        axis.title.y=element_text(size=18, vjust=2),
-        legend.text=element_text(size=18), legend.title=element_text(size=14), legend.box = "horizontal",
-        plot.title = element_text(margin = margin(t = 0, r = 0, b = 40, l = 0), size=16, hjust=0.5),
-        plot.margin = margin(t = 20, r = 10, b = 10, l = 10),
-        legend.text.align = 0) +
-  geom_segment(data=maxminPT, mapping=aes(x=maxGenicSD, xend=minGenicSD,
-                                          y=minTGV,  yend=maxTGV,
-                                          color=PlotGroup, linetype=PlotGroup, group=PlotGroup), arrow=arrow(type="closed"), show.legend=FALSE, size=1.5) +
-  geom_segment(data=maxminOCS, mapping=aes(x=maxGenicSD, xend=minGenicSD,
-                                           y=minTGV,  yend=maxTGV,
-                                           30, 45, 60, 75),]
-OCS60 <- tgv60[tgv60$PlotGroup %in% c("SU55PT","SU55GS", "SU51GS", "OCS15", "OCS30", "OCS45", "OCS60", "OCS75"),]
+#OCS60 <- tgv60[tgv60$scenario %in% c("PT","GS", 15,
+
+OCS60 <- tgv60[tgv60$PlotGroup %in% c("SU55PT","SU55GS", "SU51GS","SU52GS","SU53GS","SU54GS", "OCS15", "OCS30", "OCS45","OCS50","OCS55", "OCS60", "OCS75"),]
 table(OCS60$Strategy, OCS60$scenario)
 OCS60$per_zMean <- OCS60$per_zMean*100 - 100 #tukaj ma osnoven scenarij 100: zato odštej 100
 OCS60$per_GenicSD <- (OCS60$per_GenicSD)*100 - 100#tukaj ma osnoven scenarij 0
@@ -269,7 +238,7 @@ library(nlme)
 regRep <- data.frame(Rep=NA, Intercept=NA, Slope=NA, Scenario=NA, Strategy=NA)
 TGVsAll$PlotGroup <- paste0(TGVsAll$Strategy, TGVsAll$scenario)
 
-for (plotgroup in c("SU55PT","SU55GS", "SU51GS", "OCS15", "OCS30", "OCS45", "OCS60", "OCS75")) {
+for (plotgroup in c("SU55PT","SU55GS", "SU51GS",  "SU52GS",  "SU53GS",  "SU54GS", "OCS15", "OCS30", "OCS45","OCS50","OCS55", "OCS60", "OCS75")) {
   #df <- TGVsAll[(TGVsAll$scenario==sc & TGVsAll$Strategy %in% c("SU55", "OCS")) & TGVsAll$Rep %in% 0:19,]
   df <- TGVsAll[TGVsAll$PlotGroup==plotgroup & TGVsAll$Rep %in% 0:19,]
   if (nrow(df) > 0) {
@@ -294,12 +263,12 @@ avgReg <- merge(avgSlope, avgInt, by=c("Strategy", "Scenario"))
 avgReg$Eff <- round(avgReg$Slope, 0)
 avgReg$EffSd <- round(avgReg$SlopeSD, 0)
 
-write.csv(avgReg, "~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results//Efficiency_genomicstrategies_OCS_17012018.csv", quote=FALSE)
+#write.csv(avgReg, "~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results//Efficiency_genomicstrategies_OCS_17012018.csv", quote=FALSE)
 
 #efficiency of SU55
 EFF <- data.frame()
 
-for (scenario in c("PT", "GS", 15, 30, 45, 60, 75)) {
+for (scenario in c("PT", "GS", 15, 30, 45, 50, 55, 60, 75)) {
   for (rep in 0:19) {
     effBase <- regRep$Slope[regRep$Scenario=="PT"  & regRep$Strategy=="SU55" & regRep$Rep==rep]
     eff <- regRep[regRep$Scenario==scenario & regRep$Rep==rep,]
@@ -312,7 +281,7 @@ for (scenario in c("PT", "GS", 15, 30, 45, 60, 75)) {
 EFF <- EFF[!(is.na(EFF$Slope)),]
 EFF$per_Eff <-  EFF$per_Eff * 100 -100
 EFF$Name <- paste0(EFF$Strategy, EFF$Scenario)
-EFF$Name <- factor(EFF$Name, level=c("SU55PT","SU55GS","SU51GS","OCS15","OCS30","OCS45","OCS60","OCS75"))
+EFF$Name <- factor(EFF$Name, level=c("SU55PT","SU55GS","SU51GS","SU52GS","SU53GS","SU54GS","OCS15","OCS30","OCS45","OCS50","OCS55","OCS60","OCS75"))
 
 #efficiency
 eff <- summarySE(EFF, measurevar="per_Eff", groupvars=c("Strategy", "Scenario"))[,c(1,2,4,5)]
@@ -331,18 +300,18 @@ MEAN60_OCS_abs <- merge(MEAN60_OCS_abs, eff_abs, by=c("Strategy", "Scenario"))
 library(emmeans)
 OCS60$scenario <- as.factor(OCS60$scenario)
 OCS60$Strategy <- as.factor(OCS60$Strategy)
-OCS60$scenario <- factor(OCS60$scenario, levels =c("PT", "GS", 15,30,45,60,75))
-MEAN60_OCS$Scenario <- factor(MEAN60_OCS$Scenario, levels =c("PT", "GS", 15,30,45,60,75))
-MEAN60_OCS$Strategy <- factor(MEAN60_OCS$Strategy, levels =c("SU55", "SU51",  "OCS"))
-MEAN60_OCS_abs$Scenario <- factor(MEAN60_OCS_abs$Scenario, levels =c("PT", "GS", 15,30,45,60,75))
-MEAN60_OCS_abs$Strategy <- factor(MEAN60_OCS_abs$Strategy, levels =c("SU55", "SU51",  "OCS"))
-OCS60$scenario <- factor(OCS60$scenario, levels =c("PT", "GS", 15,30,45,60,75))
-OCS60$Strategy <- factor(OCS60$Strategy, levels =c("SU55", "SU51", "SU15", "OCS"))
-EFF$Scenario <- factor(EFF$Scenario, levels =c("PT", "GS", 15,30,45,60,75))
-EFF$Strategy <- factor(EFF$Strategy, levels =c("SU55", "SU51", "SU15", "OCS"))
+OCS60$scenario <- factor(OCS60$scenario, levels =c("PT", "GS", 15,30,45,50, 55,60,75))
+MEAN60_OCS$Scenario <- factor(MEAN60_OCS$Scenario, levels =c("PT", "GS", 15,30,45,50, 55,60,75))
+MEAN60_OCS$Strategy <- factor(MEAN60_OCS$Strategy, levels =c("SU55", "SU51","SU52","SU53","SU54",  "OCS"))
+MEAN60_OCS_abs$Scenario <- factor(MEAN60_OCS_abs$Scenario, levels =c("PT", "GS", 15,30,45,50,55,60,75))
+MEAN60_OCS_abs$Strategy <- factor(MEAN60_OCS_abs$Strategy, levels =c("SU55", "SU51", "SU52","SU53","SU54",  "OCS"))
+OCS60$scenario <- factor(OCS60$scenario, levels =c("PT", "GS", 15,30,45,50,55,60,75))
+OCS60$Strategy <- factor(OCS60$Strategy, levels =c("SU55", "SU51", "SU15","SU52","SU53","SU54", "OCS"))
+EFF$Scenario <- factor(EFF$Scenario, levels =c("PT", "GS", 15,30,45,50,55,60,75))
+EFF$Strategy <- factor(EFF$Strategy, levels =c("SU55", "SU51", "SU15", "SU52","SU53","SU54", "OCS"))
 
 OCS60$Name <- paste0(OCS60$Strategy, OCS60$scenario)
-OCS60$Name <- factor(OCS60$Name, level=c("SU55PT","SU55GS","SU51GS","OCS15","OCS30","OCS45","OCS60","OCS75"))
+OCS60$Name <- factor(OCS60$Name, level=c("SU55PT","SU55GS","SU51GS","SU52GS","SU53GS","SU54GS","OCS15","OCS30","OCS45","OCS50","OCS55","OCS60","OCS75"))
 MEAN60_OCS[order(MEAN60_OCS$Strategy, MEAN60_OCS$Scenario),]
 MEAN60_OCS_abs[,3:ncol(MEAN60_OCS_abs)] <- round(MEAN60_OCS_abs[,3:ncol(MEAN60_OCS_abs)], 2)
 MEAN60_OCS_abs[order(MEAN60_OCS_abs$Strategy, MEAN60_OCS_abs$Scenario),]
