@@ -11,41 +11,64 @@ import pandas as pd
 import numpy as np
 import resource
 import ast
-WorkingDir = "/home/v1jobste/JanaO/"
+WorkingDir = os.getcwd()
 
 #sys.argv: 1 = rep, 2 = scenario, 3 = strategy, 4 = reference size
 
 class estimateBV:
     def __init__(self, AlphaSimDir, codeDir, way, sel):
+        """
+
+        :param AlphaSimDir: Where does the AlphaSim run from
+        :param codeDir: Where are the codes and generic files
+        :param way: either you are in burn in or selection
+        :param sel: is this a case of conventional or genomic selection
+        """
         self.AlphaSimDir = AlphaSimDir
         self.way = way
         self.sel = sel
         self.codeDir = codeDir
 
-    def computeEBV(self):
-        # pripravi fajle za blupf90
-        blupFiles = blupf90(self.AlphaSimDir, self.codeDir, way=self.way)
-        # listUnphenotyped = ['potomciNP', 'nr', 'telF', 'telM', 'pt', 'mladi', 'vhlevljeni', 'cak'] #list of unphenotyped categories (better ages?)
-        # blupFiles.preparePedDat_cat(listUnphenotyped) #pripravi ped, dat file za blup #skopiraj generičen paramfile v AlphaSim Directory
-        if self.way == 'milk':
-            blupFiles.makeDat_removePhen_milk()  # odstrani genotip moškim živali in pripravi dat file - repetabaility model
-        if self.way == 'burnin_milk':  # če je takoj po burn inu - nimaš še kategorij (za prvih n burningeneracij brze dodane naslednje)
-            blupFiles.makeDat_sex(2)
-        # skopiraj paramFile za renumf90
-        if self.sel == 'gen':
-            shutil.copy(blupFiles.blupgenParamFile,
-                        blupFiles.AlphaSimDir + 'renumf90.par')  # skopiraj template blupparam file
-        if self.sel == 'class':
-            shutil.copy(blupFiles.blupgenParamFile_Clas,
-                        blupFiles.AlphaSimDir + 'renumf90.par')  # skopiraj template blupparam file
-
+    def computeEBV_permEnv(self, setVar=False, varPE = 0.0, varE = 0.0, repeats=1):
+        """
+        This function prepares blupf90 phenotypic .dat and pedigree .ped file according to the specification for a model with permanent Environemtn
+        It prepared different files whether we are in fill in or whether in selection gen
+        It also prepares different blupf90 spec file whether we are running conventional or genomic prediction
+        :param setVar: are you setting the variances manually (permanent env and residual)
+        :param varE: what is the proportion of residual variance towards additive genetic variance (Ve / Va)
+        :param varPE:what is the proportion of variance for permanent environment towards additive genetic variance (Vpe / Va)
+        :param repeats: how many times is the phenotypes measures on a animal in one selection cycle
+        :return: prepares .dat, .ped and parameter file and runs blupf90
+        """
         # uredi blupparam file
         # get variance components from AlphaSim Output Files
         OutputFiles = AlphaSim_OutputFile(self.AlphaSimDir)
         genvar = OutputFiles.getAddVar()  # dobi additivno varianco
         resvar = OutputFiles.getResVar()  # dobi varianco za ostanek
+        permEvar = 0
+        if setVar:
+            resvar = genvar * varE
+            permEvar = genvar * varPE
 
-        blupFiles.prepareParamFiles(genvar, resvar,
+
+        # pripravi fajle za blupf90
+        blupFiles = blupf90(self.AlphaSimDir, self.codeDir, way=self.way)
+        if self.way == 'milk':
+            blupFiles.makeDat_removePhen_milk_repeatedPhenotype(permEvar, resvar, repeats)
+        elif self.way == 'burnin_milk':
+            blupFiles.makeDat_sex(2)
+
+        # skopiraj paramFile za renumf90
+        if self.sel == 'gen':
+            shutil.copy(blupFiles.blupgenParamFile_permEnv,
+                        blupFiles.AlphaSimDir + 'renumf90.par')  # skopiraj template blupparam file
+        elif self.sel == 'class':
+            shutil.copy(blupFiles.blupgenParamFile_Clas_permEnv,
+                        blupFiles.AlphaSimDir + 'renumf90.par')  # skopiraj template blupparam file
+
+
+
+        blupFiles.prepareParamFiles_permEnv(genvar, permEvar, resvar,
                                     self.AlphaSimDir + '/renumf90.par')  # set levels of random aniaml effect, add var and res var
         # the paramfile is now set
         blupFiles.makePed_gen()  # make ped file for blup, no Code!
@@ -84,15 +107,19 @@ rep = sys.argv[1]
 scenario = sys.argv[2]
 strategy = sys.argv[3]
 refSize = sys.argv[4]
-percentageImport_k = sys.argv[5] if len(sys.argv) > 5 else 0
-percentageImport_bm = sys.argv[6] if len(sys.argv) > 6 else 0
+repeats = sys.argv[5]
+varPE = sys.argv[6]
+varE = sys.argv[7]
 
-os.chdir(strategy + "/")
+os.chdir(refSize + "/" + strategy + "_permEnv/")
 
-print("Creating directory " + scenario + str(rep) + "_" + str(percentageImport_bm))
-if not os.path.isdir(scenario + str(rep) + "_" + str(percentageImport_bm)):
-    os.makedirs(scenario + str(rep) + "_" + str(percentageImport_bm))
-SelectionDir = scenario + str(rep) + "_" + str(percentageImport_bm) + "/"
+print("Creating directory " + scenario + str(rep))
+if os.path.isdir(scenario + str(rep)):
+	print("Directory exists")
+	exit()
+if not os.path.isdir(scenario + str(rep)):
+	os.makedirs(scenario + str(rep))
+SelectionDir = scenario + str(rep) + "/"
 
 
 
@@ -105,7 +132,7 @@ SelectionDir = scenario + str(rep) + "_" + str(percentageImport_bm) + "/"
 os.chdir(SelectionDir)
 
 print("Copying files to " + SelectionDir)
-os.system('cp -r ' + WorkingDir + '/Import/FillInBurnIn_TwoPop_' + str(rep) + '/* .')
+os.system('cp -r ' + WorkingDir + '/FillInBurnIn' + str(rep) + '/* .')
 os.system('cp -r ' + WorkingDir + '/Essentials/* .')
 os.system('cp -r ' + WorkingDir + '/CodeDir/* .')
 os.system('mv IndForGeno_' + refSize + '.txt IndForGeno.txt')
@@ -114,74 +141,48 @@ os.system("chmod a+x AlphaSim1.08")
 os.system("chmod a+x renumf90")
 os.system("chmod a+x blupf90")
 
-parhome = pd.read_csv(WorkingDir + "/Essentials/" + refSize + "/" + strategy + "SelPar/SelectionParam_" + scenario + ".csv", header=None, names=["Keys", "Vals"])
-parhome.to_dict()
-selParhome = defaultdict()
-for key, val in zip(parhome.Keys, parhome.Vals):
+
+par = pd.read_csv(WorkingDir + "/Essentials/" +  refSize + "/" + strategy + "SelPar/SelectionParam_" + scenario + ".csv", header=None, names=["Keys", "Vals"])
+par.to_dict()
+selPar = defaultdict()
+for key, val in zip(par.Keys, par.Vals):
     if key not in ['BurnInYN', 'EBV', 'gEBV', 'PA', 'AlphaSimDir', 'genotyped', 'EliteDamsPTBulls',
                    'EliteDamsPABulls', 'UpdateGenRef', 'sexToUpdate', 'EliteDamsGenBulls', 'gpb_pb',
-                   'genTest_mladi', 'genTest_gpb', 'importPer', 'genFemale']:
+                   'genTest_mladi', 'genTest_gpb', 'genFemale']:
         try:
-            selParhome[key] = int(val)
+            selPar[key] = int(val)
         except:
-            selParhome[key] = float(val)
+            selPar[key] = float(val)
     if key in ['BurnInYN', 'EBV', 'gEBV', 'PA', 'AlphaSimDir', 'EliteDamsPTBulls',
                'EliteDamsPABulls', 'UpdateGenRef', 'sexToUpdate', 'EliteDamsGenBulls', 'gpb_pb',
-               'genTest_mladi', 'genTest_gpb']:
+               'genTest_mladi', 'genTest_gpb', 'genFemale']:
         if val in ['False', 'True']:
-            selParhome[key] = bool(val == 'True')
+            selPar[key] = bool(val == 'True')
         else:
-            selParhome[key] = val
+            selPar[key] = val
     if key == 'genotyped':
-        selParhome[key] = ast.literal_eval(val)
-
-if selParhome['EBV']:
-    seltype = 'class'
-if selParhome['gEBV']:
-    seltype = 'gen'
-
-if percentageImport_k != 0 and percentageImport_bm != 0:
-    selParhome['importPer'] = {'k': int(percentageImport_k), 'bm': int(percentageImport_bm)}
+        selPar[key] = ast.literal_eval(val)
 
 
-# tukaj pa še parametri za "large" population
-parimport = pd.read_csv(WorkingDir + "/Essentials/" + refSize + "/" + strategy + "SelPar/SelectionParam_" + scenario + "_LargePop.csv", header=None, names=["Keys", "Vals"])
-parimport.to_dict()
-selParimport = defaultdict()
-for key, val in zip(parimport.Keys, parimport.Vals):
-    if key not in ['BurnInYN', 'EBV', 'gEBV', 'PA', 'AlphaSimDir', 'genotyped', 'EliteDamsPTBulls',
-                   'EliteDamsPABulls', 'UpdateGenRef', 'sexToUpdate', 'EliteDamsGenBulls', 'gpb_pb',
-                   'genTest_mladi', 'genTest_gpb', 'importPer', 'genFemale']:
-        try:
-            selParimport[key] = int(val)
-        except:
-            selParimport[key] = float(val)
-    if key in ['BurnInYN', 'EBV', 'gEBV', 'PA', 'AlphaSimDir', 'EliteDamsPTBulls',
-               'EliteDamsPABulls', 'UpdateGenRef', 'sexToUpdate', 'EliteDamsGenBulls', 'gpb_pb',
-               'genTest_mladi', 'genTest_gpb']:
-        if val in ['False', 'True']:
-            selParimport[key] = bool(val == 'True')
-        else:
-            selParimport[key] = val
-    if key == 'genotyped':
-        selParimport[key] = ast.literal_eval(val)
-
-BurnInYN = "False"  # ali izvedeš tudi BurnIn
-SelYN = "True"  # ali izvedeš tudi BurnIn
-StNB = 17280
+BurnInYN = "False" #ali izvedeš tudi BurnIn
+SelYN = "True" #ali izvedeš tudi BurnIn
+StNB = 8640
 StBurnInGen = 20
+StFillInBurnIn = 40
 StSelGen = 40
 StartSelGen = 21
 StopSelGen = 40
-NumberOfSires = 30
-NumberOfDams = 8640
+NumberOfSires = 12
+NumberOfDams = 4320
+selPar['AlphaSimDir'] = os.getcwd() + '/'
 AlphaSimDir = os.getcwd() + '/'
-selParimport['AlphaSimDir'] = os.getcwd()
-selParhome['AlphaSimDir'] = os.getcwd()
-if selParimport['EBV']:
-    seltypeimport = 'class'
-if selParimport['gEBV']:
+AlphaSimPed = selPar['AlphaSimDir'] + '/SimulatedData/PedigreeAndGeneticValues.txt'
+if selPar['EBV']:
+    seltype = 'class'
+if selPar['gEBV']:
     seltype = 'gen'
+
+
 
 ##############################################################################
 #SELEKCIJA
@@ -197,24 +198,7 @@ for roundNo in range(21,41): #za vsak krog selekcije
     #GenTrends = TBVCat(AlphaSimDir)
     # izvedi selekcijo, doloci kategorije zivali, dodaj novo generacijo in dodeli starse
     # pedigre se zapise v AlphaSimDir/SelectionFolder/ExternalPedigree.txt
-
-    #tukaj razdeli populacijo na domačo in tujo
-    splitGenPed("PopulationSplit.txt")
-    #tukaj izvedi celotno selekcijo v tuji populaciji --> naknadno shrani še očete z izberi_ocete_PT
-    #v domači odberi in nastavi matere --> očete (za bm) uvoziš
-    pedI, cI, sI, aI = selekcija_total_TGV('GenPed_EBVimport.txt', externalPedName="ExternalPedigreeimport", group=True, groupNumber=1, noGroups=2,
-                        **selParimport)
-    if selParimport['EBV']:
-        Oce_import = pedI.izberi_ocete_PT(selParimport["pbUp"]) #tukaj so PT testirani očetje
-    if selParimport['gEBV']:
-        Oce_import = pedI.izberi_ocete_gen(selParimport["pbUp"])  # tukaj so genomsko testirani očetje
-
-    #odberi starše domače populacije
-    pedH, cH, sH, aH = selekcija_importOcetov('GenPed_EBVhome.txt', externalPedName="ExternalPedigreehome", group=True, groupNumber=0, noGroups=2,
-                                               importBool=True, importGroup="bm", FatherList=Oce_import, **selParhome)
-
-    joinExternalPeds(["ExternalPedigreehome", "ExternalPedigreeimport"], AlphaSimDir)
-    record_groups(["home", "import"], "PopulationSplit.txt")
+    selekcija_total('GenPed_EBV.txt', **selPar)
 
     # kopiraj pedigre v selection folder
     if not os.path.exists(AlphaSimDir + '/Selection/SelectionFolder' + str(roundNo) + '/'):
@@ -238,8 +222,8 @@ for roundNo in range(21,41): #za vsak krog selekcije
     SpecFile.setNB(StNB)
     # pozenes ALPHASIM
     os.system('./AlphaSim1.08')
-    #tukaj odstrani chip2 genotype file in izračunaj heterozigotnost na nevtralnih lokusih (chip2 - chip1)
-    os.system("/exports/cmvm/eddie/eb/groups/tier2_hickey_external/R-3.4.2/bin/Rscript MeanHetMarker_Neutral_QTN_import.R " + str(roundNo+20) + " " + str(rep) + " " + str(scenario) + " " + str(strategy))			
+    #tukaj odstrani chip2 genotype file in izračunaj heterozigotnost na nevtralnih lokusih (chip2 - chip1) in na markerjih (chip1)
+    os.system("/exports/cmvm/eddie/eb/groups/tier2_hickey_external/R-3.4.2/bin/Rscript MeanHetMarker_Neutral_QTN.R " + str(roundNo+20) + " " + str(rep) + " " + str(scenario) + " " + str(strategy))			
     os.system("bash ChangeChip2Geno_IDs.sh")    	
 	
     # tukaj dodaj kategorije k PedigreeAndGeneticValues (AlphaSim File)
@@ -253,7 +237,7 @@ for roundNo in range(21,41): #za vsak krog selekcije
     if seltype == 'gen':
         GenInt.prepareGenInts(['genTest', 'pt']) #pri klasični so izbrani potomci vsi genomsko testirani (pozTest in pripust) in plemenske telice
     blupNextGen = estimateBV(AlphaSimDir, WorkingDir + "/CodeDir",  way='milk', sel=seltype)
-    blupNextGen.computeEBV() #estimate EBV with added phenotypes only of animals of certain category (here = milk)
+    blupNextGen.computeEBV_permEnv(setVar = True, varPE = varPE, varE = varE, repeats = repeats) #estimate EBV with added phenotypes only of animals of certain category (here = milk)
     #Acc.saveAcc()
     #GenTrends.saveTrends()
     #zdaj za vsako zapiši, ker vsakič na novo prebereš

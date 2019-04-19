@@ -3,6 +3,7 @@ import ast
 import pandas as pd
 from collections import defaultdict
 import os
+import selection10
 from selection10 import nastavi_cat_TGV
 from selection10 import selekcija_total_TGV
 from selection10 import *
@@ -11,6 +12,8 @@ WorkingDir = "/home/jana/"
 os.chdir(WorkingDir)
 scenario = "Class"
 
+percentageImport_k = 0
+percentageImport_bm = 80
 
 #parhome = pd.read_csv(os.getcwd() + "/Essentials/SelectionParam_ClassTest.csv", header=None, names=["Keys", "Vals"])
 parhome = pd.read_csv(os.getcwd() + "/Essentials/SelectionParam_Class.csv", header=None, names=["Keys", "Vals"])
@@ -79,6 +82,9 @@ if selParhome['EBV']:
     seltype = 'class'
 if selParhome['gEBV']:
     seltype = 'gen'
+
+if percentageImport_k != 0 or percentageImport_bm != 0:
+    selParhome['importPer'] = {'k': int(percentageImport_k), 'bm': int(percentageImport_bm)}
 
 # BurnInYN = "False"  # ali izvedeš tudi BurnIn
 # SelYN = "True"  # ali izvedeš tudi BurnIn
@@ -150,26 +156,34 @@ os.system("Rscript /home/jana/Genotipi/Genotipi_CODES/Combine_PedTotals.R")
 joinExternalPeds(["ExternalPedigreehome", "ExternalPedigreeimport"], AlphaSimDir)
 record_groups(["home", "import"], "PopulationSplit.txt")
 
-krogov = 2
+krogov = 1
 for krog in range(krogov): #ponavljaj kolikor krogov selekcije hočeš
     # tukaj razdeli populacijo na domačo in tujo
     splitGenPed("PopulationSplit.txt")
     # tukaj izvedi celotno selekcijo v tuji populaciji --> naknadno shrani še očete z izberi_ocete_PT
     # v domači odberi in nastavi matere --> očete (za bm) uvoziš
-    pedI, cI, sI, aI = selekcija_total_TGV('GenPed_EBVimport.txt', externalPedName="ExternalPedigreeimport", group=True,
-                                           groupNumber=1, noGroups=2, **selParimport)
+    pedI, cI, sI, aI = selekcija_total_TGV('GenPed_EBVimport.txt', externalPedName="ExternalPedigreeimport", group=True, groupNumber=1, noGroups=2,
+                        **selParimport)
     if selParimport['EBV']:
         Oce_import = pedI.izberi_ocete_PT(selParimport["pbUp"])  # tukaj so PT testirani očetje
     if selParimport['gEBV']:
         Oce_import = pedI.izberi_ocete_gen(selParimport["pbUp"])  # tukaj so genomsko testirani očetje
 
-    # odberi starše domače populacije
-    pedH, cH, sH, aH = selekcija_importOcetov('GenPed_EBVhome.txt', externalPedName="ExternalPedigreehome", group=True,
-                                              groupNumber=0, noGroups=2,
-                                              importBool=True, importGroup="bm", FatherList=Oce_import, **selParhome)
+    #odberi starše domače populacije
+    pedH, cH, sH, aH = selekcija_importOcetov('GenPed_EBVhome.txt', externalPedName="ExternalPedigreehome",
+                                              group=True, groupNumber=0, noGroups=2,
+                                               importBool=True, importGroup="bm", FatherList=Oce_import, **selParhome)
+    pedI.write_pedTotal("/home/jana/PedTotalhome.txt")
+    pedH.write_pedTotal("/home/jana/PedTotalimport.txt")
+    os.system("Rscript /home/jana/Genotipi/Genotipi_CODES/Combine_PedTotals.R")
     joinExternalPeds(["ExternalPedigreehome", "ExternalPedigreeimport"], AlphaSimDir)
     record_groups(["home", "import"], "PopulationSplit.txt")
 
+
+##########################################################
+##########################################################
+##########################################################
+##########################################################
     # kopiraj pedigre v selection folder
     if not os.path.exists(AlphaSimDir + '/Selection/SelectionFolder' + str(roundNo) + '/'):
         os.makedirs(AlphaSimDir + '/Selection/SelectionFolder' + str(roundNo) + '/')

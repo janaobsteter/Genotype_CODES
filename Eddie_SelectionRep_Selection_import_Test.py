@@ -87,12 +87,13 @@ refSize = sys.argv[4]
 percentageImport_k = sys.argv[5] if len(sys.argv) > 5 else 0
 percentageImport_bm = sys.argv[6] if len(sys.argv) > 6 else 0
 
+
 os.chdir(strategy + "/")
 
-print("Creating directory " + scenario + str(rep) + "_" + str(percentageImport_bm))
-if not os.path.isdir(scenario + str(rep) + "_" + str(percentageImport_bm)):
-    os.makedirs(scenario + str(rep) + "_" + str(percentageImport_bm))
-SelectionDir = scenario + str(rep) + "_" + str(percentageImport_bm) + "/"
+print("Creating directory " + scenario + str(rep))
+if not os.path.isdir(scenario + str(rep)):
+    os.makedirs(scenario + str(rep))
+SelectionDir = scenario + str(rep) + "/"
 
 
 
@@ -105,7 +106,7 @@ SelectionDir = scenario + str(rep) + "_" + str(percentageImport_bm) + "/"
 os.chdir(SelectionDir)
 
 print("Copying files to " + SelectionDir)
-os.system('cp -r ' + WorkingDir + '/Import/FillInBurnIn_TwoPop_' + str(rep) + '/* .')
+#os.system('cp -r ' + WorkingDir + '/FillInBurnIn_TwoPop_' + str(rep) + '/* .')
 os.system('cp -r ' + WorkingDir + '/Essentials/* .')
 os.system('cp -r ' + WorkingDir + '/CodeDir/* .')
 os.system('mv IndForGeno_' + refSize + '.txt IndForGeno.txt')
@@ -114,25 +115,25 @@ os.system("chmod a+x AlphaSim1.08")
 os.system("chmod a+x renumf90")
 os.system("chmod a+x blupf90")
 
-parhome = pd.read_csv(WorkingDir + "/Essentials/" + refSize + "/" + strategy + "SelPar/SelectionParam_" + scenario + ".csv", header=None, names=["Keys", "Vals"])
+parhome = pd.read_csv(WorkingDir + "/Essentials/" + refSize + "/" + strategy + "SelPar/SelectionParam_" + scenario + "Test.csv", header=None, names=["Keys", "Vals"])
 parhome.to_dict()
 selParhome = defaultdict()
 for key, val in zip(parhome.Keys, parhome.Vals):
     if key not in ['BurnInYN', 'EBV', 'gEBV', 'PA', 'AlphaSimDir', 'genotyped', 'EliteDamsPTBulls',
                    'EliteDamsPABulls', 'UpdateGenRef', 'sexToUpdate', 'EliteDamsGenBulls', 'gpb_pb',
-                   'genTest_mladi', 'genTest_gpb', 'importPer', 'genFemale']:
+                   'genTest_mladi', 'genTest_gpb', 'genFemale', 'importPer']:
         try:
             selParhome[key] = int(val)
         except:
             selParhome[key] = float(val)
     if key in ['BurnInYN', 'EBV', 'gEBV', 'PA', 'AlphaSimDir', 'EliteDamsPTBulls',
                'EliteDamsPABulls', 'UpdateGenRef', 'sexToUpdate', 'EliteDamsGenBulls', 'gpb_pb',
-               'genTest_mladi', 'genTest_gpb']:
+               'genTest_mladi', 'genTest_gpb', 'genFemale']:
         if val in ['False', 'True']:
             selParhome[key] = bool(val == 'True')
         else:
             selParhome[key] = val
-    if key == 'genotyped':
+    if key in ['genotyped', 'importPer']:
         selParhome[key] = ast.literal_eval(val)
 
 if selParhome['EBV']:
@@ -143,22 +144,25 @@ if selParhome['gEBV']:
 if percentageImport_k != 0 and percentageImport_bm != 0:
     selParhome['importPer'] = {'k': int(percentageImport_k), 'bm': int(percentageImport_bm)}
 
+print("THISIS PARAMATERE")
+print(selParhome['importPer'])
+
 
 # tukaj pa še parametri za "large" population
-parimport = pd.read_csv(WorkingDir + "/Essentials/" + refSize + "/" + strategy + "SelPar/SelectionParam_" + scenario + "_LargePop.csv", header=None, names=["Keys", "Vals"])
+parimport = pd.read_csv(WorkingDir + "/Essentials/" + refSize + "/" + strategy + "SelPar/SelectionParam_" + scenario + "_LargePopTest.csv", header=None, names=["Keys", "Vals"])
 parimport.to_dict()
 selParimport = defaultdict()
 for key, val in zip(parimport.Keys, parimport.Vals):
     if key not in ['BurnInYN', 'EBV', 'gEBV', 'PA', 'AlphaSimDir', 'genotyped', 'EliteDamsPTBulls',
                    'EliteDamsPABulls', 'UpdateGenRef', 'sexToUpdate', 'EliteDamsGenBulls', 'gpb_pb',
-                   'genTest_mladi', 'genTest_gpb', 'importPer', 'genFemale']:
+                   'genTest_mladi', 'genTest_gpb', 'genFemale']:
         try:
             selParimport[key] = int(val)
         except:
             selParimport[key] = float(val)
     if key in ['BurnInYN', 'EBV', 'gEBV', 'PA', 'AlphaSimDir', 'EliteDamsPTBulls',
                'EliteDamsPABulls', 'UpdateGenRef', 'sexToUpdate', 'EliteDamsGenBulls', 'gpb_pb',
-               'genTest_mladi', 'genTest_gpb']:
+               'genTest_mladi', 'genTest_gpb', 'genFemale']:
         if val in ['False', 'True']:
             selParimport[key] = bool(val == 'True')
         else:
@@ -168,13 +172,13 @@ for key, val in zip(parimport.Keys, parimport.Vals):
 
 BurnInYN = "False"  # ali izvedeš tudi BurnIn
 SelYN = "True"  # ali izvedeš tudi BurnIn
-StNB = 17280
-StBurnInGen = 20
+StNB = 200
+StBurnInGen = 10
 StSelGen = 40
-StartSelGen = 21
+StartSelGen = 11
 StopSelGen = 40
-NumberOfSires = 30
-NumberOfDams = 8640
+NumberOfSires = 10
+NumberOfDams = 50
 AlphaSimDir = os.getcwd() + '/'
 selParimport['AlphaSimDir'] = os.getcwd()
 selParhome['AlphaSimDir'] = os.getcwd()
@@ -187,7 +191,7 @@ if selParimport['gEBV']:
 #SELEKCIJA
 ##############################################################################
 print(AlphaSimDir)
-for roundNo in range(21,41): #za vsak krog selekcije
+for roundNo in range(21,22): #za vsak krog selekcije
     # prestavi se v AlphaSim Dir
     if not os.path.isfile(AlphaSimDir + 'ReferenceSize.txt') and os.path.isfile(AlphaSimDir + "IndForGeno.txt"):
         os.system("less IndForGeno.txt | wc -l > ReferenceSize.txt")
@@ -211,19 +215,20 @@ for roundNo in range(21,41): #za vsak krog selekcije
 
     #odberi starše domače populacije
     pedH, cH, sH, aH = selekcija_importOcetov('GenPed_EBVhome.txt', externalPedName="ExternalPedigreehome", group=True, groupNumber=0, noGroups=2,
-                                               importBool=True, importGroup="bm", FatherList=Oce_import, **selParhome)
+                                               importBool=True, importGroup="bm", FatherList=Oce_import,  **selParhome)
 
     joinExternalPeds(["ExternalPedigreehome", "ExternalPedigreeimport"], AlphaSimDir)
     record_groups(["home", "import"], "PopulationSplit.txt")
 
     # kopiraj pedigre v selection folder
+    print("Printing ExternalPed TO SELECTION FOLDER: " + AlphaSimDir + '/Selection/SelectionFolder' + str(roundNo) + '/')
     if not os.path.exists(AlphaSimDir + '/Selection/SelectionFolder' + str(roundNo) + '/'):
         os.makedirs(AlphaSimDir + '/Selection/SelectionFolder' + str(roundNo) + '/')
     shutil.copy(AlphaSimDir + '/ExternalPedigree.txt',
                 AlphaSimDir + '/Selection/SelectionFolder' + str(roundNo) + '/')
     # TUKAJ POTEM popravis AlphaSimSpec
     # PRVIc PO BURN IN-U
-    SpecFile = AlphaSimSpec(os.getcwd(),WorkingDir + "/CodeDir")  # AlphaSimSpec je class iz selection, ki omogoča nastavljanje parametrov AlphaSimSpec fila
+    SpecFile = AlphaSimSpec(os.getcwd(),WorkingDir + "/CodeDir/Test/")  # AlphaSimSpec je class iz selection, ki omogoča nastavljanje parametrov AlphaSimSpec fila
 
     SpecFile.setPedType("ExternalPedigree.txt")
     SpecFile.setBurnInGen(StBurnInGen)
@@ -237,10 +242,10 @@ for roundNo in range(21,41): #za vsak krog selekcije
     SpecFile.setTBVComp(2)
     SpecFile.setNB(StNB)
     # pozenes ALPHASIM
-    os.system('./AlphaSim1.08')
+    os.system('./AlphaSim1.05')
     #tukaj odstrani chip2 genotype file in izračunaj heterozigotnost na nevtralnih lokusih (chip2 - chip1)
-    os.system("/exports/cmvm/eddie/eb/groups/tier2_hickey_external/R-3.4.2/bin/Rscript MeanHetMarker_Neutral_QTN_import.R " + str(roundNo+20) + " " + str(rep) + " " + str(scenario) + " " + str(strategy))			
-    os.system("bash ChangeChip2Geno_IDs.sh")    	
+#    os.system("/exports/cmvm/eddie/eb/groups/tier2_hickey_external/R-3.4.2/bin/Rscript MeanHetMarker_Neutral_QTN_import.R " + str(roundNo+20) + " " + str(rep) + " " + str(scenario) + " " + str(strategy))			
+#    os.system("bash ChangeChip2Geno_IDs.sh")    	
 	
     # tukaj dodaj kategorije k PedigreeAndGeneticValues (AlphaSim File)
     PedCat = OrigPed(AlphaSimDir, WorkingDir + '/CodeDir')
@@ -261,7 +266,8 @@ for roundNo in range(21,41): #za vsak krog selekcije
     #GenTrends.writeTrends()
 
 
-os.system('rm -rf Chromosomes Selection && cp * ' + scenario + str(rep))
+#os.system('rm -rf Chromosomes Selection && cp * ' + scenario + str(rep))
 #os.system('rm SimulatedData/UnrestrictedQtnIndivGenotypes.txt')
-os.system('rm SimulatedData/RestrictedQtnIndivGenotypes.txt')
+#os.system('rm SimulatedData/RestrictedQtnIndivGenotypes.txt')
+
 
