@@ -83,9 +83,9 @@ REP = sys.argv[1]
 
 
 for rep in [REP]:
-    if not os.path.isdir("FillInBurnIn" + str(rep) + str(4)):
-        os.makedirs("FillInBurnIn" + str(rep) + str(4))
-    os.chdir("FillInBurnIn" + str(rep) + str(4)) #prestavi se v FillInBurnin za ta replikat
+    if not os.path.isdir("FillInBurnIn" + str(rep)):
+        os.makedirs("FillInBurnIn" + str(rep))
+    os.chdir("FillInBurnIn" + str(rep)) #prestavi se v FillInBurnin za ta replikat
     os.system('cp -r ' + WorkingDir + '/Essentials/* .') # skopiraj vse iz Esentials
     os.system('cp -r ' + WorkingDir + '/CodeDir/* .') # skopiraj vse iz CodeDir
 

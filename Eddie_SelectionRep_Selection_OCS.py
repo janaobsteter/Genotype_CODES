@@ -123,7 +123,6 @@ os.system("chmod a+x renumf90")
 os.system("chmod a+x blupf90")
 
 par = pd.read_csv(WorkingDir + "/Essentials/" + refSize + "/" + strategy + "SelPar/SelectionParam_" + scenario + ".csv", header=None, names=["Keys", "Vals"])
-par = pd.read_csv("/home/jana/SelectionParam_class.csv", header=None, names=["Keys", "Vals"])
 par.to_dict()
 selPar = defaultdict()
 for key, val in zip(par.Keys, par.Vals):
@@ -136,7 +135,7 @@ for key, val in zip(par.Keys, par.Vals):
             selPar[key] = float(val)
     if key in ['BurnInYN', 'EBV', 'gEBV', 'PA', 'AlphaSimDir', 'EliteDamsPTBulls',
                'EliteDamsPABulls', 'UpdateGenRef', 'sexToUpdate', 'EliteDamsGenBulls', 'gpb_pb',
-               'genTest_mladi', 'genTest_gpb', 'genFemale']:
+               'genTest_mladi', 'genTest_gpb']:
         if val in ['False', 'True']:
             selPar[key] = bool(val == 'True')
         else:
@@ -169,7 +168,7 @@ if selPar['gEBV']:
 #SELEKCIJA
 ##############################################################################
 print(AlphaSimDir)
-for roundNo in range(21,41): #za vsak krog selekcije
+for roundNo in range(21,31): #za vsak krog selekcije
     # prestavi se v AlphaSim Dir
     if not os.path.isfile(AlphaSimDir + 'ReferenceSize.txt') and os.path.isfile(AlphaSimDir + "IndForGeno.txt"):
         os.system("less IndForGeno.txt | wc -l > ReferenceSize.txt")
@@ -213,8 +212,8 @@ for roundNo in range(21,41): #za vsak krog selekcije
     # dodaj očete
     print(len(Ocetje))
     if len(Ocetje) == selPar.get('stNBn'):
-        ped.ped.loc[ped.ped.cat.isin(['nr', 'potomciNP']), 'Father'] = Ocetje
-        ped.ped.loc[:, "Father"] = ped.ped.loc[:, "Father"].astype(int)
+    	ped.ped.loc[ped.ped.cat.isin(['nr', 'potomciNP']), 'Father'] = Ocetje
+	ped.ped.loc[:, "Father"] = ped.ped.loc[:, "Father"].astype(int)
     else:
         print("Not enough fathers!!!!")
 
@@ -263,7 +262,7 @@ for roundNo in range(21,41): #za vsak krog selekcije
     # pozenes ALPHASIM
     os.system(AlphaSimDir + '/AlphaSim1.08')
     #tukaj odstrani chip2 genotype file in izračunaj heterozigotnost na nevtralnih lokusih (chip2 - chip1)
-    os.system("/exports/cmvm/eddie/eb/groups/tier2_hickey_external/R-3.4.2/bin/Rscript MeanHetChip2_NeutralMarker.R " + str(roundNo+20) + " " + str(rep) + " " + str(scenario) + " " + str(strategy))			
+    os.system("/exports/cmvm/eddie/eb/groups/tier2_hickey_external/R-3.4.2/bin/Rscript MeanHetMarker_Neutral_QTN.R " + str(roundNo+20) + " " + str(rep) + " " + str(scenario) + " " + str(strategy))			
     os.system("bash ChangeChip2Geno_IDs.sh") 
 
     # tukaj dodaj kategorije k PedigreeAndGeneticValues (AlphaSim File)
@@ -285,7 +284,6 @@ for roundNo in range(21,41): #za vsak krog selekcije
     #GenTrends.writeTrends()
 
 
-os.system('rm -rf Chromosomes Selection && cp * ' + scenario + str(rep))
-os.system('rm SimulatedData/UnrestrictedQtnIndivGenotypes.txt')
-os.system('rm SimulatedData/RestrictedQtnIndivGenotypes.txt')
+#os.system('rm -rf Chromosomes Selection && cp * ' + scenario + str(rep))
+#os.system('rm SimulatedData/RestrictedQtnIndivGenotypes.txt')
 

@@ -85,8 +85,8 @@ rep = sys.argv[1]
 #make fill in
 os.makedirs("FillInBurnIn" + str(rep))
 os.chdir("FillInBurnIn" + str(rep)) #prestavi se v FillInBurnin za ta replikat
-os.system('cp -r ' + WorkingDir + '/CodeDir/* .') # skopiraj vse iz CodeDir
 os.system('cp -r ' + WorkingDir + '/Essentials/* .') # skopiraj vse iz Esentials
+os.system('cp -r ' + WorkingDir + '/CodeDir/* .') # skopiraj vse iz CodeDir
 
 #first make a FILLIN
 #nastavi AlphaSimSpec

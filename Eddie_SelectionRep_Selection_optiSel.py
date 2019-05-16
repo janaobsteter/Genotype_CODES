@@ -14,7 +14,7 @@ import resource
 import ast
 from random import shuffle
 
-WorkingDir = "/home/jana/bin/AlphaSim1.05Linux/"
+WorkingDir = os.getcwd()
 
 
 reload(selection10)
@@ -85,16 +85,16 @@ class estimateBV:
 ######################################################################################
 #os.chdir("/home/jana/bin/AlphaSim1.05Linux/EddieScripts/")
 #argument 0 is the name of the script
-rep = 0
-scenario = "Gen"
-degree = sys.argv[1]
+rep = sys.argv[1]
+scenario = sys.argv[2]
+degree = sys.argv[3]
 
 
 
-print("Creating directory " + scenario + str(rep) +"_" + str(degree) + "OCS")
-if not os.path.isdir(scenario + str(rep) +"_" + str(degree) + "OCS"):
-    os.makedirs(scenario + str(rep) +"_" + str(degree) + "OCS")
-SelectionDir = WorkingDir + "/" + scenario + str(rep) +"_" + str(degree) + "OCS/"
+print("Creating directory " + scenario + str(rep) +"_" + degree + "OCS")
+if not os.path.isdir(scenario + str(rep) +"_" + degree + "OCS"):
+    os.makedirs(scenario + str(rep) +"_" + degree + "OCS")
+SelectionDir = scenario + str(rep) +"_" + degree + "OCS/"
 
 
 
@@ -108,9 +108,9 @@ os.chdir(SelectionDir)
 
 print("Copying files to " + SelectionDir)
 os.system('cp -r ' + WorkingDir + '/Essentials/* .')
-os.system('cp -r ' + WorkingDir + 'REALFillIn20BurnIn20/* .')
+os.system('cp -r ' + WorkingDir + '/FillInBurnIn' + str(rep) + '/* .')
 os.system('cp -r ' + WorkingDir + '/CodeDir/* .')
-#os.system('cp ' + WorkingDir + '/AlphaMate .')
+os.system('cp ' + WorkingDir + '/AlphaMate .')
 os.system('mv IndForGeno_10000.txt IndForGeno.txt')
 
 par = pd.read_csv(WorkingDir + "/Essentials/SelectionParam_" + scenario + ".csv", header=None, names=["Keys", "Vals"])
@@ -175,14 +175,13 @@ for roundNo in range(21,41): #za vsak krog selekcije
     # prepare pedigree matrix for selected individuals
     pedA = AlphaRelate(AlphaSimDir, AlphaSimDir)
     pedA.preparePedigree()
-    resource.setrlimit(resource.RLIMIT_STACK, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
     pedA.runAlphaRelate()
 
     mate = AlphaMate(AlphaSimDir, AlphaSimDir, roundNo+19)
     mate.prepareGender()
     mate.prepareCriterionFile()
   
-    os.system("Rscript optiSel.R " + str(degree))
+    os.system("Rscript optiSel.R " + degree)
     Ocetje = list(pd.read_table("Ocetje.txt", header=None).loc[:, 0])
     #len(Ocetje)
 
@@ -244,7 +243,7 @@ for roundNo in range(21,41): #za vsak krog selekcije
     SpecFile.setTBVComp(2)
     SpecFile.setNB(StNB)
     # pozenes ALPHASIM
-    os.system(AlphaSimDir + '/AlphaSim1.05')
+    os.system(AlphaSimDir + '/AlphaSim1.08')
 
     # tukaj dodaj kategorije k PedigreeAndGeneticValues (AlphaSim File)
     PedCat = OrigPed(AlphaSimDir, WorkingDir + '/CodeDir')

@@ -52,9 +52,9 @@ class estimateBV:
 
 
         # pripravi fajle za blupf90
-        blupFiles = blupf90(self.AlphaSimDir, self.codeDir, way=self.way)
+        blupFiles = blupf90(self.AlphaSimDir, self.codeDir, way=self.way, permEnv = True, varPE = permEvar)
         if self.way == 'milk':
-            blupFiles.makeDat_removePhen_milk_repeatedPhenotype(permEvar, resvar, repeats)
+            blupFiles.makeDat_removePhen_milk_repeatedPhenotype(resvar, repeats)
         elif self.way == 'burnin_milk':
             blupFiles.makeDat_sex(2)
 
@@ -107,19 +107,19 @@ rep = sys.argv[1]
 scenario = sys.argv[2]
 strategy = sys.argv[3]
 refSize = sys.argv[4]
-repeats = sys.argv[5]
-varPE = sys.argv[6]
-varE = sys.argv[7]
+repeats = int(sys.argv[5])
+varPE = float(sys.argv[6])
+varE = float(sys.argv[7])
 
 os.chdir(refSize + "/" + strategy + "_permEnv/")
 
-print("Creating directory " + scenario + str(rep))
-if os.path.isdir(scenario + str(rep)):
+print("Creating directory " + scenario + str(rep) + "_" + str(repeats))
+if os.path.isdir(scenario + str(rep) + "_" + str(repeats)):
 	print("Directory exists")
 	exit()
-if not os.path.isdir(scenario + str(rep)):
-	os.makedirs(scenario + str(rep))
-SelectionDir = scenario + str(rep) + "/"
+if not os.path.isdir(scenario + str(rep) + "_" + str(repeats)):
+	os.makedirs(scenario + str(rep)+ "_" + str(repeats))
+SelectionDir = scenario + str(rep) + "_" + str(repeats) + "/"
 
 
 

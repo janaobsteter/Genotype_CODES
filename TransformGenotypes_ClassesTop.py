@@ -46,7 +46,7 @@ def remove_from_zip(zipfname, *filenames):
 # merge_ask='N'
 #Ask the user for the current date (date of download) and breed
 date = raw_input("Enter the date (today): ")
-pasma = raw_input("Enter the breed [Rjava/Holstein/Lisasta]: ")
+pasma = raw_input("Enter the breed [Rjava/Crnobela/Lisasta]: ")
 AlleleFormat=raw_input("Enter the desired allele coding [top / forward / ab]: ")
 zip_file = raw_input("Enter the name of the downloaded zip file: ")
 merge_ask=raw_input("Do you want to merge newly downloaded genotypes to the Latest Genotypes files (by chip)? [Y/N] ")
@@ -59,26 +59,26 @@ if action == 'Y':
 #ask whether you want to remove original zip
 rmOriginalZip=raw_input('Remove original zip? [Y/N] ')
 #create directory path to hold current temp genotype files within Genotipi_DATA and breed directory
-tempDir = "/home/jana/Genotipi/Genotipi_DATA/Rjava_TEMP/Genotipi_" + str(date) + "/"
+tempDir = "/home/jana/Genotipi/Genotipi_DATA/" + pasma + "_TEMP/Genotipi_" + str(date) + "/"
 #PEDDAROW directory
-peddarow="/home/jana/Genotipi/Genotipi_CODES/SNPchimpRepo/source_codes/PEDDA_ROW/"
+peddarow="/home/jana/Genotipi/TransformGeno/SNPchimpRepo/source_codes/PEDDA_ROW/"
 #Zip latest
 Zip_lat="/home/jana/Genotipi/Genotipi_DATA/Genotipi_latest/" + pasma + "/Top/ZipGenoFiles/"
 #Zip_lat="/home/jana/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/Zip/"
-PLINKDIR = '/home/jana/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/Top/'
+PLINKDIR = '/home/jana/Genotipi/Genotipi_DATA/Genotipi_latest/' + pasma + '/Top/'
 #PLINKDIR="/home/jana/Genotipi/Genotipi_DATA/Genotipi_latest/" + pasma + "/Top/"
 #Genotipi_latest directory - sploh ni v uporabi kasneje v skriptu
 #Gen_lat = "/home/jana/Genotipi/Genotipi_DATA/Genotipi_latest/"+pasma+"/"
 #PLINKDIR = "/run/user/1000/gvfs/smb-share:server=kis-h2.si,share=kisdfs/ZIV/vol1/ZIV/VSI/JanaO/Genotipi/TopPLINK/"
 #path to Zanardi
-ZanDir="/home/jana/Genotipi/Genotipi_CODES/Zanardi/"
-CodeDir = "/home/jana/Genotipi/Genotipi_CODES/"
+ZanDir="/home/jana/Genotipi/TransformGeno/Zanardi/"
+CodeDir = "/home/jana/Genotipi/TransformGeno/"
 DownloadDir = "/home/jana/Downloads/"
 
 #File with a list of 800 SNPs for parentage verification
 SNP800="/home/jana/Genotipi/ParentalVerification_SNPSNP/Names_800SNPs.txt"
 #file with IDs and seq for the animals
-RJ_IDSeq="/home/jana/Genotipi/Genotipi_CODES/Rjave_seq_ID.csv"
+Breed_IDSeq="/home/jana/Genotipi/TransformGeno/" + pasma + "_seq_ID.csv"
 #SNP coding
 SNPSifrant="/home/jana/Genotipi/ParentalVerification_SNPSNP/Sifrant_SNP.csv"
 
@@ -114,11 +114,11 @@ SNP800_Maps=[]
 
 #read in animal ID / Seq / DateOfBirth / SexCode table
 #create a dictionary
-Rj_IDSeq_Dict = defaultdict()
-with open(RJ_IDSeq, 'rb') as IDSeq:
+Breed_IDSeq_Dict = defaultdict()
+with open(Breed_IDSeq, 'rb') as IDSeq:
     reader = csv.reader(IDSeq, delimiter=',')
     for line in reader:
-        Rj_IDSeq_Dict[line[0]] = line[1:]
+        Breed_IDSeq_Dict[line[0]] = line[1:]
         
 
 ############################################################################################################
@@ -239,8 +239,8 @@ DateDownloaded[date] += (pedfile.name)
 DateGenotyped[onePackage.genodate] += [(x, pedfile.chip) for x in (pedfile.samples)]
 AllInfo += [(x, pedfile.chip, pedfile.name, onePackage.genodate) for x in (pedfile.samples)]
 for i in pedfile.samples:
-    if i in Rj_IDSeq_Dict:
-        SampleIDs[i] = [i, Rj_IDSeq_Dict.get(i)[0], onePackage.genodate, pedfile.chip, date]
+    if i in Breed_IDSeq_Dict:
+        SampleIDs[i] = [i, Breed_IDSeq_Dict.get(i)[0], onePackage.genodate, pedfile.chip, date]
     else:
         print "Sample ID " + i + " in " + pedfile.name +" not found!!!"
 

@@ -992,11 +992,13 @@ class OrigPed(object):
 
 
 class blupf90:
-    def __init__(self, AlphaSimDir, codeDir, way=None):
+    def __init__(self, AlphaSimDir, codeDir, way=None, permEnv = False, varPE = 0):
         self.blupgenParamFile = codeDir + '/renumf90.par'
         self.blupgenParamFile_Clas = codeDir + '/renumf90_Clas.par'
         self.blupgenParamFile_permEnv = codeDir + '/renumf90_permEnv.par'
         self.blupgenParamFile_Clas_permEnv = codeDir + '/renumf90_Clas_permEnv.par'
+        self.permEnv = permEnv
+        self.varPE = varPE
         # self.blupgenParamFile = '/home/jana/Genotipi/Genotipi_CODES/blupf90_Selection'
         # self.blupParamFile = AlphaSimDir + 'blupf90_Selection'
         if way == 'milk':
@@ -1006,7 +1008,22 @@ class blupf90:
             self.gen = max(self.AlphaPed['Generation'])
             self.animals = len(self.AlphaPed)
             self.blupPed = self.AlphaPed.loc[:, ['Indiv', 'Father', 'Mother']]
-            self.blupDatT = self.AlphaPed.loc[:, ['Indiv', 'phenoNormUnres1', 'cat', 'sex', 'age', 'active']]
+            if self.permEnv:
+                self.blupDatT = self.AlphaPed.loc[:, ['Indiv', 'phenoNormUnres1', 'cat', 'sex', 'age', 'active']]
+                if os.path.isfile(self.AlphaSimDir + "PermanentEnv.txt"):
+                    permEnvFile = pd.read_csv("PermanentEnv.txt")
+                    self.blupDatT = pd.merge(self.blupDatT, permEnvFile, on='Indiv', how = 'left')
+                    missInd = sum(self.blupDatT.permEnv.isnull())
+                    self.blupDatT.loc[self.blupDatT.permEnv.isnull(), 'permEnv'] = [np.random.normal(loc=0.0, scale=np.sqrt(self.varPE)) for x in
+                                                                         range(missInd)]
+                    self.blupDatT.loc[:, ['Indiv', 'permEnv']].to_csv("PermanentEnv.txt", index=False)
+
+                else:
+                    # first simulate permanent environment for the animals that do not have one
+                    self.blupDatT.loc[:, 'permEnv'] = [np.random.normal(loc=0.0, scale=np.sqrt(self.varPE)) for x in
+                                                                         range(len(self.blupDatT))]
+                    self.blupDatT.loc[:,['Indiv', 'permEnv']].to_csv("PermanentEnv.txt", index=False)
+                
         if way == 'burnin_milk':
             self.AlphaSimDir = AlphaSimDir
             self.AlphaPed = pd.read_table(AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues.txt', sep='\s+')
@@ -1069,24 +1086,25 @@ class blupf90:
             pd.concat([blupDatOld, blupDatNew]).to_csv(self.AlphaSimDir + 'Blupf90.dat', header=None, index=False,
                                                        sep=" ")  # dodaj fenotip
 
-    def makeDat_removePhen_milk_repeatedPhenotype(self, varPE, varE, repeats):
+    def makeDat_removePhen_milk_repeatedPhenotype(self, varE, repeats):
         """
         This is a function to prepare the .dat file for blupf90
         It simulated the number of required phenotypes according to the TGV and permanent and environmental variances
         :return: Writes blupf0.dat file
         """
         if os.path.isfile(self.AlphaSimDir + 'Blupf90.dat'):
-            blupDatOld = pd.read_csv(self.AlphaSimDir + '/Blupf90.dat', sep=" ", names=['Indiv', 'phenoNormUnres1',
+
+            blupDatOld = pd.read_csv('Blupf90.dat', sep=" ", names=['Indiv', 'phenoNormUnres1',
                                                                     'sex'])  # to je dat iz prejšnjega kroga selekcija
             #select the individuals
             blupDatNew = self.blupDatT.loc[
                 (self.blupDatT.active == 1) & ((self.blupDatT.cat == 'k') | (self.blupDatT.cat == 'bm')
-                                               | (self.blupDatT.cat == 'pBM')), ['Indiv', 'phenoNormUnres1', 'sex']]
+                                               | (self.blupDatT.cat == 'pBM')), ['Indiv', 'phenoNormUnres1', 'sex', 'permEnv']]
             
             phenoSim = repeatedPhenotypes(self.AlphaSimDir)
             phenoSim.inds_to_keep(list(blupDatNew.Indiv))
-            phenoNew = phenoSim.simulatePhenotype(varE, varPE, repeats)
-
+            phenoNew = phenoSim.simulatePhenotype(varE, repeats)
+	    print(phenoNew.head())
             phenoNew.loc[phenoNew.sex == 'F', 'sex'] = 2
             pd.concat([blupDatOld, phenoNew]).to_csv(self.AlphaSimDir + 'Blupf90.dat', header=None, index=False,
                                                        sep=" ")  # dodaj fenotip
@@ -1150,7 +1168,7 @@ class blupf90:
         self.setNumberAnimals(blupParamFile)
         self.setGeneticVariance(genvar, blupParamFile)
         self.setResidualVariance(resvar, blupParamFile)
-        self.setResidualVariance(resvar, blupParamFile)
+        self.setPermEnvVariance(permEnvvar, blupParamFile)
 
 
 class repeatedPhenotypes(object):
@@ -1161,18 +1179,21 @@ class repeatedPhenotypes(object):
 
     def __init__(self, AlphaSimDir):
         self.ped = pd.read_table(AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues_cat.txt', sep='\s+')
+        self.permEnv = pd.read_csv(AlphaSimDir + "/PermanentEnv.txt")
+        self.PED = pd.merge(self.ped, self.permEnv, on = 'Indiv', how="left")
 
     def inds_to_keep(self, list):
-        self.selectedPed = self.ped[self.ped.Indiv.isin(list)][['Indiv', 'sex', 'gvNormUnres1']]
+        self.selectedPed = self.PED[self.PED.Indiv.isin(list)][['Indiv', 'sex', 'gvNormUnres1', 'permEnv']]
 
-    def simulatePhenotype(self, varE, varPE, repeats):
+    def simulatePhenotype(self, varE, repeats):
         repPhenoPed = pd.DataFrame()
         for row in range(len(self.selectedPed)):
-            indiv, sex, tgv = list(self.selectedPed.iloc[row])
+            indiv, sex, tgv, permEnv = list(self.selectedPed.iloc[row])
             new = pd.DataFrame({"Indiv": int(indiv), "phenoNormUnres1":
-                [tgv + np.random.normal(loc=0.0, scale=varPE) + np.random.normal(loc=0.0, scale=varE)
+                [tgv + permEnv + np.random.normal(loc=0.0, scale=np.sqrt(varE))
                  for x in range(repeats)], 'sex': sex})
             repPhenoPed = pd.concat([repPhenoPed, new])
+	print(repPhenoPed.head())
         return repPhenoPed
 
 class accuracies:

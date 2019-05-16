@@ -87,7 +87,7 @@ refSize = sys.argv[4]
 percentageImport_k = sys.argv[5] if len(sys.argv) > 5 else 0
 percentageImport_bm = sys.argv[6] if len(sys.argv) > 6 else 0
 
-os.chdir(strategy + "/")
+os.chdir(refSize + "/" + strategy + "_import/")
 
 print("Creating directory " + scenario + str(rep) + "_" + str(percentageImport_bm))
 if not os.path.isdir(scenario + str(rep) + "_" + str(percentageImport_bm)):
@@ -105,7 +105,7 @@ SelectionDir = scenario + str(rep) + "_" + str(percentageImport_bm) + "/"
 os.chdir(SelectionDir)
 
 print("Copying files to " + SelectionDir)
-os.system('cp -r ' + WorkingDir + '/Import/FillInBurnIn_TwoPop_' + str(rep) + '/* .')
+os.system('cp -r ' + WorkingDir + '/FillInBurnIn_TwoPop_' + str(rep) + '/* .')
 os.system('cp -r ' + WorkingDir + '/Essentials/* .')
 os.system('cp -r ' + WorkingDir + '/CodeDir/* .')
 os.system('mv IndForGeno_' + refSize + '.txt IndForGeno.txt')

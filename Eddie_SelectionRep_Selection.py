@@ -85,9 +85,12 @@ scenario = sys.argv[2]
 strategy = sys.argv[3]
 refSize = sys.argv[4]
 
-os.chdir(strategy + "/")
+os.chdir(refSize + "/" + strategy + "/")
 
 print("Creating directory " + scenario + str(rep))
+if os.path.isdir(scenario + str(rep)):
+	print("Directory exists")
+	exit()
 if not os.path.isdir(scenario + str(rep)):
 	os.makedirs(scenario + str(rep))
 SelectionDir = scenario + str(rep) + "/"
@@ -113,20 +116,20 @@ os.system("chmod a+x renumf90")
 os.system("chmod a+x blupf90")
 
 
-par = pd.read_csv(WorkingDir + "/Essentials/" + strategy + "SelPar/SelectionParam_" + scenario + ".csv", header=None, names=["Keys", "Vals"])
+par = pd.read_csv(WorkingDir + "/Essentials/" +  refSize + "/" + strategy + "SelPar/SelectionParam_" + scenario + ".csv", header=None, names=["Keys", "Vals"])
 par.to_dict()
 selPar = defaultdict()
 for key, val in zip(par.Keys, par.Vals):
     if key not in ['BurnInYN', 'EBV', 'gEBV', 'PA', 'AlphaSimDir', 'genotyped', 'EliteDamsPTBulls',
                    'EliteDamsPABulls', 'UpdateGenRef', 'sexToUpdate', 'EliteDamsGenBulls', 'gpb_pb',
-                   'genTest_mladi', 'genTest_gpb']:
+                   'genTest_mladi', 'genTest_gpb', 'genFemale']:
         try:
             selPar[key] = int(val)
         except:
             selPar[key] = float(val)
     if key in ['BurnInYN', 'EBV', 'gEBV', 'PA', 'AlphaSimDir', 'EliteDamsPTBulls',
                'EliteDamsPABulls', 'UpdateGenRef', 'sexToUpdate', 'EliteDamsGenBulls', 'gpb_pb',
-               'genTest_mladi', 'genTest_gpb']:
+               'genTest_mladi', 'genTest_gpb', 'genFemale']:
         if val in ['False', 'True']:
             selPar[key] = bool(val == 'True')
         else:
@@ -169,13 +172,7 @@ for roundNo in range(21,41): #za vsak krog selekcije
     #GenTrends = TBVCat(AlphaSimDir)
     # izvedi selekcijo, doloci kategorije zivali, dodaj novo generacijo in dodeli starse
     # pedigre se zapise v AlphaSimDir/SelectionFolder/ExternalPedigree.txt
-    splitGenPed("PopulationSplit.txt")
-    selekcija_total('GenPed_EBVhome.txt', externalPedName="ExternalPedigreehome", group=True, groupNumber=0,
-                    **selParhome)
-    selekcija_total_TGV('GenPed_EBVimport.txt', externalPedName="ExternalPedigreeimport", group=True, groupNumber=1,
-                        **selParimport)
-    joinExternalPeds(["ExternalPedigreehome", "ExternalPedigreeimport"], AlphaSimDir)
-    record_groups(["home", "import"], "PopulationSplit.txt")
+    selekcija_total('GenPed_EBV.txt', **selPar)
 
     # kopiraj pedigre v selection folder
     if not os.path.exists(AlphaSimDir + '/Selection/SelectionFolder' + str(roundNo) + '/'):
@@ -199,8 +196,8 @@ for roundNo in range(21,41): #za vsak krog selekcije
     SpecFile.setNB(StNB)
     # pozenes ALPHASIM
     os.system('./AlphaSim1.08')
-    #tukaj odstrani chip2 genotype file in izračunaj heterozigotnost na nevtralnih lokusih (chip2 - chip1)
-    os.system("/exports/cmvm/eddie/eb/groups/tier2_hickey_external/R-3.4.2/bin/Rscript MeanHetChip2_NeutralMarker.R " + str(roundNo+20) + " " + str(rep) + " " + str(scenario) + " " + str(strategy))			
+    #tukaj odstrani chip2 genotype file in izračunaj heterozigotnost na nevtralnih lokusih (chip2 - chip1) in na markerjih (chip1)
+    os.system("/exports/cmvm/eddie/eb/groups/tier2_hickey_external/R-3.4.2/bin/Rscript MeanHetMarker_Neutral_QTN.R " + str(roundNo+20) + " " + str(rep) + " " + str(scenario) + " " + str(strategy))			
     os.system("bash ChangeChip2Geno_IDs.sh")    	
 	
     # tukaj dodaj kategorije k PedigreeAndGeneticValues (AlphaSim File)
