@@ -140,6 +140,7 @@ for rep in range(rounds):
     RepDir = GAdir + "/Rep_" + str(rep)
     os.chdir(RepDir)
     os.system("cp " + homeDir + "/Essentials/* .")
+    os.system("cp " + homeDir + "/CodeDir/GA/qstat* .")
     os.system("python GA_genotpingHerds2.py > GAherds.txt")
 
     # ekstrahiraj rešitev
