@@ -15,6 +15,7 @@ from pylab import legend
 from scipy import stats
 import matplotlib.pyplot as plt
 from numpy.random import choice
+from collections import OrderedDict
 
 plt.style.use('ggplot')
 
@@ -986,47 +987,96 @@ class Herds(object):
         """
         sloHerds = pd.read_csv("SLOherds.txt")
         nFemale = len(self.ped.loc[(self.ped.active == 1) & (self.ped.sex == "F")])
-        femaleByHerd = list(choice(list(sloHerds.N), 505, list(sloHerds.Prob)))
-        start = 505
+        femaleByHerd = list(choice(list(sloHerds.N), 1200, list(sloHerds.Prob)))
+        start = 1200
         while sum(femaleByHerd) < nFemale:
-            femaleByHerd = list(choice(list(sloHerds.N), start + 1, list(sloHerds.Prob)))
-            start = start + 1
+            femaleByHerd = femaleByHerd + list(choice(list(sloHerds.N), 10, list(sloHerds.Prob)))
+            start = start + 10
         cowByH = pd.DataFrame({"herd": range(1, (len(femaleByHerd) + 1)), "NoCows": femaleByHerd})
         self.ped.loc[:, "herd"] = 0
         herds = map(int, list(chain.from_iterable([[cowByH.herd[i]] * cowByH.NoCows[i] for i in range(len(cowByH))]))[0:nFemale])
+        self.herdNum = int(max(herds))
         shuffle(herds)
         self.ped.loc[(self.ped.active == 1) & (self.ped.sex == "F"), "herd"] = herds
+        self.ped[['Indiv', 'herd']].to_csv("HerdInfo.csv", index=None)
         self.ped.to_csv(self.AlphaSimDir + "/ExternalPedigreeTotal.txt", quoting=None, index=False, header=True)
-        cowByH.columns = ['herd', 'Gen' + str(max(self.ped.Generation))]
+        col = list(cowByH.columns)
+        col[col.index('NoCows')] = "NoCows" + str(max(self.ped.Generation))
+        cowByH.columns = col
         cowByH.to_csv("CowsByHerd.csv", index = None)
 
+    def simulateHerdEffects(self, startGen, stopGen, repeats, varH, varHY, varHTd):
+        """
+        A function to create a dataframe containing herd, herdyear and herd test day variance
+        :param repeats: How many repeated phenotypes per lactation
+        :param varH: Herd variance
+        :param varHY: herd year variance
+        :param varHTd: herd test day variance
+        :return: writes dataframe with variances
+        """
+        OutputFiles = AlphaSim_OutputFile(self.AlphaSimDir)
+        genvar = OutputFiles.getAddVar()  # dobi additivno varianco
+        herdVar = genvar * float(varH)
+        herdYVar = genvar * float(varHY)
+        herdTdVar = genvar * float(varHTd)
+        
+        numGenerations = len(range(startGen, stopGen + 1))
+
+        #herd effect
+        herdEff = pd.DataFrame({"Herd": range(1, self.herdNum+1), 
+                      "HerdEff":  [np.random.normal(loc=0.0, scale=np.sqrt(herdVar)) for x in range(self.herdNum)]})
+        
+        #herdYear effect
+        herdYEff = pd.DataFrame({"Herd": np.repeat(range(1, self.herdNum+1), numGenerations),
+                      "Year": range(startGen, stopGen + 1) * self.herdNum})
+        herdYEff = pd.merge(herdYEff, herdEff, on = "Herd", how = "left")
+        herdYEff.loc[:, 'HerdYEff'] = np.random.normal(loc=herdYEff.HerdEff, scale=np.sqrt(herdYVar))
+
+        #herdTestDay effect
+        herdTdEff = pd.DataFrame({"Herd": np.repeat(range(1, self.herdNum + 1), numGenerations * repeats),
+                                 "Year": list(np.repeat(range(startGen, stopGen + 1), repeats)) * self.herdNum,
+                                 "Repeat" : range(repeats) * numGenerations*self.herdNum})
+        herdTdEff = pd.merge(herdTdEff, herdYEff, on=["Herd", "Year"], how="left")
+        herdTdEff.loc[:, 'HerdTdEff'] = np.random.normal(loc=herdTdEff.HerdYEff, scale=np.sqrt(herdTdVar))
+        
+        herdTdEff.to_csv(self.AlphaSimDir + "/HerdEffects.csv", quoting=None, index=False, header=True)
 
     def add_herds(self):
+        #pedCat ima informacije o čredi iz prejšnje runde (v 1. rundi vse polno)
         pedCat = pd.read_csv(self.AlphaSimDir + "/SimulatedData/PedigreeAndGeneticValues_cat.txt", sep="\s+")
+        
         #te preberi iz externalpedigree, ker so nove (ni jih še v PedAndGV_cat)
         self.ped = pd.merge(self.ped, pedCat[['Indiv', 'herd']], on="Indiv", how='left')
+        self.ped.loc[self.ped.herd.isnull(), 'herd'] = 0
         newFemales = self.ped[(self.ped.cat.isin(['potomciNP', 'nr'])) & (self.ped.sex == "F")]
         #odtrani newFemales in externalpedTotal
         self.ped.drop(self.ped[self.ped.Indiv.isin(newFemales.Indiv)].index, inplace=True)
         mothers = pedCat[pedCat.Indiv.isin(newFemales.Mother)][['Indiv', 'herd']]
-        mothers.columns = ['Mother', 'herd']
+        col = list(mothers.columns)
+        col[col.index('Indiv')] = "Mother"
+        mothers.columns = col
         #get herds of the newborn females
+        newFemales = newFemales.drop("herd", axis=1)
         newFemales = pd.merge(newFemales, mothers, on='Mother', how='left')
         #dodaj newFemales v esternalpedtotal
         self.ped = self.ped.append(newFemales)
         #sortiraj po indiv
-        self.ped = self.ped.sort('Indiv')
+        self.ped = self.ped.sort_values('Indiv')
+        self.ped.herd = self.ped.herd.astype(int)
         self.ped.to_csv(self.AlphaSimDir + "/ExternalPedigreeTotal.txt", quoting=None, index=False, header=True)
-        
-        #zapiši še število krav po čredah
+
+        # zapiši še število krav po čredah
         cowByH = pd.read_csv("CowsByHerd.csv")
-        vC = self.ped.herd.value_counts()
-        current = pd.DataFrame({'herd': vC.index.tolist(), 'No': list(vC)})
-        current.columns = ['herd', 'Gen' + str(max(self.ped.Generation))]
+        vC = self.ped[(self.ped.sex == "F") & (self.ped.active == 1)].herd.value_counts()
+
+        current = pd.DataFrame({'herd': vC.index.tolist(), 'NoCows': list(vC)})
+        # current.columns = ['herd', 'Gen' + str(max(self.ped.Generation))]
+        col = list(current.columns)
+        col[col.index('NoCows')] = "NoCows" + str(max(self.ped.Generation))
+        current.columns = col
         current.herd = current.herd.astype(int)
         cowByH = pd.merge(cowByH, current, on='herd')
         cowByH.to_csv("CowsByHerd.csv", index=None)
-        
         
     
         
@@ -1070,13 +1120,14 @@ class blupf90:
         self.blupgenParamFile_Clas_permEnv_herd = codeDir + '/renumf90_Clas_permEnv_herd.par'
         self.permEnv = permEnv
         self.varPE = varPE
+        self.AlphaSimDir = AlphaSimDir
         # self.blupgenParamFile = '/home/jana/Genotipi/Genotipi_CODES/blupf90_Selection'
         # self.blupParamFile = AlphaSimDir + 'blupf90_Selection'
         if way == 'milk':
             self.AlphaPed = pd.read_table(AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues_cat.txt', sep=' ')
-            self.AlphaPed.loc[:, "herdYear"] = self.AlphaPed.herd.map(int).map(str) + "_" + self.AlphaPed.Generation.map(str)
+            self.AlphaPed.loc[:, "herdYear"] = self.AlphaPed.herd.map(int).map(
+                str) + "_" + str(max(self.AlphaPed.Generation))
             # self.AlphaGender = pd.read_table(AlphaSimDir + '/SimulatedData/Gender.txt', sep='\s+')
-            self.AlphaSimDir = AlphaSimDir
             self.gen = max(self.AlphaPed['Generation'])
             self.animals = len(self.AlphaPed)
             self.blupPed = self.AlphaPed.loc[:, ['Indiv', 'Father', 'Mother']]
@@ -1097,7 +1148,6 @@ class blupf90:
                     self.blupDatT.loc[:,['Indiv', 'permEnv']].to_csv("PermanentEnv.txt", index=False)
                 
         if way == 'burnin_milk':
-            self.AlphaSimDir = AlphaSimDir
             self.AlphaPed = pd.read_table(AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues.txt', sep='\s+')
             self.AlphaGender = pd.read_table(AlphaSimDir + '/SimulatedData/Gender.txt', sep='\s+')
             self.AlphaPed.loc[:, 'sex'] = self.AlphaGender.Gender
@@ -1196,22 +1246,24 @@ class blupf90:
         It simulated the number of required phenotypes according to the TGV and permanent and environmental variances
         :return: Writes blupf0.dat file
         """
-        if os.path.isfile(self.AlphaSimDir + 'Blupf90.dat'):
+        # select the individuals
+        blupDatNew = self.blupDatT.loc[
+            (self.blupDatT.active == 1) & ((self.blupDatT.cat == 'k') | (self.blupDatT.cat == 'bm')
+                                           | (self.blupDatT.cat == 'pBM')), ['Indiv', 'phenoNormUnres1', 'sex', 'herdYear',
+                                                                             'permEnv']]
 
-            blupDatOld = pd.read_csv('Blupf90.dat', sep=" ", names=['Indiv', 'phenoNormUnres1',
-                                                                    'sex', 'herd'])  # to je dat iz prejšnjega kroga selekcija
-            #select the individuals
-            blupDatNew = self.blupDatT.loc[
-                (self.blupDatT.active == 1) & ((self.blupDatT.cat == 'k') | (self.blupDatT.cat == 'bm')
-                                               | (self.blupDatT.cat == 'pBM')), ['Indiv', 'phenoNormUnres1', 'sex', 'herd', 'permEnv']]
-            
-            phenoSim = repeatedPhenotypes(self.AlphaSimDir)
-            phenoSim.inds_to_keep(list(blupDatNew.Indiv))
-            phenoNew = phenoSim.simulatePhenotype(varE, repeats)
-            phenoNew.loc[phenoNew.sex == 'F', 'sex'] = 2
+        phenoSim = repeatedPhenotypes(self.AlphaSimDir)
+        phenoSim.inds_to_keep(list(blupDatNew.Indiv))
+        phenoNew = phenoSim.simulatePhenotype(varE, repeats)
+        phenoNew.loc[phenoNew.sex == 'F', 'sex'] = 2
+        if os.path.isfile(self.AlphaSimDir + 'Blupf90.dat'):
+            blupDatOld = pd.read_csv('Blupf90.dat', sep=" ", names=['herdYear', 'phenoNormUnres1',
+                                                                    'Indiv', 'sex'])  # to je dat iz prejšnjega kroga selekcija
             pd.concat([blupDatOld, phenoNew]).to_csv(self.AlphaSimDir + 'Blupf90.dat', header=None, index=False,
-                                                       sep=" ")  # dodaj fenotip
-    # this one deletes phenotypes according to given categories
+                                                       sep=" ")
+        else:
+            phenoNew.to_csv(self.AlphaSimDir + 'Blupf90.dat', header=None, index=False, sep=" ")
+
 
     def makeDat_removePhen_cat(self, listUnphenotyped):
         # first remove phenotype from animals that do not have phenotype
@@ -1292,23 +1344,28 @@ class repeatedPhenotypes(object):
 
     def __init__(self, AlphaSimDir):
         self.ped = pd.read_table(AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues_cat.txt', sep='\s+')
+        self.gen = int(max(self.ped.Generation))
+        self.ped.loc[self.ped.herd.isnull(), 'herd'] = 0
         self.ped.loc[:, "herdYear"] = self.ped.herd.map(int).map(str) + "_" + \
-                                      self.ped.Generation.map(str)
+                                      str(max(self.ped.Generation))
         self.permEnv = pd.read_csv(AlphaSimDir + "/PermanentEnv.txt")
         self.PED = pd.merge(self.ped, self.permEnv, on = 'Indiv', how="left")
+        self.herdEff = pd.read_csv(AlphaSimDir + "/HerdEffects.csv")
 
     def inds_to_keep(self, list):
-        self.selectedPed = self.PED[self.PED.Indiv.isin(list)][['Indiv', 'sex', 'gvNormUnres1', 'herdYear', 'permEnv']]
+        self.selectedPed = self.PED[self.PED.Indiv.isin(list)][['Indiv', 'sex', 'gvNormUnres1', 'herd', 'herdYear', 'permEnv']]
 
     def simulatePhenotype(self, varE, repeats):
-        repPhenoPed = pd.DataFrame()
+        repPhenoPed = pd.DataFrame(OrderedDict())
         for row in range(len(self.selectedPed)):
             indiv, sex, tgv, herd, permEnv = list(self.selectedPed.iloc[row])
-            new = pd.DataFrame({"Indiv": int(indiv), "phenoNormUnres1":
-                [tgv + permEnv + np.random.normal(loc=0.0, scale=np.sqrt(varE))
+            herdIndivEff = self.herdEff[(self.herdEff.Herd == herd) & (self.herdEff.Year == self.gen)]
+            new = OrderedDict({"Indiv": int(indiv), "phenoNormUnres1":
+                [tgv + permEnv + float(herdIndivEff.HerdTdEff[herdIndivEff.Repeat == x])
+                 + np.random.normal(loc=0.0, scale=np.sqrt(varE))
                  for x in range(repeats)], 'sex': sex, 'herdYear': herd})
+            new = pd.DataFrame(new)
             repPhenoPed = pd.concat([repPhenoPed, new])
-	    print(repPhenoPed.head())
         return repPhenoPed
 
 class accuracies:

@@ -142,9 +142,10 @@ HETa_abs$Strategy <- factor(HETa_abs$Strategy, levels =c("SU55", "SU51", "SU15")
 HETa_abs$Scenario <- factor(HETa_abs$Scenario, levels =c("Class", "GenSLO", "OtherCowsGen", "BmGen", "Gen"))
 HETa_abs$Marker <- factor(HETa_abs$Marker, levels =c("NTR", "M", "QTN"))
 HETa_abs[order(HETa_abs$Marker, HETa_abs$Strategy, HETa_abs$Scenario),]
+
 hetQTN <- HETa_abs[HETa_abs$Marker=="QTN",]
-hetQTN[,4:5] <- round(hetQTN[,4:5],0)
-hetQTN[order(hetQTN$Strategy, hetQTN$Scenario),]
+#hetQTN[,4:5] <- round(hetQTN[,4:5],0)
+hetQTN <- hetQTN[order(hetQTN$Strategy, hetQTN$Scenario),]
 
 write.csv(HETa, "~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/NEs_HET_relative_21112018.csv", row.names=FALSE, quote=FALSE)
 
@@ -155,12 +156,14 @@ write.csv(HETa, "~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/R
 ############################################################
 HET$Strategy <- factor(HET$Strategy, levels =c("SU55", "SU51", "SU15"))
 HET$Scenario <- factor(HET$Scenario, levels =c("Class", "GenSLO", "OtherCowsGen", "BmGen", "Gen"))
-
+HET$Marker <- factor(HET$Marker, levels =c("NTR", "M", "QTN"))
+HET <- HET[order(HET$Strategy, HET$Scenario),]
 
 model <- lm(per_het ~ Strategy + Scenario + Strategy + Marker + Marker: Strategy : Scenario, data=HET)
 model <- lm(Ne ~ Strategy + Scenario + Strategy + Strategy : Scenario, data=HET[HET$Marker == "QTN",]) #abs"
+model <- lm(Ne ~ Strategy + Scenario + Strategy + Marker + Strategy : Scenario : Marker, data=HET) #abs"
 anova(model)
-marginal = emmeans(model, ~ Strategy:Scenario)
+marginal = emmeans(model, ~ Strategy:Scenario:Marker)
 CLD = cld(marginal, by="Strategy",
           alpha   = 0.05, sort=FALSE,
           Letters = letters,         ###  Use lowercase letters for .group
@@ -172,9 +175,84 @@ CLD = cld(marginal, by="Scenario",
           Letters = LETTERS,         ###  Use lowercase letters for .group
           adjust  = "tukey") 
 CLD
+
+CLD = cld(marginal, by="Marker",
+          alpha   = 0.05, sort=FALSE,
+          Letters = LETTERS,         ###  Use lowercase letters for .group
+          adjust  = "tukey") 
+CLD
 ############################################################
 
+#ŠE PEDIGREE
+#Scenario60
+head(HET)
+head(Scenario60)
+HETP <- HET[,c("Strategy", "Scenario", "Rep", "Marker", "Ne")]
+PEDP <- Scenario60[,c("Strategy", "Scenario", "Rep", "Ne")]
+PEDP$Marker <- "Pedigree"
+PEDP <- PEDP[,c(colnames(HETP))]
+
+HETPED <- rbind(HETP, PEDP)
+HETPED$Strategy <- factor(HETPED$Strategy, levels =c("SU55", "SU51", "SU15"))
+HETPED$Scenario <- factor(HETPED$Scenario, levels =c("Class", "GenSLO", "OtherCowsGen", "BmGen", "Gen"))
+HETPED$Marker <- factor(HETPED$Marker, levels =c("Pedigree", "NTR", "M", "QTN"))
+HETPED <- HETPED[order(HETPED$Strategy, HETPED$Scenario, HETPED$Marker),]
+
 #izračunaj značilnost
+model <- lm(Ne ~ Scenario + Marker + Scenario : Marker, data=HETPED[HETPED$Strategy == "SU55",]) #abs"
+marginal = emmeans(model, ~ Scenario : Marker)
+CLD = cld(marginal, by="Scenario",
+          alpha   = 0.05, sort=FALSE,
+          Letters = letters,         ###  Use lowercase letters for .group
+          adjust  = "tukey") 
+CLD
+CLD = cld(marginal, by="Marker",
+          alpha   = 0.05, sort=FALSE,
+          Letters = letters,         ###  Use lowercase letters for .group
+          adjust  = "tukey") 
+CLD
+
+model <- lm(Ne ~ Scenario + Marker + Scenario : Marker, data=HETPED[HETPED$Strategy == "SU51",]) #abs"
+marginal = emmeans(model, ~ Scenario : Marker)
+CLD = cld(marginal, by="Scenario",
+          alpha   = 0.05, sort=FALSE,
+          Letters = letters,         ###  Use lowercase letters for .group
+          adjust  = "tukey") 
+CLD
+CLD = cld(marginal, by="Marker",
+          alpha   = 0.05, sort=FALSE,
+          Letters = letters,         ###  Use lowercase letters for .group
+          adjust  = "tukey") 
+CLD
+
+model <- lm(Ne ~ Scenario + Marker + Scenario : Marker, data=HETPED[HETPED$Strategy == "SU15",]) #abs"
+marginal = emmeans(model, ~ Scenario : Marker)
+CLD = cld(marginal, by="Scenario",
+          alpha   = 0.05, sort=FALSE,
+          Letters = letters,         ###  Use lowercase letters for .group
+          adjust  = "tukey") 
+CLD
+CLD = cld(marginal, by="Marker",
+          alpha   = 0.05, sort=FALSE,
+          Letters = letters,         ###  Use lowercase letters for .group
+          adjust  = "tukey") 
+CLD
+
+##########################################################
+model <- lm(Ne ~ Scenario + Marker + Scenario : Marker, data=HETPED[HETPED$Strategy == "SU55",]) #abs"
+marginal = emmeans(model, ~ Scenario : Marker)
+CLD = cld(marginal, by="Scenario",
+          alpha   = 0.05, sort=FALSE,
+          Letters = letters,         ###  Use lowercase letters for .group
+          adjust  = "tukey") 
+CLD
+CLD = cld(marginal, by="Marker",
+          alpha   = 0.05, sort=FALSE,
+          Letters = letters,         ###  Use lowercase letters for .group
+          adjust  = "tukey") 
+CLD
+
+
 ############################################################
 HETQ <- HET[HET$Marker=="QTN",]
 HETQ$Strategy <- factor(HETQ$Strategy, levels =c("SU55", "SU51", "SU15"))

@@ -95,7 +95,7 @@ INBavg$per_inb <- (INBavg$per_inb)*100 - 100
 #INBa <- summarySE(INB, measurevar="Ne", groupvars=c("Strategy", "Scenario"))[,c(1,2,4,5)] to je za ABSOLUTNE
 INBavg_a <- summarySE(INBavg, measurevar="per_inb", groupvars=c("Strategy", "Scenario"))[,c(1,2,4,5)]
 INBavg_abs <- summarySE(INBavg, measurevar="Ne", groupvars=c("Strategy", "Scenario"))[,c(1,2,4,5)]
-write.csv(INBavg_abs, "~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/Absolute_pedigreeinbreeding_final.csv", quote=FALSE, row.names=FALSE)
+#write.csv(INBavg_abs, "~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/Absolute_pedigreeinbreeding_final.csv", quote=FALSE, row.names=FALSE)
 colnames(INBavg_a) <- c("Strategy", "Scenario", "per_inb", "per_inbSD")
 colnames(INBavg_abs) <- c("Strategy", "Scenario", "inb", "inbSD")
 INBavg_a$per_inb <- round(INBavg_a$per_inb)
@@ -143,7 +143,7 @@ INBa[order(INBa$Strategy, INBa$Scenario),]
 
 INBa[INBa$Strategy=="SU55", "per_inb"] - INBa[INBa$Strategy=="SU15", "per_inb"]
 
-write.csv(INBa, "~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/NEs_relative_21112018.csv", row.names=FALSE, quote=FALSE)
+#write.csv(INBa, "~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/NEs_relative_21112018.csv", row.names=FALSE, quote=FALSE)
 #############################################################
 
 
@@ -174,6 +174,7 @@ CLD
 
 #to je za absolutne cifre
 Scenario60$deltaF <- as.numeric(Scenario60$deltaF)
+table(Scenario60$Interval)
 ScenarioA <- aggregate(Scenario60$deltaF ~ Scenario60$Strategy + Scenario60$Scenario, FUN="mean")
 
 

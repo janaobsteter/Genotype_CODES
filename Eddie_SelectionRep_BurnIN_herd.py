@@ -75,7 +75,7 @@ class estimateBV:
         blupFiles.prepareSelPed()  # obtain solution and add them to
         # AlphaPed PedigreeAndGeneticValues files --> Write them to GenPed_EBV.txt, which is read by module selection
 
-    def computeEBV_permEnv_herd(self, setVar=False, varPE=0.0, varE=0.0, varH = 0.0, repeats=1):
+    def computeEBV_permEnv_herd(self, setVar=False, varPE=0.0, varE=0.0, herd=True, varH = 0.0, repeats=1):
         """
         This function prepares blupf90 phenotypic .dat and pedigree .ped file according to the specification for a model with permanent Environemtn
         It prepared different files whether we are in fill in or whether in selection gen
@@ -148,14 +148,17 @@ class estimateBV:
 scenarios = ['Class']#, 'GenSLO', 'BmGen', 'OtherCowsGen', 'Gen']
 REP = sys.argv[1]
 repeats = int(sys.argv[2])
-varPE = float(sys.argv[3])
-varE = float(sys.argv[4])
-varH = float(sys.argv[5])
+variances = sys.argv[3].split(",")
+varPE = float(variances[0])
+varH = float(variances[1])
+varHY = float(variances[2])
+varHTD = float(variances[3])
+varE = float(variances[4])
 
 
 for rep in [REP]:
     if not os.path.isdir("FillInBurnIn" + str(rep) + "_permEnv"):
-        os.makedirs("FillInBurnIn" + str(rep) + "_permEnv")
+       os.makedirs("FillInBurnIn" + str(rep) + "_permEnv")
     os.chdir("FillInBurnIn" + str(rep) + "_permEnv") #prestavi se v FillInBurnin za ta replikat
     os.system('cp -r ' + WorkingDir + '/Essentials/* .') # skopiraj vse iz Esentials
     os.system('cp -r ' + WorkingDir + '/CodeDir/* .') # skopiraj vse iz CodeDir
@@ -185,13 +188,13 @@ for rep in [REP]:
 #####################################################################################################
 #####################################################################################################
     #THEN MAKE A BURN IN - classical selection!
-    par = pd.read_csv(WorkingDir + "/Essentials/SelectionParam_Class.csv", header=None, names=["Keys", "Vals"])
+    par = pd.read_csv(WorkingDir + "/Essentials/10K/SU55SelPar/SelectionParam_Class.csv", header=None, names=["Keys", "Vals"])
     par.to_dict()
     selPar = defaultdict()
     for key, val in zip(par.Keys, par.Vals):
         if key not in ['BurnInYN', 'EBV', 'gEBV', 'PA', 'AlphaSimDir', 'genotyped', 'EliteDamsPTBulls',
                        'EliteDamsPABulls', 'UpdateGenRef', 'sexToUpdate', 'EliteDamsGenBulls', 'gpb_pb',
-                       'genTest_mladi', 'genTest_gpb']:
+                       'genTest_mladi', 'genTest_gpb', 'genFemale']:
             try:
                 selPar[key] = int(val)
             except:
@@ -205,7 +208,6 @@ for rep in [REP]:
                 selPar[key] = val
         if key == 'genotyped':
             selPar[key] = ast.literal_eval(val)
-
 
     BurnInYN = "False"  # ali izvedeš tudi BurnIn
     SelYN = "True"  # ali izvedeš tudi BurnIn
@@ -258,11 +260,12 @@ for rep in [REP]:
             #GenTrends = TBVCat(AlphaSimDir)
             # nimaš GenPed_EBV.txt
             blups = estimateBV(AlphaSimDir, WorkingDir + "/CodeDir", way='burnin_milk', sel='class')
-            blups.computeEBV_()  # tukaj izbriši samo fenotipe moških - ne morš po kategorijah, ker jih nimaš
+            blups.computeEBV()  # tukaj izbriši samo fenotipe moških - ne morš po kategorijah, ker jih nimaš
             # Acc.saveAcc()
             nastavi_cat('GenPed_EBV.txt', **selPar)
-            createHerds = Herds() #to ne naredi nič, samo prebere datotek
+            createHerds = Herds(AlphaSimDir) #to ne naredi nič, samo prebere datotek
             createHerds.create_herds() #ustvari črede, zapiši fajle
+            createHerds.simulateHerdEffects(StartSelGen, StopSelGen, repeats, varH, varHY, varHTD)
 
         else:
             Acc = accuracies(AlphaSimDir)
@@ -270,7 +273,7 @@ for rep in [REP]:
             # izvedi selekcijo, doloci kategorije zivali, dodaj novo generacijo in dodeli starse
             # pedigre se zapise v AlphaSimDir/SelectionFolder/ExternalPedigree.txt
             selekcija_total('GenPed_EBV.txt', **selPar)
-            createHerds = Herds() #to ne naredi nič, samo prebere datotek
+            createHerds = Herds(AlphaSimDir) #to ne naredi nič, samo prebere datotek
             createHerds.add_herds()
 
 
@@ -311,7 +314,9 @@ for rep in [REP]:
             GenInt.prepareGenInts(['genTest',
                                    'pt'])  # pri klasični so izbrani potomci vsi genomsko testirani (pozTest in pripust) in plemenske telice
         blupNextGen = estimateBV(AlphaSimDir, WorkingDir + "/CodeDir", way='milk', sel=seltype)
-        blupNextGen.computeEBV_permEnv_herd(setVar=True, varPE=varPE, varE=varE, varH=varH,
+        #v obračun gre le HerdYear, varianca za HerdTestDay in Herd gre v ostanek
+        varEest = varE + varH + varHTD
+        blupNextGen.computeEBV_permEnv_herd(setVar=True, varPE=varPE, varE=varEest, varH=varHY,
                                        repeats=repeats)
         Acc.saveAcc()
         #GenTrends.saveTrends()

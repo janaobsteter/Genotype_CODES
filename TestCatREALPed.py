@@ -11,7 +11,7 @@ WorkingDir = "/home/jana/"
 os.chdir(WorkingDir)
 scenario = "Class"
 
-parhome = pd.read_csv(os.getcwd() + "/Essentials/SelectionParam_Class52.csv", header=None, names=["Keys", "Vals"])
+parhome = pd.read_csv(os.getcwd() + "/Essentials/SelectionParam_Class.csv", header=None, names=["Keys", "Vals"])
 parhome.to_dict()
 selParhome = defaultdict()
 for key, val in zip(parhome.Keys, parhome.Vals):
@@ -112,7 +112,14 @@ if selParhome['gEBV']:
 
 IndCat = pd.DataFrame()
 ped0, c0, s0, a0 = nastavi_cat("/home/jana/GenPed_EBV.txt", **selParhome)
+createHerds = Herds(AlphaSimDir)  # to ne naredi nič, samo prebere datotek
+createHerds.create_herds()  # ustvari črede, zapiši fajle
+PedCat = OrigPed(AlphaSimDir, WorkingDir + '/CodeDir')
+PedCat.addInfo()  # to ti zapiše PedigreeAndGeneticValues_cat.txt v AlphaSim/SimualatedData
 # ped0, c0, s0, a0 = selekcija_total("/home/jana//GenPed_EBV.txt", **selPar)
+blupNextGen = estimateBV(AlphaSimDir, WorkingDir + "/CodeDir", way='milk', sel=seltype)
+blupNextGen.computeEBV_permEnv_herd(setVar=True, varPE=varPE, varE=varE, varH=varH,
+                                    repeats=repeats)
 
 inds = ped0.catCurrent_indiv('')
 Cats = []
