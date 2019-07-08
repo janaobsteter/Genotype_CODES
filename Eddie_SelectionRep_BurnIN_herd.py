@@ -107,10 +107,10 @@ class estimateBV:
 
         # skopiraj paramFile za renumf90
         if self.sel == 'gen':
-            shutil.copy(blupFiles.blupgenParamFile_permEnv,
+            shutil.copy(blupFiles.blupgenParamFile_permEnv_herd,
                         blupFiles.AlphaSimDir + 'renumf90.par')  # skopiraj template blupparam file
         elif self.sel == 'class':
-            shutil.copy(blupFiles.blupgenParamFile_Clas_permEnv,
+            shutil.copy(blupFiles.blupgenParamFile_Clas_permEnv_herd,
                         blupFiles.AlphaSimDir + 'renumf90.par')  # skopiraj template blupparam file
 
         blupFiles.prepareParamFiles_permEnv_herd(genvar, permEvar, resvar, herdvar,
@@ -313,6 +313,10 @@ for rep in [REP]:
         if seltype == 'gen':
             GenInt.prepareGenInts(['genTest',
                                    'pt'])  # pri klasični so izbrani potomci vsi genomsko testirani (pozTest in pripust) in plemenske telice
+
+
+        if round == 1:
+            os.remove(AlphaSimDir + 'Blupf90.dat')
         blupNextGen = estimateBV(AlphaSimDir, WorkingDir + "/CodeDir", way='milk', sel=seltype)
         #v obračun gre le HerdYear, varianca za HerdTestDay in Herd gre v ostanek
         varEest = varE + varH + varHTD

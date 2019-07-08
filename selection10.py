@@ -1125,8 +1125,9 @@ class blupf90:
         # self.blupParamFile = AlphaSimDir + 'blupf90_Selection'
         if way == 'milk':
             self.AlphaPed = pd.read_table(AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues_cat.txt', sep=' ')
-            self.AlphaPed.loc[:, "herdYear"] = self.AlphaPed.herd.map(int).map(
-                str) + "_" + str(max(self.AlphaPed.Generation))
+            if herd:
+		    self.AlphaPed.loc[:, "herdYear"] = self.AlphaPed.herd.map(int).map(
+        	        str) + "_" + str(max(self.AlphaPed.Generation))
             # self.AlphaGender = pd.read_table(AlphaSimDir + '/SimulatedData/Gender.txt', sep='\s+')
             self.gen = max(self.AlphaPed['Generation'])
             self.animals = len(self.AlphaPed)
@@ -1358,12 +1359,12 @@ class repeatedPhenotypes(object):
     def simulatePhenotype(self, varE, repeats):
         repPhenoPed = pd.DataFrame(OrderedDict())
         for row in range(len(self.selectedPed)):
-            indiv, sex, tgv, herd, permEnv = list(self.selectedPed.iloc[row])
+            indiv, sex, tgv, herd, herdYear, permEnv = list(self.selectedPed.iloc[row])
             herdIndivEff = self.herdEff[(self.herdEff.Herd == herd) & (self.herdEff.Year == self.gen)]
             new = OrderedDict({"Indiv": int(indiv), "phenoNormUnres1":
                 [tgv + permEnv + float(herdIndivEff.HerdTdEff[herdIndivEff.Repeat == x])
                  + np.random.normal(loc=0.0, scale=np.sqrt(varE))
-                 for x in range(repeats)], 'sex': sex, 'herdYear': herd})
+                 for x in range(repeats)], 'sex': sex, 'herdYear': herdYear})
             new = pd.DataFrame(new)
             repPhenoPed = pd.concat([repPhenoPed, new])
         return repPhenoPed
