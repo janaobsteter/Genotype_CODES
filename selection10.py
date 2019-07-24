@@ -1126,12 +1126,13 @@ class blupf90:
         if way == 'milk':
             self.AlphaPed = pd.read_table(AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues_cat.txt', sep=' ')
             if herd:
-		    self.AlphaPed.loc[:, "herdYear"] = self.AlphaPed.herd.map(int).map(
-        	        str) + "_" + str(max(self.AlphaPed.Generation))
-            # self.AlphaGender = pd.read_table(AlphaSimDir + '/SimulatedData/Gender.txt', sep='\s+')
+                self.AlphaPed.loc[:, "herdYear"] = self.AlphaPed.herd.map(int).map(
+                        str) + "_" + str(max(self.AlphaPed.Generation))
+
             self.gen = max(self.AlphaPed['Generation'])
             self.animals = len(self.AlphaPed)
             self.blupPed = self.AlphaPed.loc[:, ['Indiv', 'Father', 'Mother']]
+
             if self.permEnv:
                 self.blupDatT = self.AlphaPed.loc[:, ['Indiv', 'phenoNormUnres1', 'cat', 'sex', 'age', 'active', 'herdYear']]
                 if os.path.isfile(self.AlphaSimDir + "PermanentEnv.txt"):
@@ -1147,6 +1148,9 @@ class blupf90:
                     self.blupDatT.loc[:, 'permEnv'] = [np.random.normal(loc=0.0, scale=np.sqrt(self.varPE)) for x in
                                                                          range(len(self.blupDatT))]
                     self.blupDatT.loc[:,['Indiv', 'permEnv']].to_csv("PermanentEnv.txt", index=False)
+            else:
+                self.blupDatT = self.AlphaPed.loc[:,
+                                ['Indiv', 'phenoNormUnres1', 'cat', 'sex', 'age', 'active']]
                 
         if way == 'burnin_milk':
             self.AlphaPed = pd.read_table(AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues.txt', sep='\s+')
@@ -1202,20 +1206,23 @@ class blupf90:
         # self.deletePhenotype_sex('M') # odstrani fenotip moškim živalim
         # self.deletePhenotype_cat(['potomciNP', 'nr', 'telF', 'pt']) #odstrani fenotip ženskim telicam
         # merge with previous dat file - if there is one - add only the phenotypes of ACTIVE individuals!!!
+
+        # print 'datOld{0}'.format(str(len(blupDatOld)))
+        # pusti samo živali, ki imajo fenotipe (za mleko so to krave in bikovske matere)
+        blupDatNew = self.blupDatT.loc[
+            (self.blupDatT.active == 1) & ((self.blupDatT.cat == 'k') | (self.blupDatT.cat == 'bm')
+                                           | (self.blupDatT.cat == 'pBM')), ['Indiv', 'phenoNormUnres1', 'sex']]
+        # blupDatNew = self.blupDatT.loc[(self.blupDatT.active == 1), ['Indiv', 'phenoNormUnres1', 'sex']] #tukaj izberi samo krave in bikovske matere - aktivne!
+        # print 'datNew{0}'.format(str(len(blupDatNew)))
+        # blupDatNew.loc[blupDatNew.sex == 'M', 'sex'] = 1
+        blupDatNew.loc[blupDatNew.sex == 'F', 'sex'] = 2
         if os.path.isfile(self.AlphaSimDir + 'Blupf90.dat'):
             blupDatOld = pd.read_csv('Blupf90.dat', sep=" ", names=['Indiv', 'phenoNormUnres1',
                                                                     'sex'])  # to je dat iz prejšnjega kroga selekcija
-            # print 'datOld{0}'.format(str(len(blupDatOld)))
-            # pusti samo živali, ki imajo fenotipe (za mleko so to krave in bikovske matere)
-            blupDatNew = self.blupDatT.loc[
-                (self.blupDatT.active == 1) & ((self.blupDatT.cat == 'k') | (self.blupDatT.cat == 'bm')
-                                               | (self.blupDatT.cat == 'pBM')), ['Indiv', 'phenoNormUnres1', 'sex']]
-            # blupDatNew = self.blupDatT.loc[(self.blupDatT.active == 1), ['Indiv', 'phenoNormUnres1', 'sex']] #tukaj izberi samo krave in bikovske matere - aktivne!
-            # print 'datNew{0}'.format(str(len(blupDatNew)))
-            # blupDatNew.loc[blupDatNew.sex == 'M', 'sex'] = 1
-            blupDatNew.loc[blupDatNew.sex == 'F', 'sex'] = 2
             pd.concat([blupDatOld, blupDatNew]).to_csv(self.AlphaSimDir + 'Blupf90.dat', header=None, index=False,
-                                                       sep=" ")  # dodaj fenotip
+                                                   sep=" ")  # dodaj fenotip
+        else:
+            blupDatNew.to_csv(self.AlphaSimDir + 'Blupf90.dat', header=None, index=False, sep=" ")
 
     def makeDat_removePhen_milk_repeatedPhenotype(self, varE, repeats):
         """
@@ -1373,39 +1380,30 @@ class accuracies:
     def __init__(self, AlphaSimDir):
         self.AlphaSimDir = AlphaSimDir
         self.accuracies = defaultdict()
-        if os.path.isfile(self.AlphaSimDir + 'Accuracies_Gen.csv'):
-            self.accuraciesGen = pd.read_table(self.AlphaSimDir + 'Accuracies_Gen.csv', sep=",")
+        if os.path.isfile(self.AlphaSimDir + 'Accuracies_CatAge.csv'):
+            self.accuraciesCatAge = pd.read_table(self.AlphaSimDir + 'Accuracies_CatAge.csv', sep=",")
         else:
-            self.accuraciesGen = pd.DataFrame()
-        if os.path.isfile(self.AlphaSimDir + 'Accuracies_Cat.csv'):
-            self.accuraciesCat = pd.read_table(self.AlphaSimDir + 'Accuracies_Cat.csv', sep=",")
-        else:
-            self.accuraciesCat = pd.DataFrame()
+            self.accuraciesCatAge = pd.DataFrame()
+
 
     def saveAcc(self):
         name = self.AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues_cat.txt'
         pdPed = pd.read_table(name, sep=' ')
         gen = max(pdPed['Generation'])
         EBV = pd.read_table(self.AlphaSimDir + 'renumbered_Solutions_' + str(gen), header=None,
-                            sep='\s+', names=['renID', 'ID', 'solution'])
-        pdPed.loc[:, 'EBV'] = list(EBV.solution)
-        cor = stats.pearsonr(pdPed.EBV, pdPed.gvNormUnres1)[0]
-        self.accuracies[gen] = cor
-        corGenX = pd.DataFrame({gen: list(pdPed.groupby('Generation')[['gvNormUnres1', 'EBV']].corr().ix[0::2, 'EBV'])})
-        self.accuraciesGen = pd.concat([self.accuraciesGen, corGenX], ignore_index=True, axis=1)
+                            sep='\s+', names=['renID', 'Indiv', 'EBV'])
+        pdPed = pdPed.merge(EBV, on="Indiv")
+        pdPed.loc[:, 'AgeCat'] = pdPed.cat + (gen - pdPed.Generation).map(str)
+
         corCatX = pd.DataFrame(
-            {'cat': list((pdPed.groupby('cat')[['gvNormUnres1', 'EBV']].corr().ix[0::2, 'EBV'].index.levels)[0]),
-             gen: list(pdPed.groupby('cat')[['gvNormUnres1', 'EBV']].corr().ix[0::2, 'EBV'])})
-        try:
-            self.accuraciesCat = pd.merge(self.accuraciesCat, corCatX, on='cat', how='outer')
-        except:
-            self.accuraciesCat = pd.concat([self.accuraciesCat, corCatX], ignore_index=True)
+            {'AgeCat': list((pdPed.groupby('AgeCat')[['gvNormUnres1', 'EBV']].corr().ix[0::2, 'EBV'].index.levels)[0]),
+             'Cor': list(pdPed.groupby('AgeCat')[['gvNormUnres1', 'EBV']].corr().ix[0::2, 'EBV']),
+             'Gen': gen})
+
+        self.accuraciesCatAge = pd.concat([self.accuraciesCatAge, corCatX], ignore_index=True)
 
     def writeAcc(self):
-        pd.DataFrame({'Gen': self.accuracies.keys(), 'r': self.accuracies.values()}) \
-            .to_csv(self.AlphaSimDir + 'AccuraciesBV.csv', index=None)
-        self.accuraciesGen.to_csv(self.AlphaSimDir + 'Accuracies_Gen.csv', sep=",", index=None)
-        self.accuraciesCat.to_csv(self.AlphaSimDir + 'Accuracies_Cat.csv', sep=",", index=None)
+        self.accuraciesCatAge.to_csv(self.AlphaSimDir + 'Accuracies_CatAge.csv', sep=",", index=None)
 
     def removeFiles(self):
         if os.path.isfile(self.AlphaSimDir + 'Accuracies_Cat.csv'):
