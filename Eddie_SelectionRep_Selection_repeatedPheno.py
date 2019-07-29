@@ -172,7 +172,7 @@ if not os.path.isdir(scenario + str(rep) + "_" + str(repeats)):
 SelectionDir = scenario + str(rep) + "_" + str(repeats) + "/"
 
 
-
+print("Repeats " + str(repeats) + " " + str(type(repeats)))
 
 
 ######################################################################################################
@@ -182,7 +182,7 @@ SelectionDir = scenario + str(rep) + "_" + str(repeats) + "/"
 os.chdir(SelectionDir)
 
 print("Copying files to " + SelectionDir)
-os.system('cp -r ' + WorkingDir + '/FillInBurnIn' + str(rep) + '/* .')
+os.system('cp -r ' + WorkingDir + '/FillInBurnIn' + str(rep) + '_permEnv/* .')
 os.system('cp -r ' + WorkingDir + '/Essentials/* .')
 os.system('cp -r ' + WorkingDir + '/CodeDir/* .')
 os.system('mv IndForGeno_' + refSize + '.txt IndForGeno.txt')
@@ -239,6 +239,7 @@ if selPar['gEBV']:
 ##############################################################################
 print(AlphaSimDir)
 for roundNo in range(21,41): #za vsak krog selekcije
+
     # prestavi se v AlphaSim Dir
     if not os.path.isfile(AlphaSimDir + 'ReferenceSize.txt') and os.path.isfile(AlphaSimDir + "IndForGeno.txt"):
         os.system("less IndForGeno.txt | wc -l > ReferenceSize.txt")
@@ -288,7 +289,9 @@ for roundNo in range(21,41): #za vsak krog selekcije
         GenInt.prepareGenInts(['vhlevljeni', 'pt']) #pri klasični so izrbrani potomci vhlevljeni (test in pripust) in plemenske telice
     if seltype == 'gen':
         GenInt.prepareGenInts(['genTest', 'pt']) #pri klasični so izbrani potomci vsi genomsko testirani (pozTest in pripust) in plemenske telice
+    
     blupNextGen = estimateBV(AlphaSimDir, WorkingDir + "/CodeDir",  way='milk', sel=seltype)
+    varEest = varE + varH + varHTD
     blupNextGen.computeEBV_permEnv_herd(setVar=True, varPE=varPE, varE=varEest, varH=varHY,
                                         repeats=repeats)    #Acc.saveAcc()
     #GenTrends.saveTrends()

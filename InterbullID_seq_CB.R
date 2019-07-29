@@ -1,5 +1,6 @@
-Hol800 <- read.table("~/Genotipi/Genotipi_DATA/Holstein/Genotipi_09082016/GenotypedInd")
-pedigreCB <- read.csv("~/Genotipi/Genotipi_DATA/Holstein/Pedigre_All.csv", header=T)
+Hol800 <- read.table("~/Genotipi/Genotipi_DATA/Genotipi_latest/Crnobela/IndividualsHolstein_50Kv01.txt")
+pedigreCB <- read.csv("~/Genotipi/TransformGeno/Crnobela_seq_ID.csv", header=T)
+pedigreCB$STEV_ORIG_ZIVAL <- substr(pedigreCB$ID_ZIVALI, start =3, stop=10)
 
 
 
@@ -12,7 +13,7 @@ Hol8 <- Hol800[which(Hol800$V3 %in% pedigreCB$STEV_ORIG_ZIVAL),]
 #when you strip at 9
 Hol800$V3 <- substring(Hol800$V1, 9)
 length(intersect(Hol800$V3, pedigreCB$STEV_ORIG_ZIVAL))
-Hol9 <- Hol800[which(Hol800$V3 %in% pedigreCB$STEV_ORIG_ZIVAL),]
+Hol9 <- Hol800[which(Hol800$V3 %in% pedigreCB$STEV_ORIG_ZIVAL),] 
 
 #when you strip at 10
 Hol800$V3 <- substring(Hol800$V1, 10)
@@ -64,9 +65,9 @@ TillNowU <- TillNow[unique(TillNow$V1),]
 TillNowU <- TillNowU[,c(1,3)]
 colnames(TillNowU) <- c("Interbull", "STEV_ORIG_ZIVAL") 
 pedigreCB <- pedigreCB[,c(1,5,6,9,10)]
-CB_seq_num <- merge(TillNowU, pedigreCB, by="STEV_ORIG_ZIVAL")
-CB_seq_num <- CB_seq_num[,c(2,3)]
-write.table(CB_seq_num, "~/Genotipi/Genotipi_DATA/Holstein/InterbullID_seq.csv", row.names=F, quote=F, sep=",")
+# CB_seq_num <- merge(TillNowU, pedigreCB, by="STEV_ORIG_ZIVAL")
+#CB_seq_num <- CB_seq_num[,c(2,3)]
+write.table(CB_seq_num, "~/Genotipi/Genotipi_DATA/Genotipi_latest/Crnobela//InterbullID_seq_CB.csv", row.names=F, quote=F, sep=",")
 
 
 #pridobi podatke o Holstein genotipiziranih
