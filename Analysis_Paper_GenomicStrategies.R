@@ -79,20 +79,8 @@ CLD
 mean(acc$COR[acc$AgeCat == "cak5"])
 mean(acc$COR[acc$AgeCat == "genTest1"])
 
-bias <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/Bias_CatAge.csv")[,-1]
-colnames(bias) <- c("Intercept", "Bias", "strategy", "scenario", "rep", "AgeCat")
+bias <- read.csv("Bias_CatAge.csv")
 
-bias <- bias[bias$AgeCat %in% c("genTest1", "cak5", "vhlevljeni1", "mladi2", "potomciNP0", "telF1"),]
-
-biasA <- summarySE(data=bias, measurevar = "Bias" , groupvars = c("scenario", "strategy", "AgeCat"))[,c(1,2,3,5,6)]
-colnames(biasA) <- c("Scenario", "Strategy", "CatAge", "meanBias", "sdBias")
-table(biasA$CatAge)
-
-biasA[biasA$Strategy=="SU55" & biasA$CatAge %in% c("genTest1", "cak5", "vhlevljeni1", "mladi2", "potomciNP0", "telF1"),]
-biasA[biasA$Strategy=="SU51" & biasA$CatAge %in% c("genTest1", "cak5", "vhlevljeni1", "mladi2", "potomciNP0", "telF1"),]
-biasA[biasA$Strategy=="SU15" & biasA$CatAge %in% c("genTest1", "cak5", "vhlevljeni1", "mladi2", "potomciNP0", "telF1"),]
-
-biasSig <- bias[bias$AgeCat %in% c("genTest1", "cak5", "vhlevljeni1", "mladi2", "potomciNP0", "telF1"),]
 ######################################################################################################
 ######################################################################################################
 ######################################################################################################""
@@ -216,7 +204,7 @@ for (strategy in c("SU55", "SU51", "SU15")) {
   
   plotList[[number]] <- 
   ggplot(data = TGVstrategy, aes(x=SDGenicSt, y=zMeanGenic, group=Group, colour=scenario, linetype=scenario)) + 
-    scale_x_reverse(sec.axis=sec_axis(trans=~ . -1.)) +                                   
+    scale_x_reverse(sec.axis=sec_axis(trans=~1-.)) +                                   
                                       #name="Converted/Lost genic standard deviation")) +
     geom_line(aes(linetype=scenario), size=0.2, alpha=0.4) + ggtitle(STRATEGY) + 
         ylim(0,7) + coord_cartesian(xlim = c(1, 0.85)) + theme_bw() +
@@ -250,7 +238,7 @@ library(gtable)
 #mA <- aggregate(maxmin$slope ~ maxmin$strategy, FUN="summary")
 #aggregate(maxmin$minGenicSD ~ maxmin$strategy, FUN="summary")
 # 
-#install.packages("ggpubr")
+install.packages("ggpubr")
 library(ggpubr)
 
 #legend = gtable_filter(ggplotGrob(plotList[[1]]), "axis-b") 
