@@ -35,7 +35,7 @@ acc <- acc[-1,]
 acc
 acc$h2 <- as.factor(acc$h2)
 acc$N <- as.factor(acc$N)
-ggplot(data=acc, aes(x=N, y=r, group=h2, colour=h2)) + geom_line() + ggtitle(paste0("Repeatability: ", round(t, 2))) + xlab("Number of records") + 
+ggplot(data=acc, aes(x=N, y=r, group=h2, colour=h2)) + geom_line() + ggtitle(paste0("Repeatability: ", round(t, 3))) + xlab("Number of records") + 
   ylab("Accuracy") + scale_y_continuous(breaks=c(seq(0, 1.1, by=0.1), 1))
 ggplot(data=acc[acc$h2== 0.25,], aes(x=N, y=r, group=h2, colour=h2)) + geom_line() + ggtitle(paste0("Repeatability: ", round(t, 2))) + xlab("Number of records") + 
   ylab("Accuracy") + scale_y_continuous(breaks=c(seq(0, 0.8, by=0.05), 1))

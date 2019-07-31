@@ -96,10 +96,10 @@ biasSig <- bias[bias$AgeCat %in% c("genTest1", "cak5", "vhlevljeni1", "mladi2", 
 ######################################################################################################
 ######################################################################################################
 ######################################################################################################""
-setwd("/home/jana/Documents/Projects/inProgress/GenomicStrategies_SireUSe/")
+setwd("/home/jana/Documents/PhD/Projects/inProgress/AmountOfPhenotyping//")
 
 #TGVsAll <- read.csv("~/TGVSALL_11062018.csv")
-TGVsAll <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/TGVSALL_14082018.csv")
+TGVsAll <- read.table("~/Documents/PhD/Projects/inProgress/AmountOfPhenotyping//Results/TGVsAll_permEnv_SU55_17072019.csv", header=TRUE)
 #TGVsAll <- read.csv("~/Documents/Projects/inProgress/GenomicStrategies_SireUSe/TGVSALL_14082018.csv")
 #TGVsOCS <- read.csv("~/TGVsAll_OCS_10102018.csv")
 #TGVsAll <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_ReferenceSize//Results/TGVSALL_22082018.csv")
@@ -108,18 +108,12 @@ TGVsAll$strategy <-TGVsAll$Strategy
 
 #add genetic and genic variance (standardised)
 TGVsAll1 <- data.frame()
-for (strategy in c("SU55", "SU51", "SU15")) {
-  for (scenario in c("Class", "GenSLO", "OtherCowsGen", "BmGen", "Gen")) {
-    for (rep in 0:19) {
-      base <- TGVsAll$zMean[TGVsAll$scenario=="Class" & TGVsAll$Strategy=="SU55" & TGVsAll$Rep==rep]
-      TGVs <- TGVsAll[TGVsAll$Strategy==strategy & TGVsAll$scenario==scenario & TGVsAll$Rep==rep,]
+for (strategy in c(2,5,11)) {
+  for (scenario in c("Class")) {
+    for (rep in 0:0) {
+      TGVs <- TGVsAll[TGVsAll$Repeats==strategy & TGVsAll$scenario==scenario & TGVsAll$Rep==rep,]
       TGVs$GeneticVarSt <- TGVs$var / TGVs$var[1]
       TGVs$GenicVarSt <- TGVs$AdditGenicVar1 / TGVs$AdditGenicVar1[1]
-      
-      
-      #add percentage
-      #     TGVs$per_zMean <- TGVs$zMean / base
-      
       TGVsAll1 <- rbind(TGVsAll1, TGVs)  
     }
   }
@@ -193,6 +187,10 @@ maxmin$minGenicSD <- as.numeric(maxmin$minGenicSD)
 maxmin$maxGenicSD <- as.numeric(maxmin$maxGenicSD)
 maxmin$minTGV <- as.numeric(maxmin$minTGV)
 maxmin$maxTGV <- as.numeric(maxmin$maxTGV)
+
+
+TGVsAll$Repeats <- as.factor(TGVsAll$Repeats)
+ggplot(data=TGVsAll, aes(x=Generation, y=zMean, group=Repeats, colour=Repeats)) + geom_line()
 
 #o je z na genetsko standadrizirano gensko variacno
 library(ggplot2)
