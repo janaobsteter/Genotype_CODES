@@ -1,0 +1,21 @@
+DATAFILE
+Blupf901.dat
+TRAITS
+2
+FIELDS_PASSED TO OUTPUT
+
+WEIGHT(S)
+
+RESIDUAL_VARIANCE 
+0.01
+EFFECT
+1 cross alpha  #animal
+RANDOM
+animal
+FILE
+Blupf90.ped
+PED_DEPTH
+0
+(CO)VARIANCES
+1  
+OPTION solution all

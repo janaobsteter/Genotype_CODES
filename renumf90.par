@@ -7,18 +7,15 @@ FIELDS_PASSED TO OUTPUT
 WEIGHT(S)
 
 RESIDUAL_VARIANCE 
-ResidualVariance
+6.973893742
 EFFECT
 1 cross alpha  #animal
 RANDOM
 animal
 FILE
 Blupf90.ped
-SNP_FILE
-GenoFile.txt
 PED_DEPTH
 0
 (CO)VARIANCES
-GeneticVariance  
-OPTION chrinfo SnpMap.txt
-OPTION no_quality_control
+2.3246312473  
+OPTION solution all
