@@ -226,7 +226,9 @@ for rep in [REP]:
     if selPar['gEBV']:
         seltype = 'gen'
 
-
+    print("Start " + str(StartSelGen))
+    print("Stop " + str(StopSelGen))
+    print(str(StopSelGen + 20))
 
 
     ##############################################################################
@@ -265,7 +267,7 @@ for rep in [REP]:
             nastavi_cat('GenPed_EBV.txt', **selPar)
             createHerds = Herds(AlphaSimDir) #to ne naredi nič, samo prebere datotek
             createHerds.create_herds() #ustvari črede, zapiši fajle
-            createHerds.simulateHerdEffects(StartSelGen, StopSelGen, repeats, varH, varHY, varHTD)
+            createHerds.simulateHerdEffects(StartSelGen, StopSelGen + 20, repeats, varH, varHY, varHTD)
 
         else:
             Acc = accuracies(AlphaSimDir)
@@ -314,9 +316,8 @@ for rep in [REP]:
             GenInt.prepareGenInts(['genTest',
                                    'pt'])  # pri klasični so izbrani potomci vsi genomsko testirani (pozTest in pripust) in plemenske telice
 
-
-        if round == 1:
-            os.remove(AlphaSimDir + 'Blupf90.dat')
+	if roundNo == 1:
+	    os.remove(AlphaSimDir + 'Blupf90.dat')	    
         blupNextGen = estimateBV(AlphaSimDir, WorkingDir + "/CodeDir", way='milk', sel=seltype)
         #v obračun gre le HerdYear, varianca za HerdTestDay in Herd gre v ostanek
         varEest = varE + varH + varHTD

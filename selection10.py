@@ -11,7 +11,7 @@ from itertools import chain
 from subprocess import call
 import math
 from random import shuffle
-from pylab import legend
+#from pylab import legend
 from scipy import stats
 import matplotlib.pyplot as plt
 from numpy.random import choice
@@ -256,6 +256,9 @@ class pedigree(classPed):
             self.set_active_list(izlRow, 2)
 
     def izberi_poEBV_top(self, sex, st, oldcat, cat, prevGenDict):
+        nCand = len(self.ped.loc[(self.ped.sex == sex) & (self.ped.Indiv.isin(prevGenDict[oldcat])), 'EBV'])
+        print("Number of candidates is {}".format(nCand))
+        
         selRow = list(
             self.ped.loc[(self.ped.sex == sex) & (self.ped.Indiv.isin(prevGenDict[oldcat])), 'EBV'].sort_values(
                 ascending=False)[:st].index)  # katere izbereš
@@ -510,7 +513,7 @@ class pedigree(classPed):
                            'Father': [0] * stNR,
                            'active': [1] * stNR}, \
                           index=range(max(self.ped.index) + 1, max(self.ped.index) + 1 + stNR))
-        self.ped = pd.concat([self.ped, nr])
+        self.ped = pd.concat([self.ped, nr], sort=False)
 
     def add_new_gen_naive_group(self, stNR, potomciNPn, group, numberOfGroups=1):
 	print("number of stNR is " + str(stNR) + " number of groups is " + str(numberOfGroups))
@@ -970,6 +973,19 @@ class pedigree(classPed):
                                                                for (x, xP, xC, sex) in genotypedCat]))))}).to_csv(
                 'IndForGeno.txt', index=None, header=None)
 
+    def obtainNewGenotypedInd_sex(self, sex, AlphaSimDir):
+        """
+        A function to select the newly genotyped individuals of a particular gender
+        :param sex: animals of which gender to select
+        :return: list of individuals
+        """
+        indGeno = pd.read_csv(AlphaSimDir + "/IndForGeno_new.txt", names=['Indiv'], header=None)
+        ped = pd.read_csv(AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues_cat.txt', sep='\s+', low_memory = False)
+        indCatSex = pd.merge(indGeno, ped[['Indiv', 'sex', 'cat']], on='Indiv')
+        return list(indCatSex.Indiv[indCatSex.sex == sex])
+
+
+
 class Herds(object):
     def __init__(self, AlphaSimDir):
         self.AlphaSimDir = AlphaSimDir
@@ -1112,6 +1128,7 @@ class OrigPed(object):
 
 class blupf90:
     def __init__(self, AlphaSimDir, codeDir, way=None, permEnv = False, varPE = 0, herd = False, varH = 0):
+        print("Initializing blupf90")
         self.blupgenParamFile = codeDir + '/renumf90.par'
         self.blupgenParamFile_Clas = codeDir + '/renumf90_Clas.par'
         self.blupgenParamFile_permEnv = codeDir + '/renumf90_permEnv.par'
@@ -1124,6 +1141,7 @@ class blupf90:
         # self.blupgenParamFile = '/home/jana/Genotipi/Genotipi_CODES/blupf90_Selection'
         # self.blupParamFile = AlphaSimDir + 'blupf90_Selection'
         if way == 'milk':
+            print("Way is milk")
             self.AlphaPed = pd.read_table(AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues_cat.txt', sep=' ')
             if herd:
                 self.AlphaPed.loc[:, "herdYear"] = self.AlphaPed.herd.map(int).map(
@@ -1149,6 +1167,7 @@ class blupf90:
                                                                          range(len(self.blupDatT))]
                     self.blupDatT.loc[:,['Indiv', 'permEnv']].to_csv("PermanentEnv.txt", index=False)
             else:
+                print("Creating BlupT")
                 self.blupDatT = self.AlphaPed.loc[:,
                                 ['Indiv', 'phenoNormUnres1', 'cat', 'sex', 'age', 'active']]
                 
@@ -1170,9 +1189,11 @@ class blupf90:
         self.blupPed.loc[((self.blupPed['Mother'] != 0) & (self.blupPed['Father'] == 0)), 'Code'] = 2
         self.blupPed.loc[((self.blupPed['Mother'] == 0) & (self.blupPed['Father'] == 0)), 'Code'] = 3
         # df['Code'] = df.Code.astype(int)
+        print("Writing .ped")
         self.blupPed.to_csv(self.AlphaSimDir + 'Blupf90.ped', float_format="%.0f", header=None, index=False, sep=" ")
 
     def makePed_gen(self):
+        print("Writing .ped Gen")
         self.blupPed.to_csv(self.AlphaSimDir + 'Blupf90.ped', float_format="%.0f", header=None, index=False, sep=" ")
 
     def deletePhenotype_cat(self, listUnphenotyped):
@@ -1201,13 +1222,9 @@ class blupf90:
 
     # this is for the repeatability model since it merges previous dat file with the new one
     # this one deletes phenotypes of the given sex
-    def makeDat_removePhen_milk(self):
-        # first remove phenotype from animals that do not have phenotype
-        # self.deletePhenotype_sex('M') # odstrani fenotip moškim živalim
-        # self.deletePhenotype_cat(['potomciNP', 'nr', 'telF', 'pt']) #odstrani fenotip ženskim telicam
-        # merge with previous dat file - if there is one - add only the phenotypes of ACTIVE individuals!!!
 
-        # print 'datOld{0}'.format(str(len(blupDatOld)))
+    def makeDat_removePhen_milk(self):
+        print("Making Dat removePhen")
         # pusti samo živali, ki imajo fenotipe (za mleko so to krave in bikovske matere)
         blupDatNew = self.blupDatT.loc[
             (self.blupDatT.active == 1) & ((self.blupDatT.cat == 'k') | (self.blupDatT.cat == 'bm')
@@ -1217,11 +1234,13 @@ class blupf90:
         # blupDatNew.loc[blupDatNew.sex == 'M', 'sex'] = 1
         blupDatNew.loc[blupDatNew.sex == 'F', 'sex'] = 2
         if os.path.isfile(self.AlphaSimDir + 'Blupf90.dat'):
+            print("Writing old plus new")
             blupDatOld = pd.read_csv('Blupf90.dat', sep=" ", names=['Indiv', 'phenoNormUnres1',
                                                                     'sex'])  # to je dat iz prejšnjega kroga selekcija
             pd.concat([blupDatOld, blupDatNew]).to_csv(self.AlphaSimDir + 'Blupf90.dat', header=None, index=False,
                                                    sep=" ")  # dodaj fenotip
         else:
+            print("Writing new")
             blupDatNew.to_csv(self.AlphaSimDir + 'Blupf90.dat', header=None, index=False, sep=" ")
 
     def makeDat_removePhen_milk_repeatedPhenotype(self, varE, repeats):
@@ -1242,7 +1261,6 @@ class blupf90:
             phenoSim = repeatedPhenotypes(self.AlphaSimDir)
             phenoSim.inds_to_keep(list(blupDatNew.Indiv))
             phenoNew = phenoSim.simulatePhenotype(varE, repeats)
-	    print(phenoNew.head())
             phenoNew.loc[phenoNew.sex == 'F', 'sex'] = 2
             pd.concat([blupDatOld, phenoNew]).to_csv(self.AlphaSimDir + 'Blupf90.dat', header=None, index=False,
                                                        sep=" ")  # dodaj fenotip
@@ -1368,6 +1386,8 @@ class repeatedPhenotypes(object):
         for row in range(len(self.selectedPed)):
             indiv, sex, tgv, herd, herdYear, permEnv = list(self.selectedPed.iloc[row])
             herdIndivEff = self.herdEff[(self.herdEff.Herd == herd) & (self.herdEff.Year == self.gen)]
+            print("HerdEff")
+            print(herdIndivEff.head())
             new = OrderedDict({"Indiv": int(indiv), "phenoNormUnres1":
                 [tgv + permEnv + float(herdIndivEff.HerdTdEff[herdIndivEff.Repeat == x])
                  + np.random.normal(loc=0.0, scale=np.sqrt(varE))
@@ -1557,9 +1577,19 @@ def selekcija_total(pedFile, externalPedName = "ExternalPedigree",group=False, g
     #################################################################
     # age 0: štartaš z NB in potomci NP --> odbereš vhlevljene iz potomcev NP in moška teleta in NB
     # NAJPREJ DELI, KI SO SKUPNI PROGENEMU IN GENOMSKEMU TESTIRANJU
-    ped.izberi_random("M", kwargs.get('telMn'), "nr", "telM", categories)  # izberi moška teleta, ki preživijo (random)
-    ped.izloci_random("M", int(kwargs.get('nrMn') - kwargs.get('potomciNPn') - kwargs.get('telMn')), "nr",
-                      categories)  # druga teleta izloči
+    if not kwargs.get("maleGenSelAll") and not ('genTest' in categories.keys()):
+        ped.izberi_random("M", kwargs.get('telMn'), "nr", "telM", categories)  # izberi moška teleta, ki preživijo (random)
+        ped.izloci_random("M", int(kwargs.get('nrMn') - kwargs.get('potomciNPn') - kwargs.get('telMn')), "nr",
+                          categories)  # druga teleta izloči
+
+    #ce odbiram od vseh genotipziranih moskih
+    elif kwargs.get("maleGenSelAll") and ('genTest' in categories.keys()):
+        #then put all genotyped males into "potomciNP" - the easiest solution
+        ped.ped.loc[ped.ped.Indiv.isin(genoMale), 'cat'] = "genTest"
+        telMn_new = (kwargs.get('telMn') - len(genoMale)) if (kwargs.get('telMn') - len(genoMale)) > 0 else 0
+        ped.izberi_random("M", telMn_new, "nr", "telM", categories)  # izberi moška teleta, ki preživijo (random)
+        ped.izloci_random("M", int(kwargs.get('nrMn') - len(genoMale) - kwargs.get('potomciNPn') - telMn_new), "nr",
+                          categories)  # druga teleta izloči
 
     if 'telM' in categories.keys():
         ped.izberi_random("M", kwargs.get('bik12n'), 'telM', 'bik12',
@@ -1643,7 +1673,9 @@ def selekcija_total(pedFile, externalPedName = "ExternalPedigree",group=False, g
 
     # genomski test: potomciNP = genomsko testiranje -> pozitivno testirani
     if kwargs.get('gEBV'):  # v prvem letu so vsi potomciNP v genomskem testiranju oz. pridobivanju gEBV
+        print("Setting {} males to genTest.".format(len(ped.catCurrent_indiv("potomciNP"))))
         ped.set_cat_sex_old('M', "potomciNP", "genTest", categories)
+        print("The number of current genTest is {}".format(str(len(ped.catCurrent_indiv("genTest")))))
         ped.set_active_cat('potomciNP', 1, categories)
 
     if 'genTest' in categories.keys():  # če imaš genomsko testirane bike
@@ -1656,12 +1688,11 @@ def selekcija_total(pedFile, externalPedName = "ExternalPedigree",group=False, g
             ped.izloci_poEBV("M", (kwargs.get('potomciNPn') - kwargs.get('vhlevljenin')), "genTest", categories)
 
         if kwargs.get('genTest_gpb'):
+            print("Selecting gpb out of {} gentest".format(str(len(ped.catCurrent_indiv('genTest')))))
             ped.izberi_poEBV_top("M", kwargs.get('genpbn'), "genTest", "gpb",
                                  categories)  # odberi genomsko testirane bike za AI
             ped.izberi_poEBV_OdDo("M", kwargs.get('genpbn'), kwargs.get('vhlevljenin'), 'genTest', 'pripust1',
                                   categories)  # preostali genomsko testirani gredo v pripust
-            ped.izloci_poEBV("M", (kwargs.get('potomciNPn') - kwargs.get('vhlevljenin')), "genTest", categories)
-
     # prestavi jih naprej predno odbereš progeno testirane
     if 'gpb' in categories.keys():
         ped.set_cat_old('gpb', 'gpb', categories)

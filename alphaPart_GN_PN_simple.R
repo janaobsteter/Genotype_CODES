@@ -8,8 +8,43 @@ library(package = "tidyverse")
 library(package = "AlphaPart")
 library(pedigree)
 
-setwd("/home/jana/Documents/PhD/SimulationAlphaPart")
-homedir = "/home/jana/Documents/PhD/SimulationAlphaPart"
+setwd("/home/jana/Documents/SimulationAlphaPart/")
+ped25 <- read.table("PN1/PedEval1_0.25.csv", header=TRUE)
+ped25$TbvI = 0.5 * (ped25$TbvT1 + ped25$TbvT2)
+ped25$TbvT1_s <- (ped25$TbvT1 - mean(ped25$TbvT1[ped25$Generation == 0])) / sd(ped25$TbvT1[ped25$Generation == 0])
+ped25$TbvT2_s <- (ped25$TbvT2 - mean(ped25$TbvT2[ped25$Generation == 0])) / sd(ped25$TbvT2[ped25$Generation == 0])
+#ped25$TbvI_s <- (ped25$TbvI - mean(ped25$TbvI[ped25$Generation == 0])) / sd(ped25$TbvI[ped25$Generation == 0])
+ped25$TbvI_s <- 0.5 * (ped25$TbvT1_s + ped25$TbvT2_s)
+ped25b$TbvI = 0.5 * (ped25b$TbvT1 + ped25b$TbvT2)
+ped25b$TbvT1_s <- (ped25b$TbvT1 - mean(ped25b$TbvT1[ped25b$Generation == 0])) / sd(ped25b$TbvT1[ped25b$Generation == 0])
+ped25b$TbvT2_s <- (ped25b$TbvT2 - mean(ped25b$TbvT2[ped25b$Generation == 0])) / sd(ped25b$TbvT2[ped25b$Generation == 0])
+#ped25b$TbvI_s <- (ped25b$TbvI - mean(ped25b$TbvI[ped25b$Generation == 0])) / sd(ped25b$TbvI[ped25b$Generation == 0])
+ped25b$TbvI_s <- 0.5 * (ped25b$TbvT1_s + ped25b$TbvT2_s)
+
+ped25b <- read.table("PN1/PedEval1_0.25_0.99Blup.csv", header=TRUE)
+acc <- cbind(ped25 %>% group_by(Generation) %>% summarise(COR=cor(EbvT1, TbvT1)),
+ped25b %>% group_by(Generation) %>% summarise(COR=cor(EbvT1, TbvT1)))[,c(1,2,4)]
+colnames(acc) <- c("Generation", "AccCorr", "AccSp")
+accM <- melt(acc, id.vars = "Generation")
+qplot(data=accM, x=Generation, y=value, group=variable,colour=variable,  geom="line")
+
+Part125 = AlphaPart(x = as.data.frame(ped25), sort = FALSE,
+                  colId = "IId", colFid = "FId", colMid = "MId",
+                  colPath = "ProgramGender", colAGV = c("EbvT1_s", "TbvT1_s"))
+
+
+Part125b = AlphaPart(x = as.data.frame(ped25b), sort = FALSE,
+                  colId = "IId", colFid = "FId", colMid = "MId",
+                  colPath = "ProgramGender", colAGV = c("EbvT1_s", "TbvT1_s"))
+
+Part1Summary25 = summary(object = Part125, by = "Generation")
+Part1Summary25b = summary(object = Part125b, by = "Generation")
+
+
+p125 <- plot(Part1Summary25)
+p125b <- plot(Part1Summary25b)
+
+homedir = "/home/jana/Documents/SimulationAlphaPart/"
 # ---- General parameters ----
 
 nGNMales   =  25
@@ -41,7 +76,7 @@ founderPop = runMacs(nInd = nGNMales + nGNFemales,
 SP = SimParam$new(founderPop)
 # VarA = matrix(data = c(1.0, 0.1, 0.1, 1.0), nrow = 2); cov2cor(VarA)
 VarA = matrix(data = c(1.0, 0.0, 0.0, 1.0), nrow = 2); cov2cor(VarA)
-VarE = matrix(data = c(3.0, 0.0, 0.0, 9.0), nrow = 2); cov2cor(VarE)
+VarE = matrix(data = c(3.0, 0.0, 0.0, 3.0), nrow = 2); cov2cor(VarE)
 
 VarP = VarA + VarE; diag(VarA) / diag(VarP)
 SP$addTraitA(nQtlPerChr = 1000, mean = c(0, 0), var = diag(VarA), cor = cov2cor(VarA))
@@ -172,7 +207,7 @@ accuraciesPN2 <- data.frame(Program = NA, Generation = NA, Trait = NA, Cor = NA)
 ##############################################################################3
 ##############################################################################3
 # ---- Program PN1  ----
-for (Generation in 1:nGenerationEval) {
+for (Generation in 1:10) {  ##nGenerationEval) {
   if (Generation == 1) {
     GNFemales = BaseGNFemales
     GNMales = BaseGNMales
@@ -347,7 +382,7 @@ for (Generation in 1:nGenerationEval) {
   sol1 <- sol1[sol1$V2 %in% PedEval$IId, ]
   sol1 <- sol1[order(match(sol1$V2, PedEval$IId)),]
   PedEval$EbvT1 <- sol1$V3  
-  
+'
   # Trait 2
   # Create phenotype file
   write.table(PedEval[PedEval$Program == "GN",c("IId", "PhenoT2", "Program")], "Blupf902.dat", 
@@ -366,7 +401,7 @@ for (Generation in 1:nGenerationEval) {
   sol2 <- sol2[order(match(sol2$V2, PedEval$IId)),]
   PedEval$EbvT2 <- sol2$V3
   
-  
+'
   # Set EBVs for SelCand
   SelCand@ebv = as.matrix(PedEval[PedEval$IId %in% SelCand@id, c("EbvT1", "EbvT2")])
   accuraciesPN1 <- rbind(accuraciesPN1, c("PN1", Generation, 1, cor(SelCand@ebv[,1], SelCand@gv[,1]) ))
@@ -416,6 +451,11 @@ rm(DataEvalGN)
 
 accuraciesPN1$Cor <- as.numeric(accuraciesPN1$Cor)
 ggplot(accuraciesPN1, aes(x=Generation, y=Cor, group=Program, colour=Program, shape=Trait)) +  geom_point()
+
+write.table(PedEval1, paste0("PedEval1.csv"), quote=FALSE, row.names=FALSE)
+write.table(DataEvalGN1, paste0("DataEval1.csv"), quote=FALSE, row.names=FALSE)
+write.table(accuraciesPN1, paste0("Accuracies1.csv"), quote=FALSE, row.names=FALSE)
+
 ##############################################################################3
 ##############################################################################3
 # ---- PN2 ----
@@ -684,7 +724,12 @@ rm(DataEvalGN)
 
 accuraciesPN2$Cor <- as.numeric(accuraciesPN2$Cor)
 ggplot(accuraciesPN2, aes(x=Generation, y=Cor, group=Program, colour=Program, shape=Trait)) +  geom_point()
-####################################################################################################
+
+
+write.table(PedEval2, paste0("PedEval2.csv"), quote=FALSE, row.names=FALSE)
+write.table(DataEvalGN2, paste0("DataEval2.csv"), quote=FALSE, row.names=FALSE)
+write.table(accuraciesPN2, paste0("Accuracies2.csv"), quote=FALSE, row.names=FALSE)
+###################################################################################################
 ####################################################################################################
 
 # Plot genetic means
@@ -780,9 +825,9 @@ Part1PN$EbvT2_s <- Part1PN$EbvT2_s[Part1PN$EbvT2_s$Program == "PN1",]
 Part1PN$EbvI_s <- Part1PN$EbvI_s[Part1PN$EbvI_s$Program == "PN1",]
 
 Part1GN <- Part1
-Part1GN$EbvT1_s <- Part1GN$EbvT1_s[Part1GN$EbvT1_s$Program == "PN1",]
-Part1GN$EbvT2_s <- Part1GN$EbvT2_s[Part1GN$EbvT2_s$Program == "PN1",]
-Part1GN$EbvI_s <- Part1GN$EbvI_s[Part1GN$EbvI_s$Program == "PN1",]
+Part1GN$EbvT1_s <- Part1GN$EbvT1_s[Part1GN$EbvT1_s$Program == "GN",]
+Part1GN$EbvT2_s <- Part1GN$EbvT2_s[Part1GN$EbvT2_s$Program == "GN",]
+Part1GN$EbvI_s <- Part1GN$EbvI_s[Part1GN$EbvI_s$Program == "GN",]
 
 Part1SummaryPN = summary(object = Part1PN, by = "Generation")
 p1cPN <- plot(Part1SummaryPN)
@@ -797,9 +842,9 @@ Part2PN$EbvT2_s <- Part2PN$EbvT2_s[Part2PN$EbvT2_s$Program == "PN2",]
 Part2PN$EbvI_s <- Part2PN$EbvI_s[Part2PN$EbvI_s$Program == "PN2",]
 
 Part2GN <- Part2
-Part2GN$EbvT2_s <- Part2GN$EbvT2_s[Part2GN$EbvT2_s$Program == "PN2",]
-Part2GN$EbvT2_s <- Part2GN$EbvT2_s[Part2GN$EbvT2_s$Program == "PN2",]
-Part2GN$EbvI_s <- Part2GN$EbvI_s[Part2GN$EbvI_s$Program == "PN2",]
+Part2GN$EbvT2_s <- Part2GN$EbvT2_s[Part2GN$EbvT2_s$Program == "GN",]
+Part2GN$EbvT2_s <- Part2GN$EbvT2_s[Part2GN$EbvT2_s$Program == "GN",]
+Part2GN$EbvI_s <- Part2GN$EbvI_s[Part2GN$EbvI_s$Program == "GN",]
 
 Part2SummaryPN = summary(object = Part2PN, by = "Generation")
 p2cPN <- plot(Part2SummaryPN)
@@ -982,15 +1027,32 @@ ggplot(data = avgGibbsPart_Mean, aes(x=Generation, y=value, group=variable, colo
 
 ############################
 ############################
-PedEval1 <- PedEval1[,1:38]
-PedEval1Copy <- PedEval1
+setwd("/home/jana/Documents/SimulationAlphaPart/")
+PedEval1 <- read.table("PedEval1.csv", header=TRUE)
+#check the bias
+PedEval1$bias1 <- PedEval1$TbvT1 - PedEval1$EbvT1
+PedEval1$bias2 <- PedEval1$TbvT2 - PedEval1$EbvT2
+summarySE(data = PedEval1, groupvars = "Gender", measurevar = "bias1")
+summarySE(data = PedEval1, groupvars = "Gender", measurevar = "bias2")
+
+library(dplyr)
+PedEval1 %>% 
+  group_by(Generation) %>%
+  summarize(COR=cor(TbvT1, EbvT1))
+
+
+PedEval1$ProgramGender <- paste(PedEval1$Program, PedEval1$Gender)
+#PedEval1 <- PedEval1[,1:22]
+#PedEval1Copy <- PedEval1
 
 
 #PN1 - trait 2
-for (split in 0:19) {
+library(tidyr)
+library(AlphaPart)
+for (split in 0:89) {
   print(paste0("SPLIT: ", split))
   #read in a split portion of the solutions
-  gR <- read.table("../PN1/GIBBS2_sort.csv", skip = split * 3360500, nrows = 3360500)[,-1]
+  gR <- read.table("GIBBS2_sort.csv", skip = split * 3360500, nrows = 3360500)[,-1]
   colnames(gR) <- c("ID", "EBV2", "Sample")
   g <- spread(gR, Sample, EBV2)
   
@@ -1021,7 +1083,7 @@ for (split in 0:19) {
   
   if (split == 0) {
     gibbsPart2 <- data.frame()
-  }
+  # }
   
   for (sample in Samples) {
     col = paste0("EBV2_", sample, "_s")
@@ -1045,3 +1107,102 @@ avgGibbsPart2_m <- melt(avgGibbsPart2, id.vars = "Generation")
 avgGibbsPart2_Mean <- avgGibbsPart2_m[avgGibbsPart2_m$variable %in% c("GN-F", "GN-M", "PN1-F", "PN1-M"),]
 ggplot(data = avgGibbsPart2_Mean, aes(x=Generation, y=value, group=variable, colour=variable)) + geom_line() + ggtitle("Trait 2")
   
+###########
+#small example
+library(AlphaPart)
+library(AlphaSimR)
+ped = data.frame(ID = c("A", "B", "C", "T", "E", "D", "U", "V"),
+                 Mother = c(NA, NA, "A", NA, "C", "C", NA, "E"),
+                 Father = c(NA, NA, "B", "B", "D", NA, "D", NA),
+                 Country = c("X", "Y", "X", "Y", "X", "Y", "Y", "X"))
+
+#library(AlphaSimR)
+founderPop = runMacs(nInd = 8,
+                     nChr = 10,
+                     segSites = 1000,
+                     nThreads = 4,
+                     # species = "GENERIC")
+                     species = "CATTLE")
+
+SP = SimParam$new(founderPop)
+# VarA = matrix(data = c(1.0, 0.1, 0.1, 1.0), nrow = 2); cov2cor(VarA)
+VarA = matrix(data = c(1.0, 0.0, 0.0, 1.0), nrow = 2); cov2cor(VarA)
+VarE = matrix(data = c(3.0, 0.0, 0.0, 9.0), nrow = 2); cov2cor(VarE)
+
+VarP = VarA + VarE; diag(VarA) / diag(VarP)
+SP$addTraitA(nQtlPerChr = 1000, mean = c(0, 0), var = diag(VarA), cor = cov2cor(VarA))
+# SP$addSnpChip(nSnpPerChr = 1000)
+SP$setGender(gender = "yes_rand")
+
+
+TestPop = newPop(founderPop)
+TestPop = setPheno(pop = TestPop, varE = VarE)
+blupPed = ped
+setwd("/home/jana/Documents/SimulationAlphaPart/Test/")
+write.table(blupPed, "Blupf90.ped", quote=FALSE, row.names=FALSE, col.names=FALSE, na = "0")
+TestPop@pheno[,1]
+pedTmp <- ped
+pedTmp$pheno1 <- TestPop@pheno[,1]
+pedTmp$pheno2 <- TestPop@pheno[,2]
+write.table(pedTmp[,c("ID", "pheno1")], "Blupf901.dat", quote=FALSE, row.names=FALSE, col.names=FALSE, na = "0")
+write.table(pedTmp[,c("ID", "pheno2")], "Blupf902.dat", quote=FALSE, row.names=FALSE, col.names=FALSE, na = "0")
+
+system(command = "./renumf90 < renumParam1")
+system(command = "./blupf90 renf90.par")
+system(command = "bash Match_AFTERRenum.sh")
+system(command = paste0("mv renumbered_Solutions renumbered_Solutions_1" ))
+
+system(command = "./renumf90 < renumParam2")
+system(command = "./blupf90 renf90.par")
+system(command = "bash Match_AFTERRenum.sh")
+system(command = paste0("mv renumbered_Solutions renumbered_Solutions_2" ))
+
+##check correlation
+sol1 <- read.table("renumbered_Solutions_1")
+colnames(sol1) <- c("renID", "ID", "EBV1")
+sol2 <- read.table("renumbered_Solutions_2")
+colnames(sol2) <- c("renID", "ID", "EBV2")
+ped <- merge(ped, sol1[,2:3], by= "ID")
+ped <- merge(ped, sol2[,2:3], by= "ID")
+ped$TGV1 <- TestPop@gv[,1]
+ped$TGV2 <- TestPop@gv[,2]
+ped$Gender = TestPop@gender
+
+library(dplyr)
+ped$EBV1 <- as.numeric(ped$EBV1)
+ped$EBV2 <- as.numeric(ped$EBV2)
+ped$TGV1 <- as.numeric(ped$TGV1)
+ped$TGV2 <- as.numeric(ped$TGV2)
+ped$Country <- as.factor(ped$Country)
+
+
+library(plyr)
+cor(ped$EBV1[ped$Country == "X"], ped$TGV1[ped$Country == "X"])
+cor(ped$EBV1[ped$Country == "Y"], ped$TGV1[ped$Country == "Y"])
+cor(ped$EBV1[ped$Gender == "M"], ped$TGV1[ped$Gender == "M"])
+cor(ped$EBV1[ped$Gender == "F"], ped$TGV1[ped$Gender == "F"])
+
+ped$bias1 <- ped$TGV1 - ped$EBV1
+ped$bias2 <- ped$TGV2 - ped$EBV2
+
+
+ped %>%
+  group_by(Gender) %>%
+  summarize(COR=cor(TGV1, EBV1))
+ped %>%
+  group_by(Gender) %>%
+  summarize(COR=cor(TGV2, EBV2))
+
+testPartG <- AlphaPart( ped, sort = FALSE,
+                       colId = "ID", colFid = "Father", colMid = "Mother",
+                       colPath = "Country", colAGV = c("TGV1", "TGV2"))
+sumTestPartG <- summary(object = testPartG, by = "Gender")
+plot(sumTestPartG)
+
+testPart <- AlphaPart( ped, sort = FALSE,
+                       colId = "ID", colFid = "Father", colMid = "Mother",
+                       colPath = "Country", colAGV = c("EBV1", "EBV2"))
+
+sumTestPart <- summary(object = testPart, by = "Gender")
+plot(sumTestPart)
+

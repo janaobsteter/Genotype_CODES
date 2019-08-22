@@ -169,13 +169,13 @@ print(variances)
 
 
 print("Creating directory " + scenario + str(rep) + "_" + str(repeats))
-if os.path.isdir(scenario + str(rep) + "_" + str(repeats)):
+if os.path.isdir(scenario + str(rep) + "_" + str(repeats) + "Male"):
 	print("Directory exists")
 	exit()
-if not os.path.isdir(scenario + str(rep) + "_" + str(repeats)):
-	os.makedirs(scenario + str(rep)+ "_" + str(repeats))
+if not os.path.isdir(scenario + str(rep) + "_" + str(repeats) + "Male"):
+	os.makedirs(scenario + str(rep)+ "_" + str(repeats) + "Male")
 
-SelectionDir = scenario + str(rep) + "_" + str(repeats) + "/"
+SelectionDir = scenario + str(rep) + "_" + str(repeats) + "Male/"
 
 
 print("Repeats " + str(repeats) + " " + str(type(repeats)))
@@ -199,7 +199,7 @@ os.system("chmod a+x renumf90")
 os.system("chmod a+x blupf90")
 
 
-par = pd.read_csv(WorkingDir + "/Essentials/" +  refSize + "/" + strategy + "SelPar/SelectionParam_" + scenario + ".csv", header=None, names=["Keys", "Vals"])
+par = pd.read_csv(WorkingDir + "/Essentials/" +  refSize + "/" + strategy + "SelPar/SelectionParam_" + scenario + "_MaleGS.csv", header=None, names=["Keys", "Vals"])
 par.to_dict()
 selPar = defaultdict()
 for key, val in zip(par.Keys, par.Vals):
@@ -245,7 +245,7 @@ if selPar['gEBV']:
 #SELEKCIJA
 ##############################################################################
 print(AlphaSimDir)
-for roundNo in range(21,41): #za vsak krog selekcije
+for roundNo in range(21,22): #za vsak krog selekcije
 
     # prestavi se v AlphaSim Dir
     if not os.path.isfile(AlphaSimDir + 'ReferenceSize.txt') and os.path.isfile(AlphaSimDir + "IndForGeno.txt"):
