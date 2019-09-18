@@ -294,19 +294,19 @@ for rep in [REP]:
             GenInt.prepareGenInts(['genTest',
                                    'pt'])  # pri klasični so izbrani potomci vsi genomsko testirani (pozTest in pripust) in plemenske telice
 
-	if roundNo == 1:
-	    os.remove(AlphaSimDir + 'Blupf90.dat')
+        if roundNo == 1:
+            os.remove(AlphaSimDir + 'Blupf90.dat')
 
-    blupNextGen = estimateBV(AlphaSimDir, WorkingDir + "/CodeDir", way='milk', sel=seltype)
-    #v obračun gre le HerdYear, varianca za HerdTestDay in Herd gre v ostanek
-    varEest = varE + varH + varHTD
-    blupNextGen.computeEBV_permEnv_herd(setVar=True, varPE=varPE, varE=varEest, varH=varHY,
-                                   repeats=repeats)
-    Acc.saveAcc()
-    #GenTrends.saveTrends()
-    # zdaj za vsako zapiši, ker vsakič na novo prebereš
-    Acc.writeAcc()
-    #GenTrends.writeTrends()
+        blupNextGen = estimateBV(AlphaSimDir, WorkingDir + "/CodeDir", way='milk', sel=seltype)
+        #v obračun gre le HerdYear, varianca za HerdTestDay in Herd gre v ostanek
+        varEest = varE + varH + varHTD
+        blupNextGen.computeEBV_permEnv_herd(setVar=True, varPE=varPE, varE=varEest, varH=varHY,
+                                       repeats=repeats)
+        Acc.saveAcc()
+        #GenTrends.saveTrends()
+        # zdaj za vsako zapiši, ker vsakič na novo prebereš
+        Acc.writeAcc()
+        #GenTrends.writeTrends()
 
 
 

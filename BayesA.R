@@ -70,3 +70,10 @@ aHat  = x %*% meanb;
 corr = cor(a,aHat);
 cat ("corr = ",corr, "\n");
 plot(a,aHat)
+
+
+library(geoR)
+samples <- rinvchisq(100000, df=5000, scale=0.003)
+var <- rinvchisq(1, df=5, scale=0.003)
+samples <- rnorm(100000, sd = sqrt(var))
+plot(density(samples))

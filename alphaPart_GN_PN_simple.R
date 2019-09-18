@@ -1,5 +1,7 @@
 # 
 # ---- Environment ----
+p1Interaction <- p1
+p1gInteraction <- p1g
 
 rm(list = ls())
 
@@ -9,6 +11,7 @@ library(package = "AlphaPart")
 library(pedigree)
 
 setwd("/home/jana/Documents/SimulationAlphaPart/")
+'
 ped25 <- read.table("PN1/PedEval1_0.25.csv", header=TRUE)
 ped25$TbvI = 0.5 * (ped25$TbvT1 + ped25$TbvT2)
 ped25$TbvT1_s <- (ped25$TbvT1 - mean(ped25$TbvT1[ped25$Generation == 0])) / sd(ped25$TbvT1[ped25$Generation == 0])
@@ -43,7 +46,7 @@ Part1Summary25b = summary(object = Part125b, by = "Generation")
 
 p125 <- plot(Part1Summary25)
 p125b <- plot(Part1Summary25b)
-
+'
 homedir = "/home/jana/Documents/SimulationAlphaPart/"
 # ---- General parameters ----
 
@@ -155,36 +158,36 @@ BasePNFemales = selectInd(pop = SelCand, nInd = nPNFemales, gender = "F",
 
 PedEval = rbind(tibble(Generation = 0,
                        IId        = BaseGNMales@id,
-                       FId        = BaseGNMales@father,
-                       MId        = BaseGNMales@mother ,
+                       FId        = NA,
+                       MId        = NA,
                        Gender     = BaseGNMales@gender,
                        Program    = "GN",
-                       PhenoT1    = BaseGNMales@pheno[,1],
-                       PhenoT2    = BaseGNMales@pheno[,2],
+                       PhenoT1    = NA, #BaseGNMales@pheno[,1],
+                       PhenoT2    = NA, #BaseGNMales@pheno[,2],
                        EbvT1      = BaseGNMales@ebv[, 1],
                        EbvT2      = BaseGNMales@ebv[, 2],
                        TbvT1      = BaseGNMales@gv[, 1],
                        TbvT2      = BaseGNMales@gv[, 2]),
                 tibble(Generation = 0,
                        IId        = BaseGNFemales@id,
-                       FId        = BaseGNFemales@father,
-                       MId        = BaseGNFemales@mother,
+                       FId        = NA,
+                       MId        = BNA,
                        Gender     = BaseGNFemales@gender,
                        Program    = "GN",
-                       PhenoT1    = BaseGNFemales@pheno[,1],
-                       PhenoT2    = BaseGNFemales@pheno[,2],
+                       PhenoT1    = NA, #BaseGNFemales@pheno[,1],
+                       PhenoT2    = NA, #BaseGNFemales@pheno[,2],
                        EbvT1      = BaseGNFemales@ebv[, 1],
                        EbvT2      = BaseGNFemales@ebv[, 2],
                        TbvT1      = BaseGNFemales@gv[, 1],
                        TbvT2      = BaseGNFemales@gv[, 2]),
                 tibble(Generation = 0,
                        IId        = BasePNFemales@id,
-                       FId        = BasePNFemales@father,
-                       MId        = BasePNFemales@mother,
+                       FId        = NA,
+                       MId        = NA,
                        Gender     = BasePNFemales@gender,
                        Program    = "PN1",
-                       PhenoT1    = BasePNFemales@pheno[,1],
-                       PhenoT2    = BasePNFemales@pheno[,2],
+                       PhenoT1    = NA, #BasePNFemales@pheno[,1],
+                       PhenoT2    = NA, #BasePNFemales@pheno[,2],
                        EbvT1      = BasePNFemales@ebv[, 1],
                        EbvT2      = BasePNFemales@ebv[, 2],
                        TbvT1      = BasePNFemales@gv[, 1],
@@ -207,7 +210,7 @@ accuraciesPN2 <- data.frame(Program = NA, Generation = NA, Trait = NA, Cor = NA)
 ##############################################################################3
 ##############################################################################3
 # ---- Program PN1  ----
-for (Generation in 1:10) {  ##nGenerationEval) {
+for (Generation in 1:nGenerationEval) {  ##nGenerationEval) {
   if (Generation == 1) {
     GNFemales = BaseGNFemales
     GNMales = BaseGNMales
@@ -257,14 +260,14 @@ for (Generation in 1:10) {  ##nGenerationEval) {
   
   # Create phenotype file
   # Trait 1
-  write.table(PedEval[,c("IId", "PhenoT1", "Program")], "Blupf901.dat", 
+  write.table(PedEval[PedEval$Program == "GN",c("IId", "PhenoT1", "Program", "Generation")], "Blupf901.dat", 
               quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ", 
               na = "0", append = file.exists("Blupf901.dat"))
 
   
   # Trait 2
   # Create phenotype file
-  write.table(PedEval[PedEval$Program == "GN",c("IId", "PhenoT2", "Program")], "Blupf902.dat", 
+  write.table(PedEval[,c("IId", "PhenoT2", "Program", "Generation")], "Blupf902.dat", 
               quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ", 
               na = "0", append = file.exists("Blupf902.dat"))
   
@@ -319,6 +322,9 @@ for (Generation in 1:10) {  ##nGenerationEval) {
                                 use = "ebv", trait = function(x) rowMeans(x, na.rm = TRUE))
   SelCand = randCross2(females = PNFemales1ForPure, males = GNMales,
                        nCrosses = PNFemales1ForPure@nInd, nProgeny = 14)
+  
+  
+
   # SelCand@nInd
   # meanG(PNFemales1); meanG(PNFemales1ForPure); meanG(GNMales); meanG(SelCand)
   
@@ -333,7 +339,7 @@ for (Generation in 1:10) {  ##nGenerationEval) {
   
   # Phenotype
   SelCand = setPheno(pop = SelCand, varE = VarE)
-  SelCand@pheno[, 2] = NA
+  SelCand@pheno[, 1] = NA
   
   
   # Track pedigree
@@ -366,7 +372,7 @@ for (Generation in 1:10) {  ##nGenerationEval) {
   
   # Create phenotype file
   # Trait 1
-  write.table(PedEval[,c("IId", "PhenoT1", "Program")], "Blupf901.dat", 
+  write.table(PedEval[PedEval$Program == "GN",c("IId", "PhenoT1", "Program", "Generation")], "Blupf901.dat", 
               quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ", 
               na = "0", append = file.exists("Blupf901.dat"))
   
@@ -382,10 +388,10 @@ for (Generation in 1:10) {  ##nGenerationEval) {
   sol1 <- sol1[sol1$V2 %in% PedEval$IId, ]
   sol1 <- sol1[order(match(sol1$V2, PedEval$IId)),]
   PedEval$EbvT1 <- sol1$V3  
-'
+
   # Trait 2
   # Create phenotype file
-  write.table(PedEval[PedEval$Program == "GN",c("IId", "PhenoT2", "Program")], "Blupf902.dat", 
+  write.table(PedEval[,c("IId", "PhenoT2", "Program", "Generation")], "Blupf902.dat", 
               quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ", 
               na = "0", append = file.exists("Blupf902.dat"))  
   
@@ -401,45 +407,20 @@ for (Generation in 1:10) {  ##nGenerationEval) {
   sol2 <- sol2[order(match(sol2$V2, PedEval$IId)),]
   PedEval$EbvT2 <- sol2$V3
   
-'
+
   # Set EBVs for SelCand
   SelCand@ebv = as.matrix(PedEval[PedEval$IId %in% SelCand@id, c("EbvT1", "EbvT2")])
-  accuraciesPN1 <- rbind(accuraciesPN1, c("PN1", Generation, 1, cor(SelCand@ebv[,1], SelCand@gv[,1]) ))
-  accuraciesPN1 <- rbind(accuraciesPN1, c("PN1", Generation, 2, cor(SelCand@ebv[,2], SelCand@gv[,2]) ))
-  
-  # TOLE NI VEČ AKTUALNO, KER SE JE EBV v GNMALES SPREMENILA - imamo novejšo napoved
-  '
-  EbvT2Males = merge(x = tibble(FId = unique(SelCand@father)),
-  y = tibble(IId = GNMales@id,
-  EbvT2 = GNMales@ebv[, 2]),
-  by.x = "FId", by.y = "IId")
-  rownames(EbvT2Males) = EbvT2Males$FId
-  EbvT2Females = merge(x = tibble(MId = unique(SelCand@mother)),
-  y = tibble(IId = PNFemales1ForPure@id,
-  EbvT2 = PNFemales1ForPure@ebv[, 2]),
-  by.x = "MId", by.y = "IId")
-  rownames(EbvT2Females) = EbvT2Females$MId
-  '
-  
-  
-  '  # EbvT1 se zgoraj nastavi za vse živali, EbvT2 pa moraš kot PA ročno vnesti v PedEval
-  PN1Animal <- PedEval[PedEval$IId %in% SelCand@id, c("IId", "FId", "MId")]
-  PN1Fathers <- unique(PedEval[PedEval$IId %in% PedEval$FId[PedEval$Program == "PN1"], c("IId", "EbvT2")])
-  colnames(PN1Fathers) <- c("FId", "F_EbvT2")
-  PN1Mothers <- unique(PedEval[PedEval$IId %in% PedEval$MId[PedEval$Program == "PN1"], c("IId", "EbvT2")])
-  colnames(PN1Mothers) <- c("MId", "M_EbvT2")
-  PN1Animal <- merge(PN1Animal, PN1Fathers, by="FId")
-  PN1Animal <- merge(PN1Animal, PN1Mothers, by="MId")
-  PN1Animal$PA <- 0.5 * (PN1Animal$F_EbvT2 + PN1Animal$M_EbvT2)
-  PedEval$EbvT2[PedEval$IId %in% PN1Animal$IId] <- PN1Animal$PA[order(match(PN1Animal$IId, PedEval$IId[PedEval$IId %in% PN1Animal$IId]))]
   
   # Select
   PNMales1   = selectInd(pop = SelCand, nInd = nPNMales,   gender = "M",
-  use = "ebv", trait = function(x) rowMeans(x, na.rm = TRUE))
+                         use = "ebv", trait = function(x) rowMeans(x, na.rm = TRUE))
   PNFemales1 = selectInd(pop = SelCand, nInd = nPNFemales, gender = "F",
-  use = "ebv", trait = function(x) rowMeans(x, na.rm = TRUE))
+                         use = "ebv", trait = function(x) rowMeans(x, na.rm = TRUE))
   
-  '
+  accuraciesPN1 <- rbind(accuraciesPN1, c("PN1", Generation, 1, cor(SelCand@ebv[,1], SelCand@gv[,1]) ))
+  accuraciesPN1 <- rbind(accuraciesPN1, c("PN1", Generation, 2, cor(SelCand@ebv[,2], SelCand@gv[,2]) ))
+  
+ 
   # Clean
   rm(SelCand)
 }
@@ -448,9 +429,64 @@ PedEval1 = PedEval
 rm(PedEval)
 DataEvalGN1 = DataEvalGN
 rm(DataEvalGN)
+write.table(PedEval1,"PedEval_NewModel_0.25.csv", quote=FALSE, row.names=FALSE)
+
+# ---- Partitioning the trend PN1 ----
+PedEval1$EbvI = 0.5 * (PedEval1$EbvT1 + PedEval1$EbvT2)
+PedEval1$EbvT1_s <- (PedEval1$EbvT1 - mean(PedEval1$EbvT1[PedEval1$Generation == 0])) / sd(PedEval1$TbvT1[PedEval1$Generation == 0])
+PedEval1$EbvT2_s <- (PedEval1$EbvT2 - mean(PedEval1$EbvT2[PedEval1$Generation == 0])) / sd(PedEval1$TbvT2[PedEval1$Generation == 0])
+#PedEval1$EbvI_s <- (PedEval1$EbvI - mean(PedEval1$EbvI[PedEval1$Generation == 0])) / sd(PedEval1$EbvI[PedEval1$Generation == 0])
+PedEval1$EbvI_s <- 0.5 * (PedEval1$EbvT1_s + PedEval1$EbvT2_s)
+
+
+PedEval1$TbvI = 0.5 * (PedEval1$TbvT1 + PedEval1$TbvT2)
+PedEval1$TbvT1_s <- (PedEval1$TbvT1 - mean(PedEval1$TbvT1[PedEval1$Generation == 0])) / sd(PedEval1$TbvT1[PedEval1$Generation == 0])
+PedEval1$TbvT2_s <- (PedEval1$TbvT2 - mean(PedEval1$TbvT2[PedEval1$Generation == 0])) / sd(PedEval1$TbvT2[PedEval1$Generation == 0])
+#PedEval1$TbvI_s <- (PedEval1$TbvI - mean(PedEval1$TbvI[PedEval1$Generation == 0])) / sd(PedEval1$TbvI[PedEval1$Generation == 0])
+PedEval1$TbvI_s <- 0.5 * (PedEval1$TbvT1_s + PedEval1$TbvT2_s)
+
+
+PedEval1$ProgramGender = paste(PedEval1$Program, PedEval1$Gender, sep = "-")
+Part1 = AlphaPart(x = as.data.frame(PedEval1), sort = FALSE,
+                  colId = "IId", colFid = "FId", colMid = "MId",
+                  colPath = "ProgramGender", colAGV = c("EbvT1_s", "EbvT2_s", "EbvI_s"))
+Part1g = AlphaPart(x = as.data.frame(PedEval1), sort = FALSE,
+                  colId = "IId", colFid = "FId", colMid = "MId",
+                  colPath = "ProgramGender", colAGV = c("TbvT1_s", "TbvT2_s", "TbvI_s"))
+
+
+Part1Summary = summary(object = Part1, by = "Generation")
+Part1gSummary = summary(object = Part1g, by = "Generation")
+p1 <- plot(Part1Summary)
+p1g <- plot(Part1gSummary)
 
 accuraciesPN1$Cor <- as.numeric(accuraciesPN1$Cor)
 ggplot(accuraciesPN1, aes(x=Generation, y=Cor, group=Program, colour=Program, shape=Trait)) +  geom_point()
+
+
+head(PedEval1)
+gainAe <- summarySE(data=PedEval1, measurevar = "EbvT1", groupvars = c("Generation", "Program"))
+gainAe$BV <- "EBV"
+colnames(gainAe)[4] <- "value"
+gainAt <- summarySE(data=PedEval1, measurevar = "TbvT1", groupvars = c("Generation", "Program"))
+gainAt$BV <- "TBV"
+colnames(gainAt)[4] <- "value"
+gainA <- rbind(gainAe, gainAt)
+
+t1 <-ggplot(data = gainA, aes(x=Generation, y=value, group=BV, colour=BV)) + geom_line() + facet_grid(~ Program )
+
+head(PedEval1)
+gainAe <- summarySE(data=PedEval1, measurevar = "EbvT2", groupvars = c("Generation", "Program"))
+gainAe$BV <- "EBV"
+colnames(gainAe)[4] <- "value"
+gainAt <- summarySE(data=PedEval1, measurevar = "TbvT2", groupvars = c("Generation", "Program"))
+gainAt$BV <- "TBV"
+colnames(gainAt)[4] <- "value"
+gainA <- rbind(gainAe, gainAt)
+
+t2 <- ggplot(data = gainA, aes(x=Generation, y=value, group=BV, colour=BV)) + geom_line() + facet_grid(~ Program )
+
+
 
 write.table(PedEval1, paste0("PedEval1.csv"), quote=FALSE, row.names=FALSE)
 write.table(DataEvalGN1, paste0("DataEval1.csv"), quote=FALSE, row.names=FALSE)
@@ -496,7 +532,7 @@ PedEval = rbind(tibble(Generation = 0,
                        Gender     = BasePNFemales@gender,
                        Program    = "PN2",
                        PhenoT1    = BasePNFemales@pheno[,1],
-                       PhenoT2    = BasePNFemales@pheno[,2],
+                       PhenoT2    = NA,
                        EbvT1      = BasePNFemales@ebv[, 1],
                        EbvT2      = BasePNFemales@ebv[, 2],
                        TbvT1      = BasePNFemales@gv[, 1],
@@ -553,13 +589,13 @@ for (Generation in 1:nGenerationEval) {
   
   # Create phenotype file
   # Trait 1
-  write.table(PedEval[,c("IId", "PhenoT1", "Program")], "Blupf901.dat", 
+  write.table(PedEval[,c("IId", "PhenoT1", "Program", "Generation")], "Blupf901.dat", 
               quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ", 
               na = "0", append = file.exists("Blupf901.dat"))
   
   # Trait 2
   # Create phenotype file
-  write.table(PedEval[PedEval$Program == "GN",c("IId", "PhenoT2", "Program")], "Blupf902.dat", 
+  write.table(PedEval[PedEval$Program == "GN",c("IId", "PhenoT2", "Program", "Generation")], "Blupf902.dat", 
               quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ", 
               na = "0", append = file.exists("Blupf902.dat"))
   
@@ -656,7 +692,7 @@ for (Generation in 1:nGenerationEval) {
   
   # Create phenotype file
   # Trait 1
-  write.table(PedEval[,c("IId", "PhenoT1", "Program")], "Blupf901.dat", 
+  write.table(PedEval[,c("IId", "PhenoT1", "Program", "Generation")], "Blupf901.dat", 
               quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ", 
               na = "0", append = file.exists("Blupf901.dat"))
   
@@ -674,7 +710,7 @@ for (Generation in 1:nGenerationEval) {
   
   # Create phenotype file
   # Trait 2
-  write.table(PedEval[PedEval$Program == "GN",c("IId", "PhenoT2", "Program")], "Blupf902.dat", 
+  write.table(PedEval[PedEval$Program == "GN",c("IId", "PhenoT2", "Program", "Generation")], "Blupf902.dat", 
               quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ", 
               na = "0", append = file.exists("Blupf902.dat"))
   
