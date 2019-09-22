@@ -1,14 +1,41 @@
+library(plyr)
 males <- read.table("~/Documents/Projects/inProgress/Phenotyping/TGVsAll_permEnv_MaleSU55_19082019.csv", header=TRUE)
 var <- read.table("~/Documents/Projects/inProgress/Phenotyping/TGVsAll_permEnv_varESU55_05092019.csv", header=TRUE)
 var <- read.table("~/Documents/Projects/inProgress/Phenotyping/TGVsAll_permEnv_varESU55_06092019.csv", header=TRUE)
 pheno <- read.table("~/Documents/Projects/inProgress/Phenotyping/TGVsAll_pheno_12092019.csv", header=TRUE)
+pheno <- read.csv("~/Documents/Projects/inProgress/Phenotyping/TGVsAll_comparisonPheno_rep0.csv", header=TRUE)
+pheno$scenario <- factor(pheno$scenario, levels =c("Class", "1_1", "1_2", "2_1"))
+pheno$scenario <- revalue(pheno$scenario, c("Class" = "PT", "1_1" = "$G:$P = 1:1", "1_2" = "$G:$P = 1:2","2_1" = "$G:$P = 2:1"))
+
+class <- pheno[pheno$scenario == "PT",]
+pheno <- pheno[pheno$scenario != "PT",]
+
+class1 <- class
+class1$scenario <- "$G:$P = 1:1"
+class2 <- class
+class2$scenario <- "$G:$P = 1:2"
+class3 <- class
+class3$scenario <- "$G:$P = 2:1"
+
+CLASS <- rbind(class1, class2)
+CLASS <- rbind(CLASS, class3)
+pheno <- rbind(pheno, CLASS)
 
 pheno$Repeats <- as.factor(pheno$Repeats)
 pheno$NoControls <- pheno$Repeats
-ggplot(data=pheno, aes(x=Generation, y=zMean, group=NoControls, colour=NoControls)) +
-  geom_line() + 
-  facet_grid(. ~ scenario)
 
+pheno$Group <- paste(pheno$scenario, pheno$NoControls, sep="_")
+finished <- unique(pheno$Group[pheno$Generation == 60])
+#pheno <- pheno[pheno$Group %in% finished,]
+
+png("/home/jana/Documents/Projects/inProgress/Phenotyping/Reallocation_plot.png", res=610, width=200, height=120, units="mm")
+
+ggplot(data=pheno, aes(x=Generation, y=zMean, group=NoControls, colour=NoControls)) +
+  geom_line(size = 1) + theme_bw(base_size=18, base_family="sans")  + theme(legend.position="top", legend.text=element_text(size=18), legend.title=element_text(size=18)) + 
+  scale_colour_manual("Number of recordings / lactation", 
+  values = c("#7dcbf5", "#62bff0", "#41b4f0", "#17a3eb", "#076ea3", "#024263", "black")) + ylab("Genetic mean") + 
+  facet_grid(. ~ scenario)
+dev.off()
 
 levels(males$scenario)
 levels(var$scenario)

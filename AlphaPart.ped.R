@@ -96,17 +96,18 @@ ped[ped$gen == 0 & ped$loc == 2, c("agv1", "agv2")] <- mu2
 
 ## Generation 1+ - non-founders
 for(i in (length(g0)+1):nrow(ped)) { 
-  ## Scenario (trait) 1: selection only in the first location
-  #agv1
+  ## Trait 1: measured in both locations, sample MST according to location - loc 1: only positive MST
+  #agv1 - sample MST
   if(ped[i, "loc"] == 1) {
     w <- rtruncnorm(n=1, mean=0, sd=sqrt(sigma2/2), a=t)
   } else {
     w <- rnorm(n=1, mean=0, sd=sqrt(sigma2/2))
   }
+  #compute AGV1 as PA + MST
   ped[i, "agv1"] <- round(0.5 * ped[ped$id %in% ped[i, "fid"], "agv1"] +
                           0.5 * ped[ped$id %in% ped[i, "mid"], "agv1"] +
                           w, digits=1)
-  ## Scenario (trait) 2: selection in both locations
+  ## Trait 2: measured only in second location 
   #agv2
   if(ped[i, "loc"] == 2) {
     w <- rtruncnorm(n=1, mean=0, sd=sqrt(sigma2/2), a=t)

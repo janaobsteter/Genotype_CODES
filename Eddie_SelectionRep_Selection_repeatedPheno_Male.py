@@ -251,6 +251,25 @@ for roundNo in range(21, 41):  # za vsak krog selekcije
     if not os.path.isfile(AlphaSimDir + 'ReferenceSize.txt') and os.path.isfile(AlphaSimDir + "IndForGeno.txt"):
         os.system("less IndForGeno.txt | wc -l > ReferenceSize.txt")
 
+
+    if roundNo == 21:
+        #if this is round 1, then genotyped the offsrping of elite mating
+        ped = pd.read_table(AlphaSimDir + "/SimulatedData/PedigreeAndGeneticValues_cat.txt", sep=" ")
+        pd.DataFrame({"ID": list(ped.Indiv[(ped.cat == "potomciNP") & (ped.sex == "M")])}).to_csv(AlphaSimDir + "/IndForGeno_new.txt", header=None, index=None)
+        if os.path.isfile('IndForGeno.txt'):
+            os.system("grep -v -f IndForGeno.txt IndForGeno_new.txt > uniqNew && mv uniqNew IndForGeno_new.txt")
+            os.system(
+                'cat IndForGeno_new.txt IndForGeno.txt | sort -n| uniq > IndGenTmp && mv IndGenTmp IndForGeno.txt')
+        else:
+            os.system("mv IndForGeno_new.txt > IndForGeno.txt")
+
+        #estimate EBVs
+        blupNextGen = estimateBV(AlphaSimDir, WorkingDir + "/CodeDir", way='milk', sel=seltype)
+        varEest = varE + varH + varHTD
+        blupNextGen.computeEBV_permEnv_herd(setVar=True, varPE=varPE, varE=varEest, varH=varHY,
+                                            repeats=repeats)
+
+
     # Štartaj že po 20 gen kalsične selekcije
     Acc = accuracies(AlphaSimDir)
     # GenTrends = TBVCat(AlphaSimDir)

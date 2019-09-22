@@ -17,7 +17,7 @@ t
 #t <- 0.49
 #t <- 0.35
 
-t = 0.375
+t = 0.35
 
 r <- function (n, h2, t)  {
   sqrt((n * h2)  / (1 + (n-1)*t) )
@@ -26,7 +26,7 @@ r <- function (n, h2, t)  {
 acc <- data.frame(N = NA, h2 = NA, r = NA)
 
 for (her in c(0.03, 0.1, 0.25, 0.35, 0.5)) {
-  for (num in c(1:10)) {
+  for (num in c(1:11)) {
     acc <- rbind(acc, c(num, her, r(num, her, t )))
   }
 }
@@ -40,6 +40,7 @@ ggplot(data=acc, aes(x=N, y=r, group=h2, colour=h2)) + geom_line() + ggtitle(pas
 ggplot(data=acc[acc$h2== 0.25,], aes(x=N, y=r, group=h2, colour=h2)) + geom_line() + ggtitle(paste0("Repeatability: ", round(t, 2))) + xlab("Number of records") + 
   ylab("Accuracy") + scale_y_continuous(breaks=c(seq(0, 0.8, by=0.05), 1))
 
+acc[acc$h2 == 0.25,]
 
 t <- read.csv("~/Documents/PhD/Projects/inProgress/Amount_of_phenotypisation/Heritabilies_repeatabilities_BSWSlo.csv", header=TRUE, skip=1)
 #how does heritability change with repeatability

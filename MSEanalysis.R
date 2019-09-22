@@ -358,3 +358,38 @@ corr <- read.csv("~/Documents/Projects/inProgress/AlphaPart/NewModel/Correlation
 ggplot(data=corr, aes(x=H2, y=Cor, group=Trait, colour=Trait)) + geom_point() +
   facet_grid(. ~ BVCor + Program)
 library(ggplot2)
+
+
+
+fathers <-  unique(PedEval1$FId)
+mothers <-  unique(PedEval1$MId)
+pedFather <- PedEval1[PedEval1$IId %in% fathers,c("IId", "TbvT1")]
+pedMother <- PedEval1[PedEval1$IId %in% mothers,c("IId", "TbvT1")]
+colnames(pedFather) <- c("FId", "gvF")
+colnames(pedMother) <- c("MId", "gvM")
+
+ped1 <- merge(PedEval1, pedFather, by="FId", all.x=TRUE)
+nrow(ped1)
+ped1 <- merge(ped1, pedMother, by="MId", all.x=TRUE)
+nrow(ped1)
+ped1$MST <- ped1$TbvT1 -  ((ped1$gvF +  ped1$gvM) / 2)
+
+
+fathers <-  unique(PedEval1$FId)
+mothers <-  unique(PedEval1$MId)
+pedFather <- PedEval1[PedEval1$IId %in% fathers,c("IId", "EbvT1")]
+pedMother <- PedEval1[PedEval1$IId %in% mothers,c("IId", "EbvT1")]
+colnames(pedFather) <- c("FId", "ebvF")
+colnames(pedMother) <- c("MId", "ebvM")
+
+ped1 <- merge(ped1, pedFather, by="FId", all.x=TRUE)
+nrow(ped1)
+ped1 <- merge(ped1, pedMother, by="MId", all.x=TRUE)
+nrow(ped1)
+ped1$MSTe <- ped1$EbvT1 -  ((ped1$ebvF +  ped1$ebvM) / 2)
+
+
+
+as.data.frame(ped1 %>% 
+  group_by(Generation, Program, Gender) %>%
+  summarize(COR=cor(MST, MSTe)))

@@ -534,7 +534,7 @@ class pedigree(classPed):
                            'Father': [0] * stNR,
                            'active': [1] * stNR}, \
                           index=range(max(self.ped.index) + 1, max(self.ped.index) + 1 + stNR))
-        self.ped = pd.concat([self.ped, nr])
+        self.ped = pd.concat([self.ped, nr], sort=True)
 
     def add_new_gen_naive_group(self, stNR, potomciNPn, group, numberOfGroups=1):
 	print("number of stNR is " + str(stNR) + " number of groups is " + str(numberOfGroups))
@@ -547,7 +547,7 @@ class pedigree(classPed):
                            'Father': [0] * stNR,
                            'active': [1] * stNR}, \
                           index=range(max(self.ped.index) + 1, max(self.ped.index) + 1 + stNR))
-        self.ped = pd.concat([self.ped, nr])
+        self.ped = pd.concat([self.ped, nr], sort=True)
 
     def set_mother(self, MotherList):
         first_blank_row = min(self.ped[(self.ped['Mother'] == 0) & ((self.ped.cat == 'nr'))].index)
@@ -1395,7 +1395,7 @@ class blupf90:
     def setHerdVariance(self, herdvar, blupParamFile):
         os.system('sed -i "s|HerdVariance|' + str(herdvar) + '|g" ' + blupParamFile)
 
-    def   prepareSelPed(self):
+    def prepareSelPed(self):
         blupSol = pd.read_csv(self.AlphaSimDir + '/renumbered_Solutions_' + str(self.gen), header=None,
                               sep='\s+', names=['renID', 'ID', 'Solution'])
         AlphaSelPed = self.AlphaPed.loc[:, ['Generation', 'Indiv', 'Father', 'Mother', 'gvNormUnres1']]
@@ -1652,13 +1652,13 @@ def selekcija_total(pedFile, externalPedName = "ExternalPedigree",group=False, g
     #################################################################
     # age 0: štartaš z NB in potomci NP --> odbereš vhlevljene iz potomcev NP in moška teleta in NB
     # NAJPREJ DELI, KI SO SKUPNI PROGENEMU IN GENOMSKEMU TESTIRANJU
-    if not kwargs.get("maleGenSelAll") and not ('genTest' in categories.keys()):
+    if not kwargs.get("maleGenSelAll") and not  kwargs.get('gEBV'): ##('genTest' in categories.keys()):
         ped.izberi_random("M", kwargs.get('telMn'), "nr", "telM", categories)  # izberi moška teleta, ki preživijo (random)
         ped.izloci_random("M", int(kwargs.get('nrMn') - kwargs.get('potomciNPn') - kwargs.get('telMn')), "nr",
                           categories)  # druga teleta izloči
 
     #ce odbiram od vseh genotipziranih moskih
-    elif kwargs.get("maleGenSelAll") and ('genTest' in categories.keys()):
+    elif kwargs.get("maleGenSelAll") and kwargs.get('gEBV'): ##('genTest' in categories.keys()):
         #then put all genotyped males into "potomciNP" - the easiest solution
         genoMale = ped.obtainNewGenotypedInd_sex("M", kwargs.get("AlphaSimDir"))
         ped.ped.loc[ped.ped.Indiv.isin(genoMale), 'cat'] = "genTest"
@@ -1749,10 +1749,14 @@ def selekcija_total(pedFile, externalPedName = "ExternalPedigree",group=False, g
 
     # genomski test: potomciNP = genomsko testiranje -> pozitivno testirani
     if kwargs.get('gEBV'):  # v prvem letu so vsi potomciNP v genomskem testiranju oz. pridobivanju gEBV
-        print("Setting {} males to potomciNP.".format(len(ped.catCurrent_indiv("potomciNP"))))
-        ped.set_cat_sex_old('M', "potomciNP", "genTest", categories)
-        print("The number of current genTest is {}".format(str(len(ped.catCurrent_indiv("genTest")))))
-        ped.set_active_cat('potomciNP', 1, categories)
+        if 'genTest' in categories.keys():
+            ped.set_cat_sex_old('M', "potomciNP", "genTest", categories)
+            print("The number of current genTest is {}".format(str(len(ped.catCurrent_indiv("genTest")))))
+            ped.set_active_cat('potomciNP', 1, categories)
+        elif 'genTest' not in categories.keys(): #ce je to prva generacija!!!!!
+            ped.set_cat_sex_old('M', "potomciNP", "potomciNP", categories) #so that they get genotyepd!!!! - THIS IS NOT OK! TO MANY GENOTYPED THEN
+            print("The number of current potomciNP is {}".format(str(len(ped.catCurrent_indiv("potomciNP")))))
+            ped.set_active_cat('potomciNP', 1, categories)
 
     if 'genTest' in categories.keys():  # če imaš genomsko testirane bike
         if kwargs.get('genTest_mladi'):
@@ -2036,7 +2040,7 @@ def selekcija_importOcetov(pedFile, externalPedName="ExternalPedigree", group=Fa
                              categories)
         ##########################
         else:
-            for i in range((2 + 1), (2 + kwargs.get(
+            for i in range((2 + 1), (2 + 1 + kwargs.get(
                     'cak'))):  # 1 leto, ko začnejo semenit in so mladi biki, 3 so čakajoči, +1 da začneš prestavlajt
                 ped.set_cat_age_old(i, 'cak', 'cak', categories)
 
