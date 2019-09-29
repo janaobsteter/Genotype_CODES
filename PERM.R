@@ -123,3 +123,13 @@ acc <- acc[acc$AgeCat %in% c("telF1", "genTest1", "potomciNP0"),]
 ggplot(data=acc, aes(x=AgeCat, y=Cor, group=scenario, colour=scenario)) + geom_point()
 
 
+mon <- read.csv("/home/jana/Documents/Projects/inProgress/Phenotyping/MoneySaved.csv")
+mon$RecordingsRemoved <- as.numeric(mon$RecordingsRemoved)
+ggplot(data = mon, aes(x=RecordingsRemoved, y=Genotypes, colour=P_G, group=P_G)) + geom_line(size = 1) +
+  # xlab("Genic standard deviation") + ylab("Average True Genetic Value") + 
+  theme(axis.text=element_text(size=16),axis.title=element_text(size=16), legend.position = "top", 
+        legend.text=element_text(size=16), legend.title=element_text(size=16),
+        plot.title = element_text(margin = margin(t = 0, r = 0, b = 40, l = 0), size=16, hjust=0.5),
+        plot.margin = margin(t = 0, r = 10, b = 10, l = 10)) +
+    scale_x_continuous(breaks=seq(1, 10, 1)) +
+  guides(linetype=guide_legend(nrow=1, keyheight = unit(3, "cm"), keywidth = unit(3, "cm"), override.aes = list(alpha = 1, size=2))) 

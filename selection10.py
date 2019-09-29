@@ -473,7 +473,7 @@ class pedigree(classPed):
         freeRow = list(self.ped.loc[(self.ped.sex == sex) & (self.ped.Indiv.isin(prevGenDict[oldcat])) & (
             self.ped.cat == "")].index)  # rows with no assigned category
         if len(freeRow) < st:
-            print("Too little animals to choose from. <{} {}>".format("izloči random", oldcat))
+            print("Too little animals to choose from. <{} {} {}>".format("izloči random", oldcat, sex))
         else:
             choice = list(np.random.choice(freeRow, st, replace=False))
             self.set_cat_list(choice, 'izl')
@@ -547,7 +547,7 @@ class pedigree(classPed):
                            'Father': [0] * stNR,
                            'active': [1] * stNR}, \
                           index=range(max(self.ped.index) + 1, max(self.ped.index) + 1 + stNR))
-        self.ped = pd.concat([self.ped, nr], sort=True)
+        self.ped = pd.concat([self.ped, nr])
 
     def set_mother(self, MotherList):
         first_blank_row = min(self.ped[(self.ped['Mother'] == 0) & ((self.ped.cat == 'nr'))].index)
@@ -934,14 +934,11 @@ class pedigree(classPed):
     def saveIndForGeno(self, genotypedCat, age=False, genotypedCatAge = None ):
         if not age:
             pd.DataFrame({0: sorted(list(set
-                                         (chain.from_iterable([self.catCurrent_indiv_sex_criteria(x, sex, xC,
-                                                                                                  int((len(
-                                                                                                      self.catCurrent_indiv_sex(
-                                                                                                          x, sex)) * (
-                                                                                                       xP / 100))))
-                                                               if xP != 100 else self.catCurrent_indiv_sex(x, sex) for
+                                         (chain.from_iterable([self.catCurrent_indiv_sex_criteria(x, sex, xC, int((len(
+                                             self.catCurrent_indiv_sex(
+                                                 x, sex)) * xP)) if xP < 1 else int(xP))
+                                                               if xP != 1 else self.catCurrent_indiv_sex(x, sex) for
                                                                (x, xP, xC, sex) in genotypedCat]))))}).to_csv(
-                # if self.sel == 'class': #ZDJ TEGA NI, KER JE POSEBEJ FILE!
                 'IndForGeno_new.txt', index=None, header=None)
 
         elif age:
@@ -957,6 +954,9 @@ class pedigree(classPed):
                                                                                                           x, sex, age)) * xP)) if xP < 1 else int(xP))
                                                                if xP != 1 else self.catCurrent_indiv_sex_age(x, sex, age) for
                                                                (x, xP, xC, sex, age) in genotypedCatAge]))))})
+            #check whether this exceed the 25K
+            if (len(dfAge) + len(dfSex)) > 25000:
+                dfAge = dfAge.sample((25000 - len(dfSex)), replace = False)
 
             pd.concat([dfSex, dfAge]).to_csv('IndForGeno_new.txt', index=None, header=None)
 
@@ -972,15 +972,17 @@ class pedigree(classPed):
     def updateAndSaveIndForGeno(self, genotypedCat, rmNbGen, removesex, AlphaSimDir, age=False, genotypedCatAge = None):
         # first obtain new animals for genotypisation
         if not age:
-            pd.DataFrame({0: sorted(list(set
+            dfSex = pd.DataFrame({0: sorted(list(set
                                          (chain.from_iterable([self.catCurrent_indiv_sex_criteria(x, sex, xC, int((len(
                                                                                                       self.catCurrent_indiv_sex(
                                                                                                           x, sex)) * (
                                                                                                        xP / 100))) if xP < 1 else xP)
                                                                if xP != 1 else self.catCurrent_indiv_sex(x, sex) for
-                                                               (x, xP, xC, sex) in genotypedCat]))))}).to_csv(
-                # if self.sel == 'class': #ZDJ TEGA NI, KER JE POSEBEJ FILE!
-                'IndForGeno_new.txt', index=None, header=None)
+                                                               (x, xP, xC, sex) in genotypedCat]))))})
+
+            num_indGenoNew = len(dfSex)
+            dfSex.to_csv('IndForGeno_new.txt', index=None, header=None)
+
         elif age:
             dfSex = pd.DataFrame({0: sorted(list(set
                                          (chain.from_iterable([self.catCurrent_indiv_sex_criteria(x, sex, xC, int((len(
@@ -994,29 +996,46 @@ class pedigree(classPed):
                                                                                                           x, sex, age)) * xP)) if xP < 1 else int(xP))
                                                                if xP != 1 else self.catCurrent_indiv_sex_age(x, sex, age) for
                                                                (x, xP, xC, sex, age) in genotypedCatAge]))))})
+            #check whether this exceed the 25K
+            if (len(dfAge) + len(dfSex)) > 25000:
+                dfAge = dfAge.sample((25000 - len(dfSex)), replace = False)
 
+            num_indGenoNew = len(dfAge) + len(dfSex)
             pd.concat([dfSex, dfAge]).to_csv('IndForGeno_new.txt', index=None, header=None)
 
         if os.path.isfile('IndForGeno.txt'):
-
             # then remove old animals from the previous file
-            inds = pd.read_table('IndForGeno.txt', header=None, names=['Indiv'])
-            ped = pd.read_table(AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues_cat.txt', sep='\s+')
+            inds = pd.read_csv('IndForGeno.txt', header=None, names=['Indiv'])
+            ped = pd.read_csv(AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues_cat.txt', sep='\s+')
             fathers = list(set(ped.Father))
             inds = pd.merge(inds, ped[['Indiv', 'Generation', 'sex', 'cat']],
                             on='Indiv')  # obtain generation of the previously genotyped Individuals
+
             if removesex == "F":
-                sexDF = inds.loc[(inds.sex == removesex)]
-                pd.concat([inds.loc[inds.sex != removesex], sexDF.loc[
-                    sexDF.Generation.isin(sorted(list(set(sexDF.Generation)))[rmNbGen:])]]).sort_values(by='Indiv')[
-                    'Indiv'].to_csv(
-                    'IndForGeno.txt', index=None, header=None)
-            if "M" in removesex and "F" in removesex:
+                sexDF_F = inds.loc[(inds.sex == removesex)]
+                sexDF_M = inds.loc[inds.sex != removesex]
+                # check whether the sum exceeds the 25K!
+                updatedSex = sexDF_F.loc[
+                    sexDF_F.Generation.isin(sorted(list(set(sexDF_F.Generation)))[rmNbGen:])]
+
+                #is the total number exceeds 25000: updated sex + the unupdated sex
+                if (len(sexDF_M) + len(updatedSex)) > (25000 - num_indGenoNew):
+                    updatedSex = updatedSex.sample(25000 - num_indGenoNew - len(sexDF_M), replace = False)
+
+                pd_concat([updatedSex, sexDF_M]).sort_values(by='Indiv')['Indiv'].to_csv('IndForGeno.txt', index=None, header=False)
+
+            elif "M" in removesex and "F" in removesex:
                 sexDF_F = inds.loc[(inds.sex == "F")]
                 sexDF_F = sexDF_F.loc[
                     sexDF_F.Generation.isin(sorted(list(set(sexDF_F.Generation)))[rmNbGen:])]
                 sexDF_M = inds.loc[inds.Indiv.isin(fathers)]
-                pd.concat([sexDF_F, sexDF_M]).sort_values(by='Indiv')['Indiv'].to_csv('IndForGeno.txt', index=None, header=False)
+
+                #is the total number exceeds 25000 --> sample from females
+                if (len(sexDF_F) + len(sexDF_M)) > (25000 - num_indGenoNew):
+                    sexDF_F = sexDF_F.sample((25000 - num_indGenonew - len(sexDF_M)), replace = False)
+
+                pd.concat([sexDF_F, sexDF_M]).sort_values(by='Indiv')[
+                    'Indiv'].to_csv('IndForGeno.txt', index=None, header=False)
 
             os.system(
                 "grep -v -f IndForGeno.txt IndForGeno_new.txt > uniqNew && mv uniqNew IndForGeno_new.txt")  # obtain only new ones - do you dont get duplicate cows - ni nepotrebno - to zato, da ti potegne le nove genotipe za GenoFiel
@@ -1027,16 +1046,19 @@ class pedigree(classPed):
 
 
 
-    def obtainNewGenotypedInd_sex(self, sex, AlphaSimDir):
+    def obtainNewGenotypedInd_sex(self, sex, AlphaSimDir, age = None):
         """
         A function to select the newly genotyped individuals of a particular gender
         :param sex: animals of which gender to select
         :return: list of individuals
         """
         indGeno = pd.read_csv(AlphaSimDir + "/IndForGeno_new.txt", names=['Indiv'], header=None)
-        ped = pd.read_csv(AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues_cat.txt', sep='\s+')
-        indCatSex = pd.merge(indGeno, ped[['Indiv', 'sex', 'cat']], on='Indiv')
-        return list(indCatSex.Indiv[indCatSex.sex == sex])
+        pedCat = pd.read_csv(AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues_cat.txt', sep='\s+')
+        indCatSex = pd.merge(indGeno, pedCat[['Indiv', 'sex', 'age', 'cat']], on='Indiv')
+        if age is not None:
+            return list(indCatSex.Indiv[(indCatSex.sex == sex) & (indCatSex.age == age)])
+        else:
+            return list(indCatSex.Indiv[(indCatSex.sex == sex)])
 
 
 
@@ -1354,7 +1376,7 @@ class blupf90:
         if os.path.isfile(self.AlphaSimDir + 'Blupf90.dat'):
             blupDatOld = pd.read_csv('Blupf90.dat', sep=" ", names=['herdYear', 'phenoNormUnres1',
                                                                     'Indiv', 'sex',
-                                                                    'Mean'])  # to je dat iz prejšnjega kroga selekcija
+                                                                    'Mean'], low_memory=False)  # to je dat iz prejšnjega kroga selekcija
             dat = pd.concat([blupDatOld, phenoNew])
             dat.Mean = 1
             dat.to_csv(self.AlphaSimDir + 'Blupf90.dat', header=None, index=False,
@@ -1397,14 +1419,12 @@ class blupf90:
 
     def prepareSelPed(self):
         blupSol = pd.read_csv(self.AlphaSimDir + '/renumbered_Solutions_' + str(self.gen), header=None,
-                              sep='\s+', names=['renID', 'ID', 'Solution'])
+                              sep='\s+', names=['renID', 'Indiv', 'EBV'])
         AlphaSelPed = self.AlphaPed.loc[:, ['Generation', 'Indiv', 'Father', 'Mother', 'gvNormUnres1']]
         # blupSolRandom = blupSol.loc[blupSol.Effect == 1] Če imaš še fixed effect
-        AlphaSelPed.loc[:, 'EBV'] = blupSol.Solution
+
+        AlphaSelPed = pd.merge(AlphaSelPed, blupSol[['Indiv', 'EBV']], on="Indiv", how="left")
         AlphaSelPed.to_csv(self.AlphaSimDir + 'GenPed_EBV.txt', index=None)
-
-
-
 
     def preparePedDat_cat(self, listUnphenotyped):
         self.makePed()
@@ -1661,10 +1681,13 @@ def selekcija_total(pedFile, externalPedName = "ExternalPedigree",group=False, g
     elif kwargs.get("maleGenSelAll") and kwargs.get('gEBV'): ##('genTest' in categories.keys()):
         #then put all genotyped males into "potomciNP" - the easiest solution
         genoMale = ped.obtainNewGenotypedInd_sex("M", kwargs.get("AlphaSimDir"))
-        ped.ped.loc[ped.ped.Indiv.isin(genoMale), 'cat'] = "genTest"
-        telMn_new = (kwargs.get('telMn') - len(genoMale)) if (kwargs.get('telMn') - len(genoMale)) > 0 else 0
+        ped.ped.loc[(ped.ped.Indiv.isin(genoMale)), 'cat'] = "genTest"
+        #you only have to proceed the number minus the one genoMales that are age 0
+        genoNRM = len(ped.obtainNewGenotypedInd_sex("M", kwargs.get("AlphaSimDir"), age=0))
+        telMn_new = (kwargs.get('telMn') - genoNRM) if (kwargs.get('nrMn') - genoNRM)  > 0 else 0
         ped.izberi_random("M", telMn_new, "nr", "telM", categories)  # izberi moška teleta, ki preživijo (random)
-        ped.izloci_random("M", int(kwargs.get('nrMn') - len(genoMale) - kwargs.get('potomciNPn') - telMn_new), "nr",
+        #here you should only subtract the geno males thatn are of year 0!!!!!!
+        ped.izloci_random("M", int(kwargs.get('nrMn') - kwargs.get('potomciNPn') - telMn_new), "nr",
                           categories)  # druga teleta izloči
 
     if 'telM' in categories.keys():
@@ -1689,8 +1712,7 @@ def selekcija_total(pedFile, externalPedName = "ExternalPedigree",group=False, g
     if 'vhlevljeni' in categories.keys():  # če imaš vhlevljene bike (samo v progenem testu)
         #############################
         # to je za potrebe prehoda
-        if kwargs.get("genTest_gpb") and 'vhlevljeni' in [i[0] for i in kwargs[
-            'genotyped']]:  # če se greš genomsko shemo, jih takoj pogenotipiziraj in prestavi v gpb (5)
+        if kwargs.get("gEBV"):  # če se greš genomsko shemo, jih si jih ze pogenotipizirala in jih samo se odberi
             ped.izberi_poEBV_top("M", kwargs.get('genpbn'), "vhlevljeni", "gpb", categories)  # odberi gpb
             ped.izberi_poEBV_OdDo("M", kwargs.get('genpbn'), (kwargs.get('genpbn') + kwargs.get('pripust1n')),
                                   'vhlevljeni', 'pripust1',
@@ -1709,8 +1731,7 @@ def selekcija_total(pedFile, externalPedName = "ExternalPedigree",group=False, g
     if 'mladi' in categories.keys():
         #############################
         # to je za potrebe prehoda
-        if kwargs.get("genTest_gpb") and 'mladi' in [i[0] for i in kwargs[
-            'genotyped']]:  # če se greš genomsko shemo, jih takoj pogenotipiziraj in prestavi v gpb (5)
+        if kwargs.get("gEBV"):  # če se greš genomsko shemo, jih odberi in prestavi v gpb (5)
             ped.izberi_poEBV_top("M", kwargs.get('genpbn'), "mladi", "gpb", categories)
             ped.izloci_poEBV("M", (kwargs.get("mladin") - kwargs.get("genpbn")), "mladi", categories)
         ###########################
@@ -1724,14 +1745,13 @@ def selekcija_total(pedFile, externalPedName = "ExternalPedigree",group=False, g
     if 'cak' in categories.keys():
         #############################
         # to je za potrebe prehoda
-        if kwargs.get("genTest_gpb") and 'cak' in [i[0] for i in kwargs[
-            'genotyped']]:  # če se greš genomsko shemo, jih takoj pogenotipiziraj in prestavi v gpb (5)
+        if kwargs.get("gEBV"):  # če se greš genomsko shemo, jih takoj pogenotipiziraj in prestavi v gpb (5)
             ped.izberi_poEBV_top("M", kwargs.get('genpbn') * kwargs.get("cak"), "cak", "gpb", categories)
             ped.izloci_poEBV("M", ((kwargs.get("mladin") - kwargs.get('genpbn')) * kwargs.get("cak")), "cak",
                              categories)
         ##########################
         else:
-            for i in range((2 + 1), (2 + kwargs.get(
+            for i in range((2 + 1), (2 + 1 + kwargs.get(
                     'cak'))):  # 1 leto, ko začnejo semenit in so mladi biki, 3 so čakajoči, +1 da začneš prestavlajt
                 ped.set_cat_age_old(i, 'cak', 'cak', categories)
 
@@ -1753,10 +1773,10 @@ def selekcija_total(pedFile, externalPedName = "ExternalPedigree",group=False, g
             ped.set_cat_sex_old('M', "potomciNP", "genTest", categories)
             print("The number of current genTest is {}".format(str(len(ped.catCurrent_indiv("genTest")))))
             ped.set_active_cat('potomciNP', 1, categories)
-        elif 'genTest' not in categories.keys(): #ce je to prva generacija!!!!!
-            ped.set_cat_sex_old('M', "potomciNP", "potomciNP", categories) #so that they get genotyepd!!!! - THIS IS NOT OK! TO MANY GENOTYPED THEN
-            print("The number of current potomciNP is {}".format(str(len(ped.catCurrent_indiv("potomciNP")))))
-            ped.set_active_cat('potomciNP', 1, categories)
+        # elif 'genTest' not in categories.keys(): #ce je to prva generacija!!!!!
+        #     ped.set_cat_sex_old('M', "potomciNP", "potomciNP", categories) #so that they get genotyepd!!!! - THIS IS NOT OK! TO MANY GENOTYPED THEN
+        #     print("The number of current potomciNP is {}".format(str(len(ped.catCurrent_indiv("potomciNP")))))
+        #     ped.set_active_cat('potomciNP', 1, categories)
 
     if 'genTest' in categories.keys():  # če imaš genomsko testirane bike
         if kwargs.get('genTest_mladi'):
@@ -1826,6 +1846,7 @@ def selekcija_total(pedFile, externalPedName = "ExternalPedigree",group=False, g
 
     # preveri - mora biti nič!!! - oz. če mater še ni dovolj, potem še ne!
     ped.mother_nr_blank()
+    ped.father_nr_blank()
 
     # ped.UpdateIndCat('/home/jana/')
     categories.clear()
@@ -1844,7 +1865,7 @@ def selekcija_total(pedFile, externalPedName = "ExternalPedigree",group=False, g
             ped.updateAndSaveIndForGeno(kwargs.get('genotyped'), kwargs.get('NbUpdatedGen'), kwargs.get('sexToUpdate'),
                                         kwargs.get('AlphaSimDir'), age='genotypedAge' in kwargs.keys(), genotypedCatAge=kwargs.get('genotypedAge'))
         if not kwargs.get('UpdateGenRef'):
-            ped.saveIndForGeno(kwargs.get('genotyped'))
+            ped.saveIndForGeno(kwargs.get('genotyped'), age='genotypedAge' in kwargs.keys(), genotypedCatAge=kwargs.get('genotypedAge'))
         os.system(
             'less IndForGeno.txt | wc -l > ReferenceSize_new.txt && cat ReferenceSize_new.txt ReferenceSize.txt > Reftmp && mv Reftmp ReferenceSize.txt')
     ped.write_ped(kwargs.get('AlphaSimDir') + "/" + externalPedName + ".txt")
@@ -3445,6 +3466,7 @@ class snpFiles:
             os.system('''awk '{$1=""; print $0}' ChipFile.txt | sed 's/ //g' > Snps.txt''')  # obtain SNP genotypes
             os.system(
                 r'''paste Individuals.txt Snps.txt | awk '{printf "%- 10s %+ 15s\n",$1,$2}' > GenoFile.txt''')  # obtain SNP genotypes of the last generation
-        pd.read_csv(self.AlphaSimDir + '/SimulatedData/Chip1SnpInformation.txt', sep='\s+')[
-            ["SnpId", "ChromId", "SnpSeqIdOnChrom"]].to_csv(
-            self.AlphaSimDir + 'SnpMap.txt', index=None, sep=" ", header=None)
+        snpmap = pd.read_csv(self.AlphaSimDir + '/SimulatedData/Chip1SnpInformation.txt', sep='\s+')[
+            ["SnpId", "ChromId", "SnpSeqIdOnChrom"]]
+        snpmap.columns = ['SNP_ID', 'CHR', 'POS']
+        snpmap.to_csv(self.AlphaSimDir + 'SnpMap.txt', index=None, sep=" ")

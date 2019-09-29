@@ -4,6 +4,47 @@
 ###-----------------------------------------------------------------------------
 
 ### This is a copy of partAGV_stohastic demo code (only the data part)
+library(AlphaSimR)
+AlphaPart.ped.simulation <- function() { 
+  nMothers = 10
+  nFathers = 3
+  founderPop = runMacs(nInd = 50,
+                       nChr = 5,
+                       segSites = 100,
+                       nThreads = 4,
+                       species = "GENERIC")
+  
+  #prepare parameter filer
+  SP = SimParam$new(founderPop)
+  varA = matrix(data = c(2.0, 0.0, 0.0, 1.0), nrow = 2); cov2cor(varA)
+  varE = matrix(data = c(3.0, 0.0, 0.0, 3.0), nrow = 2); cov2cor(varE)
+  SP$addTraitA(nQtlPerChr = 100, mean = c(0, 0), var = diag(varA), cor = cov2cor(varA))
+  SP$setGender(gender = "yes_sys")
+  
+  #create base population
+  basePop = newPop(founderPop)
+  #set phenotype to base population
+  basePop = setPheno(pop = basePop, varE = varE)
+  
+  #select the males and the females
+  Females = selectInd(pop = basePop, nInd = nMothers, use = "pheno", gender = "F")
+  Males   = selectInd(pop = basePop, nInd = nFathers, use = "pheno", gender = "M")
+  
+  #location 1
+  
+  for (gen in 1:10) {
+  SelCand = randCross2(females = Females, males = Males, nCrosses = nMothers, nProgeny = 5)
+  SelCand = setPheno(pop = SelCand, varE = varE)
+  
+  #select mothers and fathers
+  Females = selectInd(pop = SelCand, nInd = nMothers, use = "pheno", gender = "F")
+  Males   = selectInd(pop = selCand, nInd = nFathers, use = "pheno", gender = "M")
+  }
+}
+
+
+
+
 
 ## To keep environment clean
 AlphaPart.ped.simulation <- function()

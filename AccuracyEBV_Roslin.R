@@ -29,3 +29,7 @@ library(Rmisc)
 
 acc <- read.csv("Accuracy_permEnv_selCat.csv")
 acc[order(acc$AgeCat),]
+
+r <- function (h2, N, M) {sqrt((h2 * N) / (h2 * N + M))}
+r(0.25, 10000, 10000)
+r(0.60, 10000, 10000)

@@ -10,9 +10,11 @@ from selection10 import *
 WorkingDir = "/home/jana/"
 os.chdir(WorkingDir)
 scenario = "Gen"
+os.chdir("/home/jana/TestSim/")
 
 parhome = pd.read_csv("/home/jana/SelectionParam_Gen_MaleGS.csv", header=None, names=["Keys", "Vals"])
 parhome = pd.read_csv("/home/jana/SelectionParam_Gen_MaleGS_True10_1_1.csv", header=None, names=["Keys", "Vals"])
+parhome = pd.read_csv("/home/jana/TestSim/SelectionParam_Gen_MaleGS_True10_1_1.csv", header=None, names=["Keys", "Vals"])
 parhome.to_dict()
 selParhome = defaultdict()
 for key, val in zip(parhome.Keys, parhome.Vals):

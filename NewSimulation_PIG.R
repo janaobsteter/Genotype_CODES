@@ -1,11 +1,12 @@
 library(AlphaSimR)
 
+setwd("/home/jana/Documents/SimulationAlphaPart/NewSimulation/")
+homedir <- "/home/jana/Documents/SimulationAlphaPart/NewSimulation/"
 
-nGNMales = 10 
-nGNFemales = 50
+nGNMales = 80
+nGNFemales = 80
 
 nPNFemales = 500
-nPNMales = 10
 
 #create founder population
 founderPop = runMacs(nInd = 2*(nGNMales + nGNFemales),
@@ -20,7 +21,7 @@ founderPop = runMacs(nInd = 2*(nGNMales + nGNFemales),
 SimPar = SimParam$new(founderPop)
 SimPar$setGender(gender = "yes_sys")
 varAm <- matrix(c(1, 0, 0, 1), nrow=2)
-varEm <- matrix(c(0.01, 0, 0, 0.01), nrow=2)
+varEm <- matrix(c(3, 0, 0, 3), nrow=2)
 varPm <- varAm + varEm
 diag(varAm) / diag(varPm)
 
@@ -31,17 +32,17 @@ SimPar$addTraitA(nQtlPerChr = 100, mean = c(0, 0), var = diag(varAm), corA = cov
 Base = newPop(founderPop, simParam=SimPar)
 Base = setPheno(pop = Base, varE = varEm, simParam = SimPar)
 
-#select GN males and GN femals
+#select GN males and GN females
 
 GNMales = selectInd(pop = Base, gender = "M", 
                     nInd = nGNMales, 
                     use = "pheno", 
-                    trait = function (x) rowMeans(x), 
+                    trait = function (x) rowMeans(scale(x)), 
                     simParam = SimPar)
 GNFemales = selectInd(pop = Base, gender = "F", 
                       nInd = nGNFemales, 
                       use = "pheno", 
-                      trait = function (x) rowMeans(x), 
+                      trait = function (x) rowMeans(scale(x)), 
                       simParam = SimPar)
 
 
@@ -53,8 +54,8 @@ for (gen in 1:nGenerationBurnIn) {
   #cross nucleus males and females
   SelCandGN = randCross2(males = GNMales,
                          females = GNFemales,
-                         nCrosses = sum(Base@gender == "F"),
-                         nProgeny = 20,
+                         nCrosses = nGNFemales,
+                         nProgeny = 16,
                          simParam = SimPar)
   rm(GNMales, GNFemales)
   
@@ -98,8 +99,8 @@ for (gen in 1:nGenerationSel) {
   #cross nucleus males and females
   SelCandGN = randCross2(males = GNMales,
                          females = GNFemales,
-                         nCrosses = sum(Base@gender == "F"),
-                         nProgeny = 20,
+                         nCrosses = nGNFemales,
+                         nProgeny = 12,
                          simParam = SimPar)
   
   rm(GNMales, GNFemales)
@@ -120,24 +121,59 @@ for (gen in 1:nGenerationSel) {
                      Gender = SelCandGN@gender,
                      TBV1 = SelCandGN@gv[,1],
                      TBV2 = SelCandGN@gv[,2],
+                     EBV1 = NA,
+                     EBV2 = NA,
                      Pheno1 = SelCandGN@pheno[,1],
                      Pheno2 = SelCandGN@pheno[,2]
                    ))
   
+  #estiate EBVs
+  setwd("GN/")
+  write.table(PedEval[,c("ID", "FID", "MID")], "Blupf90.ped", quote=FALSE, row.names=FALSE, sep=" ")
+  blupf901 <- PedEval[,c("ID", "Pheno1")]
+  blupf901$Mean <- 1
+  write.table(blupf901, "Blupf901.dat", quote=FALSE, row.names=FALSE, sep=" ", col.names = FALSE, append = file.exists("Blupf901.dat"))
+  blupf902 <- PedEval[,c("ID", "Pheno2")]
+  blupf902$Mean <- 1
+  write.table(blupf902, "Blupf902.dat", quote=FALSE, row.names=FALSE, sep=" ", col.names = FALSE, append = file.exists("Blupf902.dat"))
+  
+  system("./renumf90 < renumParam1")
+  system("./blupf90 renf90.par")
+  system("bash MatchAfterRenum.sh")
+  rSol <- read.table("renumbered_Solutions")  
+  colnames(rSol) <- c("renID", "ID", "EBV1")
+  rSol <- rSol[rSol$ID %in% PedEval$ID,]
+  PedEval$EBV1 <- rSol$EBV1[match(rSol$ID, PedEval$ID)]  
+ 
+  system("rm renf90.par solutions renumbered_Solutions")
+  system("./renumf90 < renumParam2")
+  system("./blupf90 renf90.par")
+  system("bash MatchAfterRenum.sh")
+  rSol <- read.table("renumbered_Solutions")  
+  colnames(rSol) <- c("renID", "ID", "EBV2")
+  rSol <- rSol[rSol$ID %in% PedEval$ID,]
+  PedEval$EBV2 <- rSol$EBV2[match(rSol$ID, PedEval$ID)]
+  setwd(homedir)
+  
+  
+  
+  SelCandEBVs <- PedEval[PedEval$ID %in% SelCandGN@id,]
+  SelCandGN@ebv <- as.matrix(SelCandEBVs[, c("EBV1", "EBV2")])
+    
   
   #select new nucleus males
   GNMales = selectInd(pop = SelCandGN,
                       nInd = nGNMales,
                       gender = "M",
-                      use = "pheno",
-                      trait = 1, #function (x) rowMeans(scale(x)),
+                      use = "ebv",
+                      trait = function (x) rowMeans(scale(x)),
                       simParam = SimPar)
   #select new nucleus females
   GNFemales = selectInd(pop = SelCandGN,
                         nInd = nGNFemales,
                         gender = "F",
-                        use = "pheno",
-                        trait = 1, #function (x) rowMeans(scale(x)),
+                        use = "ebv",
+                        trait = function (x) rowMeans(scale(x)),
                         simParam = SimPar)
   
   rm(SelCandGN)
@@ -146,7 +182,8 @@ for (gen in 1:nGenerationSel) {
   # ##do a round of selection in nucleus - to select the PNFemales
   SelCandPN = randCross2(males = GNMales,
                          females = PNFemales,
-                         nCrosses = nPNFemales * 12,
+                         nCrosses = nPNFemales,
+                         nProgeny = 12,
                          simParam = SimPar)
   rm(PNFemales)
 
@@ -167,22 +204,47 @@ for (gen in 1:nGenerationSel) {
                      Gender = SelCandPN@gender,
                      TBV1 = SelCandPN@gv[,1],
                      TBV2 = SelCandPN@gv[,2],
+                     EBV1 = NA,
+                     EBV2 = NA,
                      Pheno1 = SelCandPN@pheno[,1],
                      Pheno2 = NA
                    ))
 
+  
+  #estiate EBVs
+  setwd("PN1/")
+  write.table(PedEval[,c("ID", "FID", "MID")], "Blupf90.ped", quote=FALSE, row.names=FALSE, sep=" ")
+  blupf901 <- PedEval[,c("ID", "Pheno1")]
+  blupf901$Mean <- 1
+  write.table(blupf901, "Blupf901.dat", quote=FALSE, row.names=FALSE, sep=" ", col.names = FALSE, append = file.exists("Blupf901.dat"))
+
+  
+  system("./renumf90 < renumParam1")
+  system("./blupf90 renf90.par")
+  system("bash MatchAfterRenum.sh")
+  rSol <- read.table("renumbered_Solutions")  
+  colnames(rSol) <- c("renID", "ID", "EBV1")
+  rSol <- rSol[rSol$ID %in% PedEval$ID,]
+  PedEval$EBV1 <- rSol$EBV1[match(rSol$ID, PedEval$ID)]  
+  
+  system("rm renf90.par solutions renumbered_Solutions")
+  setwd(homedir)
+  
+  
+  SelCandEBVs <- PedEval[PedEval$ID %in% SelCandPN@id,]
+  SelCandPN@ebv<- as.matrix(SelCandEBVs[, c("EBV1")])
+  
   #now select the PNFemales
   PNFemales <- selectInd(pop = SelCandPN,
                          nInd = nPNFemales,
                          gender = "F",
-                         use = "pheno",
+                         use = "ebv",
                          trait = 1,
                          simParam = SimPar)
   rm(SelCandPN)
 }
 
 library(AlphaPart)
-?AlphaPart
 PedEval$ProgramGender <- paste(PedEval$Program, PedEval$Gender, sep="_")
 
 PedEval$TBV1_s <- (PedEval$TBV1 - mean(PedEval$TBV1[PedEval$Generation == 1])) / sd(PedEval$TBV1[PedEval$Generation == 1])
@@ -195,11 +257,19 @@ part1 <- AlphaPart(x = PedEval,
                    colFid = "FID",
                    colMid = "MID",
                    colPath = "Gender",
-                   colAGV = c("TBV1", "Pheno1"))
+                   colAGV = c("TBV1", "EBV1"))
 
 
 part1Sum <- summary(object = part1, by="Generation")
 plot1 <- plot(part1Sum)
+plot1
+
+
+library(pedigree)
+who <- PedEval$ID %in% unique(PedEval$FID)
+Trimed <- trimPed(ped = PedEval, data = who)
+PedEval <- PedEval[Trimed,]
+
 
 #plot genetic trend
 library(reshape)

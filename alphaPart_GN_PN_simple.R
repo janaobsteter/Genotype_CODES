@@ -15,7 +15,7 @@ setwd("/home/jana/Documents/SimulationAlphaPart/")
 homedir = "/home/jana/Documents/SimulationAlphaPart/"
 # ---- General parameters ----
 
-nGNMales   = 50
+nGNMales   =  10
 nGNFemales = 50
 
 nPNMales       =  10
@@ -493,16 +493,12 @@ mothers <- unique(Ped$MId)
 fathers <- unique(Ped$FId)
 who <- c(Ped$IId %in% c(mothers, fathers))
 who <- c(Ped$IId %in% c(PedEval1$IId[PedEval1$Generation == max(PedEval1$Generation)]))
-who <- Ped$IId %in% unique(Ped$FId)
 Trimed <- trimPed(ped = Ped, data = who)
 PedEval1 <- PedEval1[Trimed,]
 
-PedEval1 <- read.table("PN1/PedEval_Intercept_0.25.csv", header=TRUE)
-PedEval1 <- read.table("PedEval_NewModel_0.25.csv", header=TRUE)
+PedEval1 <- read.csv("PN1/PedEval_Intercept_0.25.csv", header=TRUE)
+PedEval1 <- read.table("PN1/PedEval_NewModel_0.25.csv", header=TRUE)
 PedEval1$ProgramGender <- paste0(PedEval1$Program, PedEval1$Gender)
-
-
-PedEval1 <- PedEval1[PedEval1$Generation > 5,]
 #PedEvalM <- PedEval1[PedEval1$Gender == "M" & PedEval1$Program == "GN",]
 InterceptSD <- aggregate(PedEvalM$EbvT1 ~ PedEvalM$Generation, FUN="sd")
 InterceptSD <- aggregate(PedEval1$EbvT1 ~ PedEval1$Generation + PedEval1$ProgramGender, FUN="sd")
@@ -515,7 +511,17 @@ ggplot(InterceptSD, aes(x=Generation, y=TbvT1, group=ProgramGender, colour=Progr
 
 
 PedEval1 <- read.table("PedEval_NewModel_0.25.csv", header=TRUE)
-#PedEvalM <- PedEval1[PedEval1$Gender = facet_grid(.~ProgramGender)
+#PedEvalM <- PedEval1[PedEval1$Gender == "M" & PedEval1$Program == "GN",]
+PedEval1$ProgramGender <- paste0(PedEval1$Program, PedEval1$Gender)
+NewModelSD <- aggregate(PedEvalM$EbvT1 ~ PedEvalM$Generation, FUN="sd")
+NewModelSD <- aggregate(PedEval1$EbvT1 ~ PedEval1$Generation + PedEval1$ProgramGender, FUN="sd")
+NewModelSD <- aggregate(PedEval1$TbvT1 ~ PedEval1$Generation + PedEval1$ProgramGender, FUN="sd")
+NewModelSD$Model <- "New"
+
+SD <- rbind(InterceptSD, NewModelSD)
+colnames(SD) <- c("Generation", "SD", "Model")
+colnames(SD) <- c("Generation", "ProgramGender", "SD", "Model")
+ggplot(data = SD, aes(x = Generation, y = SD, group=Model, colour=Model)) + geom_line() + facet_grid(.~ProgramGender)
 
 PedEval1 <- read.table("PedEval_Intercept_NoBaseInPed_missingT1_0.25.csv", header=TRUE)
 table(PedEval1$Generation)
@@ -537,9 +543,18 @@ PedEval1$ProgramGender = paste(PedEval1$Program, PedEval1$Gender, sep = "-")
 Part1 = AlphaPart(x = as.data.frame(PedEval1), sort = FALSE,
                   colId = "IId", colFid = "FId", colMid = "MId",
                   colPath = "ProgramGender", colAGV = c("EbvT1_s", "EbvT2_s", "EbvI_s"))
+Part1 = AlphaPart(x = as.data.frame(PedEval1), sort = FALSE,
+                  colId = "IId", colFid = "FId", colMid = "MId",
+                  colPath = "ProgramGender", colAGV = c("EbvT1", "EbvT2", "EbvI"))
+Part1 = AlphaPart(x = as.data.frame(PedEval1), sort = FALSE,
+                  colId = "IId", colFid = "FId", colMid = "MId",
+                  colPath = "ProgramGender", colAGV = c("EbvT1_s", "TbvT1_s"))
 Part1g = AlphaPart(x = as.data.frame(PedEval1), sort = FALSE,
                    colId = "IId", colFid = "FId", colMid = "MId",
                    colPath = "ProgramGender", colAGV = c("TbvT1_s", "TbvT2_s", "TbvI_s"))
+Part1g = AlphaPart(x = as.data.frame(PedEval1), sort = FALSE,
+                   colId = "IId", colFid = "FId", colMid = "MId",
+                   colPath = "ProgramGender", colAGV = c("TbvT1", "TbvT2", "TbvI"))
 
 
 Part1Summary = summary(object = Part1, by = "Generation")
@@ -548,8 +563,8 @@ p1 <- plot(Part1Summary)
 p1g <- plot(Part1gSummary)
 
 
-Part1Summary$EbvT1_s
 
+Part1Summary$EbvT1_s$rel
 
 accuraciesPN1$Cor <- as.numeric(accuraciesPN1$Cor)
 ggplot(accuraciesPN1, aes(x=Generation, y=Cor, group=Program, colour=Program, shape=Trait)) +  geom_point()
@@ -915,10 +930,11 @@ rbind(DataEvalGN2,
   facet_wrap(~ Program+Gender)
 
 
+PedEval1 <- PedEval1[PedEval1$Generation > 10,]
 # ---- Partitioning the trend PN1 ----
 PedEval1$EbvI = 0.5 * (PedEval1$EbvT1 + PedEval1$EbvT2)
-PedEval1$EbvT1_s <- (PedEval1$EbvT1 - mean(PedEval1$EbvT1[PedEval1$Generation == 0])) / sd(PedEval1$EbvT1[PedEval1$Generation == 0])
-PedEval1$EbvT2_s <- (PedEval1$EbvT2 - mean(PedEval1$EbvT2[PedEval1$Generation == 0])) / sd(PedEval1$EbvT2[PedEval1$Generation == 0])
+PedEval1$EbvT1_s <- (PedEval1$EbvT1 - mean(PedEval1$EbvT1[PedEval1$Generation == 5])) / sd(PedEval1$EbvT1[PedEval1$Generation == 5])
+PedEval1$EbvT2_s <- (PedEval1$EbvT2 - mean(PedEval1$EbvT2[PedEval1$Generation == 5])) / sd(PedEval1$EbvT2[PedEval1$Generation == 5])
 #PedEval1$EbvI_s <- (PedEval1$EbvI - mean(PedEval1$EbvI[PedEval1$Generation == 0])) / sd(PedEval1$EbvI[PedEval1$Generation == 0])
 PedEval1$EbvI_s <- 0.5 * (PedEval1$EbvT1_s + PedEval1$EbvT2_s)
 
@@ -934,9 +950,9 @@ PedEval1$ProgramGender = paste(PedEval1$Program, PedEval1$Gender, sep = "-")
 PedEval2$ProgramGender = paste(PedEval2$Program, PedEval2$Gender, sep = "-")
 PedEval1$GenerationProgram <- paste(PedEval1$Generation, PedEval1$Program, sep="-")
 PedEval2$GenerationProgram <- paste(PedEval2$Generation, PedEval2$Program, sep="-")
-Part1 = AlphaPart(x = as.data.frame(PedEval1), sort = FALSE,
+Part1 = AlphaPart(x = as.data.frame(PedEval1), sort = TRUE,
                   colId = "IId", colFid = "FId", colMid = "MId",
-                  colPath = "ProgramGender", colAGV = c("EbvT1_s", "EbvT2_s", "EbvI_s"))
+                  colPath = "ProgramGender", colAGV = c("EbvT1", "EbvT2", "EbvI"))
 
 Part2 = AlphaPart(x = as.data.frame(PedEval2), sort = FALSE,
                   colId = "IId", colFid = "FId", colMid = "MId",
@@ -1003,9 +1019,9 @@ PedEval2$TbvI_s <- 0.5 * (PedEval2$TbvT1_s + PedEval2$TbvT2_s)
 
 PedEval1$ProgramGender = paste(PedEval1$Program, PedEval1$Gender, sep = "-")
 PedEval2$ProgramGender = paste(PedEval2$Program, PedEval2$Gender, sep = "-")
-Part1 = AlphaPart(x = as.data.frame(PedEval1), sort = FALSE,
+Part1 = AlphaPart(x = as.data.frame(PedEval1), sort = TRUE,
                   colId = "IId", colFid = "FId", colMid = "MId",
-                  colPath = "ProgramGender", colAGV = c("TbvT1_s", "TbvT2_s", "TbvI_s"))
+                  colPath = "ProgramGender", colAGV = c("TbvT1", "TbvT2", "TbvI"))
 Part2 = AlphaPart(x = as.data.frame(PedEval2), sort = FALSE,
                   colId = "IId", colFid = "FId", colMid = "MId",
                   colPath = "ProgramGender", colAGV = c("TbvT1_s", "TbvT2_s", "TbvI_s"))
@@ -1086,6 +1102,7 @@ PN22 <- PedEval2 %>%
 
 #Korelacija PA!
 head(PedEval1)
+PedEval1 <- PedEval1[,1:13]
 # Ebv & Tbv PN1
 PN1Fathers <- unique(PedEval1[PedEval1$IId %in% PedEval1$FId, c("IId", "EbvT1", "EbvT2", "TbvT1", "TbvT2")])
 colnames(PN1Fathers) <- c("FId", "F_EbvT1", "F_EbvT2", "F_TbvT1", "F_TbvT2" )
@@ -1103,6 +1120,62 @@ PedEval1$MSTEbv1 <- PedEval1$EbvT1  - PedEval1$PAEbv1
 PedEval1$MSTEbv2 <- PedEval1$EbvT2  - PedEval1$PAEbv2
 PedEval1$MSTTbv1 <- PedEval1$TbvT1  - PedEval1$PATbv1
 PedEval1$MSTTbv2 <- PedEval1$TbvT1  - PedEval1$PATbv1
+
+head(PedEval1)
+#calculate BIAS of MSTs
+PedEval1$biasMST1 <- PedEval1$MSTEbv1 - PedEval1$MSTTbv1
+PedEval1$biasMST2 <- PedEval1$MSTEbv2 - PedEval1$MSTTbv2
+PedEval1$biasEBV1 <- PedEval1$EbvT1 - PedEval1$TbvT1
+PedEval1$biasEBV2 <- PedEval1$EbvT2 - PedEval1$TbvT2
+
+write.csv(PedEval1, "PN1/PedEval_Intercept_0.25.csv", quote=FALSE, row.names=FALSE)
+write.csv(PedEval1, "PN1/PedEval_NewModel_0.25.csv", quote=FALSE, row.names=FALSE)
+model <- lm(PedEval1$TbvT1 ~ PedEval1$EbvT1 + PedEval1$Generation + PedEval1$ProgramGender)
+summary(model)
+
+
+plot(model)
+
+library(dplyr)
+detach("package:plyr")
+  #negative means underestimation
+PN11 <- as.data.frame(PedEval1 %>% 
+  group_by(Generation, ProgramGender) %>% 
+  summarise(MEAN=mean(biasEBV1)))
+
+PN11 <- as.data.frame(PedEval1 %>% 
+  group_by(Generation, ProgramGender) %>% 
+  summarise(MEAN=mean(biasMST1)))
+
+PN11 <- as.data.frame(PedEval1 %>% 
+  group_by(Generation, ProgramGender) %>% 
+  summarise(MEAN=mean(MSTEbv1)))
+
+PN12 <- as.data.frame(PedEval1 %>% 
+  group_by(Generation, ProgramGender) %>% 
+  summarise(MEAN=mean(biasMST2)))
+PN11 <- summarySE(data = PedEval1, groupvars = c("Generation", "ProgramGender"), measurevar = "biasMST1")
+
+ggplot(data = PN11, aes(x=Generation, y=MEAN, colour=ProgramGender, group=ProgramGender)) + geom_line()
+ggplot(data = PedEval1, aes(x=Generation, y=biasMST1, colour=ProgramGender, group=ProgramGender)) + geom_point() + geom_smooth()
+ggplot(data = PN11, aes(x=Generation, y=biasMST1, colour=ProgramGender, group=ProgramGender)) + geom_line()
+maleGen1 <- PedEval1[PedEval1$Generation == 1 & PedEval1$Gender == "M",]
+head(maleGen1[order(maleGen1$biasMST1),])
+
+
+#MST of the fathers
+
+FATH <- PedEval1[PedEval1$IId %in% unique(PedEval1$FId),]
+ggplot(data = FATH, aes(x=Generation, y=biasMST1, colour=Program, group=Program)) + geom_point() + geom_smooth()
+ggplot(data = FATH, aes(x=Generation, y=biasMST2, colour=Program, group=Program)) + geom_point() + geom_smooth()
+MOTH <- PedEval1[PedEval1$IId %in% unique(PedEval1$MId),]
+ggplot(data = MOTH, aes(x=Generation, y=biasMST1)) + geom_point() + geom_smooth() + facet_grid(.~Program)
+ggplot(data = MOTH, aes(x=Generation, y=biasMST2)) + geom_point() + geom_smooth() + facet_grid(.~Program)
+
+
+
+#which animals have the lowest GN-M partition
+
 
 cor(PedEval1$PAEbv1, PedEval1$PATbv1, use="pairwise.complete.obs")
 cor(PedEval1$PAEbv2, PedEval1$PATbv2, use="pairwise.complete.obs")

@@ -13,6 +13,7 @@ import resource
 import ast
 
 WorkingDir = os.getcwd()
+os.chdir('/home/jana/TestSim/')
 
 
 # sys.argv: 1 = rep, 2 = scenario, 3 = strategy, 4 = reference size
@@ -162,7 +163,7 @@ varH = float(variances[1])
 varHY = float(variances[2])
 varHTD = float(variances[3])
 varE = float(variances[4])
-name = sys.argv[6]
+name = sys.argv[7]
 
 os.chdir(refSize + "/" + strategy + "_permEnv/")
 
@@ -198,8 +199,7 @@ os.system("chmod a+x AlphaSim1.08")
 os.system("chmod a+x renumf90")
 os.system("chmod a+x blupf90")
 
-par = pd.read_csv(WorkingDir + "/SelPar/" + refSize + "_Pheno/SelectionParam_Gen_MaleGS_" + name + ".csv", header=None,
-                  names=["Keys", "Vals"])
+par = pd.read_csv(WorkingDir + "/SelPar/" + refSize + "_Pheno/SelectionParam_Gen_MaleGS_" + name + ".csv", header=None, names=["Keys", "Vals"])
 par.to_dict()
 selPar = defaultdict()
 
@@ -254,8 +254,8 @@ for roundNo in range(21, 41):  # za vsak krog selekcije
 
     if roundNo == 21:
         #if this is round 1, then genotyped the offsrping of elite mating
-        ped = pd.read_table(AlphaSimDir + "/SimulatedData/PedigreeAndGeneticValues_cat.txt", sep=" ")
-        pd.DataFrame({"ID": list(ped.Indiv[(ped.cat == "potomciNP") & (ped.sex == "M")])}).to_csv(AlphaSimDir + "/IndForGeno_new.txt", header=None, index=None)
+        pedTmp = pd.read_csv(AlphaSimDir + "/SimulatedData/PedigreeAndGeneticValues_cat.txt", sep=" ")
+        pd.DataFrame({"ID": list(pedTmp.Indiv[(pedTmp.cat.isin(["potomciNP", 'vhlevljeni', 'mladi', 'cak'])) & (pedTmp.sex == "M")])}).to_csv(AlphaSimDir + "/IndForGeno_new.txt", header=None, index=None)
         if os.path.isfile('IndForGeno.txt'):
             os.system("grep -v -f IndForGeno.txt IndForGeno_new.txt > uniqNew && mv uniqNew IndForGeno_new.txt")
             os.system(

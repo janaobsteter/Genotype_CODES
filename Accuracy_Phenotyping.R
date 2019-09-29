@@ -20,3 +20,5 @@ ggplot(data=accA, aes(x=Ref, y=Cor, group=varE, colour=varE)) + geom_point() +
 ggplot(data=acc, aes(x=Ref, y=Cor, group=varE, colour=varE)) + geom_point() + 
   scale_colour_manual("Scenario", labels=c("c", "e", "d", "f", "a","b"), values = c("black", "red", "blue", "orange", "purple", "forestgreen")) +                            
   facet_grid(. ~ AgeCat) 
+
+
