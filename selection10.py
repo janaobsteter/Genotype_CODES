@@ -917,7 +917,6 @@ class pedigree(classPed):
                                                                                                        xP / 100))))
                                                                if xP != 100 else self.catCurrent_indiv_sex(x, sex) for
                                                                (x, xP, xC, sex) in genotypedCat]))))}).to_csv(
-                # if self.sel == 'class': #ZDJ TEGA NI, KER JE POSEBEJ FILE!
                 'IndForGeno_new.txt', index=None, header=None)
             os.system("grep -v -f IndForGeno.txt IndForGeno_new.txt > uniqNew && mv uniqNew IndForGeno_new.txt")
             os.system(
