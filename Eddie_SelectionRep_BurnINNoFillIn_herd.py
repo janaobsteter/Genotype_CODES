@@ -157,34 +157,12 @@ varE = float(variances[4])
 
 
 for rep in [REP]:
-    if not os.path.isdir("FillInBurnIn" + str(rep) + "_permEnv"):
-       os.makedirs("FillInBurnIn" + str(rep) + "_permEnv")
     os.chdir("FillInBurnIn" + str(rep) + "_permEnv") #prestavi se v FillInBurnin za ta replikat
-    os.system('cp -r ' + WorkingDir + '/Essentials/* .') # skopiraj vse iz Esentials
-    os.system('cp -r ' + WorkingDir + '/CodeDir/* .') # skopiraj vse iz CodeDir
-    seed =  randint(-100000000, -1)
-    os.system("echo " + str(seed) + " > Seed.txt")
 
     #first make a FILLIN
     #nastavi AlphaSimSpec
     print(os.getcwd())
 
-    SpecFile = AlphaSimSpec(os.getcwd(), WorkingDir + "/CodeDir")  # AlphaSimSpec je class iz selection, ki omogoča nastavljanje parametrov AlphaSimSpec fila
-    SpecFile.setPedType("Internal")  # pedigree je za burn in internal
-    SpecFile.setNB(8640)  # stevilo novorojenih
-    SpecFile.setBurnInGen(20)  # stevilo burnINGen
-    SpecFile.setSelGen(40)  # st selection gen
-    SpecFile.setNoSires(12)
-    SpecFile.setNoDams(4320)
-    SpecFile.turnOnGenFlex()
-    SpecFile.setFlexGenToFrom(1, 21)  # pozeni od generacije 1 do burnin+1
-    SpecFile.turnOnSelFlex()
-    SpecFile.setExtPedForGen(21)  # za katero generacijo uvozi external pedigre  - ena po burn in
-    SpecFile.setTBVComp(1)  # skomputiraj TBV
-    # pozenes ALPHASIM
-    os.system('./AlphaSim1.08')
-    os.system("bash ChangeChip2Geno_IDs.sh")
-	
 #####################################################################################################
 #####################################################################################################
     #THEN MAKE A BURN IN - classical selection!
@@ -316,8 +294,9 @@ for rep in [REP]:
             GenInt.prepareGenInts(['genTest',
                                    'pt'])  # pri klasični so izbrani potomci vsi genomsko testirani (pozTest in pripust) in plemenske telice
 
-	if roundNo == 1:
-	    os.remove(AlphaSimDir + 'Blupf90.dat')	    
+        if roundNo == 1:
+            os.remove(AlphaSimDir + 'Blupf90.dat')
+
         blupNextGen = estimateBV(AlphaSimDir, WorkingDir + "/CodeDir", way='milk', sel=seltype)
         #v obračun gre le HerdYear, varianca za HerdTestDay in Herd gre v ostanek
         varEest = varE + varH + varHTD

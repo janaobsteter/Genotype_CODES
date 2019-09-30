@@ -9,28 +9,33 @@ from selection10 import *
 
 WorkingDir = "/home/jana/"
 os.chdir(WorkingDir)
-scenario = "Class"
+scenario = "Gen"
+os.chdir("/home/jana/TestSim/")
 
-parhome = pd.read_csv(os.getcwd() + "/Essentials/SelectionParam_Class.csv", header=None, names=["Keys", "Vals"])
+parhome = pd.read_csv("/home/jana/SelectionParam_Gen_MaleGS.csv", header=None, names=["Keys", "Vals"])
+parhome = pd.read_csv("/home/jana/SelectionParam_Gen_MaleGS_True10_1_1.csv", header=None, names=["Keys", "Vals"])
+parhome = pd.read_csv("/home/jana/TestSim/SelectionParam_Gen_MaleGS_True10_1_1.csv", header=None, names=["Keys", "Vals"])
 parhome.to_dict()
 selParhome = defaultdict()
 for key, val in zip(parhome.Keys, parhome.Vals):
-    if key not in ['BurnInYN', 'EBV', 'gEBV', 'PA', 'AlphaSimDir', 'genotyped', 'EliteDamsPTBulls',
+    if key not in ['BurnInYN', 'EBV', 'gEBV', 'PA', 'AlphaSimDir', 'genotyped', 'genotypedAge', 'EliteDamsPTBulls',
                    'EliteDamsPABulls', 'UpdateGenRef', 'sexToUpdate', 'EliteDamsGenBulls', 'gpb_pb',
-                   'genTest_mladi', 'genTest_gpb', 'genFemale']:
+                   'genTest_mladi', 'genTest_gpb', 'genFemale', 'maleGenSelAll']:
         try:
             selParhome[key] = int(val)
         except:
             selParhome[key] = float(val)
     if key in ['BurnInYN', 'EBV', 'gEBV', 'PA', 'AlphaSimDir', 'EliteDamsPTBulls',
                'EliteDamsPABulls', 'UpdateGenRef', 'sexToUpdate', 'EliteDamsGenBulls', 'gpb_pb',
-               'genTest_mladi', 'genTest_gpb', 'genFemale']:
+               'genTest_mladi', 'genTest_gpb', 'genFemale', 'maleGenSelAll']:
         if val in ['False', 'True']:
             selParhome[key] = bool(val == 'True')
         else:
             selParhome[key] = val
-    if key == 'genotyped':
+    if key in  ['genotyped', 'genotypedAge']:
         selParhome[key] = ast.literal_eval(val)
+    if key == 'sexToUpdate':
+        selParhome[key] = ast.literal_eval(val) if len(ast.literal_eval(val)) > 1 else ast.literal_eval(val)[0]
 
 if selParhome['EBV']:
     seltype = 'class'
@@ -184,3 +189,8 @@ for krog in range(krogov): #ponavljaj kolikor krogov selekcije hočeš
 #
 #     joinExternalPeds(["ExternalPedigreehome", "ExternalPedigreeimport"], AlphaSimDir)
 #     record_groups(["home", "import"], "PopulationSplit.txt")
+
+
+
+####test updating
+ped = pedigree('/home/jana/GenPed_EBV.txt')

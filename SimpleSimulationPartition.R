@@ -63,11 +63,11 @@ DataBurn = tibble(Generation = rep(1:nGenerationBurn, each=2), Gender = rep(c("F
                   GenVarT1  = NA, GenVarT2  = NA, GenVarI  = NA)
 for (Generation in 1:nGenerationBurn) {
   # Generation = 1
-
+  
   # Mate
   SelCand = randCross2(females = BaseGNFemales, males = BaseGNMales,
                        nCrosses = BaseGNFemales@nInd, nProgeny = 12)
-
+  
   # Save metrics
   for (gender in c("F", "M")) {
     DataBurn[(DataBurn$Generation == Generation) & (DataBurn$Gender == gender), GenMeanCols] =
@@ -79,15 +79,15 @@ for (Generation in 1:nGenerationBurn) {
   
   # Phenotype
   SelCand = setPheno(pop = SelCand, varE = VarE)
-
+  
   # Evaluate (could run BLUP)
   SelCand@ebv = SelCand@pheno
-
+  
   # Select
   BaseGNMales   = selectInd(pop = SelCand, nInd = nGNMales,   gender = "M",
-                        use = "ebv", trait = function(x) rowMeans(x))
+                            use = "ebv", trait = function(x) rowMeans(x))
   BaseGNFemales = selectInd(pop = SelCand, nInd = nGNFemales, gender = "F",
-                        use = "ebv", trait = function(x) rowMeans(x))
+                            use = "ebv", trait = function(x) rowMeans(x))
 }
 
 # Plot genetic means
@@ -117,42 +117,42 @@ BasePNFemales = selectInd(pop = SelCand, nInd = nPNFemales, gender = "F",
 # ---- Evaluation ----
 
 PedEval = rbind(tibble(Generation = 0,
-                         IId        = BaseGNMales@id,
-                         FId        = NA,
-                         MId        = NA,
-                         Gender     = BaseGNMales@gender,
-                         Program    = "GN",
-                         PhenoT1    = BaseGNMales@pheno[,1],
-                         PhenoT2    = BaseGNMales@pheno[,2],
-                         EbvT1      = BaseGNMales@ebv[, 1],
-                         EbvT2      = BaseGNMales@ebv[, 2],
-                         TbvT1      = BaseGNMales@gv[, 1],
-                         TbvT2      = BaseGNMales@gv[, 2]),
-                  tibble(Generation = 0,
-                         IId        = BaseGNFemales@id,
-                         FId        = NA,
-                         MId        = NA,
-                         Gender     = BaseGNFemales@gender,
-                         Program    = "GN",
-                         PhenoT1    = BaseGNFemales@pheno[,1],
-                         PhenoT2    = BaseGNFemales@pheno[,2],
-                         EbvT1      = BaseGNFemales@ebv[, 1],
-                         EbvT2      = BaseGNFemales@ebv[, 2],
-                         TbvT1      = BaseGNFemales@gv[, 1],
-                         TbvT2      = BaseGNFemales@gv[, 2]),
-                   tibble(Generation = 0,
-                          IId        = BasePNFemales@id,
-                          FId        = NA,
-                          MId        = NA,
-                          Gender     = BasePNFemales@gender,
-                          Program    = "PN1",
-                          PhenoT1    = BasePNFemales@pheno[,1],
-                          PhenoT2    = BasePNFemales@pheno[,2],
-                          EbvT1      = BasePNFemales@ebv[, 1],
-                          EbvT2      = BasePNFemales@ebv[, 2],
-                          TbvT1      = BasePNFemales@gv[, 1],
-                          TbvT2      = BasePNFemales@gv[, 2])
-                          )
+                       IId        = BaseGNMales@id,
+                       FId        = NA,
+                       MId        = NA,
+                       Gender     = BaseGNMales@gender,
+                       Program    = "GN",
+                       PhenoT1    = BaseGNMales@pheno[,1],
+                       PhenoT2    = BaseGNMales@pheno[,2],
+                       EbvT1      = BaseGNMales@ebv[, 1],
+                       EbvT2      = BaseGNMales@ebv[, 2],
+                       TbvT1      = BaseGNMales@gv[, 1],
+                       TbvT2      = BaseGNMales@gv[, 2]),
+                tibble(Generation = 0,
+                       IId        = BaseGNFemales@id,
+                       FId        = NA,
+                       MId        = NA,
+                       Gender     = BaseGNFemales@gender,
+                       Program    = "GN",
+                       PhenoT1    = BaseGNFemales@pheno[,1],
+                       PhenoT2    = BaseGNFemales@pheno[,2],
+                       EbvT1      = BaseGNFemales@ebv[, 1],
+                       EbvT2      = BaseGNFemales@ebv[, 2],
+                       TbvT1      = BaseGNFemales@gv[, 1],
+                       TbvT2      = BaseGNFemales@gv[, 2]),
+                tibble(Generation = 0,
+                       IId        = BasePNFemales@id,
+                       FId        = NA,
+                       MId        = NA,
+                       Gender     = BasePNFemales@gender,
+                       Program    = "PN1",
+                       PhenoT1    = BasePNFemales@pheno[,1],
+                       PhenoT2    = BasePNFemales@pheno[,2],
+                       EbvT1      = BasePNFemales@ebv[, 1],
+                       EbvT2      = BasePNFemales@ebv[, 2],
+                       TbvT1      = BasePNFemales@gv[, 1],
+                       TbvT2      = BasePNFemales@gv[, 2])
+)
 
 
 DataEvalGN = tibble(Generation = rep(1:nGenerationEval, each=2),
@@ -176,7 +176,7 @@ for (Generation in 1:nGenerationEval) {
   SelCand = randCross2(females = GNFemales, males = GNMales,
                        nCrosses = GNFemales@nInd, nProgeny = 12)
   # meanG(SelCand)
-
+  
   # Save metrics
   for (gender in c("F", "M")) {
     DataEvalGN[(DataEvalGN$Generation == Generation) & (DataEvalGN$Gender == gender), GenMeanCols] =
@@ -184,24 +184,24 @@ for (Generation in 1:nGenerationEval) {
     DataEvalGN[(DataEvalGN$Generation == Generation) & (DataEvalGN$Gender == gender), GenVarCols] =
       c(diag(var(SelCand@gv[SelCand@gender == gender,])), var(rowMeans(SelCand@gv[SelCand@gender == gender,])))
   }
-
+  
   # Phenotype
   SelCand = setPheno(pop = SelCand, varE = VarE)
-
+  
   # Track pedigree
   PedEval = rbind(PedEval,
-                    tibble(Generation = Generation,
-                           IId        = SelCand@id,
-                           FId        = SelCand@father,
-                           MId        = SelCand@mother,
-                           Gender     = SelCand@gender,
-                           Program    = "GN",
-                           PhenoT1    = SelCand@pheno[,1],
-                           PhenoT2    = SelCand@pheno[,2],
-                           EbvT1      = NA,
-                           EbvT2      = NA,
-                           TbvT1      = SelCand@gv[, 1],
-                           TbvT2      = SelCand@gv[, 2]))
+                  tibble(Generation = Generation,
+                         IId        = SelCand@id,
+                         FId        = SelCand@father,
+                         MId        = SelCand@mother,
+                         Gender     = SelCand@gender,
+                         Program    = "GN",
+                         PhenoT1    = SelCand@pheno[,1],
+                         PhenoT2    = SelCand@pheno[,2],
+                         EbvT1      = NA,
+                         EbvT2      = NA,
+                         TbvT1      = SelCand@gv[, 1],
+                         TbvT2      = SelCand@gv[, 2]))
   
   # Estimate EBVs with blupf90
   setwd(paste0(homedir, "/GN/"))
@@ -256,10 +256,10 @@ for (Generation in 1:nGenerationEval) {
   sol2 <- sol2[order(match(sol2$V2, PedEval$IId)),]
   PedEval$EbvT2 <- sol2$V3
   
-
+  
   # Set EBVs for SelCand
   SelCand@ebv = as.matrix(PedEval[PedEval$IId %in% SelCand@id, c("EbvT1", "EbvT2")])
-
+  
   # Select
   GNMales   = selectInd(pop = SelCand, nInd = nGNMales,   gender = "M",
                         use = "ebv", trait = function(x) rowMeans(x))
@@ -267,17 +267,17 @@ for (Generation in 1:nGenerationEval) {
                         use = "ebv", trait = function(x) rowMeans(x))
   # Clean
   rm(SelCand)
-
-
-
-##############################################################################3
-##############################################################################3
-# ---- Program 1: PN with 100% GNmales, PN does T1 ----
-
+  
+  
+  
+  ##############################################################################3
+  ##############################################################################3
+  # ---- Program 1: PN with 100% GNmales, PN does T1 ----
+  
   if (Generation == 1) {
     PNFemales1 = BasePNFemales
   }
-
+  
   # Mate
   PNFemales1ForPure = selectInd(pop = PNFemales1, nInd = PNFemales1@nInd * pPNFemalesPure,
                                 use = "ebv", trait = function(x) rowMeans(x, na.rm = TRUE))
@@ -285,7 +285,7 @@ for (Generation in 1:nGenerationEval) {
                        nCrosses = PNFemales1ForPure@nInd, nProgeny = 14)
   # SelCand@nInd
   # meanG(PNFemales1); meanG(PNFemales1ForPure); meanG(GNMales); meanG(SelCand)
-
+  
   # Save metrics
   for (gender in c("F", "M")) {
     DataEvalPN1[(DataEvalPN1$Generation == Generation) & (DataEvalPN1$Gender == gender), GenMeanCols] =
@@ -293,27 +293,27 @@ for (Generation in 1:nGenerationEval) {
     DataEvalPN1[(DataEvalPN1$Generation == Generation) & (DataEvalPN1$Gender == gender), GenVarCols] =
       c(diag(var(SelCand@gv[SelCand@gender == gender,])), var(rowMeans(SelCand@gv[SelCand@gender == gender,])))
   }
-
-
+  
+  
   # Phenotype
   SelCand = setPheno(pop = SelCand, varE = VarE)
   SelCand@pheno[, 2] = NA
-
-
+  
+  
   # Track pedigree
   PedEval = rbind(PedEval, 
-                     tibble(Generation = Generation,
-                              IId        = SelCand@id,
-                              FId        = SelCand@father,
-                              MId        = SelCand@mother,
-                              Gender     = SelCand@gender,
-                              Program    = "PN1",
-                              PhenoT1    = SelCand@pheno[,1],
-                              PhenoT2    = SelCand@pheno[,2],
-                              EbvT1      = NA,
-                              EbvT2      = NA,
-                              TbvT1      = SelCand@gv[, 1],
-                              TbvT2      = SelCand@gv[, 2]))
+                  tibble(Generation = Generation,
+                         IId        = SelCand@id,
+                         FId        = SelCand@father,
+                         MId        = SelCand@mother,
+                         Gender     = SelCand@gender,
+                         Program    = "PN1",
+                         PhenoT1    = SelCand@pheno[,1],
+                         PhenoT2    = SelCand@pheno[,2],
+                         EbvT1      = NA,
+                         EbvT2      = NA,
+                         TbvT1      = SelCand@gv[, 1],
+                         TbvT2      = SelCand@gv[, 2]))
   
   
   # Estimate EBVs with blupf90
@@ -349,7 +349,7 @@ for (Generation in 1:nGenerationEval) {
               na = "0", append = file.exists("Blupf902.dat"))
   
   
-
+  
   # Evaluate Trait 1
   system(command = "./renumf90 < renumParam1")
   system(command = "./blupf90 renf90.par")
@@ -360,7 +360,7 @@ for (Generation in 1:nGenerationEval) {
   sol1 <- sol1[order(match(sol1$V2, PedEval$IId)),]
   PedEval$EbvT1 <- sol1$V3  
   
-
+  
   # Evaluate Trait 1
   system(command = "./renumf90 < renumParam2")
   system(command = "./blupf90 renf90.par")
@@ -371,11 +371,11 @@ for (Generation in 1:nGenerationEval) {
   sol2 <- sol2[order(match(sol2$V2, PedEval$IId)),]
   PedEval$EbvT2 <- sol2$V3
   
-
+  
   # Set EBVs for SelCand
   SelCand@ebv = as.matrix(PedEval[PedEval$IId %in% SelCand@id, c("EbvT1", "EbvT2")])
-
-
+  
+  
   # Clean
   rm(SelCand)
 }
@@ -384,285 +384,6 @@ PedEval1 = PedEval
 rm(PedEval)
 DataEvalGN1 = DataEvalGN
 rm(DataEvalGN)
-##############################################################################3
-##############################################################################3
-# ---- PN2 ----
-DataEvalGN = tibble(Generation = rep(1:nGenerationEval, each=2),
-                    Program = NA, Gender = rep(c("M", "F"), nGenerationEval),
-                    GenMeanT1 = NA, GenMeanT2 = NA, GenMeanI = NA,
-                    GenVarT1  = NA, GenVarT2  = NA, GenVarI  = NA)
-DataEvalGN$Program = "GN"
-
-PedEval = rbind(tibble(Generation = 0,
-                       IId        = BaseGNMales@id,
-                       FId        = NA,
-                       MId        = NA,
-                       Gender     = BaseGNMales@gender,
-                       Program    = "GN",
-                       PhenoT1    = BaseGNMales@pheno[,1],
-                       PhenoT2    = BaseGNMales@pheno[,2],
-                       EbvT1      = BaseGNMales@ebv[, 1],
-                       EbvT2      = BaseGNMales@ebv[, 2],
-                       TbvT1      = BaseGNMales@gv[, 1],
-                       TbvT2      = BaseGNMales@gv[, 2]),
-                tibble(Generation = 0,
-                       IId        = BaseGNFemales@id,
-                       FId        = NA,
-                       MId        = NA,
-                       Gender     = BaseGNFemales@gender,
-                       Program    = "GN",
-                       PhenoT1    = BaseGNFemales@pheno[,1],
-                       PhenoT2    = BaseGNFemales@pheno[,2],
-                       EbvT1      = BaseGNFemales@ebv[, 1],
-                       EbvT2      = BaseGNFemales@ebv[, 2],
-                       TbvT1      = BaseGNFemales@gv[, 1],
-                       TbvT2      = BaseGNFemales@gv[, 2]),
-                tibble(Generation = 0,
-                       IId        = BasePNFemales@id,
-                       FId        = NA,
-                       MId        = NA,
-                       Gender     = BasePNFemales@gender,
-                       Program    = "PN2",
-                       PhenoT1    = BasePNFemales@pheno[,1],
-                       PhenoT2    = BasePNFemales@pheno[,2],
-                       EbvT1      = BasePNFemales@ebv[, 1],
-                       EbvT2      = BasePNFemales@ebv[, 2],
-                       TbvT1      = BasePNFemales@gv[, 1],
-                       TbvT2      = BasePNFemales@gv[, 2])
-)
-
-for (Generation in 1:nGenerationEval) {
-  if (Generation == 1) {
-    GNFemales = BaseGNFemales
-    GNMales = BaseGNMales
-  }
-  # Mate
-  SelCand = randCross2(females = GNFemales, males = GNMales,
-                       nCrosses = GNFemales@nInd, nProgeny = 12)
-  # meanG(SelCand)
-  
-  # Save metrics
-  for (gender in c("F", "M")) {
-    DataEvalGN[(DataEvalGN$Generation == Generation) & (DataEvalGN$Gender == gender), GenMeanCols] =
-      c(colMeans(SelCand@gv[SelCand@gender == gender,]),  mean(rowMeans(SelCand@gv[SelCand@gender == gender,])))
-    DataEvalGN[(DataEvalGN$Generation == Generation) & (DataEvalGN$Gender == gender), GenVarCols] =
-      c(diag(var(SelCand@gv[SelCand@gender == gender,])), var(rowMeans(SelCand@gv[SelCand@gender == gender,])))
-  }
-  
-  # Phenotype
-  SelCand = setPheno(pop = SelCand, varE = VarE)
-  
-  # Track pedigree
-  PedEval = rbind(PedEval,
-                  tibble(Generation = Generation,
-                         IId        = SelCand@id,
-                         FId        = SelCand@father,
-                         MId        = SelCand@mother,
-                         Gender     = SelCand@gender,
-                         Program    = "GN",
-                         PhenoT1    = SelCand@pheno[,1],
-                         PhenoT2    = SelCand@pheno[,2],
-                         EbvT1      = NA,
-                         EbvT2      = NA,
-                         TbvT1      = SelCand@gv[, 1],
-                         TbvT2      = SelCand@gv[, 2]))
-  
-  # Estimate EBVs with blupf90
-  setwd(paste0(homedir, "/GN/"))
-  if (Generation == 1) {
-    system("rm *ped *dat")
-  }
-  # Create pedigree file
-  blupPed <- PedEval[,c("IId", "FId", "MId")]
-  blupPed$FId[is.na(blupPed$FId)] <- 0
-  blupPed$MId[is.na(blupPed$MId)] <- 0
-  blupPed <- blupPed[order(blupPed$IId),]
-  write.table(blupPed, "Blupf90.ped", quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ", na = "0")
-  
-  # Create phenotype file
-  # Trait 1
-  if (!file.exists("Blupf901.dat")) {
-    write.table(PedEval[,c("IId", "PhenoT1", "Program")], "Blupf901.dat", quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ", na = "0")
-  } else {
-    oldblupdat <- read.table("Blupf901.dat")
-    colnames(oldblupdat) <- c("IId", "PhenoT1", "Program")
-    newblupdat <- rbind(oldblupdat, PedEval[,c("IId", "PhenoT1", "Program")])
-    write.table(newblupdat, "Blupf901.dat", quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ", na = "0")
-  }  
-  
-  # Trait 2
-  # Create phenotype file
-  if (!file.exists("Blupf902.dat")) {
-    write.table(PedEval[,c("IId", "PhenoT2", "Program")], "Blupf902.dat", quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ", na = "0")
-  } else {
-    oldblupdat <- read.table("Blupf902.dat")
-    colnames(oldblupdat) <- c("IId", "PhenoT2", "Program")
-    newblupdat <- rbind(oldblupdat, PedEval[,c("IId", "PhenoT2", "Program")])
-    write.table(newblupdat, "Blupf902.dat", quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ", na = "0")
-  }
-  
-  # Evaluate Trait 1
-  system(command = "./renumf90 < renumParam1")
-  system(command = "./blupf90 renf90.par")
-  system(command = "bash Match_AFTERRenum.sh")
-  system(command = paste0("mv renumbered_Solutions renumbered_Solutions_1_", Generation))
-  
-  sol1 <- read.table(paste0("renumbered_Solutions_1_", Generation))[,2:3]
-  sol1 <- sol1[order(match(sol1$V2, PedEval$IId)),]
-  PedEval$EbvT1 <- sol1$V3
-  
-  # Evaluate Trait 2
-  system(command = "./renumf90 < renumParam2")
-  system(command = "./blupf90 renf90.par")
-  system(command = "bash Match_AFTERRenum.sh")
-  system(command = paste0("mv renumbered_Solutions renumbered_Solutions_2_", Generation))
-  
-  sol2 <- read.table(paste0("renumbered_Solutions_2_", Generation))[,2:3]
-  sol2 <- sol2[order(match(sol2$V2, PedEval$IId)),]
-  PedEval$EbvT2 <- sol2$V3
-  
-  
-  # Set EBVs for SelCand
-  SelCand@ebv = as.matrix(PedEval[PedEval$IId %in% SelCand@id, c("EbvT1", "EbvT2")])
-  
-  # Select
-  GNMales   = selectInd(pop = SelCand, nInd = nGNMales,   gender = "M",
-                        use = "ebv", trait = function(x) rowMeans(x))
-  GNFemales = selectInd(pop = SelCand, nInd = nGNFemales, gender = "F",
-                        use = "ebv", trait = function(x) rowMeans(x))
-  # Clean
-  rm(SelCand)
-  
-  # ---- Program 2: PN with 50% GNMales & 50% PNMales, PN does T1 ----
-  if (Generation == 1) {
-    PNFemales2 = BasePNFemales
-    PNMales2 = BaseGNMales
-  }
-
-  # Mate
-  PNFemales2ForPure = selectInd(pop = PNFemales2, nInd = PNFemales2@nInd * pPNFemalesPure,
-                                use = "ebv", trait = function(x) rowMeans(x, na.rm = TRUE))
-  SelCand = randCross2(females = PNFemales2ForPure, males = c(GNMales, PNMales2),
-                       nCrosses = PNFemales2ForPure@nInd, nProgeny = 14)
-  # SelCand@nInd
-  # meanG(PNFemales2); meanG(PNFemales2ForPure); meanG(GNMales); meanG(PNMales2); meanG(SelCand)
-
-  # Save metrics
-  for (gender in c("F", "M")) {
-    DataEvalPN2[(DataEvalPN2$Generation == Generation) & (DataEvalPN2$Gender == gender), GenMeanCols] =
-      c(colMeans(SelCand@gv[SelCand@gender == gender,]),  mean(rowMeans(SelCand@gv[SelCand@gender == gender,])))
-    DataEvalPN2[(DataEvalPN2$Generation == Generation) & (DataEvalPN2$Gender == gender), GenVarCols] =
-      c(diag(var(SelCand@gv[SelCand@gender == gender,])), var(rowMeans(SelCand@gv[SelCand@gender == gender,])))
-  }
-
-
-  # Phenotype
-  SelCand = setPheno(pop = SelCand, varE = VarE)
-  SelCand@pheno[, 2] = NA
-
-  
-  # Track pedigree
-  PedEval = rbind(PedEval, 
-                  tibble(Generation = Generation,
-                         IId        = SelCand@id,
-                         FId        = SelCand@father,
-                         MId        = SelCand@mother,
-                         Gender     = SelCand@gender,
-                         Program    = "PN2",
-                         PhenoT1    = SelCand@pheno[,1],
-                         PhenoT2    = SelCand@pheno[,2],
-                         EbvT1      = NA,
-                         EbvT2      = NA,
-                         TbvT1      = SelCand@gv[, 1],
-                         TbvT2      = SelCand@gv[, 2]))
-  
-  # Estimate EBVs with blupf90
-  setwd(paste0(homedir, "/PN2/"))
-  if (Generation == 1) {
-    system("rm *ped *dat")
-  }
-  # Create pedigree file
-  blupPed <- PedEval[,c("IId", "FId", "MId")]
-  blupPed$FId[is.na(blupPed$FId)] <- 0
-  blupPed$MId[is.na(blupPed$MId)] <- 0
-  blupPed <- blupPed[order(blupPed$IId),]
-  write.table(blupPed, "Blupf90.ped", quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ", na = "0")
-  
-  # Create phenotype file
-  # Trait 1
-  if (!file.exists("Blupf901.dat")) {
-    write.table(PedEval[,c("IId", "PhenoT1", "Program")], "Blupf901.dat", quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ", na = "0")
-  } else {
-    oldblupdat <- read.table("Blupf901.dat")
-    colnames(oldblupdat) <- c("IId", "PhenoT1", "Program")
-    newblupdat <- rbind(oldblupdat, PedEval[,c("IId", "PhenoT1", "Program")])
-    write.table(newblupdat, "Blupf901.dat", quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ", na = "0")
-  }  
-  
-  # Evaluate Trait 1
-  system(command = "./renumf90 < renumParam1")
-  system(command = "./blupf90 renf90.par")
-  system(command = "bash Match_AFTERRenum.sh")
-  system(command = paste0("mv renumbered_Solutions renumbered_Solutions_1_", Generation))
-  
-  sol1 <- read.table(paste0("renumbered_Solutions_1_", Generation))[,2:3]
-  sol1 <- sol1[order(match(sol1$V2, PedEval$IId)),]
-  PedEval$EbvT1 <- sol1$V3
-
-  
-  # Create phenotype file
-  # Trait 2
-  if (!file.exists("Blupf902.dat")) {
-    write.table(PedEval[,c("IId", "PhenoT2", "Program")], "Blupf902.dat", quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ", na = "0")
-  } else {
-    oldblupdat <- read.table("Blupf902.dat")
-    colnames(oldblupdat) <- c("IId", "PhenoT2", "Program")
-    newblupdat <- rbind(oldblupdat, PedEval[,c("IId", "PhenoT2", "Program")])
-    write.table(newblupdat, "Blupf902.dat", quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ", na = "0")
-  }  
-  
-  
-  # Evaluate Trait 1
-  system(command = "./renumf90 < renumParam2")
-  system(command = "./blupf90 renf90.par")
-  system(command = "bash Match_AFTERRenum.sh")
-  system(command = paste0("mv renumbered_Solutions renumbered_Solutions_2_", Generation))
-  
-  sol2 <- read.table(paste0("renumbered_Solutions_2_", Generation))[,2:3]
-  sol2 <- sol2[order(match(sol2$V2, PedEval$IId)),]
-  PedEval$EbvT2 <- sol2$V3
-  
-  # Set EBVs for SelCand
-  SelCand@ebv = as.matrix(PedEval[PedEval$IId %in% SelCand@id, c("EbvT1", "EbvT2")])
-  
-  # Select
-  PNMales2   = selectInd(pop = SelCand, nInd = nPNMales,   gender = "M",
-                         use = "ebv", trait = function(x) rowMeans(x, na.rm = TRUE))
-  PNFemales2 = selectInd(pop = SelCand, nInd = nPNFemales, gender = "F",
-                         use = "ebv", trait = function(x) rowMeans(x, na.rm = TRUE))
-
- ' 
-  # EbvT1 se zgoraj nastavi za vse živali, EbvT2 pa moraš kot PA ročno vnesti v PedEval
-  PN2Animal <- PedEval[PedEval$IId %in% SelCand@id, c("IId", "FId", "MId")]
-  PN2Fathers <- unique(PedEval[PedEval$IId %in% PedEval$FId[PedEval$Program == "PN2"], c("IId", "EbvT2")])
-  colnames(PN2Fathers) <- c("FId", "F_EbvT2")
-  PN2Mothers <- unique(PedEval[PedEval$IId %in% PedEval$MId[PedEval$Program == "PN2"], c("IId", "EbvT2")])
-  colnames(PN2Mothers) <- c("MId", "M_EbvT2")
-  PN2Animal <- merge(PN2Animal, PN2Fathers, by="FId")
-  PN2Animal <- merge(PN2Animal, PN2Mothers, by="MId")
-  PN2Animal$PA <- 0.5 * (PN2Animal$F_EbvT2 + PN2Animal$M_EbvT2)
-  PedEval$EbvT2[PedEval$IId %in% PN2Animal$IId] <- PN2Animal$PA[order(match(PN2Animal$IId, PedEval$IId[PedEval$IId %in% PN2Animal$IId]))]
-'  
-  # Clean
-  rm(SelCand)
-}
-
-PedEval2 = PedEval
-rm(PedEval)
-DataEvalGN2 <- DataEvalGN
-rm(DataEvalGN)
-####################################################################################################
-####################################################################################################
 
 # Plot genetic means
 # PN1
@@ -747,11 +468,11 @@ PedEval2$ProgramGender = paste(PedEval2$Program, PedEval2$Gender, sep = "-")
 PedEval1$GenerationProgram <- paste(PedEval1$Generation, PedEval1$Program, sep="-")
 PedEval2$GenerationProgram <- paste(PedEval2$Generation, PedEval2$Program, sep="-")
 Part1 = AlphaPart(x = as.data.frame(PedEval1), sort = FALSE,
-                 colId = "IId", colFid = "FId", colMid = "MId",
-                 colPath = "ProgramGender", colAGV = c("EbvT1_s", "EbvT2_s", "EbvI_s"))
+                  colId = "IId", colFid = "FId", colMid = "MId",
+                  colPath = "ProgramGender", colAGV = c("EbvT1_s", "EbvT2_s", "EbvI_s"))
 Part2 = AlphaPart(x = as.data.frame(PedEval2), sort = FALSE,
-                 colId = "IId", colFid = "FId", colMid = "MId",
-                 colPath = "ProgramGender", colAGV = c("EbvT1_s", "EbvT2_s", "EbvI_s"))
+                  colId = "IId", colFid = "FId", colMid = "MId",
+                  colPath = "ProgramGender", colAGV = c("EbvT1_s", "EbvT2_s", "EbvI_s"))
 
 #poreži živali iz nukleusa
 Part1$EbvT1_s <- Part1$EbvT1_s[Part1$EbvT1_s$Program == "PN1",]
@@ -792,8 +513,8 @@ PedEval2$TbvI_s <- (PedEval2$TbvI - mean(PedEval2$TbvI[PedEval2$Generation == 0]
 PedEval1$ProgramGender = paste(PedEval1$Program, PedEval1$Gender, sep = "-")
 PedEval2$ProgramGender = paste(PedEval2$Program, PedEval2$Gender, sep = "-")
 Part1g = AlphaPart(x = as.data.frame(PedEval1), sort = FALSE,
-                  colId = "IId", colFid = "FId", colMid = "MId",
-                  colPath = "ProgramGender", colAGV = c("TbvT1_s", "TbvT2_s", "TbvI_s"))
+                   colId = "IId", colFid = "FId", colMid = "MId",
+                   colPath = "ProgramGender", colAGV = c("TbvT1_s", "TbvT2_s", "TbvI_s"))
 Part2 = AlphaPart(x = as.data.frame(PedEval2), sort = FALSE,
                   colId = "IId", colFid = "FId", colMid = "MId",
                   colPath = "ProgramGender", colAGV = c("TbvT1_s", "TbvT2_s", "TbvI_s"))

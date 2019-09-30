@@ -1,0 +1,395 @@
+library(Rmisc)
+library(ggplot2)
+library(reshape)
+h2 <- read.table("~/Documents/Projects/inProgress/AlphaPart/MSE.csv", header=TRUE)[-1,]
+h2 <- read.table("~/Documents/Projects/inProgress/AlphaPart/Interaction/MSE.csv", header=TRUE)[-1,]
+h2 <- read.table("~/Documents/Projects/inProgress/AlphaPart/Intercept/MSE.csv", header=TRUE)[-1,]
+h2 <- read.table("~/Documents/Projects/inProgress/AlphaPart/NewModel/MSE.csv", header=TRUE)[-1,]
+h2 <- read.table("~/Documents/Projects/inProgress/AlphaPart/NewModel/Reversed/MSE.csv", header=TRUE)[-1,]
+h2 <- read.table("~/Documents/Projects/inProgress/AlphaPart/SimpleSimulation//MSE.csv", header=TRUE)[-1,]
+h2 <- read.table("~/Documents/Projects/inProgress/AlphaPart/Interaction/MSE_noS.csv", header=TRUE)[-1,]
+h2 <- read.table("~/Documents/Projects/inProgress/AlphaPart/MSE_newModel.csv", header=TRUE)[-1,]
+h2 <- read.table("~/Documents/Projects/inProgress/AlphaPart/MSE_noS.csv", header=TRUE)[-1,]
+
+table(h2$H2)
+h2$Trait <- as.factor(h2$Trait)
+levels(h2$Trait)
+levels(h2$Trait) <- c("Trait1", "Trait2")
+levels(h2$Program) <- c("Program1", "Program2")
+
+mseA <- summarySE(data=h2, groupvars = c("H2", "Program", "Trait", "Path", "Population"), measurevar = "MSE")
+mseA <- summarySE(data=h2, groupvars = c("H2", "Program", "Trait", "Path"), measurevar = "MSE")
+##both traits same heritabiity
+ggplot(data = mseA[mseA$Program == "Program1",], aes(x=H2, y = MSE, group = Path, colour = Path)) + 
+  geom_point() + geom_line() + 
+  facet_grid(. ~ Program + Trait + Population )
+ggplot(data = mseA, aes(x=H2, y = MSE, group = Path, colour = Path)) + 
+  geom_point() + geom_line() 
+
+
+library(reshape)
+
+#READ IN FILES FROM THE CHOSEN MODEL
+
+#####intercept model
+part1 <- read.table("~/Documents/Projects/inProgress/AlphaPart/Intercept//PartitionPN1.csv", header=TRUE)[-1,]
+colnames(part1)[10] <- "BV"
+table(part1$h2)
+part1 <- part1[,-2]
+
+part2 <- read.table("~/Documents/Projects/inProgress/AlphaPart/Intercept//PartitionPN2.csv", header=TRUE)[-1,]
+colnames(part2)[10] <- "BV"
+part2 <- part2[,-2]
+table(part2$h2)
+##############################################
+
+#####fixed effects model (newModel), no interaction
+
+part1 <- read.table("~/Documents/Projects/inProgress/AlphaPart/NewModel/PartitionPN1.csv", header=TRUE)[-1,]
+colnames(part1)[10] <- "BV"
+table(part1$h2)
+table(part1$rep)
+part1 <- part1[,-2]
+
+part2 <- read.table("~/Documents/Projects/inProgress/AlphaPart/NewModel/PartitionPN2.csv", header=TRUE)[-1,]
+colnames(part2)[10] <- "BV"
+part2 <- part2[,-2]
+table(part2$h2)
+table(part2$rep)
+##############################################
+
+#####fixed effects model (newModel), no interaction, REVERSED
+part1 <- read.table("~/Documents/Projects/inProgress/AlphaPart/NewModel/Reversed/PartitionPN1.csv", header=TRUE)[-1,]
+colnames(part1)[10] <- "BV"
+table(part1$h2)
+table(part1$rep)
+part1 <- part1[,-2]
+
+##############################################
+
+#####interaction model
+part1 <- read.table("~/Documents/Projects/inProgress/AlphaPart/Interaction/PartitionPN1.csv", header=TRUE)[-1,]
+colnames(part1)[10] <- "BV"
+table(part1$h2)
+part1 <- part1[,-2]
+
+part2 <- read.table("~/Documents/Projects/inProgress/AlphaPart/Interaction/PartitionPN2.csv", header=TRUE)[-1,]
+colnames(part2)[10] <- "BV"
+part2 <- part2[,-2]
+table(part2$h2)
+#####################################################################
+#####################################################################
+
+library(reshape)
+part1M <- melt(part1, id.vars = c("Generation", "Program", "Trait", "BV", "h2", "Population", "rep"))
+#part1M <- melt(part1, id.vars = c("Generation", "Program", "Trait", "BV", "h2", "Population"))
+head(part1M)
+part1M$BV <- factor(part1M$BV, levels = c("Tbv", "Ebv"))
+part1M$Trait <- factor(part1M$Trait, levels = c("T1", "T2", "I"))
+
+part2M <- melt(part2, id.vars = c("Generation", "Program", "Trait", "BV", "h2", "Population", "rep"))
+head(part2M)
+part2M$BV <- factor(part2M$BV, levels = c("Tbv", "Ebv"))
+part2M$Trait <- factor(part2M$Trait, levels = c("T1", "T2", "I"))
+
+library(ggplot2)
+ggplot(data = part1M[part1M$h2 == 0.25,], aes(x=Generation, y = value, group = variable, colour = variable)) + 
+  geom_line() + ggtitle("PN1") + 
+  facet_wrap(. ~ rep + Population + Trait + BV, nrow=3)
+
+# ggplot(data = part1M, aes(x=Generation, y = value, group = variable, colour = variable)) + 
+#   geom_line() + ggtitle("PN1") + 
+#   facet_wrap(. ~ rep +  BV, nrow=3)
+
+part1Ma <- summarySE(data=part1M, measurevar = "value", groupvars = c("Generation", "Program", "Trait", "BV", "h2", "Population", "variable"))
+part2Ma <- summarySE(data=part2M, measurevar = "value", groupvars = c("Generation", "Program", "Trait", "BV", "h2", "Population", "variable"))
+
+
+
+library(ggplot2)
+plotFunction <- function (h2) { ggplot(data = part1Ma[part1Ma$h2 == h2,], aes(x=Generation, y = value, group = variable, colour = variable)) + 
+  geom_line() + ggtitle("PN2") + ggtitle(h2) +
+  facet_grid(. ~ Population + Trait + BV )}
+p1PLot <- ggplot(data = part1Ma[part1Ma$h2 == 0.25,], aes(x=Generation, y = value, group = variable, colour = variable)) + 
+  geom_line() + ggtitle("PN1") + 
+  facet_grid(. ~ Population + Trait + BV )
+p2Plot <- ggplot(data = part2Ma[part2Ma$h2 == 0.25,], aes(x=Generation, y = value, group = variable, colour = variable)) + 
+  geom_line() +  ggtitle ("PN2") +
+  facet_grid(. ~ Population + Trait + BV )
+p1PLot <- ggplot(data = part1M[part1M$h2 == 0.99,], aes(x=Generation, y = value, group = variable, colour = variable)) + 
+  geom_line() + ggtitle("PN1") + 
+  facet_grid(. ~ Population + Trait + BV )
+p2Plot <- ggplot(data = part2M[part2M$h2 == 0.99,], aes(x=Generation, y = value, group = variable, colour = variable)) + 
+  geom_line() +  ggtitle ("PN2") +
+  facet_grid(. ~ Population + Trait + BV )
+
+
+library(Rmisc)
+multiplot(p1PLot, p2Plot)
+multiplot(plotFunction(0.1), plotFunction(0.25),  plotFunction(0.5), plotFunction(0.99))
+
+
+
+
+##################################################################
+##################################################################
+#simple simulation
+acc <- read.csv("~/Documents/Projects/inProgress/AlphaPart/SimpleSimulation/Acc.csv")
+mst <- read.csv("~/Documents/Projects/inProgress/AlphaPart/SimpleSimulation/MST.csv")
+
+accA <- summarySE(data = acc, measurevar = "rEBV", groupvars = c("H2", "Generation", "Gender"))
+mstA <- summarySE(data = mst, measurevar = "rMST", groupvars = c("H2", "Generation", "Gender"))
+
+ggplot(data=accA, aes(x=Generation, y=rEBV, colour=Gender, group=Gender)) +
+  geom_line() +
+  facet_grid(. ~ H2)
+acc$Group <- paste0(acc$Gender, acc$Rep)
+ggplot(data=acc, aes(x=Generation, y=rEBV, colour=Group, group=Group)) +
+  geom_line() +
+  facet_grid(. ~ H2)
+
+ggplot(data=mstA, aes(x=Generation, y=rMST, colour=Gender, group=Gender)) +
+  geom_line() +
+  facet_grid(. ~ H2)
+mst$Group <- paste0(mst$Gender, mst$Rep)
+ggplot(data=mst, aes(x=Generation, y=rMST, colour=Group, group=Group)) +
+  geom_line() +
+  facet_grid(. ~ H2)
+###############################################################
+##############################################################
+
+acc <- read.table("~/Documents/Projects/inProgress/AlphaPart/Interaction/Accuracies.csv", header=TRUE)[-1,]
+acc <- acc[!is.na(acc$Program),]
+accA <- summarySE(data=acc, groupvars = c("Program", "Trait", "h2"), measurevar = "Cor")
+accA$Trait <- as.factor(accA$Trait)
+ggplot(data = accA, aes(x=h2, y = Cor, group = Trait, colour = Trait)) + 
+  geom_line() + 
+  ylim(c(0, 1)) + 
+  facet_grid(. ~ Program  )
+
+
+
+acc1 <- read.table("~/Documents/Projects/inProgress/AlphaPart/NewModel/Accuracies_PN1.csv", header=TRUE)[-1,]
+acc1A <- summarySE(data=acc1, measurevar = "Cor", groupvars = c("Program", "Trait", "h2", "Generation"))
+acc1A$Trait <- as.factor(acc1A$Trait)
+ggplot(data = acc1A, aes(x=Generation, y = Cor, group = Trait, colour = Trait)) + 
+  geom_line() + ggtitle("PN1") + 
+  ylim(c(0, 1)) + 
+  facet_grid(. ~ Program + h2  )
+
+
+acc1A <- summarySE(data=acc1, measurevar = "Cor", groupvars = c("Program", "Trait", "h2"))
+
+acc1A$Trait <- as.factor(acc1A$Trait)
+acc1Plot <- ggplot(data = acc1A, aes(x=h2, y = Cor, group = Trait, colour = Trait)) + 
+  geom_line() + ggtitle("PN1") + 
+  ylim(c(0, 1)) + 
+  facet_grid(. ~ Program  )
+
+acc2 <- read.table("~/Documents/Projects/inProgress/AlphaPart/Accuracies_PN2.csv", header=TRUE)[-1,]
+acc2A <- summarySE(data=acc2, measurevar = "Cor", groupvars = c("Program", "Trait", "h2"))
+
+acc2A$Trait <- as.factor(acc2A$Trait)
+acc2Plot <- ggplot(data = acc2A, aes(x=h2, y = mean, group = Trait, colour = Trait)) + 
+  geom_line() + ggtitle("PN2") + 
+  ylim(c(0, 1)) + 
+  facet_grid(. ~ Program  )
+
+
+multiplot(acc1Plot, acc2Plot)
+
+##accuracy of partitiones EBVs
+partAcc <- read.table("~/Documents/Projects/inProgress/AlphaPart/AccuracyPart.csv", header=TRUE)[-1,]
+
+plot1 <- ggplot(data=partAcc[partAcc$Program == "PN1", ], aes(x=H2, y=Cor, group=Path, colour=Path)) + 
+  geom_line() + 
+  facet_grid(. ~ Trait)
+plot2 <- ggplot(data=partAcc[partAcc$Program == "PN2", ], aes(x=H2, y=Cor, group=Path, colour=Path)) + 
+  geom_line() + 
+  facet_grid(. ~ Trait)
+
+##post corelation
+postCor <- read.table("~/Documents/Projects/inProgress/AlphaPart/PostCorrelation.csv", header=TRUE)
+
+ggplot(data=postCor, aes(x=h2, y=COR, grouop=ProgramGender, colour=ProgramGender)) + 
+  geom_line() + 
+  facet_grid(. ~ Program + Trait)
+  
+  
+
+
+#####standardization factors
+stF <- read.table("Documents/Projects/inProgress/AlphaPart/Interaction/StandFactors.csv", header=TRUE)[-1,]
+colnames(stF)[1] <- "rep"
+
+ggplot(data=stF[stF$Program == "Program1" & stF$rep == 1,], aes(x=Variable, y=Value, group=BV, colour=BV)) + geom_point() + 
+  facet_grid(.~h2 + Trait)
+
+stF <- spread(stF, key="Variable", value="Value")
+levels(stF$Trait) <-  c("T1", "T2")
+
+stMean <- stF[,1:6]
+levels(stMean$Program) <- c("PN1", "PN2")
+
+#calculate difference between EBV and TBV Mean
+
+stFF <- spread(data = stMean, key = "BV", value= "Mean")
+stFF$DIFF <- stFF$Tbv - stFF$Ebv  
+part1SD <- merge(part1[part1$Trait != "I" & part1$BV == "Ebv",], stFF, by=c("rep", "h2", "Program", "Trait"))
+head(part1SD)
+
+
+
+
+#distribution of EBVs
+PedEval1 <- read.table("~/Documents/Projects/inProgress/AlphaPart/SimpleSimulation/PedEval_0.99.csv", header=TRUE)
+PedEval1 <- read.table("~/PedEval1_0.5_NewModel.csv", header=TRUE)
+PedEval1 <- read.table("~/PedEval1_0.5_Old.csv", header=TRUE)
+PedEval1 <- read.table("~/PedEval1_0.25.csv", header=TRUE)
+gen0 <- PedEval1[PedEval1$Generation == 0,]
+plot(density(gen0$TbvT1))
+sd(gen0$TbvT1)
+mean(gen0$TbvT1)
+plot(density(gen0$EbvT1))
+sd(gen0$EbvT1)
+mean(gen0$EbvT1)
+
+tbv1 <- ggplot(data=gen0, aes(x=TbvT1)) + geom_density() + ggtitle("TbvT1")
+ebv1 <- ggplot(data=gen0, aes(x=EbvT1)) + geom_density() + ggtitle("EbvT1")
+tbv2 <- ggplot(data=gen0, aes(x=TbvT2)) + geom_density() + ggtitle("TbvT2")
+ebv2 <- ggplot(data=gen0, aes(x=EbvT2)) + geom_density() + ggtitle("EbvT2")
+multiplot(tbv1, ebv1, tbv2, ebv2, cols=2)
+plot(density(gen0$TbvT2))
+sd(gen0$TbvT2)
+mean(gen0$TbvT2)
+plot(density(gen0$EbvT2))
+sd(gen0$EbvT2)
+mean(gen0$EbvT2)
+
+#PedEval1 <- read.table("~/PedEval1_0.05.csv", header=TRUE)
+#EBV
+PedEval1$EbvT1_s <- (PedEval1$EbvT1 - mean(PedEval1$EbvT1[PedEval1$Generation == 0])) / sd(PedEval1$TbvT1[PedEval1$Generation == 0])
+PedEval1$EbvT2_s <- (PedEval1$EbvT2 - mean(PedEval1$EbvT2[PedEval1$Generation == 0])) / sd(PedEval1$TbvT2[PedEval1$Generation == 0])
+PedEval1$EbvI_s <- 0.5 * (PedEval1$EbvT1_s + PedEval1$EbvT2_s)
+PedEval1$ProgramGender = paste(PedEval1$Program, PedEval1$Gender, sep = "-")
+
+PedEval1$GenerationProgram <- paste(PedEval1$Generation, PedEval1$Program, sep="-")
+
+
+
+# ---- Partitioning the trend PN1 ----
+PedEval1$TbvI = 0.5 * (PedEval1$TbvT1 + PedEval1$TbvT2)
+PedEval1$TbvT1_s <- (PedEval1$TbvT1 - mean(PedEval1$TbvT1[PedEval1$Generation == 0])) / sd(PedEval1$TbvT1[PedEval1$Generation == 0])
+PedEval1$TbvT2_s <- (PedEval1$TbvT2 - mean(PedEval1$TbvT2[PedEval1$Generation == 0])) / sd(PedEval1$TbvT2[PedEval1$Generation == 0])
+PedEval1$TbvI_s <- 0.5 * (PedEval1$TbvT1_s + PedEval1$TbvT2_s)
+
+
+
+
+PedEval1$ProgramGender = paste(PedEval1$Program, PedEval1$Gender, sep = "-")
+
+library(AlphaPart)
+Part1 = AlphaPart(x = as.data.frame(PedEval1), sort = FALSE,
+                  colId = "IId", colFid = "FId", colMid = "MId",
+                  colPath = "ProgramGender", colAGV = c("EbvT1_s", "EbvT2_s", "EbvI_s"))
+
+Part1g = AlphaPart(x = as.data.frame(PedEval1), sort = FALSE,
+                   colId = "IId", colFid = "FId", colMid = "MId",
+                   colPath = "ProgramGender", colAGV = c("TbvT1_s", "TbvT2_s", "TbvI_s"))
+
+Part1Summary = summary(object = Part1, by = "Generation")
+Part1gSummary = summary(object = Part1g, by = "Generation")
+
+
+p1 <- plot(Part1Summary)
+p1g <- plot(Part1gSummary)
+
+head(PedEval1)
+gainAe <- summarySE(data=PedEval1, measurevar = "EbvT1", groupvars = c("Generation", "Program"))
+gainAe$BV <- "EBV"
+colnames(gainAe)[4] <- "value"
+gainAt <- summarySE(data=PedEval1, measurevar = "TbvT1", groupvars = c("Generation", "Program"))
+gainAt$BV <- "TBV"
+colnames(gainAt)[4] <- "value"
+gainA <- rbind(gainAe, gainAt)
+
+ggplot(data = gainA, aes(x=Generation, y=value, group=BV, colour=BV)) + geom_line() + facet_grid(~ Program)
+
+
+
+
+
+head(gainA)
+gainAm <- melt(gainA, id.vars = c("Generation", "Program", "BV"), measure.vars = c("value", "sd"))
+
+ggplot(data = gainAm, aes(x=Generation, y=value, group=variable, colour=variable)) + geom_line() + facet_grid(~ Program + BV)
+
+
+PedEval1[PedEval1$Generation == 1,]
+
+
+
+
+##trends
+de1 <- read.csv("~/Documents/Projects/inProgress/AlphaPart/NewModel/GeneticTrendsPN1.csv")
+de2 <- read.csv("~/Documents/Projects/inProgress/AlphaPart/NewModel/GeneticTrendsPN2.csv")
+de2 <- read.csv("~/Documents/Projects/inProgress/AlphaPart/Interaction/GeneticTrendsPN2.csv")
+de1 <- read.csv("~/Documents/Projects/inProgress/AlphaPart/Intercept/GeneticTrendsPN1.csv")
+de2 <- read.csv("~/Documents/Projects/inProgress/AlphaPart/Intercept/GeneticTrendsPN2.csv")
+de1 <- read.csv("~/Documents/Projects/inProgress/AlphaPart/NewModel/Reversed/GeneticTrendsPN1.csv")
+head(de1)
+table(de1$h2)
+
+de1A <- summarySE(data=de1, groupvars = c("Generation", "Program", "trait", "BV", "h2"), measurevar = "mean")
+de2A <- summarySE(data=de2, groupvars = c("Generation", "Program", "trait", "BV", "h2"), measurevar = "mean")
+deA <- rbind(de1A, de2A)
+
+ggplot(dat = de1A, aes(x=Generation, y=mean, colour = trait, group=trait))  + geom_line() + 
+  facet_grid(. ~ h2 + Program + BV)
+
+ggplot(dat = de1A, aes(x=Generation, y=mean, colour = BV, group=BV))  + geom_line() + 
+  facet_grid(. ~ Program + h2 +  trait)
+
+ggplot(dat = deA, aes(x=Generation, y=mean, colour = BV, group=BV))  + geom_line() + 
+  facet_grid(. ~ Program + h2 +  trait) 
+
+##correlations
+corr <- read.csv("~/Documents/Projects/inProgress/AlphaPart/NewModel/CorrelationBVs.csv")[-1,]
+ggplot(data=corr, aes(x=H2, y=Cor, group=Trait, colour=Trait)) + geom_point() +
+  facet_grid(. ~ BVCor + Program)
+library(ggplot2)
+
+
+
+fathers <-  unique(PedEval1$FId)
+mothers <-  unique(PedEval1$MId)
+pedFather <- PedEval1[PedEval1$IId %in% fathers,c("IId", "TbvT1")]
+pedMother <- PedEval1[PedEval1$IId %in% mothers,c("IId", "TbvT1")]
+colnames(pedFather) <- c("FId", "gvF")
+colnames(pedMother) <- c("MId", "gvM")
+
+ped1 <- merge(PedEval1, pedFather, by="FId", all.x=TRUE)
+nrow(ped1)
+ped1 <- merge(ped1, pedMother, by="MId", all.x=TRUE)
+nrow(ped1)
+ped1$MST <- ped1$TbvT1 -  ((ped1$gvF +  ped1$gvM) / 2)
+
+
+fathers <-  unique(PedEval1$FId)
+mothers <-  unique(PedEval1$MId)
+pedFather <- PedEval1[PedEval1$IId %in% fathers,c("IId", "EbvT1")]
+pedMother <- PedEval1[PedEval1$IId %in% mothers,c("IId", "EbvT1")]
+colnames(pedFather) <- c("FId", "ebvF")
+colnames(pedMother) <- c("MId", "ebvM")
+
+ped1 <- merge(ped1, pedFather, by="FId", all.x=TRUE)
+nrow(ped1)
+ped1 <- merge(ped1, pedMother, by="MId", all.x=TRUE)
+nrow(ped1)
+ped1$MSTe <- ped1$EbvT1 -  ((ped1$ebvF +  ped1$ebvM) / 2)
+
+
+
+as.data.frame(ped1 %>% 
+  group_by(Generation, Program, Gender) %>%
+  summarize(COR=cor(MST, MSTe)))

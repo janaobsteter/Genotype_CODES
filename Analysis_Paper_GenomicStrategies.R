@@ -89,7 +89,7 @@ setwd("/home/jana/Documents/Projects/inProgress/GenomicStrategies_SireUSe/")
 #TGVsAll <- read.csv("~/TGVSALL_11062018.csv")
 TGVsAll <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/TGVSALL_14082018.csv")
 #TGVsAll <- read.csv("~/Documents/Projects/inProgress/GenomicStrategies_SireUSe/TGVSALL_14082018.csv")
-#TGVsOCS <- read.csv("~/TGVsAll_OCS_10102018.csv")
+TGVsAll <- read.csv("~/TGVSALL_14082018.csv")
 #TGVsAll <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_ReferenceSize//Results/TGVSALL_22082018.csv")
 TGVsAll$strategy <-TGVsAll$Strategy
 
@@ -239,7 +239,7 @@ library(gtable)
 #aggregate(maxmin$minGenicSD ~ maxmin$strategy, FUN="summary")
 # 
 install.packages("ggpubr")
-library(ggpubr)
+library("ggpubr")
 
 #legend = gtable_filter(ggplotGrob(plotList[[1]]), "axis-b") 
 
@@ -248,6 +248,7 @@ figure <- ggarrange(plotList[[1]] + theme(legend.position="none"),
           plotList[[3]] + theme(legend.position="none"),
           common.legend = TRUE, legend="top", nrow=1, ncol=3, vjust=-2)
 
+devtools::install_github("wilkelab/cowplot")
 annotate_figure(figure, 
                 top = textGrob("Converted/Lost genic standard deviation", vjust = 7.1, gp = gpar(cex = 1.5)),
                 left = textGrob("Genetic mean", rot = 90, vjust = 0.7, hjust=0.8, gp = gpar(cex = 1.5)), 
@@ -663,7 +664,7 @@ ggplot(data=VARSD_abs[VARSD_abs$measure=="SD",], aes(y=Value,x=Scenario,  fill=T
 # anova(m1)
 # m1S <- lsmeans(m1.grid, "Scenario")
 # contrast(m1.grid, method="pairwise")
-# contrast(m1S, method="eff")
+# contrast(m1S, method=a"eff")
 # summary(lm(Slope~Scenario,data=regRep1))
 
 #significance of genetic gain
@@ -813,17 +814,18 @@ avgReg[avgReg$Strategy=="SU15",]
 maxmin[maxmin$strategy=="SU15","minGenicSD"] -  maxmin[maxmin$strategy=="SU55","minGenicSD"]
 
 #genGain plot
-MeanAverage$order <- factor(MeanAverage$Strategy, levels = c("SU55", "SU15", "SU51"))
+MeanAverage$order <- factor(MeanAverage$Strategy, levels = c("SU55", "SU51", "SU15"))
+MeanAverage$scenario <- factor(MeanAverage$scenario, levels = c("Class", "GenSLO", "OtherCowsGen", "BmGen", "Gen"))
 ggplot() + 
   xlab("Generation") + ylab("True genetic value")  + 
-  scale_linetype_manual("Scenario", breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), 
-                        values=c("solid", "dashed", "dotted", "dotdash", "twodash"), 
-                        labels=c("PT", "GT-PT", "GT-C", "GT-BD", "GT")) + 
+ # scale_linetype_manual("Scenario", breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), 
+  #                      values=c("solid", "dashed", "dotted", "dotdash", "twodash"), 
+   #                     labels=c("PT", "GT-PT", "GT-C", "GT-BD", "GT")) + 
   scale_colour_manual("Scenario", breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), 
-                      values=c("forestgreen", "dodgerblue2", "purple", "red3", "orange1"), 
+                      values=c("forestgreen", "#7dc2fa", "#1d93f2", "#055ea6", "#032745"), 
                       labels=c("PT", "GT-PT", "GT-C", "GT-BD", "GT")) + 
   xlab("Generation") + ylab("Average True Genetic Value") +
-  geom_line(data = MeanAverage[MeanAverage$Strategy=="SU55",], aes(x=Generation, y=MeanTGV, colour=scenario, linetype=scenario), size=1.2) + 
+  geom_line(data = MeanAverage, aes(x=Generation, y=MeanTGV, colour=scenario), size=1) +  # linetype=scenario
   #geom_ribbon(data=MeanAverage, aes(x=Generation, ymin=lower, ymax=upper, colour=scenario), alpha=0.1) + 
 ylim(c(0, 7)) +
   guides(group=guide_legend(nrow=6), fill=guide_legend(nrow=6), colour=guide_legend(nrow=6), linetype=guide_legend(nrow=6)) +
