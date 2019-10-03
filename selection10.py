@@ -116,8 +116,7 @@ class pedigree(classPed):
 
     def set_sex_AlphaSim(self, AlphaSimDir):
         # določi spolF
-        #       gender = pd.read_table(AlphaSimDir + '/Gender_BURNIN.txt', sep='\s+')
-        gender = pd.read_table(AlphaSimDir + '/SimulatedData/Gender.txt', sep='\s+')
+        gender = pd.read_csv(AlphaSimDir + '/SimulatedData/Gender.txt', sep='\s+')
         females = list(gender[gender.Gender == 2]['Indiv'])
         males = list(gender[gender.Gender == 1]['Indiv'])
         self.set_sex_list(self.ped[self.ped.Indiv.isin(females)].index.tolist(), "F")
@@ -931,7 +930,7 @@ class pedigree(classPed):
             activeDict[active] = values
         return activeDict
 
-    def saveIndForGeno(self, genotypedCat, age=False, genotypedCatAge = None ):
+    def saveIndForGeno(self, genotypedCat, age=False, genotypedCatAge = None):
         if not age:
             pd.DataFrame({0: sorted(list(set
                                          (chain.from_iterable([self.catCurrent_indiv_sex_criteria(x, sex, xC, int((len(
@@ -954,7 +953,37 @@ class pedigree(classPed):
                                                                                                           x, sex, age)) * xP)) if xP < 1 else int(xP))
                                                                if xP != 1 else self.catCurrent_indiv_sex_age(x, sex, age) for
                                                                (x, xP, xC, sex, age) in genotypedCatAge]))))})
-            #check whether this exceed the 25K
+
+            pd.concat([dfSex, dfAge]).to_csv('IndForGeno_new.txt', index=None, header=None)
+
+
+    def saveIndForGeno_limit(self, genotypedCat, age=False, genotypedCatAge = None, sexToKeep = None):
+        print("Limiting the number of genotyped animals")
+        if not age:
+            pd.DataFrame({0: sorted(list(set
+                                         (chain.from_iterable([self.catCurrent_indiv_sex_criteria(x, sex, xC, int((len(
+                                             self.catCurrent_indiv_sex(
+                                                 x, sex)) * xP)) if xP < 1 else int(xP))
+                                                               if xP != 1 else self.catCurrent_indiv_sex(x, sex) for
+                                                               (x, xP, xC, sex) in genotypedCat]))))}).to_csv(
+                'IndForGeno_new.txt', index=None, header=None)
+
+        elif age:
+            dfSex = pd.DataFrame({0: sorted(list(set
+                                         (chain.from_iterable([self.catCurrent_indiv_sex_criteria(x, sex, xC, int((len(
+                                                                                                      self.catCurrent_indiv_sex(
+                                                                                                          x, sex)) * xP)) if xP < 1 else int(xP))
+                                                               if xP != 1 else self.catCurrent_indiv_sex(x, sex) for
+                                                               (x, xP, xC, sex) in genotypedCat]))))})
+            dfAge = pd.DataFrame({0: sorted(list(set
+                                         (chain.from_iterable([self.catCurrent_indiv_age_criteria(x, age, xC, int((len(
+                                                                                                      self.catCurrent_indiv_sex_age(
+                                                                                                          x, sex, age)) * xP)) if xP < 1 else int(xP))
+                                                               if xP != 1 else self.catCurrent_indiv_sex_age(x, sex, age) for
+                                                               (x, xP, xC, sex, age) in genotypedCatAge]))))})
+
+            #check whether this exceed the 25K - and then whetherthe old PLUS new exceed 25K!!!
+            #keep only women
             if (len(dfAge) + len(dfSex)) > 25000:
                 dfAge = dfAge.sample((25000 - len(dfSex)), replace = False)
 
@@ -962,6 +991,22 @@ class pedigree(classPed):
 
 
         if os.path.isfile('IndForGeno.txt'):
+            #check whether the summ exceeds 25K - if so, sample the old genotyped
+            old_geno = sum(1 for line in open('IndForGeno.txt'))
+            new_geno = sum(1 for line in open('IndForGeno_new.txt'))
+            if (old_geno + new_geno) > 25000:
+                inds = pd.read_csv('IndForGeno.txt', header=None, names=['Indiv'])
+                ped = pd.read_csv('SimulatedData/PedigreeAndGeneticValues_cat.txt', sep='\s+')
+                inds = pd.merge(inds, ped[['Indiv', 'Generation', 'sex', 'cat']],
+                                on='Indiv')
+
+                indsSex = inds.loc[inds.sex == sexToKeep].sort_values(by = "Generation")[:(25000 - new_geno)]
+                # if (len(indsSex) + new_geno) < 25000:
+                #     indsOtherSex = inds.loc[inds.sex == list({"F", "M"} - {sexToKeep})[0]].sort_values(by = "Generation")[:(25000 - (len(indsSex) + new_geno))]
+                #     indsSex = pd.concat([indsSex, indsOtherSex]).sort_values(by = "Indiv")
+
+                pd.DataFrame({"Indiv": indsSex.Indiv}).to_csv('IndForGeno.txt', index=None, header=None)
+
             os.system("grep -v -f IndForGeno.txt IndForGeno_new.txt > uniqNew && mv uniqNew IndForGeno_new.txt")
             os.system(
                 'cat IndForGeno_new.txt IndForGeno.txt | sort -n| uniq > IndGenTmp && mv IndGenTmp IndForGeno.txt')
@@ -1180,7 +1225,7 @@ class Herds(object):
 class OrigPed(object):
     def __init__(self, AlphaSimDir, codeDir):
         self.name = AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues.txt'
-        self.pdPed = pd.read_table(self.name, sep='\s+')
+        self.pdPed = pd.read_csv(self.name, sep='\s+')
         self.AlphaSimDir = AlphaSimDir
         self.codeDir = codeDir
 
@@ -1218,7 +1263,7 @@ class blupf90:
         # self.blupParamFile = AlphaSimDir + 'blupf90_Selection'
         if way == 'milk':
             print("Way is milk")
-            self.AlphaPed = pd.read_table(AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues_cat.txt', sep=' ')
+            self.AlphaPed = pd.read_csv(AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues_cat.txt', sep=' ')
             if herd:
                 self.AlphaPed.loc[:, "herdYear"] = self.AlphaPed.herd.map(int).map(
                         str) + "_" + str(max(self.AlphaPed.Generation))
@@ -1248,8 +1293,8 @@ class blupf90:
                                 ['Indiv', 'phenoNormUnres1', 'cat', 'sex', 'age', 'active']]
                 
         if way == 'burnin_milk':
-            self.AlphaPed = pd.read_table(AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues.txt', sep='\s+')
-            self.AlphaGender = pd.read_table(AlphaSimDir + '/SimulatedData/Gender.txt', sep='\s+')
+            self.AlphaPed = pd.read_csv(AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues.txt', sep='\s+')
+            self.AlphaGender = pd.read_csv(AlphaSimDir + '/SimulatedData/Gender.txt', sep='\s+')
             self.AlphaPed.loc[:, 'sex'] = self.AlphaGender.Gender
             self.gen = max(self.AlphaPed['Generation'])
             self.animals = len(self.AlphaPed)
@@ -1465,7 +1510,7 @@ class repeatedPhenotypes(object):
     """
 
     def __init__(self, AlphaSimDir):
-        self.ped = pd.read_table(AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues_cat.txt', sep='\s+')
+        self.ped = pd.read_csv(AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues_cat.txt', sep='\s+')
         self.gen = int(max(self.ped.Generation))
         self.ped.loc[self.ped.herd.isnull(), 'herd'] = 0
         self.ped.loc[:, "herdYear"] = self.ped.herd.map(int).map(str) + "_" + \
@@ -1495,16 +1540,16 @@ class accuracies:
         self.AlphaSimDir = AlphaSimDir
         self.accuracies = defaultdict()
         if os.path.isfile(self.AlphaSimDir + 'Accuracies_CatAge.csv'):
-            self.accuraciesCatAge = pd.read_table(self.AlphaSimDir + 'Accuracies_CatAge.csv', sep=",")
+            self.accuraciesCatAge = pd.read_csv(self.AlphaSimDir + 'Accuracies_CatAge.csv', sep=",")
         else:
             self.accuraciesCatAge = pd.DataFrame()
 
 
     def saveAcc(self):
         name = self.AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues_cat.txt'
-        pdPed = pd.read_table(name, sep=' ')
+        pdPed = pd.read_csv(name, sep=' ')
         gen = max(pdPed['Generation'])
-        EBV = pd.read_table(self.AlphaSimDir + 'renumbered_Solutions_' + str(gen), header=None,
+        EBV = pd.read_csv(self.AlphaSimDir + 'renumbered_Solutions_' + str(gen), header=None,
                             sep='\s+', names=['renID', 'Indiv', 'EBV'])
         pdPed = pdPed.merge(EBV, on="Indiv")
         pdPed.loc[:, 'AgeCat'] = pdPed.cat + (gen - pdPed.Generation).map(str)
@@ -1865,7 +1910,12 @@ def selekcija_total(pedFile, externalPedName = "ExternalPedigree",group=False, g
             ped.updateAndSaveIndForGeno(kwargs.get('genotyped'), kwargs.get('NbUpdatedGen'), kwargs.get('sexToUpdate'),
                                         kwargs.get('AlphaSimDir'), age='genotypedAge' in kwargs.keys(), genotypedCatAge=kwargs.get('genotypedAge'))
         if not kwargs.get('UpdateGenRef'):
-            ped.saveIndForGeno(kwargs.get('genotyped'), age='genotypedAge' in kwargs.keys(), genotypedCatAge=kwargs.get('genotypedAge'))
+            if kwargs.get('limitGeno'):
+                print("LIMITING")
+                ped.saveIndForGeno_limit(kwargs.get('genotyped'), age='genotypedAge' in kwargs.keys(),
+                                   genotypedCatAge=kwargs.get('genotypedAge'), sexToKeep=kwargs.get("sexToKeepGeno"))
+            else:
+                ped.saveIndForGeno(kwargs.get('genotyped'), age='genotypedAge' in kwargs.keys(), genotypedCatAge=kwargs.get('genotypedAge'))
         os.system(
             'less IndForGeno.txt | wc -l > ReferenceSize_new.txt && cat ReferenceSize_new.txt ReferenceSize.txt > Reftmp && mv Reftmp ReferenceSize.txt')
     ped.write_ped(kwargs.get('AlphaSimDir') + "/" + externalPedName + ".txt")
@@ -2808,12 +2858,12 @@ class AlphaMate(object):
         ped[ped.Indiv.isin(self.indopt)][["Indiv", "sex1"]].to_csv(self.AlphaMateDir + "/GENDER.txt", sep=" ", index=None, header=None)
 
     def countFemaleSel(self):
-        gender = pd.read_table(self.AlphaMateDir + "/GENDER.txt", header=None, sep=" ")
+        gender = pd.read_csv(self.AlphaMateDir + "/GENDER.txt", header=None, sep=" ")
         gender.columns = ["ID", "Sex"]
         return (int(sum(gender.Sex == 2)))
 
     def countMaleSel(self):
-        gender = pd.read_table(self.AlphaMateDir + "/GENDER.txt", header=None, sep=" ")
+        gender = pd.read_csv(self.AlphaMateDir + "/GENDER.txt", header=None, sep=" ")
 	gender.columns = ["ID", "Sex"]
         return (int(sum(gender.Sex == 1)))
 
@@ -2835,7 +2885,7 @@ class AlphaMate(object):
         os.system("./AlphaMate")
 
     def obtainSelMales(self, femaleSample=False, FemaleSamplePer=100.0):
-        Cont = pd.read_table(self.AlphaMateDir + "/ContributorsModeOptTarget1.txt", sep="\s+")
+        Cont = pd.read_csv(self.AlphaMateDir + "/ContributorsModeOptTarget1.txt", sep="\s+")
         selM = Cont.loc[Cont.Gender == 1]
 	if femaleSample:
 	    selM.loc[:, "nMatingPop"] = (selM.loc[:, "nMating"] / (FemaleSamplePer/100)).astype(int)
@@ -3101,7 +3151,7 @@ def nastavi_cat(PedFile, externalPedName = "ExternalPedigree", group=False, grou
 
 def set_group_two(AlphaSimDir, group1Name, group2Name, nbNewBorn):
     gen = pd.read_csv(AlphaSimDir + "/GenPed_EBV.txt")
-    gender = pd.read_table(AlphaSimDir + '/SimulatedData/Gender.txt', sep='\s+')
+    gender = pd.read_csv(AlphaSimDir + '/SimulatedData/Gender.txt', sep='\s+')
     gen = pd.merge(gen, gender, on=["Indiv", "Generation"])
     group1 = []
     for generation in list(set(gen.Generation)):
@@ -3250,7 +3300,7 @@ def nastavi_cat_TGV(PedFile, externalPedName = "ExternalPedigree.txt", group=Fal
 
 class TBVGenTable:  # to je tabela za grafiranje genetskih trendov čez populacije
     def __init__(self, TBVTable):
-        self.TBVtable = pd.read_table(TBVTable, header=None, sep='\s+', names=['Indiv', 'TBV'])
+        self.TBVtable = pd.read_csv(TBVTable, header=None, sep='\s+', names=['Indiv', 'TBV'])
         self.TBVmean = np.mean(self.TBVtable.TBV)
         self.TBVsd = np.std(self.TBVtable.TBV)
         self.TBVvar = np.var(self.TBVtable.TBV)
@@ -3262,7 +3312,7 @@ class TBVPed(object):  # to je tabela za grafiranje genetskih trendov čez popul
         self.AlphaSimDir = AlphaSimDir
 
     def genTrend(self, table, startgen, stopgen):
-        TBVtable = pd.read_table(table, sep='\s+')
+        TBVtable = pd.read_csv(table, sep='\s+')
         TBVtable = TBVtable.loc[TBVtable.Generation.isin(range(startgen, stopgen))]
         gens = list(set(TBVtable.Generation))
         means = TBVtable.gvNormUnres1.groupby(TBVtable.Generation).aggregate(np.mean)
@@ -3270,14 +3320,14 @@ class TBVPed(object):  # to je tabela za grafiranje genetskih trendov čez popul
         return gens, means, vars
 
     def catTrend(self):
-        TBVtable = pd.read_table(self.AlphaSimDir + 'SimulatedData/PedigreeAndGeneticValues_cat.txt', sep='\s+')
+        TBVtable = pd.read_csv(self.AlphaSimDir + 'SimulatedData/PedigreeAndGeneticValues_cat.txt', sep='\s+')
         gen = max(set(TBVtable.Generation))
         means = pd.DataFrame({'Mean' + str(gen): TBVtable.gvNormUnres1.groupby(TBVtable.cat).aggregate(np.mean)})
         vars = pd.DataFrame({'Var' + str(gen): TBVtable.gvNormUnres1.groupby(TBVtable.cat).aggregate(np.var)})
         return pd.merge(means, vars, left_index=True, right_index=True)
 
     def GenTrend(self):
-        TBVtable = pd.read_table(self.AlphaSimDir + 'SimulatedData/PedigreeAndGeneticValues_cat.txt', sep='\s+')
+        TBVtable = pd.read_csv(self.AlphaSimDir + 'SimulatedData/PedigreeAndGeneticValues_cat.txt', sep='\s+')
         gen = max(set(TBVtable.Generation))
         means = pd.DataFrame({'Mean' + str(gen): TBVtable.gvNormUnres1.groupby(TBVtable.Generation).aggregate(np.mean)})
         vars = pd.DataFrame({'Var' + str(gen): TBVtable.gvNormUnres1.groupby(TBVtable.Generation).aggregate(np.var)})
@@ -3290,12 +3340,12 @@ class TBVCat(TBVPed):
         self.AlphaSimDir = AlphaSimDir
         # is the files exist - read them in - you need this in case you stop selection and restart it (from GUI)
         if os.path.isfile(self.AlphaSimDir + 'GenTrends_cat.csv'):
-            self.genTrends_cat = pd.read_table(self.AlphaSimDir + 'GenTrends_cat.csv', sep=",")
+            self.genTrends_cat = pd.read_csv(self.AlphaSimDir + 'GenTrends_cat.csv', sep=",")
         else:
             self.genTrends_cat = pd.DataFrame()
 
         if os.path.isfile(self.AlphaSimDir + 'GenTrends_gen.csv'):
-            self.genTrends_gen = pd.read_table(self.AlphaSimDir + 'GenTrends_gen.csv', sep=",")
+            self.genTrends_gen = pd.read_csv(self.AlphaSimDir + 'GenTrends_gen.csv', sep=",")
         else:
             self.genTrends_gen = pd.DataFrame()
 
@@ -3377,7 +3427,7 @@ class test:
 class genInterval():
     def __init__(self, AlphaSimDir):
         self.name = AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues_cat.txt'
-        self.pdPed = pd.read_table(self.name, sep='\s+')
+        self.pdPed = pd.read_csv(self.name, sep='\s+')
         self.AlphaSimDir = AlphaSimDir
 
     def obtainSelInd_Parents(self, listCatOffspring):
@@ -3446,7 +3496,7 @@ class snpFiles:
 
     def createBlupf90SNPFile(self):
         if os.path.isfile(
-                        self.AlphaSimDir + 'GenoFile.txt'):  # if GenoFile.txt exists, only add the newIndividuals for genotypisation
+                        self.AlphaSimDir + '/GenoFile.txt'):  # if GenoFile.txt exists, only add the newIndividuals for genotypisation
             os.system(
                 'grep -Fwaf IndForGeno_new.txt ' + self.chipFile + ' > ChosenInd.txt')  # only individuals chosen for genotypisation - ONLY NEW - LAST GEN!
             os.system("sed 's/^ *//' ChosenInd.txt > ChipFile.txt")  # Remove blank spaces at the beginning

@@ -13,7 +13,6 @@ import resource
 import ast
 
 WorkingDir = os.getcwd()
-os.chdir('/home/jana/TestSim/')
 
 
 # sys.argv: 1 = rep, 2 = scenario, 3 = strategy, 4 = reference size
@@ -189,7 +188,6 @@ os.chdir(SelectionDir)
 print("Copying files to " + SelectionDir)
 os.system('cp -r ' + WorkingDir + '/FillInBurnIn' + str(rep) + '_permEnv/* .')
 os.system('cp ' + WorkingDir + '/Essentials/* .')
-#os.system('cp -r ' + WorkingDir + '/CodeDir/* .')
 if refSize != 0:
     os.system('mv IndForGeno_' + refSize + '.txt IndForGeno.txt')
 elif refSize == 0:
@@ -199,21 +197,22 @@ os.system("chmod a+x AlphaSim1.08")
 os.system("chmod a+x renumf90")
 os.system("chmod a+x blupf90")
 
-par = pd.read_csv(WorkingDir + "/SelPar/" + refSize + "_Pheno/SelectionParam_Gen_MaleGS_" + name + ".csv", header=None, names=["Keys", "Vals"])
+par = pd.read_csv(WorkingDir + "/SelPar/" + refSize + "_Pheno/SelectionParam_Gen_MaleGS_" + name + ".csv", header=None,
+                  names=["Keys", "Vals"])
 par.to_dict()
 selPar = defaultdict()
 
 for key, val in zip(par.Keys, par.Vals):
     if key not in ['BurnInYN', 'EBV', 'gEBV', 'PA', 'AlphaSimDir', 'genotyped', 'genotypedAge', 'EliteDamsPTBulls',
                    'EliteDamsPABulls', 'UpdateGenRef', 'sexToUpdate', 'EliteDamsGenBulls', 'gpb_pb',
-                   'genTest_mladi', 'genTest_gpb', 'genFemale', 'maleGenSelAll']:
+                   'genTest_mladi', 'genTest_gpb', 'genFemale', 'maleGenSelAll', 'limitGeno', 'sexToKeepGeno']:
         try:
             selPar[key] = int(val)
         except:
             selPar[key] = float(val)
     if key in ['BurnInYN', 'EBV', 'gEBV', 'PA', 'AlphaSimDir', 'EliteDamsPTBulls',
                'EliteDamsPABulls', 'UpdateGenRef', 'EliteDamsGenBulls', 'gpb_pb',
-               'genTest_mladi', 'genTest_gpb', 'genFemale', 'maleGenSelAll']:
+               'genTest_mladi', 'genTest_gpb', 'genFemale', 'maleGenSelAll', 'limitGeno', 'sexToKeepGeno']:
         if val in ['False', 'True']:
             selPar[key] = bool(val == 'True')
         else:
@@ -246,7 +245,6 @@ if selPar['gEBV']:
 ##############################################################################
 print(AlphaSimDir)
 for roundNo in range(21, 41):  # za vsak krog selekcije
-
     # prestavi se v AlphaSim Dir
     if not os.path.isfile(AlphaSimDir + 'ReferenceSize.txt') and os.path.isfile(AlphaSimDir + "IndForGeno.txt"):
         os.system("less IndForGeno.txt | wc -l > ReferenceSize.txt")
@@ -278,6 +276,7 @@ for roundNo in range(21, 41):  # za vsak krog selekcije
     selekcija_total('GenPed_EBV.txt', **selPar)
     createHerds = Herds(AlphaSimDir)  # to ne naredi nič, samo prebere datotek
     createHerds.add_herds()
+
 
     # kopiraj pedigre v selection folder
     if not os.path.exists(AlphaSimDir + '/Selection/SelectionFolder' + str(roundNo) + '/'):
@@ -334,3 +333,5 @@ for roundNo in range(21, 41):  # za vsak krog selekcije
 # os.system('rm -rf Chromosomes Selection && cp * ' + scenario + str(rep))
 # os.system('rm SimulatedData/UnrestrictedQtnIndivGenotypes.txt')
 # os.system('rm SimulatedData/RestrictedQtnIndivGenotypes.txt')
+
+

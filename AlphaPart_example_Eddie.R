@@ -1,7 +1,9 @@
 # 
 # ---- Environment ----
+args = commandArgs(trailingOnly=TRUE)
+REP <- args[1]
+print(REP)
 
-rm(list = ls())
 
 library(package = "AlphaSimR")
 library(package = "tidyverse")
@@ -41,11 +43,11 @@ founderPop = runMacs(nInd = nGNMales + nGNFemales,
 ###################################################################################
 ###################################################################################
 # ---- Simulation/Base population parameters ----
-for (rep in 6) {
+for (rep in c(REP)) {
   system(paste0("mkdir ", homeDir, "/Rep", rep))
   RepDir = paste0(homeDir, "/Rep", rep, "/")
   setwd(RepDir)
-for (h2 in c(0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.99)) {
+for (h2 in c(0.25)) {
   system(paste0('mkdir ', RepDir, '/H_', h2))
   hDir = paste0(RepDir, '/H_', h2, "/")
   system(paste0('cp Essentials/* ', hDir))
@@ -58,8 +60,8 @@ for (h2 in c(0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.99)) {
   SP = SimParam$new(founderPop)
   # VarA = matrix(data = c(1.0, 0.1, 0.1, 1.0), nrow = 2); cov2cor(VarA)
   VarA = matrix(data = c(1.0, 0.0, 0.0, 1.0), nrow = 2); cov2cor(VarA)
-  varE = 1/ h2 -1
-  VarE = matrix(data = c(varE, 0.0, 0.0, varE), nrow = 2); cov2cor(VarE)
+  #varE = 1/ h2 -1
+  VarE = matrix(data = c(3.0, 0.0, 0.0, 9.0), nrow = 2); cov2cor(VarE)
   
   VarP = VarA + VarE; diag(VarA) / diag(VarP)
   SP$addTraitA(nQtlPerChr = 1000, mean = c(0, 0), var = diag(VarA), cor = cov2cor(VarA))
@@ -138,8 +140,8 @@ for (h2 in c(0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.99)) {
   
   PedEval = rbind(tibble(Generation = 0,
                          IId        = BaseGNMales@id,
-                         FId        = BaseGNMales@father,
-                         MId        = BaseGNMales@mother ,
+                         FId        = NA,
+                         MId        = NA ,
                          Gender     = BaseGNMales@gender,
                          Program    = "GN",
                          PhenoT1    = BaseGNMales@pheno[,1],
@@ -150,8 +152,8 @@ for (h2 in c(0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.99)) {
                          TbvT2      = BaseGNMales@gv[, 2]),
                   tibble(Generation = 0,
                          IId        = BaseGNFemales@id,
-                         FId        = BaseGNFemales@father,
-                         MId        = BaseGNFemales@mother,
+                         FId        = NA,
+                         MId        = NA,
                          Gender     = BaseGNFemales@gender,
                          Program    = "GN",
                          PhenoT1    = BaseGNFemales@pheno[,1],
@@ -162,12 +164,12 @@ for (h2 in c(0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.99)) {
                          TbvT2      = BaseGNFemales@gv[, 2]),
                   tibble(Generation = 0,
                          IId        = BasePNFemales@id,
-                         FId        = BasePNFemales@father,
-                         MId        = BasePNFemales@mother,
+                         FId        = NA,
+                         MId        = NA,
                          Gender     = BasePNFemales@gender,
                          Program    = "PN1",
                          PhenoT1    = BasePNFemales@pheno[,1],
-                         PhenoT2    = BasePNFemales@pheno[,2],
+                         PhenoT2    = NA,
                          EbvT1      = BasePNFemales@ebv[, 1],
                          EbvT2      = BasePNFemales@ebv[, 2],
                          TbvT1      = BasePNFemales@gv[, 1],
@@ -192,6 +194,15 @@ for (h2 in c(0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.99)) {
   
   # ---- Program PN1  ----
   for (Generation in 1:nGenerationEval) {
+    #first sample the tier and generation effects
+    GNEffect1 = rnorm(1, 0, (0.2 * diag(VarP)[1]))
+    PNEffect1 = rnorm(1, 0, (0.2 * diag(VarP)[1]))
+    GenerationEffect1 = rnorm(1, 0, (0.2 * diag(VarP)[1]))
+    GNEffect2 = rnorm(1, 0, (0.2 * diag(VarP)[2]))
+    PNEffect2 = rnorm(1, 0, (0.2 * diag(VarP)[2])) #does not exist anyway!!!!
+    GenerationEffect2 = rnorm(1, 0, (0.2 * diag(VarP)[2]))
+    
+    
     if (Generation == 1) {
       GNFemales = BaseGNFemales
       GNMales = BaseGNMales
@@ -211,6 +222,8 @@ for (h2 in c(0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.99)) {
     
     # Phenotype
     SelCand = setPheno(pop = SelCand, varE = VarE)
+    SelCand@pheno[,1] <- SelCand@pheno[,1] + GenerationEffect1 + GNEffect1
+    SelCand@pheno[,2] <- SelCand@pheno[,2] + GenerationEffect2 + GNEffect2
     
     # Track pedigree
     PedEval = rbind(PedEval,
@@ -242,15 +255,20 @@ for (h2 in c(0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.99)) {
     
     # Create phenotype file
     # Trait 1
-    write.table(PedEval[,c("IId", "PhenoT1", "Program", "Generation")], "Blupf901.dat", 
-                quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ", 
+    blup1dat <- PedEval[,c("IId", "PhenoT1", "Program", "Generation")]
+    blup1dat$Generation[blup1dat$Generation == 0] <- "00"
+    write.table(blup1dat, "Blupf901.dat",
+                quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ",
                 na = "0", append = file.exists("Blupf901.dat"))
+    
     
     
     # Trait 2
     # Create phenotype file
-    write.table(PedEval[PedEval$Program == "GN",c("IId", "PhenoT2", "Program", "Generation")], "Blupf902.dat", 
-                quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ", 
+    blup2dat <- PedEval[PedEval$Program == "GN",c("IId", "PhenoT2", "Program", "Generation")]
+    blup2dat$Generation[blup2dat$Generation == 0] <- "00"
+    write.table(blup2dat, "Blupf902.dat",
+                quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ",
                 na = "0", append = file.exists("Blupf902.dat"))
     
     ## set residual values in renumf90
@@ -322,7 +340,8 @@ for (h2 in c(0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.99)) {
     
     # Phenotype
     SelCand = setPheno(pop = SelCand, varE = VarE)
-    SelCand@pheno[, 2] = NA
+    SelCand@pheno[,1] <- SelCand@pheno[,1] + GenerationEffect1 + PNEffect1
+    SelCand@pheno[, 2] <- NA
     
     
     # Track pedigree
@@ -353,12 +372,16 @@ for (h2 in c(0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.99)) {
     blupPed <- blupPed[order(blupPed$IId),]
     write.table(blupPed, "Blupf90.ped", quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ", na = "0")
     
+
+
     # Create phenotype file
     # Trait 1
-    write.table(PedEval[,c("IId", "PhenoT1", "Program", "Generation")], "Blupf901.dat", 
-                quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ", 
+    blup1dat <- PedEval[,c("IId", "PhenoT1", "Program", "Generation")]
+    blup1dat$Generation[blup1dat$Generation == 0] <- "00"
+    write.table(blup1dat, "Blupf901.dat",
+                quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ",
                 na = "0", append = file.exists("Blupf901.dat"))
-    
+
     ## set residual values in renumf90
     system(paste0('sed "s/ResVariance/', varE, '/g" renumf901_generic.par > renumf901.par '))
     system(paste0('sed "s/ResVariance/', varE, '/g" renumf902_generic.par > renumf902.par '))
@@ -376,11 +399,12 @@ for (h2 in c(0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.99)) {
     
     # Trait 2
     # Create phenotype file
-    write.table(PedEval[PedEval$Program == "GN",c("IId", "PhenoT2", "Program", "Generation")], "Blupf902.dat", 
-                quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ", 
-                na = "0", append = file.exists("Blupf902.dat"))  
-    
-    
+    blup2dat <- PedEval[PedEval$Program == "GN",c("IId", "PhenoT2", "Program", "Generation")]          
+    blup2dat$Generation[blup2dat$Generation == 0] <- "00"
+    write.table(blup2dat, "Blupf902.dat",
+                quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ",
+                na = "0", append = file.exists("Blupf902.dat"))    
+
     # Evaluate Trait 2
     system(command = "./renumf90 < renumParam2")
     system(command = "./blupf90 renf90.par")
@@ -398,7 +422,11 @@ for (h2 in c(0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.99)) {
     accuraciesPN1 <- rbind(accuraciesPN1, c("PN1", Generation, 1, cor(SelCand@ebv[,1], SelCand@gv[,1]) ))
     accuraciesPN1 <- rbind(accuraciesPN1, c("PN1", Generation, 2, cor(SelCand@ebv[,2], SelCand@gv[,2]) ))
     
-    # TOLE NI VEČ AKTUALNO, KER SE JE EBV v GNMALES SPREMENILA - imamo novejšo napoved
+    # Select
+    PNMales1   = selectInd(pop = SelCand, nInd = nPNMales,   gender = "M",
+                         use = "ebv", trait = function(x) rowMeans(x, na.rm = TRUE))
+    PNFemales1 = selectInd(pop = SelCand, nInd = nPNFemales, gender = "F",
+                          use = "ebv", trait = function(x) rowMeans(x, na.rm = TRUE))
     
     # Clean
     rm(SelCand)
@@ -480,6 +508,8 @@ for (h2 in c(0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.99)) {
     
     # Phenotype
     SelCand = setPheno(pop = SelCand, varE = VarE)
+    SelCand@pheno[,1] <- SelCand@pheno[,1] + GenerationEffect1 + PNEffect1
+    SelCand@pheno[,2] <- NA
     
     # Track pedigree
     PedEval = rbind(PedEval,
@@ -510,16 +540,22 @@ for (h2 in c(0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.99)) {
     
     # Create phenotype file
     # Trait 1
-    write.table(PedEval[,c("IId", "PhenoT1", "Program", "Generation")], "Blupf901.dat", 
-                quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ", 
+    blup1dat <-	PedEval[,c("IId", "PhenoT1", "Program", "Generation")]
+    blup1dat$Generation[blup1dat$Generation == 0] <- "00"
+    write.table(blup1dat, "Blupf901.dat",
+                quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ",
                 na = "0", append = file.exists("Blupf901.dat"))
-    
+
+
+
     # Trait 2
     # Create phenotype file
-    write.table(PedEval[PedEval$Program == "GN",c("IId", "PhenoT2", "Program", "Generation")], "Blupf902.dat", 
-                quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ", 
-                na = "0", append = file.exists("Blupf902.dat"))
-    
+    blup2dat <- PedEval[PedEval$Program == "GN",c("IId", "PhenoT2", "Program", "Generation")]          
+    blup2dat$Generation[blup2dat$Generation == 0] <- "00"
+    write.table(blup2dat, "Blupf902.dat",
+                quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ",
+                na = "0", append = file.exists("Blupf902.dat"))    
+
     ## set residual values in renumf90
     system(paste0('sed "s/ResVariance/', varE, '/g" renumf901_generic.par > renumf901.par '))
     system(paste0('sed "s/ResVariance/', varE, '/g" renumf902_generic.par > renumf902.par '))
@@ -617,10 +653,14 @@ for (h2 in c(0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.99)) {
     
     # Create phenotype file
     # Trait 1
-    write.table(PedEval[,c("IId", "PhenoT1", "Program", "Generation")], "Blupf901.dat", 
-                quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ", 
+    blup1dat <-	PedEval[,c("IId", "PhenoT1", "Program", "Generation")]
+    blup1dat$Generation[blup1dat$Generation == 0] <- "00"
+    write.table(blup1dat, "Blupf901.dat",
+                quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ",
                 na = "0", append = file.exists("Blupf901.dat"))
-    
+
+
+
     ## set residual values in renumf90
     system(paste0('sed "s/ResVariance/', varE, '/g" renumf901_generic.par > renumf901.par '))
     system(paste0('sed "s/ResVariance/', varE, '/g" renumf902_generic.par > renumf902.par '))
@@ -637,12 +677,13 @@ for (h2 in c(0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.99)) {
     PedEval$EbvT1 <- sol1$V3
     
     
-    # Create phenotype file
     # Trait 2
-    write.table(PedEval[PedEval$Program == "GN",c("IId", "PhenoT2", "Program", "Generation")], "Blupf902.dat", 
-                quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ", 
-                na = "0", append = file.exists("Blupf902.dat"))
-    
+    # Create phenotype file
+    blup2dat <- PedEval[PedEval$Program == "GN",c("IId", "PhenoT2", "Program", "Generation")]          
+    blup2dat$Generation[blup2dat$Generation == 0] <- "00"
+    write.table(blup2dat, "Blupf902.dat",
+                quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ",
+                na = "0", append = file.exists("Blupf902.dat"))    
     
     # Evaluate Trait 2
     system(command = "./renumf90 < renumParam2")
@@ -680,5 +721,5 @@ for (h2 in c(0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.99)) {
   write.table(PedEval2, paste0("PedEval2_", h2, ".csv"), quote=FALSE, row.names=FALSE)
   write.table(DataEvalGN2, paste0("DataEval2_", h2, ".csv"), quote=FALSE, row.names=FALSE)
   write.table(accuraciesPN2, paste0("Accuracies2_", h2, ".csv"), quote=FALSE, row.names=FALSE)
-}
+ }
 }
