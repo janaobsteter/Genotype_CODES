@@ -711,7 +711,7 @@ for (h2 in c(0.25)) {
     # Clean
     rm(SelCand)
   }
-  
+  3695
   PedEval2 = PedEval
   rm(PedEval)
   DataEvalGN2 <- DataEvalGN

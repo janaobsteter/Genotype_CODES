@@ -208,7 +208,7 @@ par.to_dict()
 selPar = defaultdict()
 
 for key, val in zip(par.Keys, par.Vals):
-    if key not in ['BurnInYN', 'EBV', 'gEBV', 'PA', 'AlphaSimDir', 'genotyped', 'genotypedAge', 'EliteDamsPTBulls',
+    if key not in ['BurnInYN', 'EBV', 'gEBV', 'PA', 'AlphaSimDir', 'genotyped', 'genotypedAge', 'genotypedAgeTotal', 'EliteDamsPTBulls',
                    'EliteDamsPABulls', 'UpdateGenRef', 'sexToUpdate', 'EliteDamsGenBulls', 'gpb_pb',
                    'genTest_mladi', 'genTest_gpb', 'genFemale', 'maleGenSelAll', 'limitGeno', 'sexToKeepGeno']:
         try:
@@ -222,7 +222,7 @@ for key, val in zip(par.Keys, par.Vals):
             selPar[key] = bool(val == 'True')
         else:
             selPar[key] = val
-    if key in  ['genotyped', 'genotypedAge']:
+    if key in  ['genotyped', 'genotypedAge', 'genotypedAgeTotal']:
         selPar[key] = ast.literal_eval(val)
     if key == 'sexToUpdate':
         selPar[key] = ast.literal_eval(val) if len(ast.literal_eval(val)) > 1 else ast.literal_eval(val)[0]
@@ -330,12 +330,13 @@ for roundNo in range(21, 41):  # za vsak krog selekcije
     blupNextGen.computeEBV_permEnv_herd(setVar = True, varPE = varPE, varE = varE, varH = varHY,
                                         repeats = repeats, blupvarE = varEst, blupvarHTD = (varHY + varH))
     Acc.saveAcc()
+    # GenTrends.saveTrends()
     # zdaj za vsako zapiši, ker vsakič na novo prebereš
     Acc.writeAcc()
+    # GenTrends.writeTrends()
 
-
-os.system('rm -rf Chromosomes Selection && cp * ' + scenario + str(rep))
+# os.system('rm -rf Chromosomes Selection && cp * ' + scenario + str(rep))
 # os.system('rm SimulatedData/UnrestrictedQtnIndivGenotypes.txt')
-os.system('rm SimulatedData/RestrictedQtnIndivGenotypes.txt')
+# os.system('rm SimulatedData/RestrictedQtnIndivGenotypes.txt')
 
 

@@ -1,7 +1,3 @@
-# 
-# ---- Environment ----
-p1Interaction <- p1
-p1gInteraction <- p1g
 
 rm(list = ls())
 
@@ -30,7 +26,7 @@ GenVarCols  = c("GenVarT1",  "GenVarT2",  "GenVarI")
 
 # ---- Base population genomes ----
 
-founderPop = runMacs(nInd = (nGNMales + nGNFemales)*2,
+founderPop = runMacs(nInd = (nGNMales + nGNFemales)*10,
                      nChr = 10,
                      segSites = 100,
                      nThreads = 4,
@@ -42,6 +38,7 @@ founderPop = runMacs(nInd = (nGNMales + nGNFemales)*2,
 # ---- Simulation/Base population parameters ----
 
 SP = SimParam$new(founderPop)
+SP$addSnpChip(50)
 # VarA = matrix(data = c(1.0, 0.1, 0.1, 1.0), nrow = 2); cov2cor(VarA)
 VarA = matrix(data = c(1.0, 0.0, 0.0, 1.0), nrow = 2); cov2cor(VarA)
 VarE = matrix(data = c(3.0, 0.0, 0.0, 3.0), nrow = 2); cov2cor(VarE)
@@ -200,7 +197,7 @@ accuraciesPN2 <- data.frame(Program = NA, Generation = NA, Trait = NA, Cor = NA)
 ##############################################################################3
 ##############################################################################3
 # ---- Program PN1  ----
-BasePNFemales@pheno[,2] <- NA
+
 for (Generation in 1:nGenerationEval) {  ##nGenerationEval) {
   if (Generation == 1) {
     GNFemales = BaseGNFemales
@@ -220,7 +217,7 @@ for (Generation in 1:nGenerationEval) {  ##nGenerationEval) {
   }
   
   # Phenotype
-  SelCand = setPheno(pop = SelCand, varE = VarE)
+  SelCand = setPheno(pop = SelCand, varE = VarE, fixEff = Generation)
   
   # Track pedigree
   if (Generation == 1) {
@@ -253,75 +250,75 @@ for (Generation in 1:nGenerationEval) {  ##nGenerationEval) {
                          TbvT2      = SelCand@gv[, 2]))
   }
   
-  # Estimate EBVs with blupf90
-  setwd(paste0(homedir, "/GN/"))
-  if (Generation == 1) {
-    system("rm *ped *dat")
-  }
-  # Create pedigree file
-  blupPed <- PedEval[,c("IId", "FId", "MId")]
-  blupPed$FId[is.na(blupPed$FId)] <- 0
-  blupPed$MId[is.na(blupPed$MId)] <- 0
-  blupPed <- blupPed[order(blupPed$IId),]
-  write.table(blupPed, "Blupf90.ped", quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ", na = "0")
-  
-  # Create phenotype file
-  # Trait 1
-  blup1dat <- PedEval[,c("IId", "PhenoT1")]
-  blup1dat$Mean <- 1
-  write.table(blup1dat, "Blupf901.dat",
-                          quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ",
-                          na = "0", append = file.exists("Blupf901.dat"))
-  # write.table(PedEval[PedEval$Program == "GN",c("IId", "PhenoT1", "Program", "Generation")], "Blupf901.dat",
-  #             quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ",
-  #             na = "0", append = file.exists("Blupf901.dat"))
-  
-  
-  # Trait 2
-  # Create phenotype file
-  blup2dat <- PedEval[PedEval$Program == "GN",c("IId", "PhenoT2")]
-  blup2dat$Mean <- 1
-  write.table(blup2dat, "Blupf902.dat",
-              quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ",
-              na = "0", append = file.exists("Blupf902.dat"))
-  # write.table(PedEval[,c("IId", "PhenoT2", "Program", "Generation")], "Blupf902.dat",
+  # # Estimate EBVs with blupf90
+  # setwd(paste0(homedir, "/GN/"))
+  # if (Generation == 1) {
+  #   system("rm *ped *dat")
+  # }
+  # # Create pedigree file
+  # blupPed <- PedEval[,c("IId", "FId", "MId")]
+  # blupPed$FId[is.na(blupPed$FId)] <- 0
+  # blupPed$MId[is.na(blupPed$MId)] <- 0
+  # blupPed <- blupPed[order(blupPed$IId),]
+  # write.table(blupPed, "Blupf90.ped", quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ", na = "0")
+  # 
+  # # Create phenotype file
+  # # Trait 1
+  # blup1dat <- PedEval[,c("IId", "PhenoT1")]
+  # blup1dat$Mean <- 1
+  # write.table(blup1dat, "Blupf901.dat",
+  #                         quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ",
+  #                         na = "0", append = file.exists("Blupf901.dat"))
+  # # write.table(PedEval[PedEval$Program == "GN",c("IId", "PhenoT1", "Program", "Generation")], "Blupf901.dat",
+  # #             quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ",
+  # #             na = "0", append = file.exists("Blupf901.dat"))
+  # 
+  # 
+  # # Trait 2
+  # # Create phenotype file
+  # blup2dat <- PedEval[PedEval$Program == "GN",c("IId", "PhenoT2")]
+  # blup2dat$Mean <- 1
+  # write.table(blup2dat, "Blupf902.dat",
   #             quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ",
   #             na = "0", append = file.exists("Blupf902.dat"))
-  
-  # Evaluate Trait 1
-  system(command = "./renumf90 < renumParam1")
-  system(command = "./blupf90 renf90.par")
-  system(command = "bash Match_AFTERRenum.sh")
-  system(command = paste0("mv renumbered_Solutions renumbered_Solutions_1_", Generation))
-  
-  sol1 <- read.table(paste0("renumbered_Solutions_1_", Generation))[,2:3]
-  sol1 <- sol1[sol1$V2 %in% PedEval$IId,]
-  sol1 <- sol1[order(match(sol1$V2, PedEval$IId)),]
-  PedEval$EbvT1 <- sol1$V3
-  
-  system("rm renf90.par solutions")
-  # Evaluate Trait 2
-  system(command = "./renumf90 < renumParam2")
-  system(command = "./blupf90 renf90.par")
-  system(command = "bash Match_AFTERRenum.sh")
-  system(command = paste0("mv renumbered_Solutions renumbered_Solutions_2_", Generation))
-  
-  sol2 <- read.table(paste0("renumbered_Solutions_2_", Generation))[,2:3]
-  sol2 <- sol2[sol2$V2 %in% PedEval$IId,]
-  sol2 <- sol2[order(match(sol2$V2, PedEval$IId)),]
-  PedEval$EbvT2 <- sol2$V3
-  
-  
-  # Set EBVs for SelCand
-  SelCand@ebv = as.matrix(PedEval[PedEval$IId %in% SelCand@id, c("EbvT1", "EbvT2")])
-  accuraciesPN1 <- rbind(accuraciesPN1, c("GN", Generation, 1, cor(SelCand@ebv[,1], SelCand@gv[,1]) ))
-  accuraciesPN1 <- rbind(accuraciesPN1, c("GN", Generation, 2, cor(SelCand@ebv[,2], SelCand@gv[,2]) ))
-  
+  # # write.table(PedEval[,c("IId", "PhenoT2", "Program", "Generation")], "Blupf902.dat",
+  # #             quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ",
+  # #             na = "0", append = file.exists("Blupf902.dat"))
+  # 
+  # # Evaluate Trait 1
+  # system(command = "./renumf90 < renumParam1")
+  # system(command = "./blupf90 renf90.par")
+  # system(command = "bash Match_AFTERRenum.sh")
+  # system(command = paste0("mv renumbered_Solutions renumbered_Solutions_1_", Generation))
+  # 
+  # sol1 <- read.table(paste0("renumbered_Solutions_1_", Generation))[,2:3]
+  # sol1 <- sol1[sol1$V2 %in% PedEval$IId,]
+  # sol1 <- sol1[order(match(sol1$V2, PedEval$IId)),]
+  # PedEval$EbvT1 <- sol1$V3
+  # 
+  # system("rm renf90.par solutions")
+  # # Evaluate Trait 2
+  # system(command = "./renumf90 < renumParam2")
+  # system(command = "./blupf90 renf90.par")
+  # system(command = "bash Match_AFTERRenum.sh")
+  # system(command = paste0("mv renumbered_Solutions renumbered_Solutions_2_", Generation))
+  # 
+  # sol2 <- read.table(paste0("renumbered_Solutions_2_", Generation))[,2:3]
+  # sol2 <- sol2[sol2$V2 %in% PedEval$IId,]
+  # sol2 <- sol2[order(match(sol2$V2, PedEval$IId)),]
+  # PedEval$EbvT2 <- sol2$V3
+  # 
+  # 
+  # # Set EBVs for SelCand
+  # SelCand@ebv = as.matrix(PedEval[PedEval$IId %in% SelCand@id, c("EbvT1", "EbvT2")])
+  # accuraciesPN1 <- rbind(accuraciesPN1, c("GN", Generation, 1, cor(SelCand@ebv[,1], SelCand@gv[,1]) ))
+  # accuraciesPN1 <- rbind(accuraciesPN1, c("GN", Generation, 2, cor(SelCand@ebv[,2], SelCand@gv[,2]) ))
+  # 
   # Select
   GNMales   = selectInd(pop = SelCand, nInd = nGNMales,   gender = "M",
-                        use = "ebv", trait = function(x) rowMeans(x))
+                        use = "pheno", trait = function(x) rowMeans(x))
   GNFemales = selectInd(pop = SelCand, nInd = nGNFemales, gender = "F",
-                        use = "ebv", trait = function(x) rowMeans(x))
+                        use = "pheno", trait = function(x) rowMeans(x))
   # Clean
   rm(SelCand)
   
@@ -334,11 +331,11 @@ for (Generation in 1:nGenerationEval) {  ##nGenerationEval) {
   if (Generation == 1) {
     PNFemales1 = BasePNFemales
   }
-  PNFemales1@pheno[,2] <- NA
+  # PNFemales1@pheno[,2] <- NA
   
   # Mate
   PNFemales1ForPure = selectInd(pop = PNFemales1, nInd = PNFemales1@nInd * pPNFemalesPure,
-                                use = "ebv", trait = function(x) rowMeans(x, na.rm = TRUE))
+                                use = "pheno", trait = 2)
   SelCand = randCross2(females = PNFemales1ForPure, males = GNMales,
                        nCrosses = PNFemales1ForPure@nInd, nProgeny = 14)
   
@@ -358,7 +355,7 @@ for (Generation in 1:nGenerationEval) {  ##nGenerationEval) {
   
   # Phenotype
   SelCand = setPheno(pop = SelCand, varE = VarE)
-  SelCand@pheno[, 2] = NA
+  # SelCand@pheno[, 2] = NA
   
   
   # Track pedigree
@@ -378,81 +375,84 @@ for (Generation in 1:nGenerationEval) {  ##nGenerationEval) {
   
   
   # Estimate EBVs with blupf90
-  setwd(paste0(homedir, "/PN1/"))
-  if (Generation == 1) {
-    system("rm *ped *dat")
-  }
-  # Create pedigree file
-  blupPed <- PedEval[,c("IId", "FId", "MId")]
-  blupPed$FId[is.na(blupPed$FId)] <- 0
-  blupPed$MId[is.na(blupPed$MId)] <- 0
-  blupPed <- blupPed[order(blupPed$IId),]
-  write.table(blupPed, "Blupf90.ped", quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ", na = "0")
-  
-  # Create phenotype file
-  # Trait 1
-  blup1dat <- PedEval[,c("IId", "PhenoT1")]
-  blup1dat$Mean <- 1
-  write.table(blup1dat, "Blupf901.dat",
-              quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ",
-              na = "0", append = file.exists("Blupf901.dat"))
-  # write.table(PedEval[PedEval$Program == "GN",c("IId", "PhenoT1", "Program", "Generation")], "Blupf901.dat",
+  # setwd(paste0(homedir, "/PN1/"))
+  # if (Generation == 1) {
+  #   system("rm *ped *dat")
+  # }
+  # # Create pedigree file
+  # blupPed <- PedEval[,c("IId", "FId", "MId")]
+  # blupPed$FId[is.na(blupPed$FId)] <- 0
+  # blupPed$MId[is.na(blupPed$MId)] <- 0
+  # blupPed <- blupPed[order(blupPed$IId),]
+  # write.table(blupPed, "Blupf90.ped", quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ", na = "0")
+  # 
+  # # Create phenotype file
+  # # Trait 1
+  # blup1dat <- PedEval[,c("IId", "PhenoT1")]
+  # blup1dat$Mean <- 1
+  # write.table(blup1dat, "Blupf901.dat",
   #             quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ",
   #             na = "0", append = file.exists("Blupf901.dat"))
-  
-  
-  
-  # Evaluate Trait 1
-  system(command = "./renumf90 < renumParam1")
-  system(command = "./blupf90 renf90.par")
-  system(command = "bash Match_AFTERRenum.sh")
-  system(command = paste0("mv renumbered_Solutions renumbered_Solutions_1_", Generation))
-  
-  sol1 <- read.table(paste0("renumbered_Solutions_1_", Generation))[,2:3]
-  sol1 <- sol1[sol1$V2 %in% PedEval$IId, ]
-  sol1 <- sol1[order(match(sol1$V2, PedEval$IId)),]
-  PedEval$EbvT1 <- sol1$V3  
-  
-  # Trait 2
-  # Create phenotype file
-  blup2dat <- PedEval[PedEval$Program == "GN",c("IId", "PhenoT2")]
-  blup2dat$Mean <- 1
-  write.table(blup2dat, "Blupf902.dat",
-              quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ",
-              na = "0", append = file.exists("Blupf902.dat"))
-  # write.table(PedEval[,c("IId", "PhenoT2", "Program", "Generation")], "Blupf902.dat",
+  # # write.table(PedEval[PedEval$Program == "GN",c("IId", "PhenoT1", "Program", "Generation")], "Blupf901.dat",
+  # #             quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ",
+  # #             na = "0", append = file.exists("Blupf901.dat"))
+  # 
+  # 
+  # 
+  # # Evaluate Trait 1
+  # system(command = "./renumf90 < renumParam1")
+  # system(command = "./blupf90 renf90.par")
+  # system(command = "bash Match_AFTERRenum.sh")
+  # system(command = paste0("mv renumbered_Solutions renumbered_Solutions_1_", Generation))
+  # 
+  # sol1 <- read.table(paste0("renumbered_Solutions_1_", Generation))[,2:3]
+  # sol1 <- sol1[sol1$V2 %in% PedEval$IId, ]
+  # sol1 <- sol1[order(match(sol1$V2, PedEval$IId)),]
+  # PedEval$EbvT1 <- sol1$V3  
+  # 
+  # # Trait 2
+  # # Create phenotype file
+  # blup2dat <- PedEval[PedEval$Program == "GN",c("IId", "PhenoT2")]
+  # blup2dat$Mean <- 1
+  # write.table(blup2dat, "Blupf902.dat",
   #             quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ",
   #             na = "0", append = file.exists("Blupf902.dat"))
-  
-  system("rm renf90.par solutions")
-  # Evaluate Trait 2
-  system(command = "./renumf90 < renumParam2")
-  system(command = "./blupf90 renf90.par")
-  system(command = "bash Match_AFTERRenum.sh")
-  system(command = paste0("mv renumbered_Solutions renumbered_Solutions_2_", Generation))
-  
-  sol2 <- read.table(paste0("renumbered_Solutions_2_", Generation))[,2:3]
-  sol2 <- sol2[sol2$V2 %in% PedEval$IId, ]
-  sol2 <- sol2[order(match(sol2$V2, PedEval$IId)),]
-  PedEval$EbvT2 <- sol2$V3
-  
-  
-  # Set EBVs for SelCand
-  SelCand@ebv = as.matrix(PedEval[PedEval$IId %in% SelCand@id, c("EbvT1", "EbvT2")])
+  # # write.table(PedEval[,c("IId", "PhenoT2", "Program", "Generation")], "Blupf902.dat",
+  # #             quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ",
+  # #             na = "0", append = file.exists("Blupf902.dat"))
+  # 
+  # system("rm renf90.par solutions")
+  # # Evaluate Trait 2
+  # system(command = "./renumf90 < renumParam2")
+  # system(command = "./blupf90 renf90.par")
+  # system(command = "bash Match_AFTERRenum.sh")
+  # system(command = paste0("mv renumbered_Solutions renumbered_Solutions_2_", Generation))
+  # 
+  # sol2 <- read.table(paste0("renumbered_Solutions_2_", Generation))[,2:3]
+  # sol2 <- sol2[sol2$V2 %in% PedEval$IId, ]
+  # sol2 <- sol2[order(match(sol2$V2, PedEval$IId)),]
+  # PedEval$EbvT2 <- sol2$V3
+  # 
+  # 
+  # # Set EBVs for SelCand
+  # SelCand@ebv = as.matrix(PedEval[PedEval$IId %in% SelCand@id, c("EbvT1", "EbvT2")])
   
   # Select
   # PNMales1   = selectInd(pop = SelCand, nInd = nPNMales,   gender = "M",
   #                        use = "ebv", trait = function(x) rowMeans(x, na.rm = TRUE))
   PNFemales1 = selectInd(pop = SelCand, nInd = nPNFemales, gender = "F",
-                         use = "ebv", trait = function(x) rowMeans(x, na.rm = TRUE))
+                         use = "pheno", trait = 2)
   
-  accuraciesPN1 <- rbind(accuraciesPN1, c("PN1", Generation, 1, cor(SelCand@ebv[,1], SelCand@gv[,1]) ))
-  accuraciesPN1 <- rbind(accuraciesPN1, c("PN1", Generation, 2, cor(SelCand@ebv[,2], SelCand@gv[,2]) ))
+  # accuraciesPN1 <- rbind(accuraciesPN1, c("PN1", Generation, 1, cor(SelCand@ebv[,1], SelCand@gv[,1]) ))
+  # accuraciesPN1 <- rbind(accuraciesPN1, c("PN1", Generation, 2, cor(SelCand@ebv[,2], SelCand@gv[,2]) ))
   
   
   # Clean
-  rm(SelCand)
+
 }
+
+
+writePlink(pop = SelCand, "SelectionCands", trait = 1)
 
 PedEval1 = PedEval
 rm(PedEval)

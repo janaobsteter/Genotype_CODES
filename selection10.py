@@ -1717,7 +1717,21 @@ def selekcija_total(pedFile, externalPedName = "ExternalPedigree",group=False, g
     #################################################################
     # age 0: štartaš z NB in potomci NP --> odbereš vhlevljene iz potomcev NP in moška teleta in NB
     # NAJPREJ DELI, KI SO SKUPNI PROGENEMU IN GENOMSKEMU TESTIRANJU
-    if not kwargs.get("maleGenSelAll") and not  kwargs.get('gEBV'): ##('genTest' in categories.keys()):
+    #preveri, koliko živali je genotipiziranih
+    if kwargs.get("diffGenoSize"):
+        old_geno = sum(1 for line in open('IndForGeno.txt')) if os.path.isfile('IndForGeno.txt') else 0
+        if old_geno < kwargs.get("diffGenoSize"):
+            kwargs['EBV'] = True
+            kwargs['gEBV'] = False        
+            kwargs['EliteDamsPTBulls'] = True
+            kwargs['EliteDamsGenBulls'] = False
+        elif old_geno < kwargs.get("diffGenoSize"):
+            kwargs['EBV'] = False
+            kwargs['gEBV'] = True
+            kwargs['EliteDamsPTBulls'] = False
+            kwargs['EliteDamsGenBulls'] = True
+
+    if not kwargs.get("maleGenSelAll") and not kwargs.get('gEBV'): ##('genTest' in categories.keys()):
         ped.izberi_random("M", kwargs.get('telMn'), "nr", "telM", categories)  # izberi moška teleta, ki preživijo (random)
         ped.izloci_random("M", int(kwargs.get('nrMn') - kwargs.get('potomciNPn') - kwargs.get('telMn')), "nr",
                           categories)  # druga teleta izloči

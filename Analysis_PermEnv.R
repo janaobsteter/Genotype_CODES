@@ -100,16 +100,22 @@ setwd("/home/jana/Documents/PhD/Projects/inProgress/AmountOfPhenotyping//")
 
 #TGVsAll <- read.csv("~/TGVSALL_11062018.csv")
 TGVsAll <- read.table("~/Documents/PhD/Projects/inProgress/AmountOfPhenotyping//Results/TGVsAll_permEnv_SU55_17072019.csv", header=TRUE)
+TGVsAll <- read.table("~/TGVsAll_permEnv_SU55_28072019.csv", header=TRUE)
 #TGVsAll <- read.csv("~/Documents/Projects/inProgress/GenomicStrategies_SireUSe/TGVSALL_14082018.csv")
 #TGVsOCS <- read.csv("~/TGVsAll_OCS_10102018.csv")
 #TGVsAll <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_ReferenceSize//Results/TGVSALL_22082018.csv")
 TGVsAll$strategy <-TGVsAll$Strategy
 
+agg <- summarySE(data = TGVsAll, measurevar = "zMean", groupvars = c("scenario", "Repeats", "Generation"))
+agg$GROUP <- paste0(agg$scenario, agg$Repeats)
+agg$Repeats <- as.factor(agg$Repeats)
+library(ggplot2)
+ggplot(data = agg, aes(x=Generation, y=zMean, group=GROUP, colour=Repeats, linetype=scenario)) + geom_line()
 
 #add genetic and genic variance (standardised)
 TGVsAll1 <- data.frame()
-for (strategy in c(2,5,11)) {
-  for (scenario in c("Class")) {
+for (strategy in c(1,2,5,8, 9, 11)) {
+  for (scenario in c("Class", "Gen")) {
     for (rep in 0:0) {
       TGVs <- TGVsAll[TGVsAll$Repeats==strategy & TGVsAll$scenario==scenario & TGVsAll$Rep==rep,]
       TGVs$GeneticVarSt <- TGVs$var / TGVs$var[1]
