@@ -46,6 +46,9 @@ table(part2$h2)
 #####fixed effects model (newModel), no interaction
 
 part1 <- read.table("~/Documents/Projects/inProgress/AlphaPart/NewModel/PartitionPN1.csv", header=TRUE)[-1,]
+part1 <- read.table("~/Documents/Projects/inProgress/AlphaPart/NewModel/PartitionGN.csv", header=TRUE)[-1,]
+part1$Population <- "GN"
+colnames(part1)[9] <- "BV"
 colnames(part1)[10] <- "BV"
 table(part1$h2)
 table(part1$rep)
