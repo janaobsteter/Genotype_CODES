@@ -64,7 +64,7 @@ class estimateBV:
         # os.system("head -n-3 renf90.par > tmp && mv tmp renf90.par")
         # os.system("./blupf90 blupf90_Selection")  # run blupf90
 
-        resource.setrlimit(resourcescenarioLIMIT_STACK, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
+        resource.setrlimit(resource.RLIMIT_STACK, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
         # os.system('./preGSf90 renf90.par')
         os.system('./blupf90 renf90.par')
         # os.system('./postGSf90 renf90.par')
@@ -169,7 +169,8 @@ varHTD = float(variances[3])
 varE = float(variances[4])
 name = sys.argv[7]
 
-os.chdir(refSize + "/" + strategy + "_permEnv/")
+
+os.chdir("10K/" + strategy + "_permEnv/")
 
 print("Rep in " + str(rep))
 print("Repeats is " + str(repeats))
@@ -208,8 +209,9 @@ par.to_dict()
 selPar = defaultdict()
 
 for key, val in zip(par.Keys, par.Vals):
-    if key not in ['BurnInYN', 'EBV', 'gEBV', 'PA', 'AlphaSimDir', 'genotyped', 'genotypedAge', 'EliteDamsPTBulls',
-                   'EliteDamsPABulls', 'UpdateGenRef', 'sexToUpdate', 'EliteDamsGenBulls', 'gpb_pb',
+    if key not in ['BurnInYN', 'EBV', 'gEBV', 'PA', 'AlphaSimDir', 'genotyped', 'genotypedAge', 'genotypedAgeInit',
+                   'EliteDamsPTBulls', 'EliteDamsPABulls',
+                   'UpdateGenRef', 'sexToUpdate', 'EliteDamsGenBulls', 'gpb_pb',
                    'genTest_mladi', 'genTest_gpb', 'genFemale', 'maleGenSelAll', 'limitGeno', 'sexToKeepGeno']:
         try:
             selPar[key] = int(val)
@@ -222,7 +224,7 @@ for key, val in zip(par.Keys, par.Vals):
             selPar[key] = bool(val == 'True')
         else:
             selPar[key] = val
-    if key in  ['genotyped', 'genotypedAge']:
+    if key in  ['genotyped', 'genotypedAge', 'genotypedAgeInit']:
         selPar[key] = ast.literal_eval(val)
     if key == 'sexToUpdate':
         selPar[key] = ast.literal_eval(val) if len(ast.literal_eval(val)) > 1 else ast.literal_eval(val)[0]
@@ -255,7 +257,7 @@ for roundNo in range(21, 41):  # za vsak krog selekcije
         os.system("less IndForGeno.txt | wc -l > ReferenceSize.txt")
 
 
-    if roundNo == 21:
+    if roundNo == (21 + selPar['yearGeno']):
         #if this is round 1, then genotyped the offsrping of elite mating
         pedTmp = pd.read_csv(AlphaSimDir + "/SimulatedData/PedigreeAndGeneticValues_cat.txt", sep=" ")
         pd.DataFrame({"ID": list(pedTmp.Indiv[(pedTmp.cat.isin(["potomciNP", 'vhlevljeni', 'mladi', 'cak'])) & (pedTmp.sex == "M")])}).to_csv(AlphaSimDir + "/IndForGeno_new.txt", header=None, index=None)
@@ -268,9 +270,9 @@ for roundNo in range(21, 41):  # za vsak krog selekcije
 
         #estimate EBVs
         blupNextGen = estimateBV(AlphaSimDir, WorkingDir + "/CodeDir", way='milk', sel=seltype)
-        varEest = varE + varH + varHTD
-        blupNextGen.computeEBV_permEnv_herd(setVar=True, varPE=varPE, varE=varEest, varH=varHY,
-                                            repeats=repeats)
+        varEest = varE + varHTD
+        blupNextGen.computeEBV_permEnv_herd(setVar=True, varPE=varPE, varE=varE, varH=varHY,
+                                            repeats=repeats, blupvarE=varEest, blupvarHTD=(varHY + varH))
 
 
     # Štartaj že po 20 gen kalsične selekcije
@@ -328,7 +330,7 @@ for roundNo in range(21, 41):  # za vsak krog selekcije
     blupNextGen = estimateBV(AlphaSimDir, WorkingDir + "/CodeDir", way='milk', sel=seltype)
     varEest = varE + varHTD
     blupNextGen.computeEBV_permEnv_herd(setVar = True, varPE = varPE, varE = varE, varH = varHY,
-                                        repeats = repeats, blupvarE = varEst, blupvarHTD = (varHY + varH))
+                                        repeats = repeats, blupvarE = varEest, blupvarHTD = (varHY + varH))
     Acc.saveAcc()
     # zdaj za vsako zapiši, ker vsakič na novo prebereš
     Acc.writeAcc()

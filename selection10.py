@@ -930,64 +930,86 @@ class pedigree(classPed):
             activeDict[active] = values
         return activeDict
 
-    def saveIndForGeno(self, genotypedCat, age=False, genotypedCatAge = None):
-        if not age:
+    def saveIndForGeno(self, genotypedCat, age=False, genotypedCatAge = None, initGenoAge = None):
+        if not initGenoAge:
+            if not age:
+                pd.DataFrame({0: sorted(list(set
+                                             (chain.from_iterable([self.catCurrent_indiv_sex_criteria(x, sex, xC, int((len(
+                                                 self.catCurrent_indiv_sex(
+                                                     x, sex)) * xP)) if xP < 1 else int(xP))
+                                                                   if xP != 1 else self.catCurrent_indiv_sex(x, sex) for
+                                                                   (x, xP, xC, sex) in genotypedCat]))))}).to_csv(
+                    'IndForGeno_new.txt', index=None, header=None)
+
+            elif age:
+                dfSex = pd.DataFrame({0: sorted(list(set
+                                             (chain.from_iterable([self.catCurrent_indiv_sex_criteria(x, sex, xC, int((len(
+                                                                                                          self.catCurrent_indiv_sex(
+                                                                                                              x, sex)) * xP)) if xP < 1 else int(xP))
+                                                                   if xP != 1 else self.catCurrent_indiv_sex(x, sex) for
+                                                                   (x, xP, xC, sex) in genotypedCat]))))})
+                dfAge = pd.DataFrame({0: sorted(list(set
+                                             (chain.from_iterable([self.catCurrent_indiv_age_criteria(x, age, xC, int((len(
+                                                                                                          self.catCurrent_indiv_sex_age(
+                                                                                                              x, sex, age)) * xP)) if xP < 1 else int(xP))
+                                                                   if xP != 1 else self.catCurrent_indiv_sex_age(x, sex, age) for
+                                                                   (x, xP, xC, sex, age) in genotypedCatAge]))))})
+
+                pd.concat([dfSex, dfAge]).to_csv('IndForGeno_new.txt', index=None, header=None)
+
+            elif initGenoAge:
+                pd.DataFrame({0: sorted(list(set
+                                         (chain.from_iterable(
+                                             [self.catCurrent_indiv_age_criteria(x, age, xC, int((len(
+                                                 self.catCurrent_indiv_sex_age(
+                                                     x, sex, age)) * xP)) if xP < 1 else int(xP))
+                                              if xP != 1 else self.catCurrent_indiv_sex_age(x, sex,
+                                                                                            age) for
+                                              (x, xP, xC, sex, age) in initGenoAge]))))}).to_csv(
+                    'IndForGeno_new.txt', index=None, header=None)
+
+
+    def saveIndForGeno_limit(self, genotypedCat, age=False, genotypedCatAge = None, sexToKeep = None, initGenoAge = None):
+        if not initGenoAge:
+            if not age:
+                pd.DataFrame({0: sorted(list(set
+                                             (chain.from_iterable([self.catCurrent_indiv_sex_criteria(x, sex, xC, int((len(
+                                                 self.catCurrent_indiv_sex(
+                                                     x, sex)) * xP)) if xP < 1 else int(xP))
+                                                                   if xP != 1 else self.catCurrent_indiv_sex(x, sex) for
+                                                                   (x, xP, xC, sex) in genotypedCat]))))}).to_csv(
+                    'IndForGeno_new.txt', index=None, header=None)
+    
+            elif age:
+                dfSex = pd.DataFrame({0: sorted(list(set
+                                             (chain.from_iterable([self.catCurrent_indiv_sex_criteria(x, sex, xC, int((len(
+                                                                                                          self.catCurrent_indiv_sex(
+                                                                                                              x, sex)) * xP)) if xP < 1 else int(xP))
+                                                                   if xP != 1 else self.catCurrent_indiv_sex(x, sex) for
+                                                                   (x, xP, xC, sex) in genotypedCat]))))})
+                dfAge = pd.DataFrame({0: sorted(list(set
+                                             (chain.from_iterable([self.catCurrent_indiv_age_criteria(x, age, xC, int((len(
+                                                                                                          self.catCurrent_indiv_sex_age(
+                                                                                                              x, sex, age)) * xP)) if xP < 1 else int(xP))
+                                                                   if xP != 1 else self.catCurrent_indiv_sex_age(x, sex, age) for
+                                                                   (x, xP, xC, sex, age) in genotypedCatAge]))))})
+    
+                #check whether this exceed the 25K - and then whetherthe old PLUS new exceed 25K!!!
+                #keep only women
+                if (len(dfAge) + len(dfSex)) > 25000:
+                    dfAge = dfAge.sample((25000 - len(dfSex)), replace = False)
+    
+                pd.concat([dfSex, dfAge]).to_csv('IndForGeno_new.txt', index=None, header=None)
+        
+        elif initGenoAge:
             pd.DataFrame({0: sorted(list(set
-                                         (chain.from_iterable([self.catCurrent_indiv_sex_criteria(x, sex, xC, int((len(
-                                             self.catCurrent_indiv_sex(
-                                                 x, sex)) * xP)) if xP < 1 else int(xP))
-                                                               if xP != 1 else self.catCurrent_indiv_sex(x, sex) for
-                                                               (x, xP, xC, sex) in genotypedCat]))))}).to_csv(
-                'IndForGeno_new.txt', index=None, header=None)
-
-        elif age:
-            dfSex = pd.DataFrame({0: sorted(list(set
-                                         (chain.from_iterable([self.catCurrent_indiv_sex_criteria(x, sex, xC, int((len(
-                                                                                                      self.catCurrent_indiv_sex(
-                                                                                                          x, sex)) * xP)) if xP < 1 else int(xP))
-                                                               if xP != 1 else self.catCurrent_indiv_sex(x, sex) for
-                                                               (x, xP, xC, sex) in genotypedCat]))))})
-            dfAge = pd.DataFrame({0: sorted(list(set
                                          (chain.from_iterable([self.catCurrent_indiv_age_criteria(x, age, xC, int((len(
-                                                                                                      self.catCurrent_indiv_sex_age(
-                                                                                                          x, sex, age)) * xP)) if xP < 1 else int(xP))
-                                                               if xP != 1 else self.catCurrent_indiv_sex_age(x, sex, age) for
-                                                               (x, xP, xC, sex, age) in genotypedCatAge]))))})
-
-            pd.concat([dfSex, dfAge]).to_csv('IndForGeno_new.txt', index=None, header=None)
-
-
-    def saveIndForGeno_limit(self, genotypedCat, age=False, genotypedCatAge = None, sexToKeep = None):
-        print("Limiting the number of genotyped animals")
-        if not age:
-            pd.DataFrame({0: sorted(list(set
-                                         (chain.from_iterable([self.catCurrent_indiv_sex_criteria(x, sex, xC, int((len(
-                                             self.catCurrent_indiv_sex(
-                                                 x, sex)) * xP)) if xP < 1 else int(xP))
-                                                               if xP != 1 else self.catCurrent_indiv_sex(x, sex) for
-                                                               (x, xP, xC, sex) in genotypedCat]))))}).to_csv(
+                                             self.catCurrent_indiv_sex_age(
+                                                 x, sex, age)) * xP)) if xP < 1 else int(xP))
+                                                               if xP != 1 else self.catCurrent_indiv_sex_age(x, sex,
+                                                                                                             age) for
+                                                               (x, xP, xC, sex, age) in initGenoAge]))))}).to_csv(
                 'IndForGeno_new.txt', index=None, header=None)
-
-        elif age:
-            dfSex = pd.DataFrame({0: sorted(list(set
-                                         (chain.from_iterable([self.catCurrent_indiv_sex_criteria(x, sex, xC, int((len(
-                                                                                                      self.catCurrent_indiv_sex(
-                                                                                                          x, sex)) * xP)) if xP < 1 else int(xP))
-                                                               if xP != 1 else self.catCurrent_indiv_sex(x, sex) for
-                                                               (x, xP, xC, sex) in genotypedCat]))))})
-            dfAge = pd.DataFrame({0: sorted(list(set
-                                         (chain.from_iterable([self.catCurrent_indiv_age_criteria(x, age, xC, int((len(
-                                                                                                      self.catCurrent_indiv_sex_age(
-                                                                                                          x, sex, age)) * xP)) if xP < 1 else int(xP))
-                                                               if xP != 1 else self.catCurrent_indiv_sex_age(x, sex, age) for
-                                                               (x, xP, xC, sex, age) in genotypedCatAge]))))})
-
-            #check whether this exceed the 25K - and then whetherthe old PLUS new exceed 25K!!!
-            #keep only women
-            if (len(dfAge) + len(dfSex)) > 25000:
-                dfAge = dfAge.sample((25000 - len(dfSex)), replace = False)
-
-            pd.concat([dfSex, dfAge]).to_csv('IndForGeno_new.txt', index=None, header=None)
 
 
         if os.path.isfile('IndForGeno.txt'):
@@ -1021,7 +1043,7 @@ class pedigree(classPed):
                                          (chain.from_iterable([self.catCurrent_indiv_sex_criteria(x, sex, xC, int((len(
                                                                                                       self.catCurrent_indiv_sex(
                                                                                                           x, sex)) * (
-                                                                                                       xP / 100))) if xP < 1 else xP)
+                                                                                                       xP))) if xP <= 1 else int(xP))
                                                                if xP != 1 else self.catCurrent_indiv_sex(x, sex) for
                                                                (x, xP, xC, sex) in genotypedCat]))))})
 
@@ -1032,13 +1054,13 @@ class pedigree(classPed):
             dfSex = pd.DataFrame({0: sorted(list(set
                                          (chain.from_iterable([self.catCurrent_indiv_sex_criteria(x, sex, xC, int((len(
                                                                                                       self.catCurrent_indiv_sex(
-                                                                                                          x, sex)) * xP)) if xP < 1 else int(xP))
+                                                                                                          x, sex)) * xP)) if xP <= 1 else int(xP))
                                                                if xP != 1 else self.catCurrent_indiv_sex(x, sex) for
                                                                (x, xP, xC, sex) in genotypedCat]))))})
             dfAge = pd.DataFrame({0: sorted(list(set
                                          (chain.from_iterable([self.catCurrent_indiv_age_criteria(x, age, xC, int((len(
                                                                                                       self.catCurrent_indiv_sex_age(
-                                                                                                          x, sex, age)) * xP)) if xP < 1 else int(xP))
+                                                                                                          x, sex, age)) * xP)) if xP <= 1 else int(xP))
                                                                if xP != 1 else self.catCurrent_indiv_sex_age(x, sex, age) for
                                                                (x, xP, xC, sex, age) in genotypedCatAge]))))})
             #check whether this exceed the 25K
@@ -1608,7 +1630,7 @@ def selekcija_total(pedFile, externalPedName = "ExternalPedigree",group=False, g
     ped = pedigree(pedFile)
 
     # določi spol
-    # ped.set_sex_AlphaSim(kwargs.get('AlphaSimDir'))
+    # ped.set_sex_AlphaSim(kwargs.get('AlphaSimDir'))QSTAT
 
     # tukaj potem pridobi kategorije - če imaš samo eno burn-in, štartaš iz nule
     if max(ped.gen) == 1:  # ČE SAMO ENA GENERACIJA V PEDIGREJU! - to zdj ne delaš več tako
@@ -1930,8 +1952,33 @@ def selekcija_total(pedFile, externalPedName = "ExternalPedigree",group=False, g
                                    genotypedCatAge=kwargs.get('genotypedAge'), sexToKeep=kwargs.get("sexToKeepGeno"))
             else:
                 ped.saveIndForGeno(kwargs.get('genotyped'), age='genotypedAge' in kwargs.keys(), genotypedCatAge=kwargs.get('genotypedAge'))
+    
         os.system(
             'less IndForGeno.txt | wc -l > ReferenceSize_new.txt && cat ReferenceSize_new.txt ReferenceSize.txt > Reftmp && mv Reftmp ReferenceSize.txt')
+    
+    elif kwargs.get('EBV'):
+        if not kwargs.get("diffGenoSize"):
+            pass
+        elif kwargs.get("diffGenoSize"):
+            if kwargs.get('UpdateGenRef'):
+                ped.updateAndSaveIndForGeno(kwargs.get('genotyped'), kwargs.get('NbUpdatedGen'),
+                                            kwargs.get('sexToUpdate'),
+                                            kwargs.get('AlphaSimDir'), age='genotypedAge' in kwargs.keys(),
+                                            genotypedCatAge=kwargs.get('genotypedAge'))
+            if not kwargs.get('UpdateGenRef'):
+                if kwargs.get('limitGeno'):
+                    ped.saveIndForGeno_limit(kwargs.get('genotyped'), age='genotypedAge' in kwargs.keys(),
+                                             genotypedCatAge=kwargs.get('genotypedAge'),
+                                             sexToKeep=kwargs.get("sexToKeepGeno"), initGenoAge = kwargs.get("genotypedAgeInit"))
+                else:
+                    ped.saveIndForGeno(kwargs.get('genotyped'), age='genotypedAge' in kwargs.keys(),
+                                       genotypedCatAge=kwargs.get('genotypedAge'), initGenoAge = kwargs.get("genotypedAgeInit"))
+
+            os.system(
+                'less IndForGeno.txt | wc -l > ReferenceSize_new.txt && cat ReferenceSize_new.txt ReferenceSize.txt > Reftmp && mv Reftmp ReferenceSize.txt')
+    
+    
+    
     ped.write_ped(kwargs.get('AlphaSimDir') + "/" + externalPedName + ".txt")
     ped.write_pedTotal(kwargs.get('AlphaSimDir') + "/" + externalPedName + "Total.txt")
 #    ped.write_pedTotal("/home/jana/PedTotal.txt")
