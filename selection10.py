@@ -971,6 +971,7 @@ class pedigree(classPed):
 
     def saveIndForGeno_limit(self, genotypedCat, age=False, genotypedCatAge = None, sexToKeep = None, initGenoAge = None):
         if not initGenoAge:
+            print("initGenoAge is FALSE")
             if not age:
                 pd.DataFrame({0: sorted(list(set
                                              (chain.from_iterable([self.catCurrent_indiv_sex_criteria(x, sex, xC, int((len(
@@ -1002,6 +1003,7 @@ class pedigree(classPed):
                 pd.concat([dfSex, dfAge]).to_csv('IndForGeno_new.txt', index=None, header=None)
         
         elif initGenoAge:
+            print("INITGENOAGE!!! TRUE!")
             pd.DataFrame({0: sorted(list(set
                                          (chain.from_iterable([self.catCurrent_indiv_age_criteria(x, age, xC, int((len(
                                              self.catCurrent_indiv_sex_age(
@@ -1022,7 +1024,7 @@ class pedigree(classPed):
                 inds = pd.merge(inds, ped[['Indiv', 'Generation', 'sex', 'cat']],
                                 on='Indiv')
 
-                indsSex = inds.loc[inds.sex == sexToKeep].sort_values(by = "Generation")[:(25000 - new_geno)]
+                indsSex = inds.loc[inds.sex == sexToKeep].sort_values(by = "Generation", ascending = False)[:(25000 - new_geno)]
                 # if (len(indsSex) + new_geno) < 25000:
                 #     indsOtherSex = inds.loc[inds.sex == list({"F", "M"} - {sexToKeep})[0]].sort_values(by = "Generation")[:(25000 - (len(indsSex) + new_geno))]
                 #     indsSex = pd.concat([indsSex, indsOtherSex]).sort_values(by = "Indiv")
@@ -1768,7 +1770,11 @@ def selekcija_total(pedFile, externalPedName = "ExternalPedigree",group=False, g
         telMn_new = (kwargs.get('telMn') - genoNRM) if (kwargs.get('nrMn') - genoNRM)  > 0 else 0
         ped.izberi_random("M", telMn_new, "nr", "telM", categories)  # izberi moška teleta, ki preživijo (random)
         #here you should only subtract the geno males thatn are of year 0!!!!!!
-        ped.izloci_random("M", int(kwargs.get('nrMn') - kwargs.get('potomciNPn') - telMn_new), "nr",
+        print("Assigning telM telMnNew" + str(telMn_new))
+        print("Assigning genTest 0 age genoNRM" + str(genoNRM))
+        print("Free rows" + str(len(ped.catCurrent_indiv_sex_age("nr" "M", 0))))
+        print("Culling izl" + str(int(kwargs.get('nrMn') - genoNRM - telMn_new)))
+        ped.izloci_random("M", int(kwargs.get('nrMn') - genoNRM - telMn_new), "nr",
                           categories)  # druga teleta izloči
 
     if 'telM' in categories.keys():
@@ -1960,6 +1966,7 @@ def selekcija_total(pedFile, externalPedName = "ExternalPedigree",group=False, g
         if not kwargs.get("diffGenoSize"):
             pass
         elif kwargs.get("diffGenoSize"):
+            print("Diff GenoSize: creating IndForGeno.txt")
             if kwargs.get('UpdateGenRef'):
                 ped.updateAndSaveIndForGeno(kwargs.get('genotyped'), kwargs.get('NbUpdatedGen'),
                                             kwargs.get('sexToUpdate'),

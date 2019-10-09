@@ -194,16 +194,16 @@ os.chdir(SelectionDir)
 print("Copying files to " + SelectionDir)
 os.system('cp -r ' + WorkingDir + '/FillInBurnIn' + str(rep) + '_permEnv/* .')
 os.system('cp ' + WorkingDir + '/Essentials/* .')
-if refSize != 0:
+if refSize != "0":
     os.system('mv IndForGeno_' + refSize + '.txt IndForGeno.txt')
-elif refSize == 0:
+elif refSize == "0":
     os.system('rm IndForGeno.txt')
 
 os.system("chmod a+x AlphaSim1.08")
 os.system("chmod a+x renumf90")
 os.system("chmod a+x blupf90")
 
-par = pd.read_csv(WorkingDir + "/SelPar/" + refSize + "_Pheno/SelectionParam_Gen_MaleGS_" + name + ".csv", header=None,
+par = pd.read_csv(WorkingDir + "/SelPar/10K_Pheno/SelectionParam_Gen_MaleGS_" + name + ".csv", header=None,
                   names=["Keys", "Vals"])
 par.to_dict()
 selPar = defaultdict()
@@ -257,7 +257,7 @@ for roundNo in range(21, 41):  # za vsak krog selekcije
         os.system("less IndForGeno.txt | wc -l > ReferenceSize.txt")
 
 
-    if roundNo == (21 + selPar['yearGeno']):
+    if roundNo == (21 + selPar['yearGeno'] + (refSize == "0")):
         #if this is round 1, then genotyped the offsrping of elite mating
         pedTmp = pd.read_csv(AlphaSimDir + "/SimulatedData/PedigreeAndGeneticValues_cat.txt", sep=" ")
         pd.DataFrame({"ID": list(pedTmp.Indiv[(pedTmp.cat.isin(["potomciNP", 'vhlevljeni', 'mladi', 'cak'])) & (pedTmp.sex == "M")])}).to_csv(AlphaSimDir + "/IndForGeno_new.txt", header=None, index=None)
