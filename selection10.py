@@ -1124,7 +1124,7 @@ class pedigree(classPed):
         indGeno = pd.read_csv(AlphaSimDir + "/IndForGeno_new.txt", names=['Indiv'], header=None)
         pedCat = pd.read_csv(AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues_cat.txt', sep='\s+')
         indCatSex = pd.merge(indGeno, pedCat[['Indiv', 'sex', 'age', 'cat']], on='Indiv')
-        if age is not None:
+        if age:
             return list(indCatSex.Indiv[(indCatSex.sex == sex) & (indCatSex.age == age)])
         else:
             return list(indCatSex.Indiv[(indCatSex.sex == sex)])
@@ -1754,6 +1754,8 @@ def selekcija_total(pedFile, externalPedName = "ExternalPedigree",group=False, g
             kwargs['gEBV'] = True
             kwargs['EliteDamsPTBulls'] = False
             kwargs['EliteDamsGenBulls'] = True
+
+    
 
     if not kwargs.get("maleGenSelAll") and not kwargs.get('gEBV'): ##('genTest' in categories.keys()):
         ped.izberi_random("M", kwargs.get('telMn'), "nr", "telM", categories)  # izberi moška teleta, ki preživijo (random)
