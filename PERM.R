@@ -1,11 +1,19 @@
+library(ggplot2)
 library(plyr)
 males <- read.table("~/Documents/Projects/inProgress/Phenotyping/TGVsAll_permEnv_MaleSU55_19082019.csv", header=TRUE)
 var <- read.table("~/Documents/Projects/inProgress/Phenotyping/TGVsAll_permEnv_varESU55_05092019.csv", header=TRUE)
 var <- read.table("~/Documents/Projects/inProgress/Phenotyping/TGVsAll_permEnv_varESU55_06092019.csv", header=TRUE)
 pheno <- read.table("~/Documents/Projects/inProgress/Phenotyping/TGVsAll_pheno_12092019.csv", header=TRUE)
 pheno <- read.csv("~/Documents/Projects/inProgress/Phenotyping/TGVsAll_comparisonPheno_rep0.csv", header=TRUE)
+
+pheno <- read.csv("~/Documents/PhD/Projects/inProgress/Phenotyping/TGVsAll_pheno_11102019.csv", header=TRUE, sep=" ")
+class <- read.csv("~/Documents/PhD/Projects/inProgress/Phenotyping/TGVsAll_permEnvClass_SU55_09102019.csv", header=TRUE, sep=" ")
+class <- class[,-18]
+pheno <- rbind(pheno, class)
+
 pheno$scenario <- factor(pheno$scenario, levels =c("Class", "1_1", "1_2", "2_1"))
 pheno$scenario <- revalue(pheno$scenario, c("Class" = "PT", "1_1" = "$G:$P = 1:1", "1_2" = "$G:$P = 1:2","2_1" = "$G:$P = 2:1"))
+
 
 class <- pheno[pheno$scenario == "PT",]
 pheno <- pheno[pheno$scenario != "PT",]
@@ -23,6 +31,7 @@ pheno <- rbind(pheno, CLASS)
 
 pheno$Repeats <- as.factor(pheno$Repeats)
 pheno$NoControls <- pheno$Repeats
+pheno$BV <- ifelse(pheno$NoControls == 11, "Conventional", "Genomic")
 
 pheno$Group <- paste(pheno$scenario, pheno$NoControls, sep="_")
 finished <- unique(pheno$Group[pheno$Generation == 60])
@@ -30,10 +39,16 @@ finished <- unique(pheno$Group[pheno$Generation == 60])
 
 png("/home/jana/Documents/Projects/inProgress/Phenotyping/Reallocation_plot.png", res=610, width=200, height=120, units="mm")
 
-ggplot(data=pheno, aes(x=Generation, y=zMean, group=NoControls, colour=NoControls)) +
-  geom_line(size = 1) + theme_bw(base_size=18, base_family="sans")  + theme(legend.position="top", legend.text=element_text(size=18), legend.title=element_text(size=18)) + 
+ggplot(data=pheno, aes(x=Generation, y=zMean, group=NoControls, colour=NoControls, linetype = BV)) +
+  geom_line(size = 1) + theme_bw(base_size=18, base_family="sans")  + 
+  theme(legend.position="top", legend.text=element_text(size=16), legend.title=element_text(size=16),
+        axis.text = element_text(size = 16)) + 
   scale_colour_manual("Number of recordings / lactation", 
-  values = c("#7dcbf5", "#62bff0", "#41b4f0", "#17a3eb", "#076ea3", "#024263", "black")) + ylab("Genetic mean") + 
+  values = c("#7dcbf5", "#62bff0", "#41b4f0", "#17a3eb", "#076ea3", "#024263", "black")) + 
+  scale_linetype_manual("", 
+  values = c("dashed", "solid")) + 
+  ylab("Genetic mean") + 
+  guides(linetype=guide_legend(nrow=1, keyheight = unit(1.2, "cm"), keywidth = unit(2, "cm"), override.aes = list(alpha = 1, size=1.2))) +
   facet_grid(. ~ scenario)
 dev.off()
 
@@ -64,13 +79,17 @@ accNew$Model <- "CorrectedHY"
 library(ggplot2)
 acc <- read.table("~/Documents/Projects/inProgress/Phenotyping/CombinedAcc.csv", header=TRUE)
 acc <- read.table("~/Documents/Projects/inProgress/Phenotyping/CombinedAcc_pheno.csv", header=TRUE)
+acc <- read.table("~/Documents/PhD/Projects/inProgress/Phenotyping/CombinedAcc_pheno_11102019.csv", header=TRUE)
 acc$Cor <- as.numeric(acc$Cor)
 acc <- acc[acc$Gen %in% 40:60,]
 
 #pheno
 accA <- summarySE(data = acc, measurevar = "Cor", groupvars = c("AgeCat", "NoControl", "gp"))
 accA$NoControl <- as.factor(accA$NoControl)
-ggplot(data=accA, aes(x=AgeCat, y=Cor, group=NoControl, colour=NoControl)) + geom_point()  + facet_grid(. ~ gp)
+accPlot <- accA[accA$AgeCat %in% c("genTest1", "telF1", "k3", "gpb4"),]
+ggplot(data=accPlot, 
+       aes(x=AgeCat, y=Cor, group=NoControl, colour=NoControl)) + geom_point(size = 2)  + 
+  facet_grid(. ~ gp)
 
 acc$varE <- as.factor(acc$varE)
 levels(acc$varE)

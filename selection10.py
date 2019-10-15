@@ -1755,7 +1755,7 @@ def selekcija_total(pedFile, externalPedName = "ExternalPedigree",group=False, g
             kwargs['EliteDamsPTBulls'] = False
             kwargs['EliteDamsGenBulls'] = True
 
-    
+
 
     if not kwargs.get("maleGenSelAll") and not kwargs.get('gEBV'): ##('genTest' in categories.keys()):
         ped.izberi_random("M", kwargs.get('telMn'), "nr", "telM", categories)  # izberi moška teleta, ki preživijo (random)
