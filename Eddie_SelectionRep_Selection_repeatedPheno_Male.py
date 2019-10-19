@@ -251,6 +251,8 @@ if selPar['gEBV']:
 # SELEKCIJA
 ##############################################################################
 print(AlphaSimDir)
+
+
 for roundNo in range(21, 41):  # za vsak krog selekcije
     # prestavi se v AlphaSim Dir
     if not os.path.isfile(AlphaSimDir + 'ReferenceSize.txt') and os.path.isfile(AlphaSimDir + "IndForGeno.txt"):
@@ -258,6 +260,8 @@ for roundNo in range(21, 41):  # za vsak krog selekcije
 
 
     if roundNo == (21 + selPar['yearGeno'] + (refSize == "0")):
+        selPar['startGenoMale'] = True
+        print("Enough genotypes, round " + str(21 + selPar['yearGeno'] + (refSize == "0")))
         #if this is round 1, then genotyped the offsrping of elite mating
         pedTmp = pd.read_csv(AlphaSimDir + "/SimulatedData/PedigreeAndGeneticValues_cat.txt", sep=" ")
         pd.DataFrame({"ID": list(pedTmp.Indiv[(pedTmp.cat.isin(["potomciNP", 'vhlevljeni', 'mladi', 'cak'])) & (pedTmp.sex == "M")])}).to_csv(AlphaSimDir + "/IndForGeno_new.txt", header=None, index=None)
@@ -266,7 +270,7 @@ for roundNo in range(21, 41):  # za vsak krog selekcije
             os.system(
                 'cat IndForGeno_new.txt IndForGeno.txt | sort -n| uniq > IndGenTmp && mv IndGenTmp IndForGeno.txt')
         else:
-            os.system("mv IndForGeno_new.txt > IndForGeno.txt")
+            os.system("mv IndForGeno_new.txt IndForGeno.txt")
 
         #estimate EBVs
         blupNextGen = estimateBV(AlphaSimDir, WorkingDir + "/CodeDir", way='milk', sel=seltype)

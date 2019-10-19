@@ -174,14 +174,14 @@ print("Repeats is " + str(repeats))
 print(variances)
 
 
-print("Creating directory " + scenario + str(rep) + "_" + str(repeats) + "_" + str(varE))
-if os.path.isdir(scenario + str(rep) + "_" + str(repeats) + "_" + str(varE)):
+print("Creating directory " + scenario + str(rep) + "_" + str(repeats) + "_" + str(varH))
+if os.path.isdir(scenario + str(rep) + "_" + str(repeats) + "_" + str(varH)):
     print("Directory exists")
     exit()
-if not os.path.isdir(scenario + str(rep) + "_" + str(repeats) + "_" + str(varE)):
-    os.makedirs(scenario + str(rep)+ "_" + str(repeats) + "_" + str(varE))
+if not os.path.isdir(scenario + str(rep) + "_" + str(repeats) + "_" + str(varH)):
+    os.makedirs(scenario + str(rep)+ "_" + str(repeats) + "_" + str(varH))
 
-SelectionDir = scenario + str(rep) + "_" + str(repeats) + "_" + str(varE)  + "/"
+SelectionDir = scenario + str(rep) + "_" + str(repeats) + "_" + str(varH)  + "/"
 
 
 print("Repeats " + str(repeats) + " " + str(type(repeats)))
@@ -306,7 +306,7 @@ for roundNo in range(21,41): #za vsak krog selekcije
     blupNextGen = estimateBV(AlphaSimDir, WorkingDir + "/CodeDir",  way='milk', sel=seltype)
     varEest = varE + varHTD
     blupNextGen.computeEBV_permEnv_herd(setVar = True, varPE = varPE, varE = varE, varH = varHY,
-                                        repeats = repeats, blupvarE = varEst, blupvarHTD = (varHY + varH))
+                                        repeats = repeats, blupvarE = varEest, blupvarHTD = (varHY + varH))
     Acc.saveAcc()
     #GenTrends.saveTrends()
     #zdaj za vsako zapiši, ker vsakič na novo prebereš

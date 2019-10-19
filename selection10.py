@@ -1025,9 +1025,9 @@ class pedigree(classPed):
                                 on='Indiv')
 
                 indsSex = inds.loc[inds.sex == sexToKeep].sort_values(by = "Generation", ascending = False)[:(25000 - new_geno)]
-                # if (len(indsSex) + new_geno) < 25000:
-                #     indsOtherSex = inds.loc[inds.sex == list({"F", "M"} - {sexToKeep})[0]].sort_values(by = "Generation")[:(25000 - (len(indsSex) + new_geno))]
-                #     indsSex = pd.concat([indsSex, indsOtherSex]).sort_values(by = "Indiv")
+                if (len(indsSex) + new_geno) < 25000:
+                     indsOtherSex = inds.loc[inds.sex == list({"F", "M"} - {sexToKeep})[0]].sort_values(by = "Generation", ascending = False)[:(25000 - (len(indsSex) + new_geno))]
+                     indsSex = pd.concat([indsSex, indsOtherSex]).sort_values(by = "Indiv")
 
                 pd.DataFrame({"Indiv": indsSex.Indiv}).to_csv('IndForGeno.txt', index=None, header=None)
 
@@ -1036,7 +1036,7 @@ class pedigree(classPed):
                 'cat IndForGeno_new.txt IndForGeno.txt | sort -n| uniq > IndGenTmp && mv IndGenTmp IndForGeno.txt')
 
         else:
-            os.system("mv IndForGeno_new.txt > IndForGeno.txt")
+            os.system("mv IndForGeno_new.txt IndForGeno.txt")
 
     def updateAndSaveIndForGeno(self, genotypedCat, rmNbGen, removesex, AlphaSimDir, age=False, genotypedCatAge = None):
         # first obtain new animals for genotypisation
@@ -1124,7 +1124,7 @@ class pedigree(classPed):
         indGeno = pd.read_csv(AlphaSimDir + "/IndForGeno_new.txt", names=['Indiv'], header=None)
         pedCat = pd.read_csv(AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues_cat.txt', sep='\s+')
         indCatSex = pd.merge(indGeno, pedCat[['Indiv', 'sex', 'age', 'cat']], on='Indiv')
-        if age:
+        if age is not None:
             return list(indCatSex.Indiv[(indCatSex.sex == sex) & (indCatSex.age == age)])
         else:
             return list(indCatSex.Indiv[(indCatSex.sex == sex)])
@@ -1743,17 +1743,20 @@ def selekcija_total(pedFile, externalPedName = "ExternalPedigree",group=False, g
     # NAJPREJ DELI, KI SO SKUPNI PROGENEMU IN GENOMSKEMU TESTIRANJU
     #preveri, koliko živali je genotipiziranih
     if kwargs.get("diffGenoSize"):
-        old_geno = sum(1 for line in open('IndForGeno.txt')) if os.path.isfile('IndForGeno.txt') else 0
-        if old_geno < kwargs.get("diffGenoSize"):
+        if not kwargs.get('startGenoMale'):
             kwargs['EBV'] = True
             kwargs['gEBV'] = False        
             kwargs['EliteDamsPTBulls'] = True
             kwargs['EliteDamsGenBulls'] = False
-        elif old_geno < kwargs.get("diffGenoSize"):
+        elif kwargs.get('startGenoMale'):
             kwargs['EBV'] = False
             kwargs['gEBV'] = True
             kwargs['EliteDamsPTBulls'] = False
             kwargs['EliteDamsGenBulls'] = True
+
+    print("The parameter in kwargs for EBV " + str(kwargs.get('EBV')))
+    print("The parameter in kwargs for gEBV " + str(kwargs.get('gEBV')))
+    print("The parameter in kwargs for maleGenSelAll " + str(kwargs.get('maleGenSelAll')))
 
 
 
@@ -1771,11 +1774,12 @@ def selekcija_total(pedFile, externalPedName = "ExternalPedigree",group=False, g
         genoNRM = len(ped.obtainNewGenotypedInd_sex("M", kwargs.get("AlphaSimDir"), age=0))
         telMn_new = (kwargs.get('telMn') - genoNRM) if (kwargs.get('nrMn') - genoNRM)  > 0 else 0
         ped.izberi_random("M", telMn_new, "nr", "telM", categories)  # izberi moška teleta, ki preživijo (random)
+
         #here you should only subtract the geno males thatn are of year 0!!!!!!
-        print("Assigning telM telMnNew" + str(telMn_new))
-        print("Assigning genTest 0 age genoNRM" + str(genoNRM))
-        print("Free rows" + str(len(ped.catCurrent_indiv_sex_age("nr" "M", 0))))
-        print("Culling izl" + str(int(kwargs.get('nrMn') - genoNRM - telMn_new)))
+        print("Assigning telM telMnNew " + str(telMn_new))
+        print("Assigning genTest 0 age genoNRM " + str(genoNRM))
+        print("Free rows " + str(len(ped.catCurrent_indiv_sex_age("nr", "M", 0))))
+        print("Culling izl " + str(int(kwargs.get('nrMn') - genoNRM - telMn_new)))
         ped.izloci_random("M", int(kwargs.get('nrMn') - genoNRM - telMn_new), "nr",
                           categories)  # druga teleta izloči
 
