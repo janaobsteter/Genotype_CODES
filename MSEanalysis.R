@@ -443,7 +443,11 @@ colnames(gainAe)[4] <- "value"
 gainAt <- summarySE(data=PedEval1, measurevar = "TbvT1", groupvars = c("Generation", "Program"))
 gainAt$BV <- "TBV"
 colnames(gainAt)[4] <- "value"
+gainAp <- summarySE(data=PedEval1, measurevar = "PhenoT1", groupvars = c("Generation", "Program"))
+gainAp$BV <- "Pheno"
+colnames(gainAp)[4] <- "value"
 gainA <- rbind(gainAe, gainAt)
+gainA <- rbind(gainA, gainAp)
 
 ggplot(data = gainA, aes(x=Generation, y=value, group=BV, colour=BV)) + geom_line() + facet_grid(~ Program)
 
