@@ -273,7 +273,7 @@ for roundNo in range(21, 41):  # za vsak krog selekcije
             os.system("mv IndForGeno_new.txt IndForGeno.txt")
 
         #estimate EBVs
-        blupNextGen = estimateBV(AlphaSimDir, WorkingDir + "/CodeDir", way='milk', sel=seltype)
+        blupNextGen = estimateBV(AlphaSimDir, WorkingDir + "/CodeDir", way='milk', sel='gen')
         varEest = varE + varHTD
         blupNextGen.computeEBV_permEnv_herd(setVar=True, varPE=varPE, varE=varE, varH=varHY,
                                             repeats=repeats, blupvarE=varEest, blupvarHTD=(varHY + varH))
