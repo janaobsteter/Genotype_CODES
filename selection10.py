@@ -1769,7 +1769,7 @@ def selekcija_total(pedFile, externalPedName = "ExternalPedigree",group=False, g
     elif kwargs.get("maleGenSelAll") and kwargs.get('gEBV'): ##('genTest' in categories.keys()):
         #then put all genotyped males into "potomciNP" - the easiest solution
         genoMale = ped.obtainNewGenotypedInd_sex("M", kwargs.get("AlphaSimDir"))
-        ped.ped.loc[(ped.ped.Indiv.isin(genoMale)), 'cat'] = "genTest"
+        ped.ped.loc[(ped.ped.Indiv.isin(genoMale)) & (ped.ped.age == 0), 'cat'] = "genTest"
         #you only have to proceed the number minus the one genoMales that are age 0
         genoNRM = len(ped.obtainNewGenotypedInd_sex("M", kwargs.get("AlphaSimDir"), age=0))
         telMn_new = (kwargs.get('telMn') - genoNRM) if (kwargs.get('nrMn') - genoNRM)  > 0 else 0
