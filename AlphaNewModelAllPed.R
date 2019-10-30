@@ -26,7 +26,7 @@ nPNFemales     = 5000
 pPNFemalesPure = 0.15
 
 nGenerationBurn = 20
-nGenerationEval = 15
+nGenerationEval = 10
 
 GenMeanCols = c("GenMeanT1", "GenMeanT2", "GenMeanI")
 GenVarCols  = c("GenVarT1",  "GenVarT2",  "GenVarI")
@@ -171,14 +171,15 @@ for (h2 in c(0.25)) {
   setwd("/home/jana/Documents/PhD/SimulationAlphaPart/NewModelAllPed/")
   hDir = getwd()
   PedEval <- PedEvalBurnIn  
+  library(truncnorm)
   # ---- Program PN1  ----
   for (Generation in (1 + nGenerationBurn):(nGenerationEval + nGenerationBurn)) {
-    GNEffect1 <- rnorm(1, 0,  0.2 * diag(VarP)[1])
-    GNEffect2 <- rnorm(1, 0, 0.2 * diag(VarP)[2])
-    PNEffect1 <- rnorm(1, 0, 0.2 * diag(VarP)[1])
-    PNEffect2 <- rnorm(1, 0, 0.2 * diag(VarP)[2])
-    GenerationEffect1 <- rnorm(1, 0, 0.2* diag(VarP)[1])
-    GenerationEffect2 <- rnorm(1, 0, 0.2* diag(VarP)[2])
+    GNEffect1 <- rtruncnorm(1, 0,  0.2 * diag(VarP)[1])
+    GNEffect2 <- rtruncnorm(1, 0, 0.2 * diag(VarP)[2])
+    PNEffect1 <- rtruncnorm(1, 0, 0.2 * diag(VarP)[1])
+    PNEffect2 <- rtruncnorm(1, 0, 0.2 * diag(VarP)[2])
+    GenerationEffect1 <- rtruncnorm(1, 0, 0.2* diag(VarP)[1])
+    GenerationEffect2 <- rtruncnorm(1, 0, 0.2* diag(VarP)[2])
     effects <- rbind(effects, c(GNEffect1, GNEffect2, PNEffect1, PNEffect2, GenerationEffect1, GenerationEffect2))
 
     if (Generation == (1 + nGenerationBurn)) {
@@ -237,6 +238,7 @@ for (h2 in c(0.25)) {
     # Trait 1
     blup1dat <- PedEval[,c("IId", "PhenoT1", "Program", "Generation")]
     blup1dat$Generation[blup1dat$Generation == 0] <- "00"
+    blup1dat$Mean <- 1
     write.table(blup1dat, "Blupf901.dat",
                 quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ",
                 na = "0", append = file.exists("Blupf901.dat"))
@@ -247,6 +249,7 @@ for (h2 in c(0.25)) {
     # Create phenotype file
     blup2dat <- PedEval[PedEval$Program == "GN",c("IId", "PhenoT2", "Program", "Generation")]
     blup2dat$Generation[blup2dat$Generation == 0] <- "00"
+    blup2dat$Mean <- 1
     write.table(blup2dat, "Blupf902.dat",
                 quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ",
                 na = "0", append = file.exists("Blupf902.dat"))
@@ -369,6 +372,7 @@ for (h2 in c(0.25)) {
     # Trait 1
     blup1dat <- PedEval[,c("IId", "PhenoT1", "Program", "Generation")]
     blup1dat$Generation[blup1dat$Generation == 0] <- "00"
+    blup1dat$Mean <- 1
     write.table(blup1dat, "Blupf901.dat",
                 quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ",
                 na = "0", append = file.exists("Blupf901.dat"))
@@ -394,6 +398,7 @@ for (h2 in c(0.25)) {
     # Create phenotype file
     blup2dat <- PedEval[PedEval$Program == "GN",c("IId", "PhenoT2", "Program", "Generation")]          
     blup2dat$Generation[blup2dat$Generation == 0] <- "00"
+    blup2dat$Mean <- 1
     write.table(blup2dat, "Blupf902.dat",
                 quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ",
                 na = "0", append = file.exists("Blupf902.dat"))    
