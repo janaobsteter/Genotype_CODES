@@ -1442,6 +1442,18 @@ class blupf90:
         phenoNew = phenoSim.simulatePhenotype(varE, repeats)
         phenoNew.loc[phenoNew.sex == 'F', 'sex'] = 2
         phenoNew.loc[:, "Mean"] = 1
+
+        blupDatUnpheno = self.blupDatT.loc[(self.blupDatT.active == 1) & (~self.blupDatT.Indiv.isin(blupDatNew.Indiv)),
+                                           ['Indiv', 'phenoNormUnres1', 'sex', 'herdYear', 'permEnv']]
+        blupDatUnpheno.phenoNormUnres1 = '0'
+        blupDatUnpheno = blupDatUnpheno.fillna('0')
+        blupDatUnpheno.loc[blupDatUnpheno.sex == 'F', 'sex'] = 2
+        blupDatUnpheno.loc[blupDatUnpheno.sex == 'M', 'sex'] = 1
+        blupDatUnpheno.loc[:, "Mean"] = 1
+
+        phenoNew = pd.concat([phenoNew, blupDatUnpheno])
+
+        #add all active animals, but set the phenotype to missing
         if os.path.isfile(self.AlphaSimDir + 'Blupf90.dat'):
             blupDatOld = pd.read_csv('Blupf90.dat', sep=" ", names=['herdYear', 'phenoNormUnres1',
                                                                     'Indiv', 'sex',
@@ -1449,9 +1461,10 @@ class blupf90:
             dat = pd.concat([blupDatOld, phenoNew])
             dat.Mean = 1
             dat.to_csv(self.AlphaSimDir + 'Blupf90.dat', header=None, index=False,
-                                                     sep=" ")
+                                                     sep=" ", columns = ['herdYear', 'phenoNormUnres1', 'Indiv', 'sex', 'Mean'])
         else:
-            phenoNew.to_csv(self.AlphaSimDir + 'Blupf90.dat', header=None, index=False, sep=" ")
+            phenoNew.to_csv(self.AlphaSimDir + 'Blupf90.dat', header=None, index=False, sep=" ",
+                            columns = ['herdYear', 'phenoNormUnres1', 'Indiv', 'sex', 'Mean'])
 
     def makeDat_removePhen_cat(self, listUnphenotyped):
         # first remove phenotype from animals that do not have phenotype
@@ -1780,7 +1793,8 @@ def selekcija_total(pedFile, externalPedName = "ExternalPedigree",group=False, g
         print("Assigning genTest 0 age genoNRM " + str(genoNRM))
         print("Free rows " + str(len(ped.catCurrent_indiv_sex_age("nr", "M", 0))))
         print("Culling izl " + str(int(kwargs.get('nrMn') - genoNRM - telMn_new)))
-        ped.izloci_random("M", int(kwargs.get('nrMn') - genoNRM - telMn_new), "nr",
+        freeRow = int(len(ped.catCurrent_indiv_sex_age("nr", "M", 0)))
+        ped.izloci_random("M", freeRow, "nr",
                           categories)  # druga teleta izloči
 
     if 'telM' in categories.keys():
