@@ -1791,9 +1791,9 @@ def selekcija_total(pedFile, externalPedName = "ExternalPedigree",group=False, g
         #here you should only subtract the geno males thatn are of year 0!!!!!!
         print("Assigning telM telMnNew " + str(telMn_new))
         print("Assigning genTest 0 age genoNRM " + str(genoNRM))
-        print("Free rows " + str(len(ped.catCurrent_indiv_sex_age("nr", "M", 0))))
+        print("Free rows " + str(len(ped.catCurrent_indiv_sex_age("", "M", 0))))
         print("Culling izl " + str(int(kwargs.get('nrMn') - genoNRM - telMn_new)))
-        freeRow = int(len(ped.catCurrent_indiv_sex_age("nr", "M", 0)))
+        freeRow = int(len(ped.catCurrent_indiv_sex_age("", "M", 0)))
         ped.izloci_random("M", freeRow, "nr",
                           categories)  # druga teleta izloči
 

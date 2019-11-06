@@ -87,6 +87,10 @@ for (h2 in c(0.25)) {
   
   for (Generation in 1:nGenerationBurn) {
     # Generation = 1
+    GNEffect1 <- rnorm(1, 0,  0.2 * diag(VarP)[1])
+    GNEffect2 <- rnorm(1, 0, 0.2 * diag(VarP)[2])
+    GenerationEffect1 <- rnorm(1, 0, 0.2* diag(VarP)[1])
+    GenerationEffect2 <- rnorm(1, 0, 0.2* diag(VarP)[2])
     
     # Mate
     SelCand = randCross2(females = BaseGNFemales, males = BaseGNMales,
@@ -103,6 +107,8 @@ for (h2 in c(0.25)) {
     
     # PhenotypePri rupah
     SelCand = setPheno(pop = SelCand, varE = VarE)
+    # SelCand@pheno[,1] <- SelCand@pheno[,1] + GenerationEffect1 + GNEffect1
+    # SelCand@pheno[,2] <- SelCand@pheno[,2] + GenerationEffect2 + GNEffect2
     
     PedEval = rbind(PedEval,
                     tibble(Generation = Generation,
@@ -174,12 +180,12 @@ for (h2 in c(0.25)) {
   library(truncnorm)
   # ---- Program PN1  ----
   for (Generation in (1 + nGenerationBurn):(nGenerationEval + nGenerationBurn)) {
-    GNEffect1 <- rtruncnorm(1, 0,  0.2 * diag(VarP)[1])
-    GNEffect2 <- rtruncnorm(1, 0, 0.2 * diag(VarP)[2])
-    PNEffect1 <- rtruncnorm(1, 0, 0.2 * diag(VarP)[1])
-    PNEffect2 <- rtruncnorm(1, 0, 0.2 * diag(VarP)[2])
-    GenerationEffect1 <- rtruncnorm(1, 0, 0.2* diag(VarP)[1])
-    GenerationEffect2 <- rtruncnorm(1, 0, 0.2* diag(VarP)[2])
+    GNEffect1 <- rnorm(1, 0,  0.2 * diag(VarP)[1])
+    GNEffect2 <- rnorm(1, 0, 0.2 * diag(VarP)[2])
+    PNEffect1 <- rnorm(1, 0, 0.2 * diag(VarP)[1])
+    PNEffect2 <- rnorm(1, 0, 0.2 * diag(VarP)[2])
+    GenerationEffect1 <- rnorm(1, 0, 0.2* diag(VarP)[1])
+    GenerationEffect2 <- rnorm(1, 0, 0.2* diag(VarP)[2])
     effects <- rbind(effects, c(GNEffect1, GNEffect2, PNEffect1, PNEffect2, GenerationEffect1, GenerationEffect2))
 
     if (Generation == (1 + nGenerationBurn)) {
@@ -203,8 +209,8 @@ for (h2 in c(0.25)) {
     
     # Phenotype
     SelCand = setPheno(pop = SelCand, varE = VarE)
-    SelCand@pheno[,1] <- SelCand@pheno[,1] + GenerationEffect1 + GNEffect1
-    SelCand@pheno[,2] <- SelCand@pheno[,2] + GenerationEffect2 + GNEffect2
+    # SelCand@pheno[,1] <- SelCand@pheno[,1] + GenerationEffect1 + GNEffect1
+    # SelCand@pheno[,2] <- SelCand@pheno[,2] + GenerationEffect2 + GNEffect2
     # 
     # Track pedigree
     PedEval = rbind(PedEval,
@@ -332,7 +338,7 @@ for (h2 in c(0.25)) {
     
     # Phenotype
     SelCand = setPheno(pop = SelCand, varE = VarE)
-    SelCand@pheno[,1] <- SelCand@pheno[,1] + GenerationEffect1 + PNEffect1
+    # SelCand@pheno[,1] <- SelCand@pheno[,1] + GenerationEffect1 + PNEffect1
     SelCand@pheno[, 2] <- NA
     
     

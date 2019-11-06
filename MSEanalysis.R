@@ -85,16 +85,16 @@ table(part2$h2)
 
 #####fixed effects model (newModel), no interaction
 
-part1 <- read.table("~/Documents/Projects/inProgress/AlphaPart/NewModel/PartitionPN1.csv", header=TRUE)[-1,]
+#part1 <- read.table("~/Documents/Projects/inProgress/AlphaPart/NewModel/PartitionPN1.csv", header=TRUE)[-1,]
 part1 <- read.table("~/Documents/PhD/Projects/inProgress/AlphaPart/NewModel/PartitionPN1.csv", header=TRUE)[-1,]
-part1 <- read.table("~/Documents/PhD/Projects/inProgress/AlphaPart/PartitionGN.csv", header=TRUE)[-1,]
+#part1 <- read.table("~/Documents/PhD/Projects/inProgress/AlphaPart/PartitionGN.csv", header=TRUE)[-1,]
 colnames(part1)[10] <- "BV"
-colnames(part1)[9] <- "BV"
+#colnames(part1)[9] <- "BV"
 table(part1$h2)
 table(part1$rep)
 part1 <- part1[,-2]
 
-part2 <- read.table("~/Documents/Projects/inProgress/AlphaPart/NewModel/PartitionPN2.csv", header=TRUE)[-1,]
+#part2 <- read.table("~/Documents/Projects/inProgress/AlphaPart/NewModel/PartitionPN2.csv", header=TRUE)[-1,]
 part2 <- read.table("~/Documents/PhD/Projects/inProgress/AlphaPart/NewModel/PartitionPN2.csv", header=TRUE)[-1,]
 colnames(part2)[10] <- "BV"
 part2 <- part2[,-2]
@@ -180,7 +180,8 @@ part1Ma$variable <- factor(part1Ma$variable, levels = c("Sum", "GN.F", "GN.M", "
 part2Ma$Population <- as.character(part2Ma$Population)
 part2Ma$Population[part2Ma$Population == "PN2"] <- "PN"
 part2Ma$Population[part2Ma$Population == "GN2"] <- "GN"
-
+part1Ma <- part1Ma[part1Ma$Generation > 19,]
+part2Ma <- part2Ma[part2Ma$Generation > 19,]
 part2Ma$variable <- factor(part2Ma$variable, levels = c("Sum", "GN.F", "GN.M", "PN2.F", "PN2.M"))
 
 ggplot(data = part1Ma[(part1Ma$BV == "Tbv") & (part1Ma$variable != "PN1.M"),], 
@@ -499,8 +500,10 @@ de1A <- summarySE(data=de1, groupvars = c("Generation", "Program", "trait", "BV"
 de2A <- summarySE(data=de2, groupvars = c("Generation", "Program", "trait", "BV", "h2"), measurevar = "mean")
 deA <- rbind(de1A, de2A)
 
+de1A <- de1A[de1A$Generation > 19 & de1A$Program != "BurnIn",]
+de2A <- de2A[de2A$Generation > 19 & de2A$Program != "BurnIn",]
 
-
+#trait 1
 ggplot(data = de1A[de1A$BV == "Tbv",], aes(x=Generation, y=mean, colour = trait, group=trait))  + geom_line(size=1) + 
   theme_bw(base_size=18, base_family="sans") + 
   theme(legend.position="top", legend.text=element_text(size=18), legend.title=element_text(size=18), 
@@ -508,7 +511,19 @@ ggplot(data = de1A[de1A$BV == "Tbv",], aes(x=Generation, y=mean, colour = trait,
                                                      axis.title=element_text(size=18)) + 
   scale_colour_manual("Trait", values = c("red3", "orange")) + 
   scale_y_continuous(breaks = seq(0, 20, 2)) + 
-  ylab("Genetic mean") + 
+  ylab("Genetic mean") + ggtitle("Program 1") + 
+  guides(colour = guide_legend(keywidth = unit(2, "cm"))) +
+  facet_grid(. ~ Program)
+
+#trait 2
+ggplot(data = de2A[de2A$BV == "Tbv",], aes(x=Generation, y=mean, colour = trait, group=trait))  + geom_line(size=1) + 
+  theme_bw(base_size=18, base_family="sans") + 
+  theme(legend.position="top", legend.text=element_text(size=18), legend.title=element_text(size=18), 
+                                                     axis.text=element_text(size=16),
+                                                     axis.title=element_text(size=18)) + 
+  scale_colour_manual("Trait", values = c("red3", "orange")) + 
+  scale_y_continuous(breaks = seq(0, 20, 2)) + 
+  ylab("Genetic mean") + ggtitle("Program 2") + 
   guides(colour = guide_legend(keywidth = unit(2, "cm"))) +
   facet_grid(. ~ Program)
 
