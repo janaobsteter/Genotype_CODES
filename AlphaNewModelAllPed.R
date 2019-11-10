@@ -91,7 +91,6 @@ for (h2 in c(0.25)) {
     GNEffect2 <- rnorm(1, 0, 0.2 * diag(VarP)[2])
     GenerationEffect1 <- rnorm(1, 0, 0.2* diag(VarP)[1])
     GenerationEffect2 <- rnorm(1, 0, 0.2* diag(VarP)[2])
-    
     # Mate
     SelCand = randCross2(females = BaseGNFemales, males = BaseGNMales,
                          nCrosses = BaseGNFemales@nInd, nProgeny = 12)
@@ -107,8 +106,8 @@ for (h2 in c(0.25)) {
     
     # PhenotypePri rupah
     SelCand = setPheno(pop = SelCand, varE = VarE)
-    # SelCand@pheno[,1] <- SelCand@pheno[,1] + GenerationEffect1 + GNEffect1
-    # SelCand@pheno[,2] <- SelCand@pheno[,2] + GenerationEffect2 + GNEffect2
+    SelCand@pheno[,1] <- SelCand@pheno[,1] + GenerationEffect1 + GNEffect1
+    SelCand@pheno[,2] <- SelCand@pheno[,2] + GenerationEffect2 + GNEffect2
     
     PedEval = rbind(PedEval,
                     tibble(Generation = Generation,
@@ -177,7 +176,7 @@ for (h2 in c(0.25)) {
   setwd("/home/jana/Documents/PhD/SimulationAlphaPart/NewModelAllPed/")
   hDir = getwd()
   PedEval <- PedEvalBurnIn  
-  library(truncnorm)
+
   # ---- Program PN1  ----
   for (Generation in (1 + nGenerationBurn):(nGenerationEval + nGenerationBurn)) {
     GNEffect1 <- rnorm(1, 0,  0.2 * diag(VarP)[1])
@@ -209,8 +208,8 @@ for (h2 in c(0.25)) {
     
     # Phenotype
     SelCand = setPheno(pop = SelCand, varE = VarE)
-    # SelCand@pheno[,1] <- SelCand@pheno[,1] + GenerationEffect1 + GNEffect1
-    # SelCand@pheno[,2] <- SelCand@pheno[,2] + GenerationEffect2 + GNEffect2
+    SelCand@pheno[,1] <- SelCand@pheno[,1] + GenerationEffect1 + GNEffect1
+    SelCand@pheno[,2] <- SelCand@pheno[,2] + GenerationEffect2 + GNEffect2
     # 
     # Track pedigree
     PedEval = rbind(PedEval,
@@ -338,7 +337,7 @@ for (h2 in c(0.25)) {
     
     # Phenotype
     SelCand = setPheno(pop = SelCand, varE = VarE)
-    # SelCand@pheno[,1] <- SelCand@pheno[,1] + GenerationEffect1 + PNEffect1
+    SelCand@pheno[,1] <- SelCand@pheno[,1] + GenerationEffect1 + PNEffect1
     SelCand@pheno[, 2] <- NA
     
     

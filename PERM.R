@@ -6,7 +6,7 @@ var <- read.table("~/Documents/Projects/inProgress/Phenotyping/TGVsAll_permEnv_v
 pheno <- read.table("~/Documents/Projects/inProgress/Phenotyping/TGVsAll_pheno_12092019.csv", header=TRUE)
 pheno <- read.csv("~/Documents/Projects/inProgress/Phenotyping/TGVsAll_comparisonPheno_rep0.csv", header=TRUE)
 
-pheno <- read.csv("~/Documents/PhD/Projects/inProgress/Phenotyping/TGVsAll_pheno_11102019.csv", header=TRUE, sep=" ")
+pheno <- read.csv("~/Documents/PhD/Projects/inProgress/Phenotyping/TGVsAll_pheno_07112019.csv", header=TRUE, sep=" ")
 class <- read.csv("~/Documents/PhD/Projects/inProgress/Phenotyping/TGVsAll_permEnvClass_SU55_09102019.csv", header=TRUE, sep=" ")
 class <- class[,-18]
 pheno <- rbind(pheno, class)
