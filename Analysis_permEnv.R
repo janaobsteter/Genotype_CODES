@@ -285,7 +285,8 @@ accPlot$AgeCat <- revalue(accPlot$AgeCat, c("genTest1" = "Male candidates", "tel
                                             "pb8" = "Fathers", 
                                             "pb9" = "Fathers", 
                                             "vhlevljeni1" = "Male candidates"))
-accA <- summarySE(data = accPlot, measurevar = "Cor", groupvars = c("AgeCat", "NoControl", "gp", "Ref"))
+accA <- summarySE(data = accPlot, measurevar = "Cor", groupvars = c("AgeCat", "NoControl", "gp", "Ref", "Rep"))
+accA <- summarySE(data = accA, measurevar = "Cor", groupvars = c("AgeCat", "NoControl", "gp", "Ref"))
 accPlotA <- accA
 accPlotA$BV <- ifelse(accPlotA$NoControl == 11, "Conventional", "Genomic")
 
@@ -614,8 +615,11 @@ accPlotS <- accPlot[accPlot$Ref == "True" & accPlot$gp == "$G:$P = 1:2",]
 accPlotS <- accPlot[accPlot$Ref == "False" & accPlot$gp == "$G:$P = 2:1",]
 accPlotS <- accPlot[accPlot$Ref == "False" & accPlot$gp == "$G:$P = 1:1",]
 accPlotS <- accPlot[accPlot$Ref == "False" & accPlot$gp == "$G:$P = 1:2",]
-
 accPlotS <- summarySE(accPlotS, measurevar = "Cor", groupvars = c("AgeCat", "NoControl", "Rep"))
+
+accPlotS <- accPlot[accPlot$Ref == "True" & accPlot$AgeCat == "Male candidates",]
+accPlotS <- accPlot[accPlot$Ref == "True" & accPlot$AgeCat == "Male candidates",]
+accPlotS <- summarySE(accPlotS, measurevar = "Cor", groupvars = c("NoControl", "Rep", "gp"))
 
 #accPlotS <- accPlot[accPlot$gp == "$G:$P = 1:1",]
 
@@ -624,6 +628,39 @@ model_T <- lm(Cor ~ NoControl +AgeCat + AgeCat:NoControl, data=accPlotS) #absolu
 marginal = emmeans(model_T, ~ AgeCat:NoControl)
 CLD = cld(marginal, by="AgeCat", reverse = TRUE,
           alpha   = 0.05, sort=FALSE,
+          Letters = letters,         ###  Use lowercase letters for .group
+          adjust  = "tukey") 
+CLD
+
+accPlotS$gp <- factor(accPlotS$gp, levels = c("$G:$P = 2:1","$G:$P = 1:1","$G:$P = 1:2"))
+model_T <- lm(Cor ~ NoControl + gp + NoControl:gp, data=accPlotS) #absolute
+marginal = emmeans(model_T, ~ NoControl:gp)
+CLD = cld(marginal, by="NoControl", 
+          alpha   = 0.05, sort = FALSE,
+          Letters = letters,         ###  Use lowercase letters for .group
+          adjust  = "tukey") 
+CLD
+
+#by Ref
+accPlotS <- accPlot[accPlot$gp == "$G:$P = 2:1" & accPlot$AgeCat == "Male candidates",]
+accPlotS <- accPlot[accPlot$gp == "$G:$P = 2:1" & accPlot$AgeCat == "Female candidates",]
+accPlotS <- accPlot[accPlot$gp == "$G:$P = 2:1" & accPlot$AgeCat == "Mothers",]
+accPlotS <- accPlot[accPlot$gp == "$G:$P = 2:1" & accPlot$AgeCat == "Fathers",]
+accPlotS <- accPlot[accPlot$gp == "$G:$P = 1:1" & accPlot$AgeCat == "Male candidates",]
+accPlotS <- accPlot[accPlot$gp == "$G:$P = 1:1" & accPlot$AgeCat == "Female candidates",]
+accPlotS <- accPlot[accPlot$gp == "$G:$P = 1:1" & accPlot$AgeCat == "Mothers",]
+accPlotS <- accPlot[accPlot$gp == "$G:$P = 1:1" & accPlot$AgeCat == "Fathers",]
+accPlotS <- accPlot[accPlot$gp == "$G:$P = 1:2" & accPlot$AgeCat == "Male candidates",]
+accPlotS <- accPlot[accPlot$gp == "$G:$P = 1:2" & accPlot$AgeCat == "Female candidates",]
+accPlotS <- accPlot[accPlot$gp == "$G:$P = 1:2" & accPlot$AgeCat == "Mothers",]
+accPlotS <- accPlot[accPlot$gp == "$G:$P = 1:2" & accPlot$AgeCat == "Fathers",]
+
+accPlotS <- summarySE(accPlotS, measurevar = "Cor", groupvars = c("NoControl", "Rep", "Ref"))
+
+model_T <- lm(Cor ~ NoControl + Ref + NoControl:Ref, data=accPlotS) #absolute
+marginal = emmeans(model_T, ~ NoControl:Ref)
+CLD = cld(marginal, by="NoControl", 
+          alpha   = 0.05, sort = FALSE,
           Letters = letters,         ###  Use lowercase letters for .group
           adjust  = "tukey") 
 CLD

@@ -107,7 +107,7 @@ class estimateBV:
         # pripravi fajle za blupf90
         blupFiles = blupf90(self.AlphaSimDir, self.codeDir, way=self.way, permEnv=True, varPE=permEvar, herd=True, varH=herdvar)
         if self.way == 'milk':
-            blupFiles.makeDat_removePhen_milk_repeatedPhenotype_herd(resvar, repeats)
+            blupFiles.makeDat_removePhen_milk_repeatedPhenotype_herd(resvar, repeats, self.sel)
         elif self.way == 'burnin_milk':
             blupFiles.makeDat_sex_herd(2)
 
@@ -174,14 +174,14 @@ print("Repeats is " + str(repeats))
 print(variances)
 
 
-print("Creating directory " + scenario + str(rep) + "_" + str(repeats) + "_" + str(varH))
-if os.path.isdir(scenario + str(rep) + "_" + str(repeats) + "_" + str(varH)):
+print("Creating directory " + scenario + str(rep) + "_" + str(repeats))
+if os.path.isdir(scenario + str(rep) + "_" + str(repeats)):
     print("Directory exists")
     exit()
-if not os.path.isdir(scenario + str(rep) + "_" + str(repeats) + "_" + str(varH)):
-    os.makedirs(scenario + str(rep)+ "_" + str(repeats) + "_" + str(varH))
+if not os.path.isdir(scenario + str(rep) + "_" + str(repeats)):
+    os.makedirs(scenario + str(rep)+ "_" + str(repeats))
 
-SelectionDir = scenario + str(rep) + "_" + str(repeats) + "_" + str(varH)  + "/"
+SelectionDir = scenario + str(rep) + "_" + str(repeats)  + "/"
 
 
 print("Repeats " + str(repeats) + " " + str(type(repeats)))
@@ -196,9 +196,11 @@ os.chdir(SelectionDir)
 
 print("Copying files to " + SelectionDir)
 os.system('cp -r ' + WorkingDir + '/FillInBurnIn' + str(rep) + '_permEnv/* .')
-os.system('cp  ' + WorkingDir + '/Essentials/* .')
-#os.system('cp -r ' + WorkingDir + '/CodeDir/* .')
-os.system('mv IndForGeno_' + refSize + '.txt IndForGeno.txt')
+os.system('cp ' + WorkingDir + '/Essentials/* .')
+if refSize != "0":
+    os.system('mv IndForGeno_' + refSize + '.txt IndForGeno.txt')
+elif refSize == "0":
+    os.system('rm IndForGeno.txt')
 
 os.system("chmod a+x AlphaSim1.08")
 os.system("chmod a+x renumf90")
