@@ -126,6 +126,10 @@ table(part2$h2)
 #####################################################################
 #####################################################################
 
+#standardise onto generation 20
+#part1 <- part1[part1$Generation > 19,]
+#part2 <- part2[part2$Generation > 19,]
+
 
 
 library(reshape)
@@ -180,9 +184,11 @@ part1Ma$variable <- factor(part1Ma$variable, levels = c("Sum", "GN.F", "GN.M", "
 part2Ma$Population <- as.character(part2Ma$Population)
 part2Ma$Population[part2Ma$Population == "PN2"] <- "PN"
 part2Ma$Population[part2Ma$Population == "GN2"] <- "GN"
-part1Ma <- part1Ma[part1Ma$Generation > 19,]
-part2Ma <- part2Ma[part2Ma$Generation > 19,]
+part1Ma <- part1Ma[part1Ma$Generation > 20,]
+part2Ma <- part2Ma[part2Ma$Generation > 20,]
 part2Ma$variable <- factor(part2Ma$variable, levels = c("Sum", "GN.F", "GN.M", "PN2.F", "PN2.M"))
+
+
 
 ggplot(data = part1Ma[(part1Ma$BV == "Tbv") & (part1Ma$variable != "PN1.M"),], 
     aes(x=Generation, y = value, colour = variable, linetype = variable)) + 

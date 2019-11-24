@@ -87,7 +87,7 @@ bias <- read.csv("Bias_CatAge.csv")
 setwd("/home/jana/Documents/Projects/inProgress/GenomicStrategies_SireUSe/")
 
 #TGVsAll <- read.csv("~/TGVSALL_11062018.csv")
-TGVsAll <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/TGVSALL_14082018.csv")
+TGVsAll <- read.csv("~/Documents/PhD/Projects/Finished//GenomicStrategies_SireUse/Results/TGVSALL_14082018.csv")
 #TGVsAll <- read.csv("~/Documents/Projects/inProgress/GenomicStrategies_SireUSe/TGVSALL_14082018.csv")
 TGVsAll <- read.csv("~/TGVSALL_14082018.csv")
 #TGVsAll <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_ReferenceSize//Results/TGVSALL_22082018.csv")
@@ -219,8 +219,8 @@ for (strategy in c("SU55", "SU51", "SU15")) {
     guides(linetype=guide_legend(nrow=1, keyheight = unit(1.2, "cm"), keywidth = unit(3, "cm"), override.aes = list(alpha = 1, size=1.2))) +
    # xlab("Genic standard deviation") + ylab("Average True Genetic Value") + 
     theme(axis.text=element_text(size=16), legend.position = "top", 
-          axis.title=element_blank(), legend.text=element_text(size=16), legend.title=element_text(size=16),
-          plot.title = element_text(margin = margin(t = 0, r = 0, b = 40, l = 0), size=16, hjust=0.5),
+          axis.title=element_blank(), legend.text=element_text(size=20), legend.title=element_text(size=20),
+          plot.title = element_text(margin = margin(t = 0, r = 0, b = 40, l = 0), size=20, hjust=0.5),
           plot.margin = margin(t = 0, r = 10, b = 10, l = 10)) +
     geom_segment(data=maxminS, mapping=aes(x=maxGenicSD, xend=minGenicSD,
                                           y=minTGV,  yend=maxTGV,                                    
@@ -238,7 +238,7 @@ library(gtable)
 #mA <- aggregate(maxmin$slope ~ maxmin$strategy, FUN="summary")
 #aggregate(maxmin$minGenicSD ~ maxmin$strategy, FUN="summary")
 # 
-install.packages("ggpubr")
+#install.packages("ggpubr")
 library("ggpubr")
 
 #legend = gtable_filter(ggplotGrob(plotList[[1]]), "axis-b") 
@@ -250,20 +250,20 @@ figure <- ggarrange(plotList[[1]] + theme(legend.position="none"),
 
 devtools::install_github("wilkelab/cowplot")
 annotate_figure(figure, 
-                top = textGrob("Converted/Lost genic standard deviation", vjust = 7.1, gp = gpar(cex = 1.5)),
-                left = textGrob("Genetic mean", rot = 90, vjust = 0.7, hjust=0.8, gp = gpar(cex = 1.5)), 
-                bottom = textGrob("Genic standard deviation", rot = 0, vjust = -0, gp = gpar( cex = 1.5)) 
+                top = textGrob("Converted/Lost genic standard deviation", vjust = 7.1, gp = gpar(cex = 2)),
+                left = textGrob("Genetic mean", rot = 90, vjust = 0.7, hjust=0.8, gp = gpar(cex = 2)), 
+                bottom = textGrob("Genic standard deviation", rot = 0, vjust = -0, gp = gpar( cex = 2)) 
                 )
-# grid.arrange(arrangeGrob(plotList[[1]] + theme(legend.position="none"), 
-#                          plotList[[2]] + theme(legend.position="none"),
-#                          plotList[[3]] + theme(legend.position="none"),
-#                          nrow = 1,
-#                          top = textGrob("Converted/Lost genic standard deviation", vjust = 1.5, gp = gpar(cex = 1.5)),
-#                          left = textGrob("Genetic mean", rot = 90, vjust = 0.8, gp = gpar(cex = 1.5)), 
-#                          bottom = textGrob("Genic standard deviation", rot = 0, vjust = -0, gp = gpar( cex = 1.5))), 
-#              legend, nrow=2,heights=c(10, 1),
-#              widths=unit.c(unit(1, "npc") - legend$width, legend$width), 
-#              nrow=1)
+grid.arrange(arrangeGrob(plotList[[1]] + theme(legend.position="none"),
+                         plotList[[2]] + theme(legend.position="none"),
+                         plotList[[3]] + theme(legend.position="none"),
+                         nrow = 1,
+                         top = textGrob("Converted/Lost genic standard deviation", vjust = 4, gp = gpar(cex = 1.7)),
+                         left = textGrob("Genetic mean", rot = 90, vjust = 0.8, gp = gpar(cex = 1.7)),
+                         bottom = textGrob("Genic standard deviation", rot = 0, vjust = -0, gp = gpar( cex = 1.7))))
+             legend,
+             widths=unit.c(unit(1, "npc") - legend$width, legend$width),
+             nrow=1)
 
 #this is for the ribbon of SD
 MeanAverage <- aggregate(TGVsAll$zMean ~ TGVsAll$strategy + TGVsAll$scenario + TGVsAll$Generation, FUN="mean")
@@ -821,18 +821,20 @@ ggplot() +
  # scale_linetype_manual("Scenario", breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), 
   #                      values=c("solid", "dashed", "dotted", "dotdash", "twodash"), 
    #                     labels=c("PT", "GT-PT", "GT-C", "GT-BD", "GT")) + 
-  scale_colour_manual("Scenario", breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), 
+  scale_colour_manual("Scenarij", breaks = c("Class", "GenSLO", "OtherCowsGen","BmGen",  "Gen"), 
                       values=c("forestgreen", "#7dc2fa", "#1d93f2", "#055ea6", "#032745"), 
                       labels=c("PT", "GT-PT", "GT-C", "GT-BD", "GT")) + 
-  xlab("Generation") + ylab("Average True Genetic Value") +
+  #xlab("Generation") + ylab("Genetic mean") +
+  xlab("Generacija") + ylab("Genetski napredek
+                            ") +
   geom_line(data = MeanAverage, aes(x=Generation, y=MeanTGV, colour=scenario), size=1) +  # linetype=scenario
   #geom_ribbon(data=MeanAverage, aes(x=Generation, ymin=lower, ymax=upper, colour=scenario), alpha=0.1) + 
 ylim(c(0, 7)) +
-  guides(group=guide_legend(nrow=6), fill=guide_legend(nrow=6), colour=guide_legend(nrow=6), linetype=guide_legend(nrow=6)) +
-  theme(axis.text=element_text(size=18), legend.position = "left",
+  guides(colour=guide_legend(nrow=1, key.width = unit(2, "cm"))) +
+  theme(axis.text=element_text(size=18), 
         axis.title=element_text(size=18,face="bold"), legend.text=element_text(size=18), legend.title=element_text(face="bold", size=18), 
         strip.text = element_text(face="bold", size=16))   + 
-facet_grid(order ~ ., scales = "free_y") + theme(legend.position = "right") 
+facet_grid(cols = vars(order), scales = "free_y") + theme(legend.position = "top") 
 
 #genetic variance plot
 MeanAverageSD$order <- factor(MeanAverageSD$Strategy, levels = c("SU55", "SU15", "SU51"))

@@ -218,6 +218,11 @@ ggplot(data=phPar, aes(x=Total, y=zMean, group=scenario, colour=scenario)) +
 pheno60 <- phenoA[phenoA$Generation == 60,]
 par <- read.csv("Genotipi/Genotipi_CODES/ParameterFile_Simulation.csv")
 par <- par[,c(2, 3, 4, 5, 6, 7, 8)]
+par$Males <- par$PotomciNPPerYear + par$telMPerYear
+library(reshape)
+PAR <- par[,c(2,3,6,7,8)]
+PARm <- melt(PAR, id.vars = c("G_P", "NoControl"))
+ggplot(PARm, aes(x = NoControl, y = value, colour=variable)) + geom_line() + facet_grid(.~G_P)
 colnames(par)[1:3] <- c("Ref", "scenario", "NoControls")
 par$scenario <- revalue(par$scenario, c("2_1" = "$G:$P = 2:1", "1_1" = "$G:$P = 1:1", "1_2" = "$G:$P = 1:2"))
 phPar <- merge(pheno60, par, by=c("Ref", "scenario", "NoControls"))
@@ -306,7 +311,7 @@ ggplot(data=accPlotA, aes(x=AgeCat, y=Cor, group=NoControl, colour=NoControl)) +
                       values = c("#7dcbf5", "#62bff0", "#41b4f0", "#17a3eb", "#076ea3", "#024263", "red")) + 
   scale_linetype_manual("", 
                         values = c("dashed", "solid")) + 
-  ylab("Genetic mean") + 
+  ylab("Accuracy") + 
   guides(linetype=guide_legend(nrow=1, keyheight = unit(1.2, "cm"), keywidth = unit(2, "cm"), override.aes = list(alpha = 1, size=1.2))) +
   scale_x_discrete(breaks=unique(accPlot$AgeCat), 
                    labels=addline_format(c("Male candidates",  "Female candidates",  "Cows",  "gMales"))) + 
@@ -330,8 +335,9 @@ accPlotA$RealSc <- factor(accPlotA$RealSc, levels = c("G1", "G2", "G5", "G8", "G
 
 #just for GP 1:1
 # & accPlot$NoControl != 11,
-ggplot(data=accPlotA[accPlotA$gp == "$G:$P = 1:1",], aes(x=RealSc, y=Cor, group=AgeCat, colour=AgeCat, linetype = AgeCat)) + #
-  geom_point(size = 3)  +  geom_line(size = 1) + 
+ggplot() + #
+  geom_point(data=accPlotA[accPlotA$gp == "$G:$P = 1:1",], aes(x=RealSc, y=Cor, group=AgeCat, colour=AgeCat, linetype = AgeCat), size = 3)  +  
+  geom_line(data=accPlotA[accPlotA$gp == "$G:$P = 1:1" & accPlotA$NoControl !=11,], aes(x=RealSc, y=Cor, group=AgeCat, colour=AgeCat, linetype = AgeCat), size = 1) + 
   theme_bw(base_size=18, base_family="sans")  + 
   theme(legend.position="top", legend.text=element_text(size=16), legend.title=element_text(size=16),
         axis.text = element_text(size = 16), axis.title = element_text(size = 16)) + 
@@ -343,7 +349,7 @@ ggplot(data=accPlotA[accPlotA$gp == "$G:$P = 1:1",], aes(x=RealSc, y=Cor, group=
   scale_linetype_manual("Animal group", values=c("solid", "dashed", "solid", "dashed"),
                         breaks =  c("Male candidates",  "Female candidates",   "Fathers", "Mothers" ),
                         labels = c("Male candidates", "Female candidates", "Sires", "Dams")) +
-  ylab("Genetic mean") + xlab("Reallocation scheme") + 
+  ylab("Accuracy") + xlab("Scenario") + 
   guides(colour=guide_legend(nrow=2, keywidth = unit(2, "cm"), override.aes = list(alpha = 1, size=1.2))) +
   facet_grid(. ~  Ref + gp) +   theme(strip.text = element_text(size = 16))
 
@@ -437,11 +443,11 @@ g1 <- ggplot(data=gainrefM[gainrefM$Ref == "With initial TP",], aes(x=Generation
     theme_bw(base_size=18, base_family="sans")  + 
     theme(legend.position="top", legend.text=element_text(size=16), legend.title=element_text(size=16),
           axis.text = element_text(size = 16), axis.title.y = element_blank()) + 
-    scale_colour_manual("Reallocation scheme", 
+    scale_colour_manual("Scenario", 
                         values = c("#7dcbf5", "#62bff0", "#41b4f0", "#17a3eb", "#076ea3", "#024263", "black")) + 
-  scale_fill_manual("Reallocation scheme", 
+  scale_fill_manual("Scenario", 
                         values = c("#7dcbf5", "#62bff0", "#41b4f0", "#17a3eb", "#076ea3", "#024263", "black")) + 
-  scale_linetype_manual("", values = c("dashed", "solid")) + 
+  scale_linetype_manual("", values = c("dashed", "solid")) + xlab("Year") + 
   geom_ribbon(aes(ymin = value - SD, ymax = value + SD, fill = RealSc),  linetype = 0, alpha = 0.3) + 
   guides(linetype=guide_legend(nrow=2, keyheight = unit(.8, "cm"), keywidth = unit(2, "cm"), override.aes = list(alpha = 1, size=1.2))) +
   guides(colour=guide_legend(byrow = TRUE, nrow=2, keywidth = unit(1.2, "cm"),override.aes = list(alpha = 1, size=1.2))) +
@@ -462,12 +468,12 @@ g2 <- ggplot(data=gainrefM[gainrefM$Ref == "Without initial TP" & gainrefM$scena
   theme_bw(base_size=18, base_family="sans")  + 
   theme(legend.position="top", legend.text=element_text(size=16), legend.title=element_text(size=16),
         axis.text = element_text(size = 16),  axis.title.y = element_blank()) + 
-  scale_colour_manual("Reallocation\nscheme", 
+  scale_colour_manual("Scenario", 
                       values = c("#7dcbf5", "#62bff0", "#41b4f0", "#17a3eb", "#076ea3", "#024263", "black")) + 
-  scale_fill_manual("Reallocation\nscheme", 
+  scale_fill_manual("Scenario", 
                     values = c("#7dcbf5", "#62bff0", "#41b4f0", "#17a3eb", "#076ea3", "#024263", "black")) + 
   scale_linetype_manual("", values = c("dashed", "solid")) + 
-  ylab("Genetic mean") +
+  ylab("Genetic mean") +xlab("Year") + 
   geom_hline(data = gainrefM[gainrefM$Ref == "Without initial TP" & gainrefM$variable == "TP Size" & gainrefM$scenario == "$G:$P = 1:1",], aes(yintercept = 2000), colour = "red", size = 1) + 
   geom_ribbon(aes(ymin = value - SD, ymax = value + SD, fill = RealSc),  linetype = 0, alpha = 0.3) + 
   guides(linetype=guide_legend(label.position = "top", nrow=2, keywidth = unit(0.7, "cm"), keyheight = unit(0.7, "cm"), override.aes = list(alpha = 1, size=1.2))) +
