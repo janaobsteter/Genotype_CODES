@@ -216,6 +216,10 @@ dev.off()
 
 part1Ma[part1Ma$Generation == 40 & part1Ma$Trait == "T1" & part1Ma$variable == "Sum" & part1Ma$BV == "Tbv",]
 part1Ma[part1Ma$Generation == 40 & part1Ma$Trait == "T2" & part1Ma$variable == "Sum" & part1Ma$BV == "Tbv",]
+
+part2Ma[part2Ma$Generation == 40 & part2Ma$Trait == "T1" & part2Ma$variable == "Sum" & part2Ma$BV == "Tbv",]
+part2Ma[part2Ma$Generation == 40 & part2Ma$Trait == "T2" & part2Ma$variable == "Sum" & part2Ma$BV == "Tbv",]
+
 part2Ma[part2Ma$Generation == 40 & part2Ma$Trait == "T1",]
 part2Ma[part2Ma$Generation == 40 & part2Ma$Trait == "T1",]
 part2Ma[part2Ma$Generation == 40 & part2Ma$Trait == "T2",]
