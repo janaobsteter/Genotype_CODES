@@ -85,23 +85,19 @@ table(part2$h2)
 
 #####fixed effects model (newModel), no interaction
 
-part1 <- read.table("~/Documents/Projects/inProgress/AlphaPart/NewModel/PartitionPN1.csv", header=TRUE)[-1,]
-part1 <- read.table("~/Documents/PhD/Projects/inProgress/AlphaPartition/NewModel/PartitionPN1.csv", header=TRUE)[-1,]
-part1 <- read.table("~/Documents/PhD/Projects/inProgress/AlphaPart/PartitionGN.csv", header=TRUE)[-1,]
+part1 <- read.table("~/Documents/PhD/Projects/inProgress/AlphaPart//NewModel/PartitionPN1.csv", header=TRUE)
 colnames(part1)[10] <- "BV"
-colnames(part1)[9] <- "BV"
 table(part1$h2)
 table(part1$rep)
 part1 <- part1[,-2]
 
-part2 <- read.table("~/Documents/Projects/inProgress/AlphaPart/NewModel/PartitionPN2.csv", header=TRUE)[-1,]
-part2 <- read.table("~/Documents/PhD/Projects/inProgress/AlphaPartition/NewModel/PartitionPN2.csv", header=TRUE)[-1,]
+part2 <- read.table("~/Documents/PhD/Projects/inProgress/AlphaPart/NewModel/PartitionPN2.csv", header=TRUE)
 colnames(part2)[10] <- "BV"
 part2 <- part2[,-2]
 table(part2$h2)
 table(part2$rep)
 ##############################################
-
+'''
 #####fixed effects model (newModel), no interaction, REVERSED
 part1 <- read.table("~/Documents/Projects/inProgress/AlphaPart/NewModel/Reversed/PartitionPN1.csv", header=TRUE)[-1,]
 colnames(part1)[10] <- "BV"
@@ -125,7 +121,7 @@ part2 <- part2[,-2]
 table(part2$h2)
 #####################################################################
 #####################################################################
-
+'''
 
 
 library(reshape)
@@ -183,39 +179,91 @@ part2Ma$Population[part2Ma$Population == "GN2"] <- "GN"
 
 part2Ma$variable <- factor(part1Ma$variable, levels = c("Sum", "GN.F", "GN.M", "PN1.F", "PN1.M"))
 
-ggplot(data = part1Ma[(part1Ma$BV == "Ebv") & (part1Ma$variable != "PN1.M"),], 
+tiff("/home/jana/Documents/PhD/Projects/inProgress/AlphaPart//Figures/Obsteter_1.tiff", res=610, width=175, height=100, units="mm")
+ggplot(data = part1Ma[(part1Ma$BV == "Tbv") ,],  #$& (part1Ma$variable != "PN1.M")
     aes(x=Generation, y = value, colour = variable, linetype = variable)) + 
     geom_line(size = 1, aes(linetype = variable)) + 
-    ggtitle("Program 1") +  
-    geom_ribbon(data = part1Ma[(part1Ma$BV == "Ebv") & (part1Ma$variable != "PN1.M"),], aes(ymin = min, ymax = max, x = Generation, fill = variable), linetype = 0, alpha = 0.3) + 
-    scale_colour_manual("Selection path", values=c("black", "#cf4671", "#3ea4ed", "#cf4671"), labels = c("Total", "GN-F", "GN-M", "PN-F")) + 
-    scale_fill_manual("Selection path", values=c("black", "#cf4671", "#3ea4ed", "#cf4671"), labels = c("Total", "GN-F", "GN-M", "PN-F")) + 
-    scale_linetype_manual("Selection path", values = c("solid", "solid", "solid", "twodash"), labels = c("Total", "GN-F", "GN-M", "PN-F")) + 
-    ylab("Partial genetic trend") + 
-    theme_bw(base_size=18, base_family="sans") + theme(legend.position="top", legend.text=element_text(size=18), legend.title=element_text(size=18), 
-    axis.text=element_text(size=16),
-    axis.title=element_text(size=18)) + 
-    guides(colour = guide_legend(keywidth = unit(2, "cm"))) +
-    facet_grid(. ~ Population + Trait)
-ggplot(data = part2Ma[(part2Ma$BV == "Ebv"),], 
-    aes(x=Generation, y = value, colour = variable, linetype = variable)) + 
-    geom_line(size = 1, aes(linetype = variable)) + 
-    ggtitle("Program 2") +  
-    geom_ribbon(data = part2Ma[(part2Ma$BV == "Ebv"),], aes(ymin = min, ymax = max, x = Generation, fill = variable), linetype = 0, alpha = 0.3) + 
+    #ggtitle("Program 1") +  
+    geom_ribbon(data = part1Ma[part1Ma$BV == "Tbv",], aes(ymin = min, ymax = max, x = Generation, fill = variable), linetype = 0, alpha = 0.3) + 
     scale_colour_manual("Selection path", values=c("black", "#cf4671", "#3ea4ed", "#cf4671", "#3ea4ed"), labels = c("Total", "GN-F", "GN-M", "PN-F", "PN-M")) + 
     scale_fill_manual("Selection path", values=c("black", "#cf4671", "#3ea4ed", "#cf4671", "#3ea4ed"), labels = c("Total", "GN-F", "GN-M", "PN-F", "PN-M")) + 
-    scale_linetype_manual("Selection path", values = c("solid", "solid", "solid", "dashed", "dashed"), labels = c("Total", "GN-F", "GN-M", "PN-F", "PN-M")) + 
-    ylab("EBV") + 
-    theme_bw(base_size=18, base_family="sans") + theme(legend.position="top", legend.text=element_text(size=18), legend.title=element_text(size=18), 
-    axis.text=element_text(size=16),
-    axis.title=element_text(size=18)) + 
-    guides(colour = guide_legend(keywidth = unit(1.5, "cm"))) +
+    scale_linetype_manual("Selection path", values = c("solid", "solid", "solid", "twodash", "twodash"), labels = c("Total", "GN-F", "GN-M", "PN-F", "PN-M")) + 
+    ylab("Partial genetic trend") + 
+    theme_bw(base_size=10, base_family="arial") + theme(legend.position="top", legend.text=element_text(size=10), legend.title=element_text(size=10), 
+    axis.text=element_text(size=10),
+    axis.title=element_text(size=12)) + 
+    guides(colour = guide_legend(keywidth = unit(1.5, "cm"), nrow = 1, byrow = TRUE, label.position =  "top")) +
     facet_grid(. ~ Population + Trait)
+dev.off()
+
+tiff("/home/jana/Documents/PhD/Projects/inProgress/AlphaPart//Figures/Obsteter_2.tiff", res=610, width=175, height=100, units="mm")
+ggplot(data = part2Ma[(part2Ma$BV == "Tbv"),], 
+    aes(x=Generation, y = value, colour = variable, linetype = variable)) + 
+    geom_line(size = 1, aes(linetype = variable)) + 
+    #ggtitle("Program 2") +  
+    geom_ribbon(data = part2Ma[(part2Ma$BV == "Tbv"),], aes(ymin = min, ymax = max, x = Generation, fill = variable), linetype = 0, alpha = 0.3) + 
+    scale_colour_manual("Selection path", values=c("black", "#cf4671", "#3ea4ed", "#cf4671", "#3ea4ed"), labels = c("Total", "GN-F", "GN-M", "PN-F", "PN-M")) + 
+    scale_fill_manual("Selection path", values=c("black", "#cf4671", "#3ea4ed", "#cf4671", "#3ea4ed"), labels = c("Total", "GN-F", "GN-M", "PN-F", "PN-M")) + 
+    scale_linetype_manual("Selection path", values = c("solid", "solid", "solid", "twodash", "twodash"), labels = c("Total", "GN-F", "GN-M", "PN-F", "PN-M")) + 
+    ylab("EBV") + 
+  theme_bw(base_size=10, base_family="Arial") + theme(legend.position="top", legend.text=element_text(size=10), legend.title=element_text(size=10), 
+                                                      axis.text=element_text(size=10),
+                                                      axis.title=element_text(size=12)) + 
+    guides(colour = guide_legend(keywidth = unit(1.5, "cm"), label.position =  "top")) +
+    facet_grid(. ~ Population + Trait)
+dev.off()
 
 
+part1Ma[part1Ma$Generation == 40 & part1Ma$Trait == "T1" & part1Ma$variable == "Sum" & part1Ma$BV == "Tbv",]
+part1Ma[part1Ma$Generation == 40 & part1Ma$Trait == "T2" & part1Ma$variable == "Sum" & part1Ma$BV == "Tbv",]
+part2Ma[part2Ma$Generation == 40 & part2Ma$Trait == "T1",]
+part2Ma[part2Ma$Generation == 40 & part2Ma$Trait == "T1",]
+part2Ma[part2Ma$Generation == 40 & part2Ma$Trait == "T2",]
+part2Ma[part2Ma$Generation == 40 & part2Ma$Trait == "I",]
 
+PART <- data.frame()
+for (rep in 0:9) {
+  for (generation in 21:40) {
+      for (program in c("PN1", "PN2")) {
+      for (trait in c("T1", "T2")) {
+        for (BV in c("Ebv", "Tbv")) {
+          for (population in c("GN1", "PN1")) {
+            tmp <- part1M[part1M$rep == rep & part1M$Program == program & part1M$Trait == trait & part1M$BV == BV & part1M$Population == population & part1M$Generation == generation,]
+            tmp$PerSum <- tmp$value / tmp$value[tmp$variable == "Sum"]
+            PART <- rbind(PART, tmp)
+          }
+        }
+      }
+    }
+  }
+}
 
+PARTA1 <- summarySE(PART, measurevar = "PerSum", groupvars = c("Program", "Trait", "BV", "Population", "variable"))
 
+PART2 <- data.frame()
+  for (rep in 0:9) {
+  for (generation in 21:40) {
+    for (program in c("PN1", "PN2")) {
+      for (trait in c("T1", "T2")) {
+        for (BV in c("Ebv", "Tbv")) {
+          for (population in c("GN2", "PN2")) {
+            tmp <- part2M[part2M$rep == rep & part2M$Program == program & part2M$Trait == trait & part2M$BV == BV & part2M$Population == population & part2M$Generation == generation,]
+            tmp$PerSum <- tmp$value / tmp$value[tmp$variable == "Sum"]
+            PART2 <- rbind(PART2, tmp)
+          }
+        }
+      }
+    }
+  }
+}
+PARTA2 <- summarySE(PART2, measurevar = "PerSum", groupvars = c("Program", "Trait", "BV", "Population", "variable"))
+PARTA <- rbind(PARTA1, PARTA2)
+PARTA$PerSum <- round(PARTA$PerSum*100, 1)
+
+PARTA[PARTA$Program == "PN1" & PARTA$Trait == "T1" & PARTA$BV == "Tbv",]
+PARTA[PARTA$Program == "PN1" & PARTA$Trait == "T2" & PARTA$BV == "Tbv",]
+PARTA[PARTA$Program == "PN2" & PARTA$Trait == "T1" & PARTA$BV == "Tbv",]
+PARTA[PARTA$Program == "PN2" & PARTA$Trait == "T2" & PARTA$BV == "Tbv",]
 ##################
 #stats
 part1Ma[part1Ma$Generation == 20 & part1Ma$BV == "Ebv" & part1Ma$Trait == "T1",]
@@ -472,24 +520,36 @@ PedEval1[PedEval1$Generation == 1,]
 
 
 ##trends
-de1 <- read.csv("~/Documents/Projects/inProgress/AlphaPart/NewModel/GeneticTrendsPN1.csv")
-de2 <- read.csv("~/Documents/Projects/inProgress/AlphaPart/NewModel/GeneticTrendsPN2.csv")
-de1 <- read.csv("~/Documents/PhD/Projects/inProgress/AlphaPart/Interaction/GeneticTrendsPN1.csv")
-de2 <- read.csv("~/Documents/PhD/Projects/inProgress/AlphaPart/Interaction/GeneticTrendsPN2.csv")
-de1 <- read.csv("~/Documents/PhD/Projects/inProgress/AlphaPart/Intercept/GeneticTrendsPN1.csv")
-de2 <- read.csv("~/Documents/Projects/inProgress/AlphaPart/Intercept/GeneticTrendsPN2.csv")
-de1 <- read.csv("~/Documents/Projects/inProgress/AlphaPart/NewModel/Reversed/GeneticTrendsPN1.csv")
+de1 <- read.csv("~/Documents/PhD/Projects/inProgress/AlphaPart/NewModel/GeneticTrendsPN1.csv")
+de2 <- read.csv("~/Documents/PhD/Projects/inProgress/AlphaPart/NewModel/GeneticTrendsPN2.csv")
+#de1 <- read.csv("~/Documents/PhD/Projects/inProgress/AlphaPart/Interaction/GeneticTrendsPN1.csv")
+#de2 <- read.csv("~/Documents/PhD/Projects/inProgress/AlphaPart/Interaction/GeneticTrendsPN2.csv")
+#de1 <- read.csv("~/Documents/PhD/Projects/inProgress/AlphaPart/Intercept/GeneticTrendsPN1.csv")
+#de2 <- read.csv("~/Documents/Projects/inProgress/AlphaPart/Intercept/GeneticTrendsPN2.csv")
+#de1 <- read.csv("~/Documents/Projects/inProgress/AlphaPart/NewModel/Reversed/GeneticTrendsPN1.csv")
 head(de1)
 table(de1$h2)
 
-de1A <- summarySE(data=de1, groupvars = c("Generation", "Program", "trait", "BV", "h2"), measurevar = "mean")
-de2A <- summarySE(data=de2, groupvars = c("Generation", "Program", "trait", "BV", "h2"), measurevar = "mean")
+de1A <- summarySE(data=de1, groupvars = c("Generation", "Program", "trait"), measurevar = "mean")
+de1A$P <- "P1"
+#de1A <- summarySE(data=de1, groupvars = c("Generation",  "trait", "BV", "h2"), measurevar = "mean")
+de2A <- summarySE(data=de2, groupvars = c("Generation", "Program", "trait"), measurevar = "mean")
+de2A$P <- "P2"
 deA <- rbind(de1A, de2A)
+deA[deA$Generation == 40,]
+deA[deA$Generation == 21,]
 
-ggplot(dat = de1A, aes(x=Generation, y=mean, colour = trait, group=trait))  + geom_line() + 
-  facet_grid(. ~ h2 + Program + BV)
+ggplot(dat = de1A[de1A$trait == "T2",], aes(x=Generation, y=mean, colour = trait, group=trait))  + geom_line() + 
+  facet_grid(. ~ Program)
+ggplot(dat = de2A, aes(x=Generation, y=mean, colour = trait, group=trait))  + geom_line() + 
+facet_grid(. ~ Program)
+
+ggplot(dat = deA, aes(x=Generation, y=mean, colour = trait, group=trait))  + geom_line() + 
+  theme_bw(base_size = 18) + 
+  facet_grid(. ~ P + Program )
 
 ggplot(dat = de1A, aes(x=Generation, y=mean, colour = BV, group=BV))  + geom_line() + 
+  theme_bw(base_size = 18) + 
   facet_grid(. ~ Program + h2 +  trait)
 
 ggplot(dat = deA, aes(x=Generation, y=mean, colour = BV, group=BV))  + geom_line() + 
@@ -535,3 +595,21 @@ ped1$MSTe <- ped1$EbvT1 -  ((ped1$ebvF +  ped1$ebvM) / 2)
 as.data.frame(ped1 %>% 
   group_by(Generation, Program, Gender) %>%
   summarize(COR=cor(MST, MSTe)))
+
+
+ped <- read.table("PedEval1_0.25.csv", header=TRUE)
+ped <- ped[ped$Generation > 20,]
+library(kinship2)
+pedig <- fixParents(ped$IId, ped$FId, ped$MId, ped$Gender)
+pedig <- pedig[1:100,]
+Ped <- fixParents(pedig$id, pedig$dadid, pedig$momid, pedig$sex)
+pedig <- Ped
+Ped <- pedigree(pedig$id, pedig$dadid, pedig$momid, pedig$sex)
+plot(Ped)
+
+install.packages("pedantics")
+library(pedantics)
+colnames(pedig) <- c("id", "dam", "sire")
+pedig <- ped[,1:3]
+colnames(pedig) <- c("id", "dam", "sire")
+drawPedigree(pedig[,1:3])
