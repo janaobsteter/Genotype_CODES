@@ -41,13 +41,13 @@ summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
 
 library(ggplot2)
 library(plyr)
-pheno <- read.csv("~/Documents/PhD/Projects/inProgress/Phenotyping/TGVsAll_pheno_15112019.csv", header=TRUE, sep=" ")
+pheno <- read.csv("~/Documents/PhD/Projects/inProgress/Phenotyping/TGVsAll_pheno_15122019.csv", header=TRUE, sep=" ")
 pheno$Ref <- "True"
-phenoF <- read.csv("~/Documents/PhD/Projects/inProgress/Phenotyping/TGVsAll_phenoFalse_15112019.csv", header=TRUE, sep=" ")
+phenoF <- read.csv("~/Documents/PhD/Projects/inProgress/Phenotyping/TGVsAll_phenoFalse_15122019.csv", header=TRUE, sep=" ")
 phenoF$Ref <- "False"
 pheno <- rbind(pheno, phenoF)
 table(pheno$Rep)
-class <- read.csv("~/Documents/PhD/Projects/inProgress/Phenotyping/TGVsAll_permEnvClass_SU55_17102019.csv", header=TRUE, sep=" ")
+class <- read.csv("~/Documents/PhD/Projects/inProgress/Phenotyping/TGVsAll_permEnvClass_SU55_15122019.csv", header=TRUE, sep=" ")
 class <- class[,-18]
 class$Ref <- "Class"
 pheno <- rbind(pheno, class)
@@ -88,6 +88,13 @@ pheno <- rbind(pheno, CLASS)
 pheno$Repeats <- as.factor(pheno$Repeats)
 pheno$NoControls <- pheno$Repeats
 pheno$BV <- ifelse(pheno$NoControls == 11, "Conventional", "Genomic")
+
+#preveri replike
+pheno$Rep <- as.factor(pheno$Rep)
+pheno$NoControls <- as.factor(pheno$NoControls)
+ggplot(data = pheno[pheno$Ref == "True",], aes(x = Generation, y = zMean, group = Rep, colour = Rep)) + geom_line() + facet_grid(cols = vars(NoControls), rows = vars(scenario))
+ggplot(data = pheno[pheno$Ref == "False",], aes(x = Generation, y = zMean, group = Rep, colour = Rep)) + geom_line() + facet_grid(cols = vars(NoControls), rows = vars(scenario))
+
 
 pheno$Group <- paste(pheno$scenario, pheno$NoControls, sep="_")
 finished <- unique(pheno$Group[pheno$Generation == 60])
@@ -230,6 +237,7 @@ pheno60 <- phenoA[phenoA$Generation == 60,]
 pheno60 <- pheno60[,c("NoControls", "scenario", "Ref", "zMean")] %>% spread(key = c(scenario), value = zMean)
 write.table(pheno60, "/home/jana/Documents/PhD/Projects/inProgress/Phenotyping/Results/GeneticGain.csv", quote=FALSE, row.names=FALSE, sep=";")
 
+pheno60 <- phenoA[phenoA$Generation == 60,]
 pheno60$zMean <- round(pheno60$zMean, 2)
 pheno60$sd <- round(pheno60$sd, 2)
 pheno60[pheno60$Ref =="With initial TP" & pheno60$scenario == "$G:$P = 1:1",]
@@ -287,7 +295,7 @@ phPar$MalePerYear <- phPar$PotomciNPPerYear + phPar$telMPerYear
 ########################################################
 ########################################################
 library(ggplot2)
-accC <- read.table("~/Documents/PhD/Projects/inProgress/Phenotyping/CombinedAcc_phenoClass_17102019.csv", header=TRUE)
+accC <- read.table("~/Documents/PhD/Projects/inProgress/Phenotyping/CombinedAcc_phenoClass_15122019.csv", header=TRUE)
 accC1 <- accC
 accC1$gp <- "$G:$P = 1:1"
 accC1$Ref <- "True"
@@ -307,9 +315,9 @@ accC6 <- accC
 accC6$gp <- "$G:$P = 2:1"
 accC6$Ref <- "False"
 
-acc <- read.table("~/Documents/PhD/Projects/inProgress/Phenotyping/CombinedAcc_pheno_15112019.csv", header=TRUE)
+acc <- read.table("~/Documents/PhD/Projects/inProgress/Phenotyping/CombinedAcc_pheno_15122019.csv", header=TRUE)
 acc$Ref <- "True"
-accF <- read.table("~/Documents/PhD/Projects/inProgress/Phenotyping/CombinedAcc_phenoFalse_15112019.csv", header=TRUE)
+accF <- read.table("~/Documents/PhD/Projects/inProgress/Phenotyping/CombinedAcc_phenoFalse_15122019.csv", header=TRUE)
 accF$Ref <- "False"
 acc <- rbind(acc, accF)
 acc <- rbind(acc, accC1)
@@ -386,12 +394,15 @@ accPlotA[accPlotA$Ref  == "Without initial TP" & accPlotA$gp == "$G:$P = 1:1",]
 accPlotA[accPlotA$Ref  == "Without initial TP" & accPlotA$gp == "$G:$P = 1:2",]
 
 accPlotA$RealSc <- ifelse(accPlotA$NoControl != 11, paste0("G", accPlotA$NoControl), paste0("C", accPlotA$NoControl))
-accPlotA$RealSc <- factor(accPlotA$RealSc, levels = c("G1", "G2", "G5", "G8", "G9", "G10", "C11"))
+#accPlotA$RealSc <- factor(accPlotA$RealSc, levels = c("G1", "G2", "G5", "G8", "G9", "G10", "C11"))
+accPlotA$RealSc <- factor(accPlotA$RealSc, levels = c("C11", "G10", "G9", "G8", "G5", "G2", "G1"))
+
+accPlotA$TPLabel <- ifelse(accPlotA$Ref == "With initial TP", "a", "b")
 
 #just for GP 1:1
 # & accPlot$NoControl != 11,
 ggplot() + #
-  geom_point(data=accPlotA[accPlotA$gp == "$G:$P = 1:1",], aes(x=RealSc, y=Cor, group=AgeCat, colour=AgeCat, linetype = AgeCat), size = 3)  +  
+  geom_point(data=accPlotA[accPlotA$gp == "$G:$P = 1:1",], aes(x=RealSc, y=Cor, group=AgeCat, colour=AgeCat), size = 3)  +  
   geom_line(data=accPlotA[accPlotA$gp == "$G:$P = 1:1" & accPlotA$NoControl !=11,], aes(x=RealSc, y=Cor, group=AgeCat, colour=AgeCat, linetype = AgeCat), size = 1) + 
   theme_bw(base_size=18, base_family="sans")  + 
   theme(legend.position="top", legend.text=element_text(size=16), legend.title=element_text(size=16),
@@ -405,8 +416,8 @@ ggplot() + #
                         breaks =  c("Male candidates",  "Female candidates",   "Fathers", "Mothers" ),
                         labels = c("Male candidates", "Female candidates", "Sires", "Dams")) +
   ylab("Accuracy") + xlab("Scenario") + 
-  guides(colour=guide_legend(nrow=2, keywidth = unit(2, "cm"), override.aes = list(alpha = 1, size=1.2))) +
-  facet_grid(. ~  Ref + gp) +   theme(strip.text = element_text(size = 16))
+  guides(colour=guide_legend(nrow=2, keywidth = unit(2, "cm"), keyheight = unit(1, "cm"),override.aes = list(alpha = 1, size=1.2))) +
+  facet_grid(. ~  TPLabel) +   theme(strip.text = element_text(size = 16))
 
 #just proven males with errorbars
 ggplot(data=accPlotA[accPlotA$AgeCat == "gMales",], aes(x=NoControl, y=Cor, group=AgeCat, colour=AgeCat, linetype = AgeCat)) + 
@@ -423,7 +434,7 @@ ggplot(data=accPlotA[accPlotA$AgeCat == "gMales",], aes(x=NoControl, y=Cor, grou
                         breaks =  c("Male candidates",  "Female candidates",   "gMales", "Cows" ),
                         labels = c("Male candidates", "Female candidates", "Sires", "Dams")) +
   ylab("Genetic mean") + xlab("Number of phenotype recordings") + 
-  guides(colour=guide_legend(nrow=2, keywidth = unit(2, "cm"), override.aes = list(alpha = 1, size=1.2))) +
+  guides(colour=guide_legend(nrow=2, keywidth = unit(2, "cm"), keyheight = unit(1.2, "cm"), override.aes = list(alpha = 1, size=1.2))) +
   facet_grid(. ~  Ref + gp)
 
 accGen <- summarySE(data = accPlot, measurevar = "Cor", groupvars = c("AgeCat", "NoControl", "gp", "Ref", "Gen"))
@@ -434,12 +445,13 @@ ggplot(data=accGen[accGen$Ref == "True",], aes(x=Gen, y=Cor, group=AgeCat, colou
   theme(legend.position="top", legend.text=element_text(size=16), legend.title=element_text(size=16),
         axis.text = element_text(size = 16)) + 
   ylab("Accuracy") +  xlab("Year") + 
-  guides(linetype=guide_legend(nrow=1, keyheight = unit(1.2, "cm"), keywidth = unit(2, "cm"), override.aes = list(alpha = 1, size=1.2))) +
+  guides(linetype=guide_legend(nrow=1, keyheight = unit(1.5, "cm"), keywidth = unit(2, "cm"), override.aes = list(alpha = 1, size=1.2))) +
   scale_x_discrete(labels=addline_format(c("Male candidates",  "Female candidates",  "Cows",  "gMales"))) + 
   facet_grid(rows = vars(gp), cols=vars(NoControl))
 
 
 
+library(tidyr)
 library(reshape)
 refsize <- read.table("/home/jana/Documents/PhD/Projects/inProgress/Phenotyping/ReferenceSize.txt", header=TRUE)
 refsizeM <- melt(refsize, id.vars = "Generation")
@@ -507,6 +519,8 @@ gainrefM$SD[gainrefM$variable == "TPSize"] <- 0
 gainrefM$BV <- ifelse(gainrefM$NoControls == 11,"Conventional",  "Genomic")
 gainrefM$RealSc <- ifelse(gainrefM$NoControl != 11, paste0("G", gainrefM$NoControl), paste0("C", gainrefM$NoControl))
 gainrefM$RealSc <- factor(gainrefM$RealSc, levels = c("G1", "G2", "G5", "G8", "G9", "G10", "C11"))
+gainrefM$scenario1 <- revalue(gainrefM$scenario, c("$G:$P = 1:1" = "$P:$G = 1:1","$G:$P = 2:1" = "$P:$G = 1:2","$G:$P = 1:2" = "$P:$G = 2:1"))
+
 
 g1 <- ggplot(data=gainrefM[gainrefM$Ref == "With initial TP",], aes(x=Generation, y=value, group=RealSc, colour=RealSc, linetype = BV)) +
     geom_line(size = 1) + 
@@ -521,8 +535,9 @@ g1 <- ggplot(data=gainrefM[gainrefM$Ref == "With initial TP",], aes(x=Generation
   geom_ribbon(aes(ymin = value - SD, ymax = value + SD, fill = RealSc),  linetype = 0, alpha = 0.3) + 
   guides(linetype=guide_legend(nrow=2, keyheight = unit(.8, "cm"), keywidth = unit(2, "cm"), override.aes = list(alpha = 1, size=1.2))) +
   guides(colour=guide_legend(byrow = TRUE, nrow=2, keywidth = unit(1.2, "cm"),override.aes = list(alpha = 1, size=1.2))) +
-  facet_grid(rows=vars(variable), cols=vars(scenario), scales = "free_y")+
+  facet_grid(rows=vars(variable), cols=vars(scenario1), scales = "free_y")+
   theme(strip.text = element_text(size = 16))
+
 #SLO
 gainrefM$variable <- revalue(gainrefM$variable, c("TP Size" = "Velikost RP", "Genetic mean" = "Genetski napredek"))
 g1 <- ggplot(data=gainrefM[gainrefM$Ref == "With initial TP",], aes(x=Generation, y=value, group=RealSc, colour=RealSc, linetype = BV)) +
@@ -538,8 +553,10 @@ g1 <- ggplot(data=gainrefM[gainrefM$Ref == "With initial TP",], aes(x=Generation
   geom_ribbon(aes(ymin = value - SD, ymax = value + SD, fill = RealSc),  linetype = 0, alpha = 0.3) + 
   guides(linetype=guide_legend(nrow=2, keyheight = unit(.8, "cm"), keywidth = unit(2, "cm"), override.aes = list(alpha = 1, size=1.2))) +
   guides(colour=guide_legend(byrow = TRUE, nrow=2, keywidth = unit(1.2, "cm"),override.aes = list(alpha = 1, size=1.2))) +
-  facet_grid(rows=vars(variable), cols=vars(scenario), scales = "free_y")+
+  facet_grid(rows=vars(variable), cols=vars(scenario1), scales = "free_y")+
   theme(strip.text = element_text(size = 16))
+
+#########################
 G1 <- ggplotGrob(g1)
 G1$heights
 G1$heights[[10]] <- unit(5, "null")

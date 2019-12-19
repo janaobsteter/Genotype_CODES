@@ -92,11 +92,11 @@ CLD
 ######################################################################################################
 ######################################################################################################
 #TGVsAll <- read.csv("~/TGVSALL_11062018.csv")
-TGVsAll <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/TGVSALL_14082018.csv")
-TGVsAllx <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/TGVSALL_SUx_06032019.csv")
+TGVsAll <- read.csv("~/Documents/PhD/Projects/Finished//GenomicStrategies_SireUse/Results/TGVSALL_14082018.csv")
+TGVsAllx <- read.csv("~/Documents/PhD/Projects/Finished//GenomicStrategies_SireUse/Results/TGVSALL_SUx_06032019.csv")
 table(TGVsAllx$Rep, TGVsAllx$Strategy, TGVsAllx$Generation)
-TGVsOCS <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results//TGVsAll_OCS_11022019.csv", sep=" ")
-TGVsOCS1 <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results//TGVsAll_OCS_20032019.csv", sep=" ")
+TGVsOCS <- read.csv("~/Documents/PhD/Projects/Finished//GenomicStrategies_SireUse/Results//TGVsAll_OCS_11022019.csv", sep=" ")
+TGVsOCS1 <- read.csv("~/Documents/PhD/Projects/Finished//GenomicStrategies_SireUse/Results//TGVsAll_OCS_20032019.csv", sep=" ")
 #TGVsOCS <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results//TGVsAll_OCS_11122018.csv", sep=" ")
 TGVsOCS <- rbind(TGVsOCS, TGVsOCS1)
 
@@ -623,6 +623,53 @@ ggplot(data = TGVsStrategy, aes(x=SDGenicSt, y=zMeanGenic, group=group, linetype
   geom_segment(data=maxminOCS, mapping=aes(x=maxGenicSD, xend=minGenicSD,
                                            y=minTGV,  yend=maxTGV,
                                            color=PlotGroup, linetype=PlotGroup, group=PlotGroup), arrow=arrow(), show.legend=FALSE, size=1) 
+dev.off()
+
+#OCS brez 15 in 30 - PREDSTAVITVE
+tiff("/home/jana/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Figures/Obsteter_3.tiff", res=610, width=140, height=120, units="mm")
+TGVsStrategy$scenario <- factor(TGVsStrategy$scenario, levels = c("PT", "GT", 45, 50, 55, 60, 75))
+TGVsStrategy$PlotGroup <- factor(TGVsStrategy$PlotGroup, levels = c("SU55PT", "SU55GT", "SU51GT",  "OCS45",  "OCS50" , "OCS55"  ,"OCS60", "OCS75" ))
+
+ggplot(data = TGVsStrategy, aes(x=SDGenicSt, y=zMeanGenic, linetype = rev(PlotGroup), group=rev(group),colour=rev(PlotGroup))) +
+  scale_x_reverse(sec.axis=sec_axis(trans=~ . - 1,
+                                    #name="Converted/Lost genic standard deviation")) +
+                                    name="Pretvorjena/izgubljena genska standardna deviacija")) +
+  geom_line(size=0.2, alpha=0.01) +
+  ylim(0,7) + coord_cartesian(xlim = c(1, 0.9)) + theme_bw() +
+  scale_linetype_manual("",
+                        breaks=c("SU55PT", "SU55GT", "SU51GT","OCS45","OCS50","OCS55","OCS60", "OCS75"),
+                        values=c( "solid", "solid", "solid", "dashed", "dashed", "dashed","dashed", "dashed"),
+                        labels=c(
+                          #"5 sires/year, use 5 years, PT", "5 sires/year, use 5 years, GT", "5 sires/year, use 1 year, GT", 
+                          "5 bikov/5 let, PT", "5 bikov/5 let, GS", "5 bikov/1 leto, GS", 
+                        expression("OCS"["45"]),expression("OCS"["50"]),expression("OCS"["55"]),
+                                 expression("OCS"["60"]), expression("OCS"["75"]) )) +
+  scale_colour_manual("",
+                      breaks=c("SU55PT", "SU55GT", "SU51GT", "OCS45","OCS50","OCS55", "OCS60", "OCS75"),
+                      #values=c("black", "grey50", "grey70",  "#310154",  "#6107a3","#9f3ce8", "#b26ce6","#b573e6"),
+                      values=c("forestgreen", "#407cdb", "#0a48ab",  "#310154",  "#6107a3","#9f3ce8", "#b26ce6","#b573e6"),
+                      labels=c(
+                        #"5 sires/year, use 5 years, PT", "5 sires/year, use 5 years, GT", "5 sires/year, use 1 year, GT", 
+                        "5 bikov/5 let, PT", "5 bikov/5 let, GS", "5 bikov/1 leto, GS", 
+                                              expression("OCS"["45"]),expression("OCS"["50"]),expression("OCS"["55"]),
+                               expression("OCS"["60"]), expression("OCS"["75"]))) +
+  guides(linetype=guide_legend(ncol=1,  label.position = "right", keyheight = unit(0.5, "cm"), keywidth = unit(2, "cm"), 
+                               override.aes = list(alpha = 1, size=2))) +
+  #xlab("Genic standard deviation") + ylab("Genetic Mean") +
+  xlab("Genska standardna deviacija") + ylab("Genetski napredek") +
+  theme(axis.text=element_text(size=20), legend.position = "right",
+        axis.title.x=element_text(size=20, vjust=-1),
+        axis.title.y=element_text(size=20, vjust=2),
+        legend.text=element_text(size=20), legend.title=element_text(size=20), legend.box = "horizontal",
+        plot.title = element_text(margin = margin(t = 0, r = 0, b = 40, l = 0), size=16, hjust=0.5),
+        plot.margin = margin(t = 0, r = 10, b = 10, l = 10),
+        legend.text.align = 0) + 
+  geom_segment(data=maxminPT, mapping=aes(x=maxGenicSD, xend=minGenicSD,
+                                          y=minTGV,  yend=maxTGV,
+                                          color=PlotGroup, linetype=PlotGroup, group=PlotGroup), arrow=arrow(), show.legend=FALSE, size=1.5) +
+  geom_segment(data=maxminOCS, mapping=aes(x=maxGenicSD, xend=minGenicSD,
+                                           y=minTGV,  yend=maxTGV,
+                                           color=PlotGroup, linetype=PlotGroup, group=PlotGroup), arrow=arrow(), show.legend=FALSE, size=1.5) 
 dev.off()
 #Vse OCS in vse SU5x
 ggplot(data = TGVsStrategy, aes(x=SDGenicSt, y=zMeanGenic, group=group, colour=PlotGroup)) +
