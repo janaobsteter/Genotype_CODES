@@ -407,24 +407,25 @@ table(accPlotA$shape)
 accPlotA$shape <- as.factor(accPlotA$shape)
 accPlotA$AgeCat[accPlotA$AgeCat == "Male candidates1"] <- "Male candidates"
 ggplot() + #
-  geom_point(data=accPlotA[accPlotA$gp == "$G:$P = 1:1",], aes(x=RealSc, y=Cor, group=AgeCat, colour=AgeCat, shape = shape), size = 3, stroke = 1)  +  
-  geom_line(data=accPlotA[accPlotA$gp == "$G:$P = 1:1" & accPlotA$NoControl !=11,], aes(x=RealSc, y=Cor, group=AgeCat, colour=AgeCat, linetype = AgeCat), size = 1) + 
+  geom_point(data=accPlotA[accPlotA$gp == "$G:$P = 1:1" & accPlotA$TPLabel == "a",], aes(x=RealSc, y=Cor, group=AgeCat, colour=AgeCat, shape = shape), size = 3, stroke = 1)  +  
+  geom_line(data=accPlotA[accPlotA$gp == "$G:$P = 1:1" & accPlotA$TPLabel == "a" & accPlotA$NoControl !=11,], aes(x=RealSc, y=Cor, group=AgeCat, colour=AgeCat, linetype = AgeCat), size = 1) + 
   theme_bw(base_size=18, base_family="sans")  + 
-  theme(legend.position="top", legend.text=element_text(size=16), legend.title=element_text(size=16),
+  theme(legend.box = "vertical", legend.position="top", legend.text=element_text(size=16), legend.title=element_text(size=16),
         axis.text = element_text(size = 16), axis.title = element_text(size = 16)) + 
   #geom_errorbar(aes(ymin = Cor - sd, ymax = Cor + sd), alpha = 0.5) + 
-  scale_colour_manual("Animal group", 
+  scale_colour_manual("", 
                       values = c("skyblue2", "#e57691", "#0a488e", "#8e0a2a"),
                       breaks =  c("Male candidates",  "Female candidates",   "Fathers", "Mothers" ),
                       labels = c("Male candidates", "Female candidates", "Sires", "Dams")) + 
-  scale_linetype_manual("Animal group", values=c("solid", "dashed", "solid", "dashed"),
+  scale_linetype_manual("", values=c("solid", "dashed", "solid", "dashed"),
                         breaks =  c("Male candidates",  "Female candidates",   "Fathers", "Mothers" ),
                         labels = c("Male candidates", "Female candidates", "Sires", "Dams")) +
-  scale_shape_manual("", labels = c("First stage", "Second stage"), values = c(16, 1)) +
+  scale_shape_manual("", labels = c("Pre-selection", "Selection"), values = c(1, 16)) +
   ylab("Accuracy") + xlab("Scenario") + 
-  guides(colour=guide_legend(nrow=2, keywidth = unit(2, "cm"), keyheight = unit(1, "cm"),override.aes = list(alpha = 1, size=1.2))) +
-  guides(shape=guide_legend(nrow=2, keyheight = unit(1, "cm"))) +
-  facet_grid(. ~  TPLabel) +   theme(strip.text = element_text(size = 16))
+  guides(colour=guide_legend(nrow=2, keywidth = unit(2, "cm"), keyheight = unit(0.8, "cm"),override.aes = list(alpha = 1, size=1.2))) +
+  guides(shape=guide_legend(nrow=1, keyheight = unit(0, "cm"))) +
+  #facet_grid(. ~  TPLabel) +   
+  theme(strip.text = element_text(size = 16))
 
 #without initial TP
 acc2 <- ggplot() + #
@@ -853,10 +854,22 @@ accPlotS <- accPlot[accPlot$gp == "$G:$P = 1:2" & accPlot$AgeCat == "Female cand
 accPlotS <- accPlot[accPlot$gp == "$G:$P = 1:2" & accPlot$AgeCat == "Mothers",]
 accPlotS <- accPlot[accPlot$gp == "$G:$P = 1:2" & accPlot$AgeCat == "Fathers",]
 
-accPlotS <- summarySE(accPlotS, measurevar = "Cor", groupvars = c("NoControl", "Rep", "Ref"))
+accPlotS <- accPlot[accPlot$AgeCat == "Male candidates" & accPlot$Ref == "True",]
+accPlotS <- accPlot[accPlot$AgeCat == "Female candidates" & accPlot$Ref == "True",]
+accPlotS <- accPlot[accPlot$AgeCat == "Mothers" & accPlot$Ref == "True",]
 
+accPlotS <- summarySE(accPlotS, measurevar = "Cor", groupvars = c("NoControl", "Rep", "Ref"))
+accPlotS <- summarySE(accPlotS, measurevar = "Cor", groupvars = c("NoControl", "Rep", "Ref", "gp"))
+
+model_T <- lm(Cor ~ NoControl + gp + NoControl:gp, data=accPlotS) #absolute
 model_T <- lm(Cor ~ NoControl + Ref + NoControl:Ref, data=accPlotS) #absolute
 marginal = emmeans(model_T, ~ NoControl:Ref)
+marginal = emmeans(model_T, ~ NoControl:gp)
+CLD = cld(marginal, by="NoControl", 
+          alpha   = 0.05, sort = FALSE,
+          Letters = letters,         ###  Use lowercase letters for .group
+          adjust  = "tukey") 
+CLD
 CLD = cld(marginal, by="NoControl", 
           alpha   = 0.05, sort = FALSE,
           Letters = letters,         ###  Use lowercase letters for .group
