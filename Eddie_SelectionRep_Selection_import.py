@@ -11,7 +11,8 @@ import pandas as pd
 import numpy as np
 import resource
 import ast
-WorkingDir = "/home/v1jobste/JanaO/"
+
+WorkingDir = "/home/v1jobste/jobsteter/"
 
 #sys.argv: 1 = rep, 2 = scenario, 3 = strategy, 4 = reference size
 
@@ -114,8 +115,7 @@ os.system("chmod a+x AlphaSim1.08")
 os.system("chmod a+x renumf90")
 os.system("chmod a+x blupf90")
 
-parhome = pd.read_csv(WorkingDir + "/Essentials/" + refSize + "/" + strategy + "SelPar/SelectionParam_" + scenario + ".csv", header=None, names=["Keys", "Vals"])
-parhome.to_dict()
+parhome = pd.read_csv(WorkingDir + "/SelPar/10K/SU55SelPar/SelectionParam_" + scenario + ".csv", header=None, names=["Keys", "Vals"])parhome.to_dict()
 selParhome = defaultdict()
 for key, val in zip(parhome.Keys, parhome.Vals):
     if key not in ['BurnInYN', 'EBV', 'gEBV', 'PA', 'AlphaSimDir', 'genotyped', 'EliteDamsPTBulls',
@@ -145,7 +145,7 @@ if percentageImport_k != 0 and percentageImport_bm != 0:
 
 
 # tukaj pa še parametri za "large" population
-parimport = pd.read_csv(WorkingDir + "/Essentials/" + refSize + "/" + strategy + "SelPar/SelectionParam_" + scenario + "_LargePop.csv", header=None, names=["Keys", "Vals"])
+parimport = pd.read_csv(WorkingDir + "/SelPar/10K/SU55SelPar/SelectionParam_" + scenario + "_LargePop.csv", header=None, names=["Keys", "Vals"])
 parimport.to_dict()
 selParimport = defaultdict()
 for key, val in zip(parimport.Keys, parimport.Vals):
@@ -239,7 +239,7 @@ for roundNo in range(21,41): #za vsak krog selekcije
     # pozenes ALPHASIM
     os.system('./AlphaSim1.08')
     #tukaj odstrani chip2 genotype file in izračunaj heterozigotnost na nevtralnih lokusih (chip2 - chip1)
-    os.system("/exports/cmvm/eddie/eb/groups/tier2_hickey_external/R-3.4.2/bin/Rscript MeanHetMarker_Neutral_QTN_import.R " + str(roundNo+20) + " " + str(rep) + " " + str(scenario) + " " + str(strategy))			
+    os.system("Rscript MeanHetMarker_Neutral_QTN_import.R " + str(roundNo+20) + " " + str(rep) + " " + str(scenario) + " " + str(strategy))
     os.system("bash ChangeChip2Geno_IDs.sh")    	
 	
     # tukaj dodaj kategorije k PedigreeAndGeneticValues (AlphaSim File)

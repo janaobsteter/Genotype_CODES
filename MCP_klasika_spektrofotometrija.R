@@ -46,7 +46,20 @@ colnames(MCPklasika) <- c("ID", "rct_kl", "k20_kl", "a30_kl", "masc_kl", "belj_k
 MCPspek <- mcp[,c("ID_ZIVALI", "SP1_SIFRA_PASMA", "Date", "RCT", "A30", "BELJ", "MASC")]
 colnames(MCPspek) <- c("ID", "PASMA", "Datum_sp", "rct_sp",  "a30_sp", "belj_sp", "masc_sp")       
 
-compare <- merge(MCPklasika, MCPspek, by="ID", all.x=TRUE)
+MCPklasika$Year <- format(MCPklasika$Datum_kl, "%y")
+MCPspek$Year <- format(MCPspek$Datum_sp, "%y")
+compare <- merge(MCPklasika, MCPspek, by=c("ID", "Year"), all.x=TRUE)
+cor(compare$rct_kl[compare$Year == 17], compare$rct_sp[compare$Year == 17], use="pairwise.complete.obs")
+cor(compare$rct_kl[compare$Year == 18], compare$rct_sp[compare$Year == 18], use="pairwise.complete.obs")
+cor(compare$a30_kl[compare$Year == 17], compare$a30_sp[compare$Year == 17], use="pairwise.complete.obs")
+cor(compare$a30_kl[compare$Year == 18], compare$a30_sp[compare$Year == 18], use="pairwise.complete.obs")
+aggregate(compare$a30_kl ~ compare$Year, FUN="mean")
+aggregate(compare$a30_sp ~ compare$Year, FUN="mean")
+aggregate(compare$rct_kl ~ compare$Year, FUN="mean")
+aggregate(compare$rct_sp ~ compare$Year, FUN="mean")
+
+compare <- merge(MCPklasika, MCPspek, by=c("ID"), all.x=TRUE)
+
 compare <- compare[,c("ID", "PASMA", "Sezona_kl", "Datum_kl", "Datum_sp", "rct_kl", "rct_sp", "a30_kl", "a30_sp", "k20_kl", "masc_kl", "masc_sp", "belj_kl", "belj_sp")]
 compare$MonthKl <- format(compare$Datum_kl, "%m-%y")
 compare$MonthSp <- format(compare$Datum_sp, "%m-%y")
@@ -65,6 +78,11 @@ ggplot(a30, aes(x=ID, y=value, group=variable, fill=variable)) + geom_histogram(
   xlab("ID živali") + ylab("a30") + scale_fill_manual("Meritev", breaks=c("a30_kl", "a30_sp"), values=c("steelblue2", "darkblue"), labels=c("Klasično", "Spektrofotometrično")) +
   theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(), axis.title = element_text(size=14), axis.text.y = element_text(size=14), 
         legend.position = "bottom", legend.title = element_text(size=14), legend.text = element_text(size=14))
+cor(SAME$a30_kl, SAME$a30_sp, use="pairwise.complete.obs")
+model <- lm(SAME$a30_kl ~ SAME$a30_sp)
+mean(model$residuals^2)
+mean(SAME$a30_kl, na.rm=TRUE)
+mean(SAME$a30_sp, na.rm = TRUE)
 
 #ujemanje RCT na vzorcih, ki so bili v istem mesecu narejeni na klasiki in spektrofotometrično
 rct <- melt(SAME, id.vars = "ID", measure.vars = c("rct_sp", "rct_kl") )
@@ -75,7 +93,20 @@ ggplot(rct, aes(x=ID, y=value, group=variable, fill=variable)) + geom_histogram(
         legend.position = "bottom", legend.title = element_text(size=14), legend.text = element_text(size=14))
 
 #ujemanje zimske in pomlade analize
+#klasika
+a30_kl_cor <- merge(MCPklasika[MCPklasika$Year == 17, c("ID", "a30_kl")], MCPklasika[MCPklasika$Year == 18, c("ID", "a30_kl")], by="ID")
+cor(a30_kl_cor$a30_kl.x, a30_kl_cor$a30_kl.y, use = "pairwise.complete.obs")
+rct_kl_cor <- merge(MCPklasika[MCPklasika$Year == 17, c("ID", "rct_kl")], MCPklasika[MCPklasika$Year == 18, c("ID", "rct_kl")], by="ID")
+cor(rct_kl_cor$rct_kl.x, rct_kl_cor$rct_kl.y, use = "pairwise.complete.obs")
+
+#spektrofotometrija
+a30_sp_cor <- merge(MCPspek[MCPspek$Year == 17, c("ID", "a30_sp")], MCPspek[MCPspek$Year == 18, c("ID", "a30_sp")], by="ID")
+cor(a30_sp_cor$a30_sp.x, a30_sp_cor$a30_sp.y, use = "pairwise.complete.obs")
+rct_sp_cor <- merge(MCPspek[MCPspek$Year == 17, c("ID", "rct_sp")], MCPspek[MCPspek$Year == 18, c("ID", "rct_sp")], by="ID")
+cor(rct_sp_cor$rct_sp.x, rct_sp_cor$rct_sp.y, use = "pairwise.complete.obs")
+
 oboje <- intersect(compare$ID[compare$Sezona_kl=="Zima"], compare$ID[compare$Sezona_kl=="Pomlad"])
+oboje <- intersect(compare$ID[compare$Year==17], compare$ID[compare$Year==18])
 sezona  <- unique(melt(compare[compare$ID %in% oboje & compare$a30_kl != 0,], id.vars = c("ID", "Sezona_kl"), measure.vars = c("a30_kl") ))
 library(tidyr)
 sezonaS <- spread(data=sezona,  key = Sezona_kl, value=value)
@@ -94,3 +125,4 @@ ggplot(sezona, aes(x=ID, y=value, group=Sezona_kl, fill=Sezona_kl, colour=Sezona
 ggplot(sezonaS, aes(x=Zima, y=Pomlad)) + geom_point() + #geom_histogram(stat="identity", position="identity") + 
   theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(), axis.title = element_text(size=14), axis.text.y = element_text(size=14), 
         legend.position = "bottom", legend.title = element_text(size=14), legend.text = element_text(size=14))
+

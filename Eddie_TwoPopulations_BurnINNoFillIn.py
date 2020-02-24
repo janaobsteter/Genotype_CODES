@@ -13,7 +13,7 @@ import resource
 import ast
 from random import randint
 
-WorkingDir = "/home/v1jobste/JanaO/"
+WorkingDir = "/home/v1jobste/jobsteter/"
 
 
 class estimateBV:
@@ -118,7 +118,7 @@ os.system('./AlphaSim1.08')
 #####################################################################################################
 #####################################################################################################
 # THEN MAKE A BURN IN - classical selection!
-parhome = pd.read_csv(WorkingDir + "/Essentials/" + refSize + "/" + strategy + "SelPar/SelectionParam_" + scenario + ".csv", header=None, names=["Keys", "Vals"])
+parhome = pd.read_csv(WorkingDir + "/SelPar/10K/SU55SelPar/SelectionParam_" + scenario + ".csv", header=None, names=["Keys", "Vals"])
 parhome.to_dict()
 selParhome = defaultdict()
 for key, val in zip(parhome.Keys, parhome.Vals):
@@ -157,7 +157,7 @@ if selParhome['gEBV']:
     seltype = 'gen'
 
 # tukaj pa še parametri za "large" population
-parimport = pd.read_csv(WorkingDir + "/Essentials/" + refSize + "/" + strategy + "SelPar/SelectionParam_" + scenario + "_LargePop.csv", header=None, names=["Keys", "Vals"])
+parimport = pd.read_csv(WorkingDir + "/SelPar/10K/SU55SelPar/SelectionParam_" + scenario + "_LargePop.csv", header=None, names=["Keys", "Vals"])
 parimport.to_dict()
 selParimport = defaultdict()
 for key, val in zip(parimport.Keys, parimport.Vals):

@@ -14,7 +14,7 @@ import ast
 from random import randint
 
 
-WorkingDir = "/home/v1jobste/JanaO/"
+WorkingDir = "/home/v1jobste/jobsteter/"
 
 class estimateBV:
     def __init__(self, AlphaSimDir, codeDir, way, sel):
@@ -96,7 +96,7 @@ if not os.path.isdir("FillInBurnIn_TwoPop_Test_" + str(rep)):
     os.makedirs("FillInBurnIn_TwoPop_Test_" + str(rep))
 os.chdir("FillInBurnIn_TwoPop_Test_" + str(rep)) #prestavi se v FillInBurnin za ta replikat
 os.system('cp -r ' + WorkingDir + '/Essentials/* .') # skopiraj vse iz Esentials
-os.system('cp -r ' + WorkingDir + '/CodeDir/* .') # skopiraj vse iz CodeDir
+#os.system('cp -r ' + WorkingDir + '/CodeDir/* .') # skopiraj vse iz CodeDir
 seed =  randint(-100000000, -1)
 os.system("echo " + str(seed) + " > Seed.txt")
 
@@ -124,7 +124,7 @@ os.system('./AlphaSim1.08')
 #####################################################################################################
 #####################################################################################################
     #THEN MAKE A BURN IN - classical selection!
-parhome = pd.read_csv(WorkingDir + "/Essentials/" + refSize + "/" + strategy + "SelPar/SelectionParam_" + scenario + "Test.csv", header=None, names=["Keys", "Vals"])
+parhome = pd.read_csv(WorkingDir + "/SelPar/" +  refSize + "/" + strategy + "SelPar//SelectionParam_" + scenario + "Test.csv", header=None, names=["Keys", "Vals"])
 parhome.to_dict()
 selParhome = defaultdict()
 for key, val in zip(parhome.Keys, parhome.Vals):
@@ -164,7 +164,7 @@ if selParhome['gEBV']:
     seltype = 'gen'
 
 #tukaj pa še parametri za "large" population
-parimport = pd.read_csv(WorkingDir + "/Essentials/" + refSize + "/" + strategy + "SelPar/SelectionParam_" + scenario + "_LargePopTest.csv", header=None, names=["Keys", "Vals"])
+parimport = pd.read_csv(WorkingDir + "/SelPar/" +  refSize + "/" + strategy + "SelPar/SelectionParam_" + scenario + "_LargePopTest.csv", header=None, names=["Keys", "Vals"])
 parimport.to_dict()
 selParimport = defaultdict()
 for key, val in zip(parimport.Keys, parimport.Vals):
@@ -254,9 +254,9 @@ for roundNo in range(1,21):  # za vsak krog selekcije
         # izvedi selekcijo, doloci kategorije zivali, dodaj novo generacijo in dodeli starse
         # pedigre se zapise v AlphaSimDir/SelectionFolder/ExternalPedigree.txt
         splitGenPed("PopulationSplit.txt")
-	print("HOME SELEKCIJA")
+	    print("HOME SELEKCIJA")
         selekcija_total('GenPed_EBVhome.txt', externalPedName = "ExternalPedigreehome", group=True, groupNumber=0, noGroups = 2,**selParhome)
-	print("IMPORT SELEKCIJA")
+	    print("IMPORT SELEKCIJA")
         selekcija_total_TGV('GenPed_EBVimport.txt', externalPedName = "ExternalPedigreeimport", group=True, groupNumber=1,noGroups = 2, **selParimport)
         joinExternalPeds(["ExternalPedigreehome", "ExternalPedigreeimport"], AlphaSimDir)
         record_groups(["home", "import"],"PopulationSplit.txt")

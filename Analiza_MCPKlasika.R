@@ -129,9 +129,15 @@ MCPA$SKUPEN[MCPA$SKUPEN==""] <- NA
 MCPA$SKUPEN[MCPA$SKUPEN %in% c("BC", "AC", "BE")] <-NA
 MCPA$SKUPEN <- as.factor(MCPA$SKUPEN)
 MCPA$SKUPEN <- factor(MCPA$SKUPEN, levels = c("AA", "AB", "BB"))
+MCPA$Mean <- 1
 library(lme4)
-model <- lme(r ~  Rejec + Mascoba + proteini, data=Data1, na.action=na.omit, random = Rejec)
-model1 <- lmer(MCPA$a30.mm. ~  1+ (1 | Rejec) + MCPA$Season  + MCPA$Cas + MCPA$proteini + MCPA$Mascoba + MCPA$SKUPEN + MCPA$dnPoLakt)
+model <- lm(r.s. ~  Rejec + Mascoba + proteini + Season + Cas + dnPoLakt + SKUPEN, data=MCPA, na.action=na.omit)
+summary(model)
+anova(model)
+model <- lm(a30.mm. ~  Rejec + Mascoba + proteini + Season + Cas + dnPoLakt + SKUPEN, data=MCPA, na.action=na.omit)
+summary(model)
+anova(model)
+model1 <- lmer(a30.mm. ~  Mean+ (Mean | Rejec) + Season  + Cas + proteini + Mascoba + SKUPEN + dnPoLakt, data = MCPA, na.action = na.omit)
 plot(model1)
 summary(model1)
 anova(model1)
