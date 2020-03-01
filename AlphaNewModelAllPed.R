@@ -4,7 +4,6 @@ args = commandArgs(trailingOnly=TRUE)
 REP <- args[1]
 print(REP)
 
-setwd("/home/jana/Documents/PhD/SimulationAlphaPart/NewModelAllPed/")
 library(package = "AlphaSimR")
 library(package = "tidyverse")
 library(package = "AlphaPart")
@@ -21,12 +20,12 @@ homeDir = getwd()
 nGNMales   =  25
 nGNFemales = 500
 
-nPNMales       =  100
-nPNFemales     = 5000
-pPNFemalesPure = 0.15
+nPNMales       =  25
+nPNFemales     = 3000
+pPNFemalesPure = 0.16666667
 
 nGenerationBurn = 20
-nGenerationEval = 10
+nGenerationEval = 20
 
 GenMeanCols = c("GenMeanT1", "GenMeanT2", "GenMeanI")
 GenVarCols  = c("GenVarT1",  "GenVarT2",  "GenVarI")
@@ -35,7 +34,7 @@ GenVarCols  = c("GenVarT1",  "GenVarT2",  "GenVarI")
 
 founderPop = runMacs(nInd = nGNMales + nGNFemales,
                      nChr = 10,
-                     segSites = 100,
+                     segSites = 1000,
                      nThreads = 4,
                      # species = "GENERIC")
                      species = "CATTLE")
@@ -50,7 +49,7 @@ for (rep in c(REP)) {
 for (h2 in c(0.25)) {
   system(paste0('mkdir ', RepDir, '/H_', h2))
   hDir = paste0(RepDir, '/H_', h2, "/")
-  system(paste0('cp Essentials/* ', hDir))
+  system(paste0('cp ', homeDir, '/Essentials/* ', hDir))
   setwd(hDir)
   system('mkdir GN PN1 PN2')
   system(paste0('cp ', homeDir, '/Essentials/* ', hDir, '/PN1/'))
@@ -64,9 +63,9 @@ for (h2 in c(0.25)) {
   VarE = matrix(data = c(3.0, 0.0, 0.0, 9.0), nrow = 2); cov2cor(VarE)
   
   VarP = VarA + VarE; diag(VarA) / diag(VarP)
-  SP$addTraitA(nQtlPerChr = 10, mean = c(0, 0), var = diag(VarA), cor = cov2cor(VarA))
+  SP$addTraitA(nQtlPerChr = 1000, mean = c(0, 0), var = diag(VarA), cor = cov2cor(VarA))
   # SP$addSnpChip(nSnpPerChr = 1000)
-  SP$setGender(gender = "yes_rand")
+  SP$setGender(gender = "yes_sys")
   
   # ---- Base GN population ----
   
@@ -104,8 +103,8 @@ for (h2 in c(0.25)) {
     # Phenotype
     SelCand = setPheno(pop = SelCand, varE = VarE)
     if (Generation == 1) {
-      baseVarA <- varG(SelCand)
-      baseVarE <- varP(SelCand) - varG(SelCand)
+      VarA <- varG(SelCand)
+      VarE <- varP(SelCand) - varG(SelCand)
     }
     
     PedEval = rbind(PedEval,
@@ -114,7 +113,7 @@ for (h2 in c(0.25)) {
                            FId        = SelCand@father,
                            MId        = SelCand@mother,
                            Gender     = SelCand@gender,
-                           Program    = "GN",
+                           Program    = "BurnIn",
                            PhenoT1    = SelCand@pheno[,1],
                            PhenoT2    = SelCand@pheno[,2],
                            EbvT1      = NA,
@@ -124,9 +123,9 @@ for (h2 in c(0.25)) {
     
     # Select
     BaseGNMales   = selectInd(pop = SelCand, nInd = nGNMales,   gender = "M",
-                              use = "pheno", trait = function(x) rowMeans(x))
+                              use = "pheno", trait = function(x) rowMeans(scale(x)))
     BaseGNFemales = selectInd(pop = SelCand, nInd = nGNFemales, gender = "F",
-                              use = "pheno", trait = function(x) rowMeans(x))
+                              use = "pheno", trait = function(x) rowMeans(scale(x)))
   }
   
   # Plot genetic means
@@ -149,7 +148,7 @@ for (h2 in c(0.25)) {
   # Cheat here - consider all animals are females
   SelCand@gender[] = "F"
   BasePNFemales = selectInd(pop = SelCand, nInd = nPNFemales, gender = "F",
-                            use = "pheno", trait = function(x) rowMeans(x))
+                            use = "pheno", trait = function(x) rowMeans(scale(x)))
   # meanG(GNMales); meanG(GNFemales); meanG(PNFemales)
   
   
@@ -169,20 +168,13 @@ for (h2 in c(0.25)) {
   
   accuraciesPN1 <- data.frame(Program = NA, Generation = NA, Trait = NA, Cor = NA)
   accuraciesPN2 <- data.frame(Program = NA, Generation = NA, Trait = NA, Cor = NA)
-  effects <- data.frame(Generation = NA, GN1 = NA, GN2 = NA, PN1 = NA, PN2 = NA, Gen1 = NA, Gen2 = NA)
   ##############################################################################3
   ##############################################################################3
   hDir = getwd()
   PedEval <- PedEvalBurnIn  
   # ---- Program PN1  ----
   for (Generation in (1 + nGenerationBurn):(nGenerationEval + nGenerationBurn)) {
-    GNEffect1 <- rnorm(1, 0, 0.2 * diag(VarP)[1])
-    GNEffect2 <- rnorm(1, 0, 0.2 * diag(VarP)[2])
-    PNEffect1 <- rnorm(1, 0, 0.2 * diag(VarP)[1])
-    PNEffect2 <- rnorm(1, 0, 0.2 * diag(VarP)[2])
-    GenerationEffect1 <- rnorm(1, 0, 0.2 * diag(VarP)[1])
-    GenerationEffect2 <- rnorm(1, 0, 0.2 * diag(VarP)[2])
-    effects <- rbind(effects, c(GNEffect1, GNEffect2, PNEffect1, PNEffect2, GenerationEffect1, GenerationEffect2))
+
 
     if (Generation == (1 + nGenerationBurn)) {
       GNFemales = BaseGNFemales
@@ -205,12 +197,7 @@ for (h2 in c(0.25)) {
     
     # Phenotype
     SelCand = setPheno(pop = SelCand, varE = VarE)
-    estVarA <- varG(SelCand)
-    estVarE <- varP(SelCand) - varG(SelCand)
-    SelCand@pheno[,1] <- SelCand@pheno[,1] + GenerationEffect1 + GNEffect1
-    SelCand@pheno[,2] <- SelCand@pheno[,2] + GenerationEffect2 + GNEffect2
 
-    
     # Track pedigree
     PedEval = rbind(PedEval,
                     tibble(Generation = Generation,
@@ -237,15 +224,14 @@ for (h2 in c(0.25)) {
     blupPed$FId[is.na(blupPed$FId)] <- 0
     blupPed$MId[is.na(blupPed$MId)] <- 0
     blupPed <- blupPed[order(blupPed$IId),]
-    write.table(blupPed[order(as.numeric(blupPed$IId)),], "Blupf90.ped", quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ", na = "0")
+    write.table(blupPed, "Blupf90.ped", quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ", na = "0")
     
     # Create phenotype file
     # Trait 1
-    blup1dat <- PedEval[,c("IId", "PhenoT1", "Program", "Generation")]
-    blup1dat$Generation[blup1dat$Generation == 0] <- "00"
-    # blup1dat <- PedEval[,c("IId", "PhenoT1")]
-    # blup1dat$Mean <- 1
-
+#    blup1dat <- PedEval[,c("IId", "PhenoT1", "Program", "Generation")]
+#    blup1dat$Generation[blup1dat$Generation == 0] <- "00"
+    blup1dat <- PedEval[PedEval$Program != "BurnIn",c("IId", "PhenoT1")]
+    blup1dat$Mean <- 1
     write.table(blup1dat, "Blupf901.dat",
                 quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ",
                 na = "0", append = file.exists("Blupf901.dat"))
@@ -254,19 +240,19 @@ for (h2 in c(0.25)) {
     
     # Trait 2
     # Create phenotype file
-    blup2dat <- PedEval[PedEval$Program == "GN",c("IId", "PhenoT2", "Program", "Generation")]
-    blup2dat$Generation[blup2dat$Generation == 0] <- "00"
-    # blup2dat <- PedEval[,c("IId", "PhenoT2")]
-    # blup2dat$Mean <- 1
+#    blup2dat <- PedEval[PedEval$Program == "GN",c("IId", "PhenoT2", "Program", "Generation")]
+#    blup2dat$Generation[blup2dat$Generation == 0] <- "00"
+    blup2dat <- PedEval[PedEval$Program == "GN",c("IId", "PhenoT2")]
+    blup2dat$Mean <- 1
     write.table(blup2dat, "Blupf902.dat",
                 quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ",
                 na = "0", append = file.exists("Blupf902.dat"))
     
     ## set residual values in renumf90
-    system(paste0('sed "s/ResVariance/', diag(estVarE)[1], '/g" renumf901_generic.par > renumf901.par '))
-    system(paste0('sed "s/ResVariance/', diag(estVarE)[2], '/g" renumf902_generic.par > renumf902.par '))
-    system(paste0('sed -i "s/GenVariance/', diag(estVarA)[1], '/g" renumf901.par '))
-    system(paste0('sed -i "s/GenVariance/', diag(estVarA)[2], '/g" renumf902.par '))
+    system(paste0('sed "s/ResVariance/', diag(VarE)[1], '/g" renumf901_generic.par > renumf901.par '))
+    system(paste0('sed "s/ResVariance/', diag(VarE)[2], '/g" renumf902_generic.par > renumf902.par '))
+    system(paste0('sed -i "s/GenVariance/', diag(VarA)[1], '/g" renumf901.par '))
+    system(paste0('sed -i "s/GenVariance/', diag(VarA)[2], '/g" renumf902.par '))
     
     # Evaluate Trait 1
     system(command = "./renumf90 < renumParam1")
@@ -301,9 +287,9 @@ for (h2 in c(0.25)) {
     print(summary(PedEval$EbvT2))
     print("Selecting GN1 animals")
     GNMales   = selectInd(pop = SelCand, nInd = nGNMales,   gender = "M",
-                          use = "ebv", trait = function(x) rowMeans(x))
+                          use = "ebv", trait = function(x) rowMeans(scale(x)))
     GNFemales = selectInd(pop = SelCand, nInd = nGNFemales, gender = "F",
-                          use = "ebv", trait = function(x) rowMeans(x))
+                          use = "ebv", trait = function(x) rowMeans(scale(x)))
     # Clean
     rm(SelCand)
     
@@ -317,15 +303,15 @@ for (h2 in c(0.25)) {
       PNFemales1 = BasePNFemales
       PedEval$Program[PedEval$IId %in% BasePNFemales@id] <- "PN1"
       PNFemales1ForPure = selectInd(pop = PNFemales1, nInd = PNFemales1@nInd * pPNFemalesPure,
-                                    use = "pheno", trait = function(x) rowMeans(x, na.rm = TRUE))
+                                    use = "pheno", trait = function(x) rowMeans(scale(x), na.rm = TRUE))
     } else {
       PNFemales1ForPure = selectInd(pop = PNFemales1, nInd = PNFemales1@nInd * pPNFemalesPure,
-                                    use = "ebv", trait = function(x) rowMeans(x, na.rm = TRUE))
+                                    use = "ebv", trait = function(x) rowMeans(scale(x), na.rm = TRUE))
     }
     
 
     SelCand = randCross2(females = PNFemales1ForPure, males = GNMales,
-                         nCrosses = PNFemales1ForPure@nInd, nProgeny = 14)
+                         nCrosses = PNFemales1ForPure@nInd, nProgeny = 12)
     # SelCand@nInd
     # meanG(PNFemales1); meanG(PNFemales1ForPure); meanG(GNMales); meanG(SelCand)
     
@@ -340,16 +326,12 @@ for (h2 in c(0.25)) {
     
     # Phenotype
     SelCand = setPheno(pop = SelCand, varE = VarE)
-    estVarA <- varG(SelCand)
-    estVarE <- varP(SelCand) - varG(SelCand)
-    SelCand@pheno[,1] <- SelCand@pheno[,1] + GenerationEffect1 + PNEffect1
     SelCand@pheno[, 2] <- NA
     
-
     
     # Track pedigree
     PedEval = rbind(PedEval, 
-                    tibble(Generation = Generation,
+                    tibble(Generation = Generation +1,
                            IId        = SelCand@id,
                            FId        = SelCand@father,
                            MId        = SelCand@mother,
@@ -381,19 +363,19 @@ for (h2 in c(0.25)) {
 
     # Create phenotype file
     # Trait 1
-    blup1dat <- PedEval[,c("IId", "PhenoT1", "Program", "Generation")]
-    blup1dat$Generation[blup1dat$Generation == 0] <- "00"
-    # blup1dat <- PedEval[,c("IId", "PhenoT1")]
-    # blup1dat$Mean <- 1
+#    blup1dat <- PedEval[,c("IId", "PhenoT1", "Program", "Generation")]
+#    blup1dat$Generation[blup1dat$Generation == 0] <- "00"
+    blup1dat <- PedEval[PedEval$Program != "BurnIn",c("IId", "PhenoT1")]
+    blup1dat$Mean <- 1
     write.table(blup1dat, "Blupf901.dat",
                 quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ",
                 na = "0", append = file.exists("Blupf901.dat"))
 
     ## set residual values in renumf90
-    system(paste0('sed "s/ResVariance/', diag(estVarE)[1], '/g" renumf901_generic.par > renumf901.par '))
-    system(paste0('sed "s/ResVariance/', diag(estVarE)[2], '/g" renumf902_generic.par > renumf902.par '))
-    system(paste0('sed -i "s/GenVariance/', diag(estVarA)[1], '/g" renumf901.par '))
-    system(paste0('sed -i "s/GenVariance/', diag(estVarA)[2], '/g" renumf902.par '))
+    system(paste0('sed "s/ResVariance/', diag(VarE)[1], '/g" renumf901_generic.par > renumf901.par '))
+    system(paste0('sed "s/ResVariance/', diag(VarE)[2], '/g" renumf902_generic.par > renumf902.par '))
+    system(paste0('sed -i "s/GenVariance/', diag(VarA)[1], '/g" renumf901.par '))
+    system(paste0('sed -i "s/GenVariance/', diag(VarA)[2], '/g" renumf902.par '))
     
     # Evaluate Trait 1
     system(command = "./renumf90 < renumParam1")
@@ -408,10 +390,10 @@ for (h2 in c(0.25)) {
     
     # Trait 2
     # Create phenotype file
-    blup2dat <- PedEval[PedEval$Program == "GN",c("IId", "PhenoT2", "Program", "Generation")]
-    blup2dat$Generation[blup2dat$Generation == 0] <- "00"
-    # blup2dat <- PedEval[,c("IId", "PhenoT2")]
-    # blup2dat$Mean <- 1
+#    blup2dat <- PedEval[PedEval$Program == "GN",c("IId", "PhenoT2", "Program", "Generation")]          
+#    blup2dat$Generation[blup2dat$Generation == 0] <- "00"
+    blup2dat <- PedEval[PedEval$Program == "GN",c("IId", "PhenoT2")]
+    blup2dat$Mean <- 1
     write.table(blup2dat, "Blupf902.dat",
                 quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ",
                 na = "0", append = file.exists("Blupf902.dat"))    
@@ -440,9 +422,9 @@ for (h2 in c(0.25)) {
     
     # Select
     PNMales1   = selectInd(pop = SelCand, nInd = nPNMales,   gender = "M",
-                         use = "ebv", trait = function(x) rowMeans(x, na.rm = TRUE))
+                         use = "ebv", trait = function(x) rowMeans(scale(x), na.rm = TRUE))
     PNFemales1 = selectInd(pop = SelCand, nInd = nPNFemales, gender = "F",
-                          use = "ebv", trait = function(x) rowMeans(x, na.rm = TRUE))
+                          use = "ebv", trait = function(x) rowMeans(scale(x), na.rm = TRUE))
     
     # Clean
     rm(SelCand)
@@ -456,7 +438,6 @@ for (h2 in c(0.25)) {
   write.table(PedEval1, paste0("PedEval1_", h2, ".csv"), quote=FALSE, row.names=FALSE)
   write.table(DataEvalGN1, paste0("DataEval1_", h2, ".csv"), quote=FALSE, row.names=FALSE)
   write.table(accuraciesPN1, paste0("Accuracies1_", h2, ".csv"), quote=FALSE, row.names=FALSE)
-  write.table(effects, "Effects.csv", quote=FALSE, row.names=FALSE)
 
   ##############################################################################3
   ##############################################################################3
@@ -521,8 +502,10 @@ for (h2 in c(0.25)) {
     
     # Create phenotype file
     # Trait 1
-    blup1dat <-	PedEval[,c("IId", "PhenoT1", "Program", "Generation")]
-    blup1dat$Generation[blup1dat$Generation == 0] <- "00"
+#    blup1dat <-	PedEval[,c("IId", "PhenoT1", "Program", "Generation")]
+#    blup1dat$Generation[blup1dat$Generation == 0] <- "00"
+    blup1dat <- PedEval[PedEval$Program != "BurnIn",c("IId", "PhenoT1")]
+    blup1dat$Mean <- 1
     write.table(blup1dat, "Blupf901.dat",
                 quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ",
                 na = "0", append = file.exists("Blupf901.dat"))
@@ -531,8 +514,10 @@ for (h2 in c(0.25)) {
 
     # Trait 2
     # Create phenotype file
-    blup2dat <- PedEval[PedEval$Program == "GN",c("IId", "PhenoT2", "Program", "Generation")]          
-    blup2dat$Generation[blup2dat$Generation == 0] <- "00"
+#    blup2dat <- PedEval[PedEval$Program == "GN",c("IId", "PhenoT2", "Program", "Generation")]          
+#    blup2dat$Generation[blup2dat$Generation == 0] <- "00"
+    blup2dat <- PedEval[PedEval$Program == "GN",c("IId", "PhenoT2")]
+    blup2dat$Mean <- 1
     write.table(blup2dat, "Blupf902.dat",
                 quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ",
                 na = "0", append = file.exists("Blupf902.dat"))    
@@ -573,9 +558,9 @@ for (h2 in c(0.25)) {
     
     # Select
     GNMales   = selectInd(pop = SelCand, nInd = nGNMales,   gender = "M",
-                          use = "ebv", trait = function(x) rowMeans(x))
+                          use = "ebv", trait = function(x) rowMeans(scale(x)))
     GNFemales = selectInd(pop = SelCand, nInd = nGNFemales, gender = "F",
-                          use = "ebv", trait = function(x) rowMeans(x))
+                          use = "ebv", trait = function(x) rowMeans(scale(x)))
     # Clean
     rm(SelCand)
     
@@ -585,13 +570,13 @@ for (h2 in c(0.25)) {
       PNMales2 = BaseGNMales
       PedEval$Program[PedEval$IId %in% BasePNFemales@id] <- "PN2"
       PNFemales2ForPure = selectInd(pop = PNFemales2, nInd = PNFemales2@nInd * pPNFemalesPure,
-                                    use = "pheno", trait = function(x) rowMeans(x, na.rm = TRUE))
+                                    use = "pheno", trait = function(x) rowMeans(scale(x), na.rm = TRUE))
     } else {
       PNFemales2ForPure = selectInd(pop = PNFemales2, nInd = PNFemales2@nInd * pPNFemalesPure,
-                                  use = "ebv", trait = function(x) rowMeans(x, na.rm = TRUE))
+                                  use = "ebv", trait = function(x) rowMeans(scale(x), na.rm = TRUE))
     }
     SelCand = randCross2(females = PNFemales2ForPure, males = c(GNMales, PNMales2),
-                         nCrosses = PNFemales2ForPure@nInd, nProgeny = 14)
+                         nCrosses = PNFemales2ForPure@nInd, nProgeny = 12)
     # SelCand@nInd
     # meanG(PNFemales2); meanG(PNFemales2ForPure); meanG(GNMales); meanG(PNMales2); meanG(SelCand)
     
@@ -611,7 +596,7 @@ for (h2 in c(0.25)) {
     
     # Track pedigree
     PedEval = rbind(PedEval, 
-                    tibble(Generation = Generation,
+                    tibble(Generation = Generation + 1,
                            IId        = SelCand@id,
                            FId        = SelCand@father,
                            MId        = SelCand@mother,
@@ -638,8 +623,10 @@ for (h2 in c(0.25)) {
     
     # Create phenotype file
     # Trait 1
-    blup1dat <-	PedEval[,c("IId", "PhenoT1", "Program", "Generation")]
-    blup1dat$Generation[blup1dat$Generation == 0] <- "00"
+#    blup1dat <-	PedEval[,c("IId", "PhenoT1", "Program", "Generation")]
+#    blup1dat$Generation[blup1dat$Generation == 0] <- "00"
+    blup1dat <- PedEval[PedEval$Program != "BurnIn",c("IId", "PhenoT1")]
+    blup1dat$Mean <- 1
     write.table(blup1dat, "Blupf901.dat",
                 quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ",
                 na = "0", append = file.exists("Blupf901.dat"))
@@ -666,8 +653,10 @@ for (h2 in c(0.25)) {
     
     # Trait 2
     # Create phenotype file
-    blup2dat <- PedEval[PedEval$Program == "GN",c("IId", "PhenoT2", "Program", "Generation")]          
-    blup2dat$Generation[blup2dat$Generation == 0] <- "00"
+#    blup2dat <- PedEval[PedEval$Program == "GN",c("IId", "PhenoT2", "Program", "Generation")]          
+#    blup2dat$Generation[blup2dat$Generation == 0] <- "00"
+    blup2dat <- PedEval[PedEval$Program == "GN",c("IId", "PhenoT2")]
+    blup2dat$Mean <- 1
     write.table(blup2dat, "Blupf902.dat",
                 quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ",
                 na = "0", append = file.exists("Blupf902.dat"))    
@@ -690,9 +679,9 @@ for (h2 in c(0.25)) {
     
     # Select
     PNMales2   = selectInd(pop = SelCand, nInd = nPNMales,   gender = "M",
-                           use = "ebv", trait = function(x) rowMeans(x, na.rm = TRUE))
+                           use = "ebv", trait = function(x) rowMeans(scale(x), na.rm = TRUE))
     PNFemales2 = selectInd(pop = SelCand, nInd = nPNFemales, gender = "F",
-                           use = "ebv", trait = function(x) rowMeans(x, na.rm = TRUE))
+                           use = "ebv", trait = function(x) rowMeans(scale(x), na.rm = TRUE))
     
 
     # Clean

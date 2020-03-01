@@ -2893,15 +2893,15 @@ class AlphaRelate(object):
             self.AlphaRelateDir = AlphaRelateDir
             self.AlphaSimDir = AlphaSimDir
             self.AlphaRelateSpec = self.AlphaRelateDir + "/AlphaRelateSpec.txt"
-	    self.chipFile = self.AlphaSimDir + '/SimulatedData/AllIndividualsSnpChips/Chip1Genotype.txt'
+            self.chipFile = self.AlphaSimDir + '/SimulatedData/AllIndividualsSnpChips/Chip1Genotype.txt'
             try:
-	        shutil.copy(AlphaSimDir + "/IndOpt.txt", AlphaRelateDir)
-	    except:
-	        pass
+                shutil.copy(AlphaSimDir + "/IndOpt.txt", AlphaRelateDir)
+            except:ł
+                pass
             try:
-	        shutil.copy(AlphaSimDir + "/IndForGeno.txt", AlphaRelateDir)
-	    except:
-	        pass           
+                shutil.copy(AlphaSimDir + "/IndForGeno.txt", AlphaRelateDir)
+            except:
+                pass
 
         def preparePedigree(self):
             ped = pd.read_csv(self.AlphaSimDir + "/SimulatedData/PedigreeAndGeneticValues_cat.txt", sep="\s+")

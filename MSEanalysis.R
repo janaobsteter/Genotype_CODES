@@ -98,6 +98,23 @@ part2 <- part2[,-2]
 table(part2$h2)
 table(part2$Generation)
 table(part2$rep)
+############################################################################################
+
+#####fixed effects model (newModel), no interaction - SAME NUMBERS IN THE MULTIPLIER AND NUCLEUS
+
+part1 <- read.table("~/Documents/PhD/Projects/inProgress/AlphaPart//NewModel//PartitionPN1.csv", header=TRUE)
+colnames(part1)[10] <- "BV"
+table(part1$h2)
+table(part1$rep)
+table(part1$Generation)
+part1 <- part1[,-2]
+
+part2 <- read.table("~/Documents/PhD/Projects/inProgress/AlphaPart/NewModel//PartitionPN2.csv", header=TRUE)
+colnames(part2)[10] <- "BV"
+part2 <- part2[,-2]
+table(part2$h2)
+table(part2$Generation)
+table(part2$rep)
 ##############################################
 '''
 #####fixed effects model (newModel), no interaction, REVERSED
@@ -200,12 +217,12 @@ ggplot(data = part1Ma[(part1Ma$BV == "Tbv") ,],  #$& (part1Ma$variable != "PN1.M
                       labels = c("Total", "Nucleus\nfemales", "Nucleus\nmales", "Multiplier\nfemales", "Multiplier\nmales")) + 
     scale_linetype_manual("\n\nSelection path", values = c("solid", "solid", "solid", "twodash", "twodash"), 
                           labels = c("Total", "Nucleus\nfemales", "Nucleus\nmales", "Multiplier\nfemales", "Multiplier\nmales")) +
-    ylab("Partial genetic trend") + 
+    ylab("Genetic trend") + 
     theme_bw(base_size=10, base_family="arial") + theme(legend.position="top", legend.text=element_text(size=10), legend.title=element_text(size=12), 
     axis.text=element_text(size=10),
     axis.title=element_text(size=12),
     strip.text = element_text(size = 10)) + scale_y_continuous(breaks = seq(0, 12, 3)) + 
-    guides(colour = guide_legend(keywidth = unit(1.5, "cm"), nrow = 1, byrow = TRUE, label.position =  "top")) +
+    guides(colour = guide_legend(keywidth = unit(2.5, "cm"), nrow = 1, byrow = TRUE, label.position =  "top")) +
     facet_grid(. ~ Population + Trait)
 dev.off()
 
@@ -221,29 +238,33 @@ ggplot(data = part2Ma[(part2Ma$BV == "Tbv"),],
                     labels = c("Total", "Nucleus\nfemales", "Nucleus\nmales", "Multiplier\nfemales", "Multiplier\nmales")) + 
   scale_linetype_manual("\n\nSelection path", values = c("solid", "solid", "solid", "twodash", "twodash"), 
                         labels = c("Total", "Nucleus\nfemales", "Nucleus\nmales", "Multiplier\nfemales", "Multiplier\nmales")) +
-    ylab("Partial genetic trend") + 
+    ylab("Genetic trend") + 
   theme_bw(base_size=10, base_family="Arial") + theme(legend.position="top", legend.text=element_text(size=10), legend.title=element_text(size=12), 
                                                       axis.text=element_text(size=10),
                                                       axis.title=element_text(size=12), strip.text = element_text(size = 10)) + 
     scale_y_continuous(breaks = seq(0, 12, 3)) + 
-    guides(colour = guide_legend(keywidth = unit(1.5, "cm"), label.position =  "top")) +
+    guides(colour = guide_legend(keywidth = unit(2.5, "cm"), label.position =  "top")) +
     facet_grid(. ~ Population + Trait)
 dev.off()
+
 tiff("/home/jana/Documents/PhD/Projects/inProgress/AlphaPart//Figures/ObsteterLarge_3.tiff", res=610, width=300, height=200, units="mm")
 ggplot(data = part2Ma[(part2Ma$BV == "Tbv"),], 
     aes(x=Generation, y = value, colour = variable, linetype = variable)) + 
     geom_line(size = 1, aes(linetype = variable)) + 
     #ggtitle("Program 2") +  
     geom_ribbon(data = part2Ma[(part2Ma$BV == "Tbv"),], aes(ymin = min, ymax = max, x = Generation, fill = variable), linetype = 0, alpha = 0.3) + 
-    scale_colour_manual("Selection path", values=c("black", "#cf4671", "#3ea4ed", "#cf4671", "#3ea4ed"), labels = c("Total", "GN-F", "GN-M", "PN-F", "PN-M")) + 
-    scale_fill_manual("Selection path", values=c("black", "#cf4671", "#3ea4ed", "#cf4671", "#3ea4ed"), labels = c("Total", "GN-F", "GN-M", "PN-F", "PN-M")) + 
-    scale_linetype_manual("Selection path", values = c("solid", "solid", "solid", "twodash", "twodash"), labels = c("Total", "GN-F", "GN-M", "PN-F", "PN-M")) + 
-    ylab("Partial genetic trend") + 
+  scale_colour_manual("\n\nSelection path", values=c("black", "#bd0b58", "#3ea4ed", "#bd0b58", "#3ea4ed"), 
+                      labels = c("Total", "Nucleus\nfemales", "Nucleus\nmales", "Multiplier\nfemales", "Multiplier\nmales")) +
+  scale_fill_manual("\n\nSelection path", values=c("black", "#bd0b58", "#3ea4ed", "#bd0b58", "#3ea4ed"), 
+                    labels = c("Total", "Nucleus\nfemales", "Nucleus\nmales", "Multiplier\nfemales", "Multiplier\nmales")) + 
+  scale_linetype_manual("\n\nSelection path", values = c("solid", "solid", "solid", "twodash", "twodash"), 
+                        labels = c("Total", "Nucleus\nfemales", "Nucleus\nmales", "Multiplier\nfemales", "Multiplier\nmales")) +
+  ylab("Genetic trend") + 
   theme_bw(base_size=18, base_family="Arial") + theme(legend.position="top", legend.text=element_text(size=16), legend.title=element_text(size=18), 
                                                       axis.text=element_text(size=16),
                                                       axis.title=element_text(size=18), strip.text = element_text(size = 16)) + 
     scale_y_continuous(breaks = seq(0, 12, 3)) + 
-    guides(colour = guide_legend(keywidth = unit(1.5, "cm"), label.position =  "top")) +
+    guides(colour = guide_legend(keywidth = unit(2.5, "cm"), label.position =  "top")) +
     facet_grid(. ~ Population + Trait)
 dev.off()
 
@@ -543,6 +564,8 @@ PedEval1 <- read.table("~/Documents/Projects/inProgress/AlphaPart/SimpleSimulati
 PedEval1 <- read.table("~/PedEval1_0.5_NewModel.csv", header=TRUE)
 PedEval1 <- read.table("~/PedEval1_0.5_Old.csv", header=TRUE)
 PedEval1 <- read.table("~/PedEval1_0.25.csv", header=TRUE)
+
+
 gen0 <- PedEval1[PedEval1$Generation == 0,]
 plot(density(gen0$TbvT1))
 sd(gen0$TbvT1)
@@ -733,10 +756,21 @@ drawPedigree(pedig[,1:3])
 
 
 #distribution of true breeding values
-ped2 <- read.csv("Documents/PhD/Projects/inProgress/AlphaPart/NewModel/PedEval2_0.25.csv", header=TRUE, sep=" ")
+ped2 <- read.csv("/home/jana/Documents/PhD/Projects/inProgress/AlphaPart/NewModel//PedEval2_0.25.csv", header=TRUE, sep=" ")
 ped2$P <- "Program 2"
-ped1 <- read.csv("Documents/PhD/Projects/inProgress/AlphaPart/NewModel/PedEval1_0.25.csv", header=TRUE, sep=" ")
+ped1 <- read.csv("/home/jana/Documents/PhD/Projects/inProgress/AlphaPart/NewModel//PedEval1_0.25.csv", header=TRUE, sep=" ")
 ped1$P <- "Program 1"
+##check the number of fathers
+gen40_2 <- ped2[ped2$Generation == 40,]
+length(unique(gen40_2$FId))
+length(unique(gen40_2$MId))
+father <- ped2[ped2$IId %in% gen40_2$FId,]
+table(father$Program)
+
+ped2$TbvT1_s <- (ped2$TbvT1 - mean(ped2$TbvT1[ped2$Generation == 20])) / sd(ped2$TbvT1[ped2$Generation == 20])
+ped2$TbvT2_s <- (ped2$TbvT2 - mean(ped2$TbvT2[ped2$Generation == 20])) / sd(ped2$TbvT2[ped2$Generation == 20])
+ped1$TbvT1_s <- (ped1$TbvT1 - mean(ped1$TbvT1[ped1$Generation == 20])) / sd(ped1$TbvT1[ped1$Generation == 20])
+ped1$TbvT2_s <- (ped1$TbvT2 - mean(ped1$TbvT2[ped1$Generation == 20])) / sd(ped1$TbvT2[ped1$Generation == 20])
 
 ped <- rbind(ped1, ped2)
 table(ped$P)
@@ -746,26 +780,33 @@ table(ped$Program)
 pedL <- rbind(ped[ped$Generation == 40 & ped$Program == "GN",],
               ped[ped$Generation == 41 & ped$Program == "PN1",],
               ped[ped$Generation == 41 & ped$Program == "PN2",])
-pedL$TbvI <- (pedL$TbvT1 + pedL$TbvT2) / 2
+pedL$TbvI_s <- (pedL$TbvT1_s + pedL$TbvT2_s) / 2
 pedL$Program <- as.character(pedL$Program)
 pedL$Program[pedL$Program == "GN" & pedL$P == "Program 2"] <- "GN2"
 table(pedL$Program)
-pedL <- pedL[,c("Program", "P", "TbvT1", "TbvT2", "TbvI")]
+pedL <- pedL[,c("Program", "P", "TbvT1_s", "TbvT2_s", "TbvI_s")]
 pedLm <- melt(pedL, id.vars = c("Program", "P"))
 head(pedLm)
-pedLm$variable <- revalue(pedLm$variable, c("TbvT1" = "Trait 1", "TbvT2" = "Trait 2", "TbvI" = "Index"))
+pedLm$variable <- revalue(pedLm$variable, c("TbvT1_s" = "Trait 1", "TbvT2_s" = "Trait 2", "TbvI_s" = "Index"))
 pedLm$Program <- revalue(pedLm$Program, c("GN1" = "GN", "PN1" = "PN", "GN2" = "GN", "PN2" = "PN"))
+pedLm$ProgramPaper <- ifelse(pedLm$P == "Program 1", "MaleFlow100", "MaleFlow50")
 #če imaš samo en program
-#tiff("/home/jana/Documents/PhD/Projects/inProgress/AlphaPart//Figures/Obsteter_3.tiff", res=610, width=175, height=100, units="mm")
+#tiff("/home/jana/Documents/PhD/Projects/inProgress/AlphaPart//Figures/Obsteter_1.tiff", res=610, width=175, height=100, units="mm")
 #če imaš oba programa (dve vrsti)
-tiff("/home/jana/Documents/PhD/Projects/inProgress/AlphaPart//Figures/Obsteter_3.tiff", res=610, width=175, height=120, units="mm")
-ggplot(pedLm, aes(x = value, group = Program, linetype = Program)) + geom_density() + facet_grid(rows = vars(P), cols = vars(variable)) + 
-  ylab("Frequency") + xlab("True breeding value") + scale_linetype_manual("Tier", labels = c("Nucleus", "Multiplier"), values = c("solid", "dashed")) + 
+tiff("/home/jana/Documents/PhD/Projects/inProgress/AlphaPart//Figures/Obsteter_1.tiff", res=610, width=175, height=120, units="mm")
+ggplot(pedLm, aes(x = value, group = Program, linetype = Program)) + geom_density() +  #, ((..count..)/sum(..count..)))
+  facet_grid(rows = vars(ProgramPaper), cols = vars(variable)) + 
+  ylab("Density") + 
+  xlab("True breeding value") + 
+  scale_linetype_manual("Tier", labels = c("Nucleus", "Multiplier"), values = c("solid", "dashed")) + 
   theme_bw(base_size=10, base_family="arial") + 
-  theme(legend.position="top", legend.text=element_text(size=10), legend.title=element_text(size=10), 
+  theme(legend.position="top", legend.text=element_text(size=10), legend.title=element_text(size=12), 
                                                       axis.text=element_text(size=10),
                                                       axis.title=element_text(size=12),
                                                       strip.text = element_text(size = 10))
 dev.off()
 table(pedLm$Program)
+
+ggplot(pedLm[pedLm$variable == "Index",], aes(x = value, group = Program, linetype = Program)) + geom_freqpoly() 
+  
 
