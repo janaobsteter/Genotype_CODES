@@ -164,6 +164,38 @@ library(ggplot2)
 #   geom_line() + ggtitle("PN1") + 
 #   facet_wrap(. ~ rep +  BV, nrow=3)
 
+#explore what is going on with male contributions
+part1Copy <- part1
+part1Copy$Generation[part1Copy$Population == "PN1"] <- part1Copy$Generation[part1Copy$Population == "PN1"] - 1
+gen40pn <- part1Copy[part1Copy$Generation == 40 & part1Copy$Trait == "T1" & part1Copy$BV == "Tbv",]
+
+for (rep in 0:9) {
+  gen40pn$MaleDiff[gen40pn$rep == rep] <- gen40pn$GN.M[gen40pn$rep == rep & gen40pn$Population == "GN1"] - 
+                      gen40pn$GN.M[gen40pn$rep == rep & gen40pn$Population == "PN1"]
+  gen40pn$FemaleDiff[gen40pn$rep == rep] <- gen40pn$GN.F[gen40pn$rep == rep & gen40pn$Population == "GN1"] - 
+                      gen40pn$GN.F[gen40pn$rep == rep & gen40pn$Population == "PN1"]
+}
+#to je kul, PN males imajo višje
+gen40pn[gen40pn$Population == "PN1",]
+
+
+part2Copy <- part2
+part2Copy$Generation[part2Copy$Population == "PN2"] <- part2Copy$Generation[part2Copy$Population == "PN2"] - 1
+gen40pn2 <- part2Copy[part2Copy$Generation == 40 & part2Copy$Trait == "T1" & part2Copy$BV == "Tbv",]
+
+for (rep in 0:9) {
+  gen40pn2$MaleDiff[gen40pn2$rep == rep] <- gen40pn2$GN.M[gen40pn2$rep == rep & gen40pn2$Population == "GN2"] - 
+    gen40pn2$GN.M[gen40pn2$rep == rep & gen40pn2$Population == "PN2"]
+  gen40pn2$FemaleDiff[gen40pn2$rep == rep] <- gen40pn2$GN.F[gen40pn2$rep == rep & gen40pn2$Population == "GN2"] - 
+    gen40pn2$GN.F[gen40pn2$rep == rep & gen40pn2$Population == "PN2"]
+}
+gen40pn2[gen40pn2$Population == "PN2",]
+
+#significance
+gen40_t1 <- part1[part1$Generation == 40 & part1$Trait == "T1" & part1$BV == "Tbv",]
+
+gen40_t2 <- part1[part1$Generation == 40 & part1$Trait == "T2" & part1$BV == "Tbv",]
+
 part1Ma <- summarySE(data=part1M, measurevar = "value", groupvars = c("Generation", "Program", "Trait", "BV", "h2", "Population", "variable"))
 part2Ma <- summarySE(data=part2M, measurevar = "value", groupvars = c("Generation", "Program", "Trait", "BV", "h2", "Population", "variable"))
 
@@ -789,7 +821,7 @@ pedLm <- melt(pedL, id.vars = c("Program", "P"))
 head(pedLm)
 pedLm$variable <- revalue(pedLm$variable, c("TbvT1_s" = "Trait 1", "TbvT2_s" = "Trait 2", "TbvI_s" = "Index"))
 pedLm$Program <- revalue(pedLm$Program, c("GN1" = "GN", "PN1" = "PN", "GN2" = "GN", "PN2" = "PN"))
-pedLm$ProgramPaper <- ifelse(pedLm$P == "Program 1", "MaleFlow100", "MaleFlow50")
+pedLm$ProgramPaper <- ifelse(pedLm$P == "Program 1", "MaleFlow100", "MaleFlow52")
 #če imaš samo en program
 #tiff("/home/jana/Documents/PhD/Projects/inProgress/AlphaPart//Figures/Obsteter_1.tiff", res=610, width=175, height=100, units="mm")
 #če imaš oba programa (dve vrsti)
