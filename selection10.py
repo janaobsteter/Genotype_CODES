@@ -564,6 +564,8 @@ class pedigree(classPed):
 
     def set_father_catPotomca(self, FatherList, cat_potomca):
         freeRow = list(self.ped[(self.ped['Father'] == 0) & (self.ped.cat == cat_potomca)].index)[0:len(FatherList)]
+        print("Number of {} is {}".format(cat_potomca, str(len(freeRow))))
+        print("Number of {} is {}".format("fathers", str(len(FatherList))))
         self.ped.loc[freeRow, 'Father'] = FatherList
 
     def select_mother_random(self, cat, st):
@@ -748,7 +750,7 @@ class pedigree(classPed):
     #def uvozi_pb_za_bm(self):
 
     def doloci_ocete(self, stNB, potomciNPn, cak, pbUp, pripustDoz, mladiDoz, pozitivnoTestDoz, NbGenTest,
-                     EliteDamsPTBulls, EliteDamsGenBulls, EliteDamsPABulls, gen_mladi, gen_gpb,importPer = {'bm':0, 'k':0},
+                     EliteDamsPTBulls, EliteDamsGenBulls, EliteDamsPABulls, gen_mladi, gen_gpb, importPer = {'bm':0, 'k':0},
                      importBool=False, importGroup=None, FatherList=None):
 
         # NAJPREJ BM!
@@ -797,10 +799,11 @@ class pedigree(classPed):
         else:
             elita = None
 
-        self.set_father_catPotomca(elita, 'potomciNP')
+        print("določanje očetov elitnih parjenj")
+        #self.set_father_catPotomca(elita, 'potomciNP')
         StaraElita = elita
 
-        if importBool:  # povozi si spremenljivk!
+        if importBool:  # povozi si spremenljivk, če ni importa, bo ostalo od zgoraj
             if importGroup == "k":
                 if importPer["k"] == 100:
                     testiraniOce = FatherList  # v času, ko določaš potomce, so že eno leto starjši!!!
@@ -815,7 +818,9 @@ class pedigree(classPed):
                             list(np.random.choice(list(elita), int(math.floor((100 - importPer['bm']) * bmMother / 100)), replace = True))
             print("NUMBER OF FATHERS: HOME -" + str(sum([1 for x in elita if x in StaraElita])) 
                   + "IMPORT - " +str(sum([1 for x in elita if x in FatherList])))
-            self.set_father_catPotomca(elita, 'potomciNP')
+
+
+        self.set_father_catPotomca(elita, 'potomciNP')
 
         # this if for the rest of the new born population - 'mix' semen of all potential fathers
         # first - according to the given % - how many offsprign will be produced by genomically tested bulls
@@ -860,7 +865,7 @@ class pedigree(classPed):
         # if importBool == True and importGroup == "k":
         #     TujiOcetje = list(FatherList  * pozitivnoTestDoz)
         #     Ocetje = np.random.choice(list(importPer * TujiOcetje) + list((100 - importPer) * Ocetje), stNB - potomciNPn * 2)
-
+        print("DOločanje očetov navadnih parjenj")
         self.set_father_catPotomca(Ocetje, 'nr')
 
 
@@ -2284,6 +2289,7 @@ def selekcija_importOcetov(pedFile, externalPedName="ExternalPedigree", group=Fa
     # preveri - mora biti nič!!! - oz. če mater še ni dovolj, potem še ne!
     ped.mother_nr_blank()
     # dodaj očete
+    print("This is home - import fathers - selection")
     ped.doloci_ocete(kwargs.get('stNBn'), kwargs.get('potomciNPn'), kwargs.get('cak'), kwargs.get('pbUp'),
                      kwargs.get('pripustDoz'), kwargs.get('mladiDoz'), kwargs.get('pozitivnoTestDoz'),
                      kwargs.get('CowsGenBulls_Per'), kwargs.get('EliteDamsPTBulls'),
@@ -2586,6 +2592,7 @@ def selekcija_total_TGV(pedFile, externalPedName = "ExternalPedigree", group=Fal
     # preveri - mora biti nič!!! - oz. če mater še ni dovolj, potem še ne!
     ped.mother_nr_blank()
     # dodaj očete
+    print("This is TGV selection")
     ped.doloci_ocete(kwargs.get('stNBn'), kwargs.get('potomciNPn'), kwargs.get('cak'), kwargs.get('pbUp'),
                      kwargs.get('pripustDoz'), kwargs.get('mladiDoz'), kwargs.get('pozitivnoTestDoz'),
                      kwargs.get('CowsGenBulls_Per'), kwargs.get('EliteDamsPTBulls'), kwargs.get('EliteDamsGenBulls'),
@@ -2896,7 +2903,7 @@ class AlphaRelate(object):
             self.chipFile = self.AlphaSimDir + '/SimulatedData/AllIndividualsSnpChips/Chip1Genotype.txt'
             try:
                 shutil.copy(AlphaSimDir + "/IndOpt.txt", AlphaRelateDir)
-            except:ł
+            except:
                 pass
             try:
                 shutil.copy(AlphaSimDir + "/IndForGeno.txt", AlphaRelateDir)

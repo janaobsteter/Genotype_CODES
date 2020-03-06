@@ -115,7 +115,8 @@ os.system("chmod a+x AlphaSim1.08")
 os.system("chmod a+x renumf90")
 os.system("chmod a+x blupf90")
 
-parhome = pd.read_csv(WorkingDir + "/SelPar/10K/SU55SelPar/SelectionParam_" + scenario + ".csv", header=None, names=["Keys", "Vals"])parhome.to_dict()
+parhome = pd.read_csv(WorkingDir + "/SelPar/10K/SU55SelPar/SelectionParam_" + scenario + ".csv", header=None, names=["Keys", "Vals"])
+parhome.to_dict()
 selParhome = defaultdict()
 for key, val in zip(parhome.Keys, parhome.Vals):
     if key not in ['BurnInYN', 'EBV', 'gEBV', 'PA', 'AlphaSimDir', 'genotyped', 'EliteDamsPTBulls',
@@ -143,6 +144,7 @@ if selParhome['gEBV']:
 if percentageImport_k != 0 and percentageImport_bm != 0:
     selParhome['importPer'] = {'k': int(percentageImport_k), 'bm': int(percentageImport_bm)}
 
+print(selParhome)
 
 # tukaj pa še parametri za "large" population
 parimport = pd.read_csv(WorkingDir + "/SelPar/10K/SU55SelPar/SelectionParam_" + scenario + "_LargePop.csv", header=None, names=["Keys", "Vals"])
