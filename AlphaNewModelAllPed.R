@@ -20,8 +20,8 @@ homeDir = getwd()
 nGNMales   =  25
 nGNFemales = 500
 
-nPNMales       =  25
-nPNFemales     = 3000
+nPNMales       =  100
+nPNFemales     = 4500
 pPNFemalesPure = 0.16666667
 
 nGenerationBurn = 20

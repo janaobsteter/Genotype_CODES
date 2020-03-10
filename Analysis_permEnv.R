@@ -118,7 +118,7 @@ ggplot(data=phenoA, aes(x=Generation, y=zMean, group=RealSc, colour=RealSc, line
   scale_colour_manual("Number of recordings / lactation", 
                       values = c("#7dcbf5", "#62bff0", "#41b4f0", "#17a3eb", "#076ea3", "#024263", "black")) + 
   scale_fill_manual("Number of recordings / lactation", 
-                      values = c("#7dcbf5", "#62bff0", "#41b4f0", "#17a3eb", "#076ea3", "#024263", "black")) + 
+                    values = c("#7dcbf5", "#62bff0", "#41b4f0", "#17a3eb", "#076ea3", "#024263", "black")) + 
   scale_linetype_manual("", 
                         values = c("dashed", "solid")) + 
   ylab("Genetic mean") +
@@ -172,7 +172,7 @@ ggplot(data=phenoA[phenoA$Ref == "Without initial TP",], aes(x=Generation, y=zMe
   scale_colour_manual("Number of recordings / lactation", 
                       values = c("#7dcbf5", "#62bff0", "#41b4f0", "#17a3eb", "#076ea3", "#024263", "black")) + 
   scale_fill_manual("Number of recordings / lactation", 
-                      values = c("#7dcbf5", "#62bff0", "#41b4f0", "#17a3eb", "#076ea3", "#024263", "black")) + 
+                    values = c("#7dcbf5", "#62bff0", "#41b4f0", "#17a3eb", "#076ea3", "#024263", "black")) + 
   scale_linetype_manual("", 
                         values = c("dashed", "solid")) + 
   ylab("Genetic mean") +
@@ -189,7 +189,7 @@ ggplot(data=phenoA[phenoA$Ref == "Without initial TP",], aes(x=Generation, y=zMe
   scale_colour_manual("Scenarij", 
                       values = c("#7dcbf5", "#62bff0", "#41b4f0", "#17a3eb", "#076ea3", "#024263", "black")) + 
   scale_fill_manual("Scenarij", 
-                      values = c("#7dcbf5", "#62bff0", "#41b4f0", "#17a3eb", "#076ea3", "#024263", "black")) + 
+                    values = c("#7dcbf5", "#62bff0", "#41b4f0", "#17a3eb", "#076ea3", "#024263", "black")) + 
   scale_linetype_manual("", labels = c("Klasična", "Genomska"),
                         values = c("dashed", "solid")) + 
   ylab("Genetski napredek") + xlab("Generacija") +
@@ -573,14 +573,14 @@ gainrefM$scenario1 <- revalue(gainrefM$scenario, c("$G:$P = 1:1" = "$P:$G = 1:1"
 
 
 g1 <- ggplot(data=gainrefM[gainrefM$Ref == "With initial TP",], aes(x=Generation, y=value, group=RealSc, colour=RealSc, linetype = BV)) +
-    geom_line(size = 1) + 
-    theme_bw(base_size=18, base_family="sans")  + 
-    theme(legend.position="top", legend.text=element_text(size=16), legend.title=element_text(size=16),
-          axis.text = element_text(size = 16), axis.title.y = element_blank()) + 
-    scale_colour_manual("Scenario", 
-                        values = c("#7dcbf5", "#62bff0", "#41b4f0", "#17a3eb", "#076ea3", "#024263", "black")) + 
+  geom_line(size = 1) + 
+  theme_bw(base_size=18, base_family="sans")  + 
+  theme(legend.position="top", legend.text=element_text(size=16), legend.title=element_text(size=16),
+        axis.text = element_text(size = 16), axis.title.y = element_blank()) + 
+  scale_colour_manual("Scenario", 
+                      values = c("#7dcbf5", "#62bff0", "#41b4f0", "#17a3eb", "#076ea3", "#024263", "black")) + 
   scale_fill_manual("Scenario", 
-                        values = c("#7dcbf5", "#62bff0", "#41b4f0", "#17a3eb", "#076ea3", "#024263", "black")) + 
+                    values = c("#7dcbf5", "#62bff0", "#41b4f0", "#17a3eb", "#076ea3", "#024263", "black")) + 
   scale_linetype_manual("", values = c("dashed", "solid")) + xlab("Year") + 
   geom_ribbon(aes(ymin = value - SD, ymax = value + SD, fill = RealSc),  linetype = 0, alpha = 0.3) + 
   guides(linetype=guide_legend(nrow=2, keyheight = unit(.8, "cm"), keywidth = unit(2, "cm"), override.aes = list(alpha = 1, size=1.2))) +
@@ -591,14 +591,14 @@ g1 <- ggplot(data=gainrefM[gainrefM$Ref == "With initial TP",], aes(x=Generation
 #SLO
 gainrefM$variable <- revalue(gainrefM$variable, c("TP Size" = "Velikost RP", "Genetic mean" = "Genetski napredek"))
 g1 <- ggplot(data=gainrefM[gainrefM$Ref == "With initial TP",], aes(x=Generation, y=value, group=RealSc, colour=RealSc, linetype = BV)) +
-    geom_line(size = 1) + 
-    theme_bw(base_size=18, base_family="sans")  + 
-    theme(legend.position="top", legend.text=element_text(size=16), legend.title=element_text(size=16),
-          axis.text = element_text(size = 16), axis.title.y = element_blank()) + 
-    scale_colour_manual("Scenarij", 
-                        values = c("#7dcbf5", "#62bff0", "#41b4f0", "#17a3eb", "#076ea3", "#024263", "black")) + 
+  geom_line(size = 1) + 
+  theme_bw(base_size=18, base_family="sans")  + 
+  theme(legend.position="top", legend.text=element_text(size=16), legend.title=element_text(size=16),
+        axis.text = element_text(size = 16), axis.title.y = element_blank()) + 
+  scale_colour_manual("Scenarij", 
+                      values = c("#7dcbf5", "#62bff0", "#41b4f0", "#17a3eb", "#076ea3", "#024263", "black")) + 
   scale_fill_manual("Scenarij", 
-                        values = c("#7dcbf5", "#62bff0", "#41b4f0", "#17a3eb", "#076ea3", "#024263", "black")) + 
+                    values = c("#7dcbf5", "#62bff0", "#41b4f0", "#17a3eb", "#076ea3", "#024263", "black")) + 
   scale_linetype_manual("", labels = c("Klasična", "Genomska"), values = c("dashed", "solid")) + xlab("Leto") + 
   geom_ribbon(aes(ymin = value - SD, ymax = value + SD, fill = RealSc),  linetype = 0, alpha = 0.3) + 
   guides(linetype=guide_legend(nrow=2, keyheight = unit(.8, "cm"), keywidth = unit(2, "cm"), override.aes = list(alpha = 1, size=1.2))) +
@@ -682,12 +682,12 @@ ggarrange(p2, a2, widths = c(20, 20))
 
 #all
 ggplot(data=gainrefM, aes(x=Generation, y=value, group=NoControls, colour=NoControls, linetype = BV)) +
-    geom_line(size = 1) + 
-    theme_bw(base_size=18, base_family="sans")  + 
-    theme(legend.position="top", legend.text=element_text(size=16), legend.title=element_text(size=16),
-          axis.text = element_text(size = 16)) + 
-    scale_colour_manual("Number of recordings / lactation", 
-                        values = c("#7dcbf5", "#62bff0", "#41b4f0", "#17a3eb", "#076ea3", "#024263", "black")) + 
+  geom_line(size = 1) + 
+  theme_bw(base_size=18, base_family="sans")  + 
+  theme(legend.position="top", legend.text=element_text(size=16), legend.title=element_text(size=16),
+        axis.text = element_text(size = 16)) + 
+  scale_colour_manual("Number of recordings / lactation", 
+                      values = c("#7dcbf5", "#62bff0", "#41b4f0", "#17a3eb", "#076ea3", "#024263", "black")) + 
   scale_linetype_manual(values = c("dashed", "solid")) + 
   ylab("Genetic mean") +
   scale_y_continuous(sec.axis = sec_axis(~ . / 3000)) + 
@@ -802,6 +802,21 @@ CLD = cld(marginal, by="scenario",
           Letters = LETTERS,         ###  Use lowercase letters for .group
           adjust  = "tukey") 
 CLD
+
+
+#test on the last generation before the implementation of genomic selection
+TGV60_F <- pheno[pheno$scenario == "$G:$P = 1:1" & pheno$Ref == "False",]
+TGV60_F <- pheno[pheno$scenario == "$G:$P = 2:1" & pheno$Ref == "False",]
+TGV60_F <- pheno[pheno$scenario == "$G:$P = 1:2" & pheno$Ref == "False",]
+TGV60_F$Generation <- as.factor(TGV60_F$Generation)
+model_F <- lm(zMean ~ NoControls + Generation + NoControls:Generation, data=TGV60_F) #absolute
+marginal = emmeans(model_F, ~ NoControls:Generation)
+CLD = cld(marginal, by="Generation",
+          alpha   = 0.05, sort=FALSE,
+          Letters = letters,         ###  Use lowercase letters for .group
+          adjust  = "tukey") 
+CLD
+
 
 ##2. ACCURACY
 library(emmeans)
