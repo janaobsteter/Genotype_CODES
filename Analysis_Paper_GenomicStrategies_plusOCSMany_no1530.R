@@ -40,8 +40,8 @@ summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
 ######################################################################
 ################
 #Accuracy of sires in OCS
-accOCS <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/ACC_OCS.csv")
-accOCS1 <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/ACC_OCS_5055.csv")[-1,]
+accOCS <- read.csv("~/Documents/PhD/Projects/Finished//GenomicStrategies_SireUse/Results/ACC_OCS.csv")
+accOCS1 <- read.csv("~/Documents/PhD/Projects/Finished//GenomicStrategies_SireUse/Results/ACC_OCS_5055.csv")[-1,]
 accOCS <- rbind(accOCS, accOCS1)
 meanRep <- summarySE(accOCS, measurevar = "Cor", groupvars = c("Degree", "Rep"))
 meanDegree <- summarySE(meanRep, measurevar = "Cor", groupvars = "Degree")
@@ -49,7 +49,7 @@ meanDegree
 
 
 #test significance of sires accuracy
-acc <- read.csv("~/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Results/ACCAge.csv")
+acc <- read.csv("~/Documents/PhD/Projects/Finished//GenomicStrategies_SireUse/Results/ACCAge.csv")
 acc$scenario <- revalue(acc$scenario, c("Class" = "PT", "GenSLO" = "GT-PT", "OtherCowsGen" = "GT-C", "BmGen" = "GT-BD", "Gen" = "GT"))
 head(acc)
 acc$Group <- paste0(acc$strategy, acc$scenario)

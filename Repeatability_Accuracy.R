@@ -23,6 +23,11 @@ r <- function (n, h2, t)  {
   sqrt((n * h2)  / (1 + (n-1)*t) )
 }
 
+r_genomic <- function(h2, N, Me) {
+  sqrt((h2 * N) / (h2 * N + Me))
+}
+
+
 acc <- data.frame(N = NA, h2 = NA, r = NA)
 
 for (her in c(0.03, 0.1, 0.25, 0.35, 0.5)) {

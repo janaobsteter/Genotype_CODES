@@ -237,7 +237,8 @@ part2Ma$Trait <- revalue(part2Ma$Trait, c("T1" = "Trait 1", "T2" = "Trait 2", "I
 part1Ma$Population <- factor(part1Ma$Population, levels = c("Nucleus", "Multiplier"))
 part2Ma$Population <- factor(part2Ma$Population, levels = c("Nucleus", "Multiplier"))
 
-tiff("/home/jana/Documents/PhD/Projects/inProgress/AlphaPart//Figures/Obsteter_2.tiff", res=610, width=175, height=100, units="mm")
+tiff("/home/jana/Documents/PhD/Projects/inProgress/AlphaPart//Figures/Obsteter_2.tiff", res=1200, width=175, height=100, units="mm")
+tiff("/home/jana/Documents/PhD/Projects/inProgress/AlphaPart//Figures/Obsteter_2lowRes.tiff", res=400, width=175, height=100, units="mm")
 ggplot(data = part1Ma[(part1Ma$BV == "Tbv") ,],  #$& (part1Ma$variable != "PN1.M")
     aes(x=Generation, y = value, colour = variable, linetype = variable)) + 
     geom_line(size = 1, aes(linetype = variable)) + 
@@ -258,7 +259,8 @@ ggplot(data = part1Ma[(part1Ma$BV == "Tbv") ,],  #$& (part1Ma$variable != "PN1.M
     facet_grid(. ~ Population + Trait)
 dev.off()
 
-tiff("/home/jana/Documents/PhD/Projects/inProgress/AlphaPart//Figures/Obsteter_3.tiff", res=610, width=175, height=100, units="mm")
+tiff("/home/jana/Documents/PhD/Projects/inProgress/AlphaPart//Figures/Obsteter_3.tiff", res=1200, width=175, height=100, units="mm")
+tiff("/home/jana/Documents/PhD/Projects/inProgress/AlphaPart//Figures/Obsteter_3lowRes.tiff", res=400, width=175, height=100, units="mm")
 ggplot(data = part2Ma[(part2Ma$BV == "Tbv"),], 
     aes(x=Generation, y = value, colour = variable, linetype = variable)) + 
     geom_line(size = 1, aes(linetype = variable)) + 
@@ -279,7 +281,28 @@ ggplot(data = part2Ma[(part2Ma$BV == "Tbv"),],
     facet_grid(. ~ Population + Trait)
 dev.off()
 
-tiff("/home/jana/Documents/PhD/Projects/inProgress/AlphaPart//Figures/ObsteterLarge_3.tiff", res=610, width=300, height=200, units="mm")
+tiff("/home/jana/Documents/PhD/Projects/inProgress/AlphaPart//Figures/Obsteter_3partial.tiff", res=1200, width=175, height=100, units="mm")
+ggplot(data = part2Ma[(part2Ma$BV == "Tbv" & part2Ma$Trait == "Trait 1"),], 
+    aes(x=Generation, y = value, colour = variable, linetype = variable)) + 
+    geom_line(size = 1, aes(linetype = variable)) + 
+    #ggtitle("Program 2") +  
+    geom_ribbon(data = part2Ma[(part2Ma$BV == "Tbv" & part2Ma$Trait == "Trait 1"),], aes(ymin = min, ymax = max, x = Generation, fill = variable), linetype = 0, alpha = 0.3) + 
+  scale_colour_manual("\n\nSelection path", values=c("black", "#bd0b58", "#3ea4ed", "#bd0b58", "#3ea4ed"), 
+                      labels = c("Total", "Nucleus\nfemales", "Nucleus\nmales", "Multiplier\nfemales", "Multiplier\nmales")) +
+  scale_fill_manual("\n\nSelection path", values=c("black", "#bd0b58", "#3ea4ed", "#bd0b58", "#3ea4ed"), 
+                    labels = c("Total", "Nucleus\nfemales", "Nucleus\nmales", "Multiplier\nfemales", "Multiplier\nmales")) + 
+  scale_linetype_manual("\n\nSelection path", values = c("solid", "solid", "solid", "twodash", "twodash"), 
+                        labels = c("Total", "Nucleus\nfemales", "Nucleus\nmales", "Multiplier\nfemales", "Multiplier\nmales")) +
+    ylab("Genetic trend") + 
+  theme_bw(base_size=10, base_family="Arial") + theme(legend.position="top", legend.text=element_text(size=10), legend.title=element_text(size=12), 
+                                                      axis.text=element_text(size=10),
+                                                      axis.title=element_text(size=12), strip.text = element_text(size = 10)) + 
+    scale_y_continuous(breaks = seq(0, 12, 3)) + 
+    guides(colour = guide_legend(keywidth = unit(2.5, "cm"), label.position =  "top")) +
+    facet_grid(. ~ Population )
+dev.off()
+
+tiff("/home/jana/Documents/PhD/Projects/inProgress/AlphaPart//Figures/ObsteterLarge_3.tiff", res=1200, width=300, height=200, units="mm")
 ggplot(data = part2Ma[(part2Ma$BV == "Tbv"),], 
     aes(x=Generation, y = value, colour = variable, linetype = variable)) + 
     geom_line(size = 1, aes(linetype = variable)) + 
@@ -821,11 +844,12 @@ pedLm <- melt(pedL, id.vars = c("Program", "P"))
 head(pedLm)
 pedLm$variable <- revalue(pedLm$variable, c("TbvT1_s" = "Trait 1", "TbvT2_s" = "Trait 2", "TbvI_s" = "Index"))
 pedLm$Program <- revalue(pedLm$Program, c("GN1" = "GN", "PN1" = "PN", "GN2" = "GN", "PN2" = "PN"))
-pedLm$ProgramPaper <- ifelse(pedLm$P == "Program 1", "MaleFlow100", "MaleFlow52")
+pedLm$ProgramPaper <- ifelse(pedLm$P == "Program 1", "MaleFlow100", "MaleFlow20")
 #če imaš samo en program
 #tiff("/home/jana/Documents/PhD/Projects/inProgress/AlphaPart//Figures/Obsteter_1.tiff", res=610, width=175, height=100, units="mm")
 #če imaš oba programa (dve vrsti)
-tiff("/home/jana/Documents/PhD/Projects/inProgress/AlphaPart//Figures/Obsteter_1.tiff", res=610, width=175, height=120, units="mm")
+tiff("/home/jana/Documents/PhD/Projects/inProgress/AlphaPart//Figures/Obsteter_1.tiff", res=1200, width=175, height=120, units="mm")
+tiff("/home/jana/Documents/PhD/Projects/inProgress/AlphaPart//Figures/Obsteter_1lowRes.tiff", res=400, width=175, height=120, units="mm")
 ggplot(pedLm, aes(x = value, group = Program, linetype = Program)) + geom_density() +  #, ((..count..)/sum(..count..)))
   facet_grid(rows = vars(ProgramPaper), cols = vars(variable)) + 
   ylab("Density") + 
