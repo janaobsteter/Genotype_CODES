@@ -1,4 +1,7 @@
-
+library(plyr)
+library(dplyr)
+library(ggplot2)
+library(reshape)
 ################
 #Funkcija summarySE
 #####################
@@ -354,6 +357,10 @@ accPlot$AgeCat <- revalue(accPlot$AgeCat, c("genTest1" = "Male candidates", "tel
                                             "pb9" = "Fathers", 
                                             "vhlevljeni1" = "Male candidates1",
                                             "cak5" = "Male candidates"))
+accPlot$NoControl <- as.character(accPlot$NoControl)
+#accPlot$NoControl[accPlot$AgeCat == "Male candidates1"] <- "111"
+accPlot$NoControl <- as.factor(accPlot$NoControl)
+table(accPlot$NoControl)
 accA <- summarySE(data = accPlot, measurevar = "Cor", groupvars = c("AgeCat", "NoControl", "gp", "Ref", "Rep"))
 accA <- summarySE(data = accA, measurevar = "Cor", groupvars = c("AgeCat", "NoControl", "gp", "Ref"))
 accPlotA <- accA
@@ -387,6 +394,8 @@ accPlotA$Ref <- revalue(accPlotA$Ref, c("True" = "With initial TP", "False" = "W
 
 accPlotA$Cor <- round(accPlotA$Cor, 2)
 accPlotA$sd <- round(accPlotA$sd, 2)
+accPlotA$ci <- round(accPlotA$ci, 2)
+table(accPlotA$NoControl)
 accPlotA[accPlotA$Ref  == "With initial TP" & accPlotA$gp == "$G:$P = 1:1",]
 accPlotA[accPlotA$Ref  == "With initial TP" & accPlotA$gp == "$G:$P = 2:1",]
 accPlotA[accPlotA$Ref  == "With initial TP" & accPlotA$gp == "$G:$P = 1:2",]
@@ -396,7 +405,7 @@ accPlotA[accPlotA$Ref  == "Without initial TP" & accPlotA$gp == "$G:$P = 1:2",]
 
 accPlotA$RealSc <- ifelse(accPlotA$NoControl != 11, paste0("G", accPlotA$NoControl), paste0("C", accPlotA$NoControl))
 #accPlotA$RealSc <- factor(accPlotA$RealSc, levels = c("G1", "G2", "G5", "G8", "G9", "G10", "C11"))
-accPlotA$RealSc <- factor(accPlotA$RealSc, levels = c("C11", "G10", "G9", "G8", "G5", "G2", "G1"))
+#accPlotA$RealSc <- factor(accPlotA$RealSc, levels = c("C111", "C11", "G10", "G9", "G8", "G5", "G2", "G1"))
 
 accPlotA$TPLabel <- ifelse(accPlotA$Ref == "With initial TP", "a", "b")
 
@@ -406,35 +415,21 @@ accPlotA$shape <- ifelse(accPlotA$AgeCat == "Male candidates1", "Preselection st
 table(accPlotA$shape)
 accPlotA$shape <- as.factor(accPlotA$shape)
 accPlotA$AgeCat[accPlotA$AgeCat == "Male candidates1"] <- "Male candidates"
-ggplot() + #
-  geom_point(data=accPlotA[accPlotA$gp == "$G:$P = 1:1" & accPlotA$TPLabel == "a",], aes(x=RealSc, y=Cor, group=AgeCat, colour=AgeCat, shape = shape), size = 3, stroke = 1)  +  
-  geom_line(data=accPlotA[accPlotA$gp == "$G:$P = 1:1" & accPlotA$TPLabel == "a" & accPlotA$NoControl !=11,], aes(x=RealSc, y=Cor, group=AgeCat, colour=AgeCat, linetype = AgeCat), size = 1) + 
-  theme_bw(base_size=18, base_family="sans")  + 
-  theme(legend.box = "vertical", legend.position="top", legend.text=element_text(size=16), legend.title=element_text(size=16),
-        axis.text = element_text(size = 16), axis.title = element_text(size = 16)) + 
-  #geom_errorbar(aes(ymin = Cor - sd, ymax = Cor + sd), alpha = 0.5) + 
-  scale_colour_manual("", 
-                      values = c("skyblue2", "#e57691", "#0a488e", "#8e0a2a"),
-                      breaks =  c("Male candidates",  "Female candidates",   "Fathers", "Mothers" ),
-                      labels = c("Male candidates", "Female candidates", "Sires", "Dams")) + 
-  scale_linetype_manual("", values=c("solid", "dashed", "solid", "dashed"),
-                        breaks =  c("Male candidates",  "Female candidates",   "Fathers", "Mothers" ),
-                        labels = c("Male candidates", "Female candidates", "Sires", "Dams")) +
-  scale_shape_manual("", labels = c("Pre-selection", "Selection"), values = c(1, 16)) +
-  ylab("Accuracy") + xlab("Scenario") + 
-  guides(colour=guide_legend(nrow=2, keywidth = unit(2, "cm"), keyheight = unit(0.8, "cm"),override.aes = list(alpha = 1, size=1.2))) +
-  guides(shape=guide_legend(nrow=1, keyheight = unit(0, "cm"))) +
-  #facet_grid(. ~  TPLabel) +   
-  theme(strip.text = element_text(size = 16))
+accPlotA$RealSc <- factor(accPlotA$RealSc, level = c("C11", paste0("G", c(10, 9, 8, 5, 2, 1))))
 
-#without initial TP
-acc2 <- ggplot() + #
-  geom_point(data=accPlotA[accPlotA$gp == "$G:$P = 1:1" & accPlotA$Ref == "Without initial TP",], aes(x=RealSc, y=Cor, group=AgeCat, colour=AgeCat, shape = shape), size = 3, stroke = 1)  +  
-  geom_line(data=accPlotA[accPlotA$gp == "$G:$P = 1:1" & accPlotA$Ref == "Without initial TP" & accPlotA$NoControl !=11,], aes(x=RealSc, y=Cor, group=AgeCat, colour=AgeCat, linetype = AgeCat), size = 1) + 
+tiff("/home/jana/Documents/PhD/Projects/inProgress/Phenotyping/Figures/Obsteter_2.tiff", res=1200, width=85, height=120, units="mm")
+ggplot() + #
+  geom_point(data=accPlotA[accPlotA$gp == "$G:$P = 1:1" & accPlotA$TPLabel == "a",], 
+             aes(x=RealSc, y=Cor, group=AgeCat, colour=AgeCat, shape = shape), size = 1.5, stroke = 1)  +  
+  geom_line(data=accPlotA[accPlotA$gp == "$G:$P = 1:1" & accPlotA$TPLabel == "a" & accPlotA$NoControl !=11,], 
+            aes(x=RealSc, y=Cor, group=AgeCat, colour=AgeCat, linetype = AgeCat), size = 1) + 
   theme_bw(base_size=18, base_family="sans")  + 
-  theme(legend.box = "vertical", legend.position="top", legend.text=element_text(size=16), legend.title=element_text(size=16),
-        axis.text = element_text(size = 16), axis.title = element_text(size = 16)) + 
-  #geom_errorbar(aes(ymin = Cor - sd, ymax = Cor + sd), alpha = 0.5) + 
+  theme(legend.box = "vertical", legend.position="top", legend.text=element_text(size=10), legend.title=element_text(size=10),
+        axis.text = element_text(size = 10), axis.title = element_text(size = 10), 
+        legend.margin=margin(0,0,0,0),
+        legend.box.margin=margin(-5,-10,-10,-10)) + 
+  geom_errorbar(data=accPlotA[accPlotA$gp == "$G:$P = 1:1" & accPlotA$Ref == "With initial TP",], 
+                aes(x=RealSc, y=Cor, ymin = Cor - ci, ymax = Cor + ci, colour=AgeCat), alpha = 0.5) + 
   scale_colour_manual("", 
                       values = c("skyblue2", "#e57691", "#0a488e", "#8e0a2a"),
                       breaks =  c("Male candidates",  "Female candidates",   "Fathers", "Mothers" ),
@@ -442,11 +437,38 @@ acc2 <- ggplot() + #
   scale_linetype_manual("", values=c("solid", "dashed", "solid", "dashed"),
                         breaks =  c("Male candidates",  "Female candidates",   "Fathers", "Mothers" ),
                         labels = c("Male\ncandidates", "Female\ncandidates", "Sires", "Dams")) +
-  scale_shape_manual("", labels = c("Pre-selection stage", "Selection stage"), values = c(1, 16)) +
+  scale_shape_manual("", labels = c("Pre-selection", "Selection"), values = c(1, 16)) +
   ylab("Accuracy") + xlab("Scenario") + 
-  guides(shape=guide_legend(nrow=1, keyheight = unit(1, "cm"))) +
-  guides(colour=guide_legend(nrow=2, keywidth = unit(1.5, "cm"), keyheight = unit(1.5, "cm"),override.aes = list(alpha = 1, size=1.2))) +
-  theme(strip.text = element_text(size = 16))
+  guides(shape=guide_legend(nrow=1, keyheight = unit(0, "cm"))) +
+  guides(colour=guide_legend(nrow=2, keywidth = unit(1.5, "cm"), keyheight = unit(1, "cm"),override.aes = list(alpha = 1, size=1.2))) +
+  theme(strip.text = element_text(size = 10))
+dev.off()
+#without initial TP
+accPlotA$RealSc <- factor(accPlotA$RealSc, level = c("C11", paste0("G", c(10, 9, 8, 5, 2, 1))))
+acc2 <- ggplot() + #
+  geom_point(data=accPlotA[accPlotA$gp == "$G:$P = 1:1" & accPlotA$Ref == "Without initial TP",], 
+             aes(x=RealSc, y=Cor, group=AgeCat, colour=AgeCat, shape = shape), size = 1.5, stroke = 1)  +  
+  geom_line(data=accPlotA[accPlotA$gp == "$G:$P = 1:1" & accPlotA$Ref == "Without initial TP" & accPlotA$NoControl !=11,], 
+            aes(x=RealSc, y=Cor, group=AgeCat, colour=AgeCat, linetype = AgeCat), size = 1) + 
+  theme_bw(base_size=18, base_family="sans")  + 
+  theme(legend.box = "vertical", legend.position="top", legend.text=element_text(size=10), legend.title=element_text(size=10),
+        axis.text = element_text(size = 10), axis.title = element_text(size = 10), 
+        legend.margin=margin(0,0,0,0),
+        legend.box.margin=margin(-5,-10,-10,-10)) + 
+  geom_errorbar(data=accPlotA[accPlotA$gp == "$G:$P = 1:1" & accPlotA$Ref == "Without initial TP",], 
+                aes(x=RealSc, y=Cor, ymin = Cor - ci, ymax = Cor + ci, colour=AgeCat), alpha = 0.5) + 
+  scale_colour_manual("", 
+                      values = c("skyblue2", "#e57691", "#0a488e", "#8e0a2a"),
+                      breaks =  c("Male candidates",  "Female candidates",   "Fathers", "Mothers" ),
+                      labels = c("Male\ncandidates", "Female\ncandidates", "Sires", "Dams")) + 
+  scale_linetype_manual("", values=c("solid", "dashed", "solid", "dashed"),
+                        breaks =  c("Male candidates",  "Female candidates",   "Fathers", "Mothers" ),
+                        labels = c("Male\ncandidates", "Female\ncandidates", "Sires", "Dams")) +
+  scale_shape_manual("", labels = c("Pre-selection", "Selection"), values = c(1, 16)) +
+  ylab("Accuracy") + xlab("Scenario") + 
+  guides(shape=guide_legend(nrow=1, keyheight = unit(0, "cm"))) +
+  guides(colour=guide_legend(nrow=2, keywidth = unit(1.5, "cm"), keyheight = unit(1, "cm"),override.aes = list(alpha = 1, size=1.2))) +
+  theme(strip.text = element_text(size = 10))
 
 #just for Ref = True
 # & accPlot$NoControl != 11,
@@ -546,11 +568,11 @@ colnames(refsizeM)[7] <- "TPSize"
 gainref <- merge(phenoA[,c("Generation", "Ref", "NoControls", "scenario", "zMean")], 
                  refsizeM[,c("Generation", "Ref", "NoControls", "TPSize", "scenario")], by=c("Generation", "Ref", "NoControls", "scenario"), all.x = TRUE)
 gainrefM <- melt(gainref, id.vars = c("Generation", "Ref", "NoControls", "scenario"))
-gainrefSD <- phenoA[,c("Generation", "Ref", "NoControls", "scenario", "sd")] 
+gainrefSD <- phenoA[,c("Generation", "Ref", "NoControls", "scenario", "ci")] 
 gainrefSD$variable ="zMean"
 gainrefSDM <- melt(gainrefSD, id.vars = c("Generation", "Ref", "NoControls", "scenario", "variable"))
 gainrefSDM <- gainrefSDM[,-6]
-colnames(gainrefSDM)[6] <- "SD"
+colnames(gainrefSDM)[6] <- "CI"
 
 table(gainrefM$variable)
 table(gainrefSDM$variable)
@@ -573,89 +595,100 @@ gainrefM$scenario1 <- revalue(gainrefM$scenario, c("$G:$P = 1:1" = "$P:$G = 1:1"
 
 
 g1 <- ggplot(data=gainrefM[gainrefM$Ref == "With initial TP",], aes(x=Generation, y=value, group=RealSc, colour=RealSc, linetype = BV)) +
-  geom_line(size = 1) + 
-  theme_bw(base_size=18, base_family="sans")  + 
-  theme(legend.position="top", legend.text=element_text(size=16), legend.title=element_text(size=16),
-        axis.text = element_text(size = 16), axis.title.y = element_blank()) + 
+  theme_bw(base_size=10, base_family="sans")  + 
+  theme(legend.position="top", legend.text=element_text(size=10), legend.title=element_text(size=12),
+        axis.text = element_text(size = 10), axis.title = element_text(size = 12), axis.title.y = element_blank(),
+        legend.margin=margin(0,0,0,0),
+        legend.box.margin=margin(-5,-10,-10,-10)
+        ) + 
   scale_colour_manual("Scenario", 
                       values = c("#7dcbf5", "#62bff0", "#41b4f0", "#17a3eb", "#076ea3", "#024263", "black")) + 
   scale_fill_manual("Scenario", 
                     values = c("#7dcbf5", "#62bff0", "#41b4f0", "#17a3eb", "#076ea3", "#024263", "black")) + 
   scale_linetype_manual("", values = c("dashed", "solid")) + xlab("Year") + 
-  geom_ribbon(aes(ymin = value - SD, ymax = value + SD, fill = RealSc),  linetype = 0, alpha = 0.3) + 
-  guides(linetype=guide_legend(nrow=2, keyheight = unit(.8, "cm"), keywidth = unit(2, "cm"), override.aes = list(alpha = 1, size=1.2))) +
-  guides(colour=guide_legend(byrow = TRUE, nrow=2, keywidth = unit(1.2, "cm"),override.aes = list(alpha = 1, size=1.2))) +
-  facet_grid(rows=vars(variable), cols=vars(scenario1), scales = "free_y")+
-  theme(strip.text = element_text(size = 16))
-
-#SLO
-gainrefM$variable <- revalue(gainrefM$variable, c("TP Size" = "Velikost RP", "Genetic mean" = "Genetski napredek"))
-g1 <- ggplot(data=gainrefM[gainrefM$Ref == "With initial TP",], aes(x=Generation, y=value, group=RealSc, colour=RealSc, linetype = BV)) +
+  geom_ribbon(aes(ymin = value - CI, ymax = value + CI, fill = RealSc),  linetype = 0, alpha = 0.3) + 
   geom_line(size = 1) + 
-  theme_bw(base_size=18, base_family="sans")  + 
-  theme(legend.position="top", legend.text=element_text(size=16), legend.title=element_text(size=16),
-        axis.text = element_text(size = 16), axis.title.y = element_blank()) + 
-  scale_colour_manual("Scenarij", 
-                      values = c("#7dcbf5", "#62bff0", "#41b4f0", "#17a3eb", "#076ea3", "#024263", "black")) + 
-  scale_fill_manual("Scenarij", 
-                    values = c("#7dcbf5", "#62bff0", "#41b4f0", "#17a3eb", "#076ea3", "#024263", "black")) + 
-  scale_linetype_manual("", labels = c("Klasična", "Genomska"), values = c("dashed", "solid")) + xlab("Leto") + 
-  geom_ribbon(aes(ymin = value - SD, ymax = value + SD, fill = RealSc),  linetype = 0, alpha = 0.3) + 
-  guides(linetype=guide_legend(nrow=2, keyheight = unit(.8, "cm"), keywidth = unit(2, "cm"), override.aes = list(alpha = 1, size=1.2))) +
-  guides(colour=guide_legend(byrow = TRUE, nrow=2, keywidth = unit(1.2, "cm"),override.aes = list(alpha = 1, size=1.2))) +
+  guides(linetype=guide_legend(nrow=2, keyheight = unit(.8, "cm"), keywidth = unit(2, "cm"), 
+                               label.position = "left", override.aes = list(alpha = 1, size=1.2))) +
+  guides(colour=guide_legend(byrow = TRUE, nrow=2, keywidth = unit(1.2, "cm"),label.position = "left", override.aes = list(alpha = 1, size=1.2))) +
   facet_grid(rows=vars(variable), cols=vars(scenario1), scales = "free_y")+
-  theme(strip.text = element_text(size = 16))
-
+  theme(strip.text = element_text(size = 12))
+#dev.off()
+#SLO
+# gainrefM$variable <- revalue(gainrefM$variable, c("TP Size" = "Velikost RP", "Genetic mean" = "Genetski napredek"))
+# g1 <- ggplot(data=gainrefM[gainrefM$Ref == "With initial TP",], aes(x=Generation, y=value, group=RealSc, colour=RealSc, linetype = BV)) +
+#   geom_line(size = 1) + 
+#   theme_bw(base_size=18, base_family="sans")  + 
+#   theme(legend.position="top", legend.text=element_text(size=16), legend.title=element_text(size=16),
+#         axis.text = element_text(size = 16), axis.title.y = element_blank()) + 
+#   scale_colour_manual("Scenarij", 
+#                       values = c("#7dcbf5", "#62bff0", "#41b4f0", "#17a3eb", "#076ea3", "#024263", "black")) + 
+#   scale_fill_manual("Scenarij", 
+#                     values = c("#7dcbf5", "#62bff0", "#41b4f0", "#17a3eb", "#076ea3", "#024263", "black")) + 
+#   scale_linetype_manual("", labels = c("Klasična", "Genomska"), values = c("dashed", "solid")) + xlab("Leto") + 
+#   geom_ribbon(aes(ymin = value - SD, ymax = value + SD, fill = RealSc),  linetype = 0, alpha = 0.3) + 
+#   guides(linetype=guide_legend(nrow=2, keyheight = unit(.8, "cm"), keywidth = unit(2, "cm"), override.aes = list(alpha = 1, size=1.2))) +
+#   guides(colour=guide_legend(byrow = TRUE, nrow=2, keywidth = unit(1.2, "cm"),override.aes = list(alpha = 1, size=1.2))) +
+#   facet_grid(rows=vars(variable), cols=vars(scenario1), scales = "free_y")+
+#   theme(strip.text = element_text(size = 16))
 #########################
 G1 <- ggplotGrob(g1)
 G1$heights
 G1$heights[[10]] <- unit(5, "null")
 G1$heights[[12]] <- unit(3, "null")
 library(grid)
-grid.draw(G1)
 
+tiff("/home/jana/Documents/PhD/Projects/inProgress/Phenotyping/Figures/Obsteter_1.tiff", res=1200, width=170, height=120, units="mm")
+grid.draw(G1)
+dev.off()
 
 #ref == no
 gainrefM$value[gainrefM$Ref == "Without initial TP" & gainrefM$Generation == 40 & gainrefM$variable == "TP Size"] <- 0
-g2 <- ggplot(data=gainrefM[gainrefM$Ref == "Without initial TP" & gainrefM$scenario == "$G:$P = 1:1",], aes(x=Generation, y=value, group=RealSc, colour=RealSc, linetype = BV)) + 
-  geom_line(size = 1) + 
+g2 <- ggplot(data=gainrefM[gainrefM$Ref == "Without initial TP" & gainrefM$scenario == "$G:$P = 1:1",], 
+             aes(x=Generation, y=value, group=RealSc, colour=RealSc, linetype = BV)) + 
   theme_bw(base_size=18, base_family="sans")  + 
-  theme(legend.box = "vertical", legend.position="top", legend.text=element_text(size=16), legend.title=element_text(size=16),
-        axis.text = element_text(size = 16),  axis.title.y = element_blank()) + 
+  theme(legend.box = "vertical", legend.position="top", legend.text=element_text(size=10), legend.title=element_text(size=10),
+        axis.text = element_text(size = 10), axis.title = element_text(size = 10),  axis.title.y = element_blank(), legend.spacing.y = unit(0, "cm"),
+        legend.margin=margin(0,0,0,0),
+        legend.box.margin=margin(-5,-10,-10,-10)) + 
   scale_colour_manual("Scenario", 
                       values = c("#7dcbf5", "#62bff0", "#41b4f0", "#17a3eb", "#076ea3", "#024263", "black")) + 
   scale_fill_manual("Scenario", 
                     values = c("#7dcbf5", "#62bff0", "#41b4f0", "#17a3eb", "#076ea3", "#024263", "black")) + 
   scale_linetype_manual("", values = c("dashed", "solid")) + 
   ylab("Genetic mean") +xlab("Year") + 
-  geom_hline(data = gainrefM[gainrefM$Ref == "Without initial TP" & gainrefM$variable == "TP Size" & gainrefM$scenario == "$G:$P = 1:1",], aes(yintercept = 2000), colour = "red", size = 1) + 
-  geom_ribbon(aes(ymin = value - SD, ymax = value + SD, fill = RealSc),  linetype = 0, alpha = 0.3) + 
-  guides(linetype=guide_legend(nrow=1, keywidth = unit(1.2, "cm"), keyheight = unit(0.3, "cm"), override.aes = list(alpha = 1, size=1.2))) +
+  geom_ribbon(aes(ymin = value - CI, ymax = value + CI, fill = RealSc),  linetype = 0, alpha = 0.3) + 
+  geom_line(size = 1) + 
+  geom_hline(data = gainrefM[gainrefM$Ref == "Without initial TP" & gainrefM$variable == "TP Size" & gainrefM$scenario == "$G:$P = 1:1",], 
+             aes(yintercept = 2000), colour = "red", size = 1) + 
+  guides(linetype=guide_legend(nrow=1, keywidth = unit(1.2, "cm"), keyheight = unit(1, "cm"), override.aes = list(alpha = 1, size=1.2))) +
   guides(colour=guide_legend(byrow = TRUE,nrow=2, keywidth = unit(0.5, "cm"), override.aes = list(alpha = 1, size=1.2))) +
   facet_grid(rows=vars(variable), scales = "free_y") +
-  theme(strip.text = element_text(size = 16))
+  theme(strip.text = element_text(size = 10))
 ###################################3
 #SLO
-gainrefM$value[gainrefM$Ref == "Without initial TP" & gainrefM$Generation == 40 & gainrefM$variable == "Velikost RP"] <- 0
-
-gainrefM$variable <- revalue(gainrefM$variable, c("TP Size" = "Velikost RP", "Genetic mean" = "Genetski napredek"))
-g2 <- ggplot(data=gainrefM[gainrefM$Ref == "Without initial TP",], aes(x=Generation, y=value, group=RealSc, colour=RealSc, linetype = BV)) +
-  geom_line(size = 1) + 
-  theme_bw(base_size=18, base_family="sans")  + 
-  theme(legend.box = "horizontal", legend.position="top", legend.text=element_text(size=16), legend.title=element_text(size=16),
-        axis.text = element_text(size = 16), axis.title.y = element_blank()) + 
-  scale_colour_manual("Scenarij", 
-                      values = c("#7dcbf5", "#62bff0", "#41b4f0", "#17a3eb", "#076ea3", "#024263", "black")) + 
-  scale_fill_manual("Scenarij", 
-                    values = c("#7dcbf5", "#62bff0", "#41b4f0", "#17a3eb", "#076ea3", "#024263", "black")) + 
-  scale_linetype_manual("", labels = c("Klasična", "Genomska"), values = c("dashed", "solid")) + xlab("Leto") + 
-  geom_ribbon(aes(ymin = value - SD, ymax = value + SD, fill = RealSc),  linetype = 0, alpha = 0.3) + 
-  geom_hline(data = gainrefM[gainrefM$Ref == "Without initial TP" & gainrefM$variable == "Velikost RP" ,], aes(yintercept = 2000), colour = "red", size = 1) + 
-  
-  guides(linetype=guide_legend(nrow=2, keyheight = unit(.8, "cm"), keywidth = unit(2, "cm"), override.aes = list(alpha = 1, size=1.2))) +
-  guides(colour=guide_legend(byrow = TRUE, nrow=2, keywidth = unit(1.2, "cm"),override.aes = list(alpha = 1, size=1.2))) +
-  facet_grid(rows=vars(variable), scales = "free_y")+
-  theme(strip.text = element_text(size = 16))
+# gainrefM$value[gainrefM$Ref == "Without initial TP" & gainrefM$Generation == 40 & gainrefM$variable == "Velikost RP"] <- 0
+# 
+# gainrefM$variable <- revalue(gainrefM$variable, c("TP Size" = "Velikost RP", "Genetic mean" = "Genetski napredek"))
+# g2 <- ggplot(data=gainrefM[gainrefM$Ref == "Without initial TP",], aes(x=Generation, y=value, group=RealSc, colour=RealSc, linetype = BV)) +
+#   geom_line(size = 1) + 
+#   theme_bw(base_size=10, base_family="sans")  + 
+#   theme(legend.box = "horizontal", legend.position="top", legend.text=element_text(size=10), legend.title=element_text(size=10),
+#         axis.text = element_text(size = 10), axis.title = element_text(size = 10), axis.title.y = element_blank(),
+#         legend.margin=margin(0,0,0,0),
+#         legend.box.margin=margin(-10,-10,-10,-10)) + 
+#   scale_colour_manual("Scenarij", 
+#                       values = c("#7dcbf5", "#62bff0", "#41b4f0", "#17a3eb", "#076ea3", "#024263", "black")) + 
+#   scale_fill_manual("Scenarij", 
+#                     values = c("#7dcbf5", "#62bff0", "#41b4f0", "#17a3eb", "#076ea3", "#024263", "black")) + 
+#   scale_linetype_manual("", labels = c("Klasična", "Genomska"), values = c("dashed", "solid")) + xlab("Leto") + 
+#   geom_ribbon(aes(ymin = value - SD, ymax = value + SD, fill = RealSc),  linetype = 0, alpha = 0.3) + 
+#   geom_hline(data = gainrefM[gainrefM$Ref == "Without initial TP" & gainrefM$variable == "Velikost RP" ,], aes(yintercept = 2000), colour = "red", size = 1) + 
+#   
+#   guides(linetype=guide_legend(nrow=2, keyheight = unit(0, "cm"), keywidth = unit(2, "cm"), override.aes = list(alpha = 1, size=1.2))) +
+#   guides(colour=guide_legend(byrow = TRUE, nrow=2, keywidth = unit(1.2, "cm"),override.aes = list(alpha = 1, size=1.2))) +
+#   facet_grid(rows=vars(variable), scales = "free_y")+
+#   theme(strip.text = element_text(size = 10))
 #############
 G2<- ggplotGrob(g2)
 G2$heights
@@ -671,12 +704,15 @@ p2 <- as_ggplot(G2)
 ACC2 <- ggplotGrob(acc2)
 ACC2$height
 #ACC2$heights[[5]] <- unit(3, "null")
-ACC2$heights[[3]] <- unit(0.2, "null")
-ACC2$heights[[12]] <- unit(0.1, "null")
+ACC2$heights[[3]] <- unit(0, "null")
+ACC2$heights[[12]] <- unit(0, "null")
 grid.draw(ACC2)
 
 a2 <- as_ggplot(ACC2)
+tiff("/home/jana/Documents/PhD/Projects/inProgress/Phenotyping/Figures/Obsteter_3.tiff", res=1200, width=170, height=120, units="mm")
+
 ggarrange(p2, a2, widths = c(20, 20))
+dev.off()
 
 
 
@@ -824,20 +860,23 @@ accPlot$gp <- as.factor(accPlot$gp)
 
 #ref = YES
 accPlotS <- accPlot[accPlot$Ref == "True" & accPlot$gp == "$G:$P = 2:1",]
+#accPlotS <- accPlotS[accPlotS$NoControl != 11,]
+#accPlotS$NoControl[accPlotS$NoControl == 111] <- 11
+accPlotS$AgeCat[accPlotS$AgeCat == "Male candidates1"] <- "Male candidates"
+accPlotS$NoControl <- factor(accPlotS$NoControl, levels = c(1, 2, 5, 8, 9, 10, 11, 111))
 accPlotS <- accPlot[accPlot$Ref == "True" & accPlot$gp == "$G:$P = 1:1",]
 accPlotS <- accPlot[accPlot$Ref == "True" & accPlot$gp == "$G:$P = 1:2",]
 accPlotS <- accPlot[accPlot$Ref == "False" & accPlot$gp == "$G:$P = 2:1",]
 accPlotS <- accPlot[accPlot$Ref == "False" & accPlot$gp == "$G:$P = 1:1",]
 accPlotS <- accPlot[accPlot$Ref == "False" & accPlot$gp == "$G:$P = 1:2",]
+#between different cost ratios
+accPlotS <- accPlot[accPlot$Ref == "True",]
 accPlotS <- summarySE(accPlotS, measurevar = "Cor", groupvars = c("AgeCat", "NoControl", "Rep"))
 
-accPlotS <- accPlot[accPlot$Ref == "True" & accPlot$AgeCat == "Male candidates",]
-accPlotS <- accPlot[accPlot$Ref == "True" & accPlot$AgeCat == "Male candidates",]
-accPlotS <- summarySE(accPlotS, measurevar = "Cor", groupvars = c("NoControl", "Rep", "gp"))
+
+
 
 #accPlotS <- accPlot[accPlot$gp == "$G:$P = 1:1",]
-
-
 model_T <- lm(Cor ~ NoControl +AgeCat + AgeCat:NoControl, data=accPlotS) #absolute
 marginal = emmeans(model_T, ~ AgeCat:NoControl)
 CLD = cld(marginal, by="AgeCat", reverse = TRUE,
@@ -845,6 +884,22 @@ CLD = cld(marginal, by="AgeCat", reverse = TRUE,
           Letters = letters,         ###  Use lowercase letters for .group
           adjust  = "tukey") 
 CLD
+
+
+#By agegroup, within true /False
+accPlotS$NoControl <- as.factor(accPlotS$NoControl)
+accPlotS <- accPlot[accPlot$Ref == "True" & accPlot$AgeCat %in% c("Male candidates","Male candidates1"),]
+accPlotS$AgeCat <- "Male candidates"
+accPlotS <- accPlot[accPlot$Ref == "True" & accPlot$AgeCat == "Female candidates",]
+accPlotS <- accPlot[accPlot$Ref == "True" & accPlot$AgeCat == "Mothers",]
+accPlotS <- accPlot[accPlot$Ref == "True" & accPlot$AgeCat == "Fathers",]
+accPlotS <- accPlot[accPlot$Ref == "False" & accPlot$AgeCat %in% c("Male candidates","Male candidates1"),]
+accPlotS$AgeCat <- "Male candidates"
+accPlotS <- accPlot[accPlot$Ref == "False" & accPlot$AgeCat == "Female candidates",]
+accPlotS <- accPlot[accPlot$Ref == "False" & accPlot$AgeCat == "Mothers",]
+accPlotS <- accPlot[accPlot$Ref == "False" & accPlot$AgeCat == "Fathers",]
+accPlotS <- summarySE(accPlotS, measurevar = "Cor", groupvars = c("NoControl", "Rep", "gp"))
+accPlotS$NoControl <- factor(accPlotS$NoControl, levels = c(1, 2, 5, 8, 9, 10, 11, 111))
 
 accPlotS$gp <- factor(accPlotS$gp, levels = c("$G:$P = 2:1","$G:$P = 1:1","$G:$P = 1:2"))
 model_T <- lm(Cor ~ NoControl + gp + NoControl:gp, data=accPlotS) #absolute

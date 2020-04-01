@@ -15,9 +15,10 @@ founderPop = runMacs(nInd = nMales + nFemales,
                      # species = "GENERIC")
                      species = "CATTLE")
 
-save.image(file = "~/Documents/PhD/Projects/inProgress/AlphaPart/SimulationAccBlup.RData")
-save(founderPop, file = "~/Documents/PhD/Projects/inProgress/AlphaPart/FounderPop.RData")
+save.image(file = "~/KISdir/Documents/PhD/Projects/inProgress/AlphaPart/SimulationAccBlup.RData")
+#save(founderPop, file = "~/KISdir/Documents/PhD/Projects/inProgress/AlphaPart/FounderPop.RData")
 
+load("~/KISdir/Documents/PhD/Projects/inProgress/AlphaPart/FounderPop.RData")
 
 SP = SimParam$new(founderPop)
 VarA = matrix(data = rep(1.0, 100), nrow = 10); cov2cor(VarA)

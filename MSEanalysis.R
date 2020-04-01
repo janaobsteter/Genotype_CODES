@@ -824,8 +824,11 @@ table(father$Program)
 
 ped2$TbvT1_s <- (ped2$TbvT1 - mean(ped2$TbvT1[ped2$Generation == 20])) / sd(ped2$TbvT1[ped2$Generation == 20])
 ped2$TbvT2_s <- (ped2$TbvT2 - mean(ped2$TbvT2[ped2$Generation == 20])) / sd(ped2$TbvT2[ped2$Generation == 20])
+ped2$TbvI_s <- 0.5 * (ped2$TbvT1_s + ped2$TbvT2_s)
 ped1$TbvT1_s <- (ped1$TbvT1 - mean(ped1$TbvT1[ped1$Generation == 20])) / sd(ped1$TbvT1[ped1$Generation == 20])
 ped1$TbvT2_s <- (ped1$TbvT2 - mean(ped1$TbvT2[ped1$Generation == 20])) / sd(ped1$TbvT2[ped1$Generation == 20])
+ped1$TbvI_s <- 0.5 * (ped1$TbvT1_s + ped1$TbvT2_s)
+
 
 ped <- rbind(ped1, ped2)
 table(ped$P)
@@ -864,5 +867,177 @@ dev.off()
 table(pedLm$Program)
 
 ggplot(pedLm[pedLm$variable == "Index",], aes(x = value, group = Program, linetype = Program)) + geom_freqpoly() 
+
+ped1 <- ped1[ped1$Program != "BurnIn",]
+ped1$GenderTier <- paste(ped1$Program, ped1$Gender, sep="-")
+part1 <- AlphaPart(x = ped1, colAGV = c("TbvT1", "TbvT2"), colPath = "GenderTier")
+
+summarySE(data = part1$TbvT1, measurevar = "GN-F", groupvars = c("Generation"), conf.interval = 0.66, na.rm = TRUE)
+
+#distribucija partiij znpotraj ene replike
+ped1$ProgramGender = paste(ped1$Program, ped1$Gender, sep = "-")
+ped2$ProgramGender = paste(ped2$Program, ped2$Gender, sep = "-")
+ped1 <- ped1[ped1$Program != "BurnIn",]
+ped2 <- ped2[ped2$Program != "BurnIn",]
+
+Part1 = AlphaPart(x =  ped1, sort = FALSE,
+                  colId = "IId", colFid = "FId", colMid = "MId",
+                  colPath = "ProgramGender", colBV = c("TbvT1_s", "TbvT2_s", "TbvI_s"))
+
+Part2 = AlphaPart(x =  ped2, sort = FALSE,
+                  colId = "IId", colFid = "FId", colMid = "MId",
+                  colPath = "ProgramGender", colBV = c("TbvT1_s", "TbvT2_s", "TbvI_s"))
+
+head(Part1$TbvT1_s)
+
+summarySEm <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
+                      conf.interval=.95, .drop=TRUE) {
+  library(plyr)
   
+  # New version of length which can handle NA's: if na.rm==T, don't count them
+  length2 <- function (x, na.rm=FALSE) {
+    if (na.rm) sum(!is.na(x))
+    else       length(x)
+  }
+  
+  # This does the summary. For each group's data frame, return a vector with
+  # N, mean, and sd
+  datac <- ddply(data, groupvars, .drop=.drop,
+                 .fun = function(xx, col) {
+                   c(N    = length2(xx[[col]], na.rm=na.rm),
+                     mean = mean   (xx[[col]], na.rm=na.rm),
+                     sd   = sd     (xx[[col]], na.rm=na.rm),
+                     min   = min     (xx[[col]], na.rm=na.rm),
+                     max   = max     (xx[[col]], na.rm=na.rm),
+                     qt = quantile     (xx[[col]], probs = 0.025),
+                     qt = quantile     (xx[[col]], probs = 0.975)
+                   )
+                 },
+                 measurevar
+  )
+  
+  # Rename the "mean" column    
+  colnames(datac)[colnames(datac) == "mean"] <- measurevar
+  
+  datac$se <- datac$sd / sqrt(datac$N)  # Calculate standard error of the mean
+  
+  # Confidence interval multiplier for standard error
+  # Calculate t-statistic for confidence interval: 
+  # e.g., if conf.interval is .95, use .975 (above/below), and use df=N-1
+  ciMult <- qt(conf.interval/2 + .5, datac$N-1)
+  datac$ci <- datac$se * ciMult
+  
+  return(datac)
+}
+
+#part1_gn <- Part1$TbvT1_s[Part1$TbvT1_s$Program == "GN",]
+#part1_pn <- Part1$TbvT1_s[Part1$TbvT1_s$Program == "PN1",]
+ped1Dm <- melt(data = Part1$TbvT1_s, id.vars = c("Generation", "IId", "Program"), measure.vars = c("TbvT1_s", paste0("TbvT1_s_", c("GN-F", "GN-M", "PN1-F", "PN1-M"))))
+ped1Dm$scenario <- "MaleFlow100"
+ped1Dm$trait <- "Trait 1"
+ped1Dm2 <- melt(data = Part1$TbvT2_s, id.vars = c("Generation", "IId", "Program"), measure.vars = c("TbvT2_s", paste0("TbvT2_s_", c("GN-F", "GN-M", "PN1-F", "PN1-M"))))
+ped1Dm2$scenario <- "MaleFlow100"
+ped1Dm2$trait <- "Trait 2"
+ped1DmI <- melt(data = Part1$TbvI_s, id.vars = c("Generation", "IId", "Program"), measure.vars = c("TbvI_s", paste0("TbvI_s_", c("GN-F", "GN-M", "PN1-F", "PN1-M"))))
+ped1DmI$scenario <- "MaleFlow100"
+ped1DmI$trait <- "Index"
+ped2Dm <- melt(data = Part2$TbvT1_s, id.vars = c("Generation", "IId", "Program"), measure.vars = c("TbvT1_s", paste0("TbvT1_s_", c("GN-F", "GN-M", "PN2-F", "PN2-M"))))
+ped2Dm$scenario <- "MaleFlow20"
+ped2Dm$trait <- "Trait 1"
+ped2Dm2 <- melt(data = Part2$TbvT2_s, id.vars = c("Generation", "IId", "Program"), measure.vars = c("TbvT2_s", paste0("TbvT2_s_", c("GN-F", "GN-M", "PN2-F", "PN2-M"))))
+ped2Dm2$scenario <- "MaleFlow20"
+ped2Dm2$trait <- "Trait 2"
+ped2DmI <- melt(data = Part2$TbvI_s, id.vars = c("Generation", "IId", "Program"), measure.vars = c("TbvI_s", paste0("TbvI_s_", c("GN-F", "GN-M", "PN2-F", "PN2-M"))))
+ped2DmI$scenario <- "MaleFlow20"
+ped2DmI$trait <- "Index"
+
+pedDt <- do.call(rbind, list(ped1Dm, ped1Dm2, ped1DmI, ped2Dm, ped2Dm2, ped2DmI))
+table(pedDt$trait)
+table(pedDt$variable)
+pedDt$Program <- revalue(pedDt$Program, c("PN1" = "Multiplier", "PN2" = "Multiplier", "GN" = "Nucleus"))
+pedDt$variable <- gsub(pattern = "TbvT2_s_", "", pedDt$variable)
+pedDt$variable <- gsub(pattern = "TbvT1_s_", "", pedDt$variable)
+pedDt$variable <- gsub(pattern = "TbvI_s_", "", pedDt$variable)
+pedDt$variable <- revalue(pedDt$variable, c("TbvT2_s" = "Sum", "TbvT1_s" = "Sum", "TbvI_s" = "Sum", "PN1-F" = "PN-F", "PN1-M" = "PN-M", "PN2-F" = "PN-F", "PN2-M" = "PN-M"))
+
+table(pedDt$variable)
+table(pedDt$trait)
+pedDs <- summarySEm(data = pedDt, measurevar = "value", groupvars = c("Generation", "variable", "Program", "scenario", "trait"))
+
+library(dplyr)
+colnames(pedDs)[9] <- "qt2.5"
+colnames(pedDs)[10] <- "qt97.5"
+ped1Ds$qt2.5 <- as.numeric(ped1Ds$qt2.5)
+ped1Ds$qt97.5 <- as.numeric(ped1Ds$qt97.5)
+library(ggplot2)
+table(pedDs$variable)
+pedDs$variable <- factor(pedDs$variable, level = c("Sum", "GN-F", "GN-M", "PN-F", "PN-M"))
+pedDs$trait <- factor(pedDs$trait, level = c("Trait 1", "Trait 2", "Index"))
+ggplot(data = pedDs[pedDs$scenario == "MaleFlow100", ], aes(x = Generation, y = value, colour = variable, linetype = variable)) + geom_line(size = 1) + 
+    geom_ribbon( aes(ymin = qt2.5, ymax = qt97.5, x = Generation, fill = variable), linetype = 0, alpha = 0.3) + 
+  #  geom_ribbon( aes(ymin = min, ymax = max, x = Generation, fill = variable), alpha = 0.2, linetype = 0) + 
+  scale_colour_manual("\n\nSelection path", values=c("black", "#bd0b58", "#3ea4ed", "#bd0b58", "#3ea4ed"), 
+                      labels = c("Total", "Nucleus\nfemales", "Nucleus\nmales", "Multiplier\nfemales", "Multiplier\nmales")) +
+  scale_fill_manual("\n\nSelection path", values=c("black", "#bd0b58", "#3ea4ed", "#bd0b58", "#3ea4ed"), 
+                    labels = c("Total", "Nucleus\nfemales", "Nucleus\nmales", "Multiplier\nfemales", "Multiplier\nmales")) + 
+  scale_linetype_manual("\n\nSelection path", values = c("solid", "solid", "solid", "twodash", "twodash"), 
+                        labels = c("Total", "Nucleus\nfemales", "Nucleus\nmales", "Multiplier\nfemales", "Multiplier\nmales")) +  
+  ylab("Genetic trend") + 
+  theme_bw(base_size=10, base_family="arial") + theme(legend.position="top", legend.text=element_text(size=10), legend.title=element_text(size=12), 
+                                                      axis.text=element_text(size=10),
+                                                      axis.title=element_text(size=12),
+                                                      strip.text = element_text(size = 10)) + scale_y_continuous(breaks = seq(0, 12, 3)) + 
+  guides(colour = guide_legend(keywidth = unit(2.5, "cm"), nrow = 1, byrow = TRUE, label.position =  "top")) + 
+  facet_grid(. ~ Program + trait)
+
+ggplot(data = pedDs[pedDs$scenario == "MaleFlow20", ], aes(x = Generation, y = value, colour = variable, linetype = variable)) + geom_line(size = 1) + 
+    geom_ribbon( aes(ymin = qt2.5, ymax = qt97.5, x = Generation, fill = variable), linetype = 0, alpha = 0.3) + 
+  #  geom_ribbon( aes(ymin = min, ymax = max, x = Generation, fill = variable), alpha = 0.2, linetype = 0) + 
+  scale_colour_manual("\n\nSelection path", values=c("black", "#bd0b58", "#3ea4ed", "#bd0b58", "#3ea4ed"), 
+                      labels = c("Total", "Nucleus\nfemales", "Nucleus\nmales", "Multiplier\nfemales", "Multiplier\nmales")) +
+  scale_fill_manual("\n\nSelection path", values=c("black", "#bd0b58", "#3ea4ed", "#bd0b58", "#3ea4ed"), 
+                    labels = c("Total", "Nucleus\nfemales", "Nucleus\nmales", "Multiplier\nfemales", "Multiplier\nmales")) + 
+  scale_linetype_manual("\n\nSelection path", values = c("solid", "solid", "solid", "twodash", "twodash"), 
+                        labels = c("Total", "Nucleus\nfemales", "Nucleus\nmales", "Multiplier\nfemales", "Multiplier\nmales")) +  
+  ylab("Genetic trend") + 
+  theme_bw(base_size=10, base_family="arial") + theme(legend.position="top", legend.text=element_text(size=10), legend.title=element_text(size=12), 
+                                                      axis.text=element_text(size=10),
+                                                      axis.title=element_text(size=12),
+                                                      strip.text = element_text(size = 10)) + scale_y_continuous(breaks = seq(0, 12, 3)) + 
+  guides(colour = guide_legend(keywidth = unit(2.5, "cm"), nrow = 1, byrow = TRUE, label.position =  "top")) + 
+  facet_grid(. ~ Program + trait)
+
+
+gen30 <- pedDt[pedDt$Generation == 30,]
+gen30 <- gen30[-(which(gen30$Program == "Nucleus" & gen30$variable == "PN-F")),]
+gen30 <- gen30[-(which(gen30$Program == "Nucleus" & gen30$variable == "PN-M")),]
+
+gen30$variable <- factor(gen30$variable, level = c("Sum", "GN-F", "GN-M", "PN-F", "PN-M"))
+
+ggplot(data = gen30[gen30$scenario == "MaleFlow100",], aes(x = value, fill = variable)) + 
+  geom_histogram(aes(y =  ..density..)) + facet_grid(. ~Program + trait) +
+  scale_colour_manual("\n\nSelection path", values=c("black", "#bd0b58", "#3ea4ed", "#bd0b58", "#3ea4ed"), 
+                      labels = c("Total", "Nucleus\nfemales", "Nucleus\nmales", "Multiplier\nfemales", "Multiplier\nmales")) +
+  scale_fill_manual("\n\nSelection path", values=c("black", "#bd0b58", "#3ea4ed", "#bd0b58", "#3ea4ed"), 
+                    labels = c("Total", "Nucleus\nfemales", "Nucleus\nmales", "Multiplier\nfemales", "Multiplier\nmales")) + 
+  ylab("Genetic trend") + 
+  theme_bw(base_size=10, base_family="arial") + theme(legend.position="top", legend.text=element_text(size=10), legend.title=element_text(size=12), 
+                                                      axis.text=element_text(size=10),
+                                                      axis.title=element_text(size=12),
+                                                      strip.text = element_text(size = 10)) + scale_y_continuous(breaks = seq(0, 12, 3)) + 
+  guides(colour = guide_legend(keywidth = unit(2.5, "cm"), nrow = 1, byrow = TRUE, label.position =  "top")) 
+
+ggplot(data = gen30[gen30$scenario == "MaleFlow100",], aes(x = value, fill = variable)) + 
+  geom_density(aes(y = ..scaled..)) + facet_grid(. ~ trait + Program) + 
+  scale_colour_manual("\n\nSelection path", values=c("black", "#bd0b58", "#3ea4ed", "#bd0b58", "#3ea4ed"), 
+                      labels = c("Total", "Nucleus\nfemales", "Nucleus\nmales", "Multiplier\nfemales", "Multiplier\nmales")) +
+  scale_fill_manual("\n\nSelection path", values=c("black", "#bd0b58", "#3ea4ed", "#bd0b58", "#3ea4ed"), 
+                    labels = c("Total", "Nucleus\nfemales", "Nucleus\nmales", "Multiplier\nfemales", "Multiplier\nmales")) + 
+  theme_bw(base_size=10, base_family="arial") + theme(legend.position="top", legend.text=element_text(size=10), legend.title=element_text(size=12), 
+                                                      axis.text=element_text(size=10),
+                                                      axis.title=element_text(size=12),
+                                                      strip.text = element_text(size = 10)) + 
+  guides(colour = guide_legend(keywidth = unit(2.5, "cm"), nrow = 1, byrow = TRUE, label.position =  "top")) 
+
+table(gen30$variable)
 
