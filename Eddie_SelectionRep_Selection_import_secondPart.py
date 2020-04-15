@@ -107,9 +107,9 @@ SelectionDir = scenarioHome + scenarioImport + str(rep) + "_" + str(percentageIm
 os.chdir(SelectionDir)
 
 print("Copying files to " + SelectionDir)
-os.system('cp -r ' + WorkingDir + '/FillInBurnIn_TwoPop_' + str(rep) + '/* .')
-os.system('cp -r ' + WorkingDir + '/Essentials/* .')
-os.system('cp -r ' + WorkingDir + '/CodeDir/* .')
+#os.system('cp -r ' + WorkingDir + refSize + "/" + strategy + "_import/Class" + str(rep) + "_" + str(percentageImport_bm))
+#os.system('cp -r ' + WorkingDir + '/Essentials/* .')
+#os.system('cp -r ' + WorkingDir + '/CodeDir/* .')
 os.system('mv IndForGeno_' + refSize + '.txt IndForGeno.txt')
 
 os.system("chmod a+x AlphaSim1.08")

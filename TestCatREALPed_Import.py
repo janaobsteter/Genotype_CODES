@@ -8,15 +8,17 @@ from selection10 import nastavi_cat_TGV
 from selection10 import selekcija_total_TGV
 from selection10 import *
 
-WorkingDir = "/home/jana/"
+WorkingDir = "/home/jana/TestImport/"
 os.chdir(WorkingDir)
-scenario = "Class"
+#scenario = "Class"
+scenario = "Gen"
 
 percentageImport_k = 0
-percentageImport_bm = 80
+percentageImport_bm = 100
 
 #parhome = pd.read_csv(os.getcwd() + "/Essentials/SelectionParam_ClassTest.csv", header=None, names=["Keys", "Vals"])
-parhome = pd.read_csv(os.getcwd() + "/Essentials/SelectionParam_Class.csv", header=None, names=["Keys", "Vals"])
+#parhome = pd.read_csv(os.getcwd() + "/Essentials/SelectionParam_Class.csv", header=None, names=["Keys", "Vals"])
+parhome = pd.read_csv("/home/jana/TestImport/SelectionParam_Gen.csv", header=None, names=["Keys", "Vals"])
 parhome.to_dict()
 selParhome = defaultdict()
 for key, val in zip(parhome.Keys, parhome.Vals):
@@ -45,7 +47,7 @@ if selParhome['gEBV']:
 
     # tukaj pa še parametri za "large" population
 #parimport = pd.read_csv(os.getcwd() + "/Essentials/SelectionParam_Class_LargePop_Test.csv", header=None, names=["Keys", "Vals"])
-parimport = pd.read_csv(os.getcwd() + "/Essentials/SelectionParam_Class_LargePop.csv", header=None, names=["Keys", "Vals"])
+parimport = pd.read_csv("/home/jana/TestImport/SelectionParam_Gen_LargePop.csv", header=None, names=["Keys", "Vals"])
 parimport.to_dict()
 selParimport = defaultdict()
 for key, val in zip(parimport.Keys, parimport.Vals):
@@ -124,6 +126,7 @@ if selParimport['gEBV']:
 
 
 #selPar["stNBn"] = 8640*2
+AlphaSimDir = "/home/jana/TestImport/"
 os.chdir(AlphaSimDir)
 #
 # selPar['pbn'] = 1
@@ -162,7 +165,7 @@ for krog in range(krogov): #ponavljaj kolikor krogov selekcije hočeš
     splitGenPed("PopulationSplit.txt")
     # tukaj izvedi celotno selekcijo v tuji populaciji --> naknadno shrani še očete z izberi_ocete_PT
     # v domači odberi in nastavi matere --> očete (za bm) uvoziš
-    pedI, cI, sI, aI = selekcija_total_TGV('GenPed_EBVimport.txt', externalPedName="ExternalPedigreeimport", group=True, groupNumber=1, noGroups=2,
+    pedI, cI, sI, aI = selekcija_total_TGV('GenPed_EBVimport.txt', externalPedName="ExternalPedigreeimport", noGroups=2, group=True, groupNumber=1,
                         **selParimport)
     if selParimport['EBV']:
         Oce_import = pedI.izberi_ocete_PT(selParimport["pbUp"])  # tukaj so PT testirani očetje

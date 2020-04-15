@@ -2,6 +2,7 @@ library(plyr)
 library(dplyr)
 library(ggplot2)
 library(reshape)
+
 ################
 #Funkcija summarySE
 #####################
@@ -41,7 +42,9 @@ summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
   return(datac)
 }
 ######################################################################
+#install.packages("viridis") 
 
+library(viridis)
 library(ggplot2)
 library(plyr)
 pheno <- read.csv("~/Documents/PhD/Projects/inProgress/Phenotyping/TGVsAll_pheno_15122019.csv", header=TRUE, sep=" ")
@@ -417,12 +420,13 @@ accPlotA$shape <- as.factor(accPlotA$shape)
 accPlotA$AgeCat[accPlotA$AgeCat == "Male candidates1"] <- "Male candidates"
 accPlotA$RealSc <- factor(accPlotA$RealSc, level = c("C11", paste0("G", c(10, 9, 8, 5, 2, 1))))
 
-tiff("/home/jana/Documents/PhD/Projects/inProgress/Phenotyping/Figures/Obsteter_2.tiff", res=1200, width=85, height=120, units="mm")
+png("/home/jana/Documents/PhD/Projects/inProgress/Phenotyping/Figures/Obsteter_2_plasma.png", res=1200, width=85, height=120, units="mm")
+png("/home/jana/Documents/PhD/Projects/inProgress/Phenotyping/Figures/Obsteter_2_viridis.png", res=1200, width=85, height=120, units="mm")
 ggplot() + #
   geom_point(data=accPlotA[accPlotA$gp == "$G:$P = 1:1" & accPlotA$TPLabel == "a",], 
              aes(x=RealSc, y=Cor, group=AgeCat, colour=AgeCat, shape = shape), size = 1.5, stroke = 1)  +  
   geom_line(data=accPlotA[accPlotA$gp == "$G:$P = 1:1" & accPlotA$TPLabel == "a" & accPlotA$NoControl !=11,], 
-            aes(x=RealSc, y=Cor, group=AgeCat, colour=AgeCat, linetype = AgeCat), size = 1) + 
+            aes(x=RealSc, y=Cor, group=AgeCat, colour=AgeCat, linetype = AgeCat), size = 0.8) + 
   theme_bw(base_size=18, base_family="sans")  + 
   theme(legend.box = "vertical", legend.position="top", legend.text=element_text(size=10), legend.title=element_text(size=10),
         axis.text = element_text(size = 10), axis.title = element_text(size = 10), 
@@ -431,7 +435,9 @@ ggplot() + #
   geom_errorbar(data=accPlotA[accPlotA$gp == "$G:$P = 1:1" & accPlotA$Ref == "With initial TP",], 
                 aes(x=RealSc, y=Cor, ymin = Cor - ci, ymax = Cor + ci, colour=AgeCat), alpha = 0.5) + 
   scale_colour_manual("", 
-                      values = c("skyblue2", "#e57691", "#0a488e", "#8e0a2a"),
+                      values = viridis::plasma(10)[c(3,7,1,5)],
+                      # values = viridis::viridis(10)[c(4,8,1,6)],
+                      #values = c("skyblue2", "#e57691", "#0a488e", "#8e0a2a"),
                       breaks =  c("Male candidates",  "Female candidates",   "Fathers", "Mothers" ),
                       labels = c("Male\ncandidates", "Female\ncandidates", "Sires", "Dams")) + 
   scale_linetype_manual("", values=c("solid", "dashed", "solid", "dashed"),
@@ -445,11 +451,13 @@ ggplot() + #
 dev.off()
 #without initial TP
 accPlotA$RealSc <- factor(accPlotA$RealSc, level = c("C11", paste0("G", c(10, 9, 8, 5, 2, 1))))
+barplot(1:10, col = plasma(10))
+barplot(1:10, col = viridis(10))
 acc2 <- ggplot() + #
   geom_point(data=accPlotA[accPlotA$gp == "$G:$P = 1:1" & accPlotA$Ref == "Without initial TP",], 
              aes(x=RealSc, y=Cor, group=AgeCat, colour=AgeCat, shape = shape), size = 1.5, stroke = 1)  +  
   geom_line(data=accPlotA[accPlotA$gp == "$G:$P = 1:1" & accPlotA$Ref == "Without initial TP" & accPlotA$NoControl !=11,], 
-            aes(x=RealSc, y=Cor, group=AgeCat, colour=AgeCat, linetype = AgeCat), size = 1) + 
+            aes(x=RealSc, y=Cor, group=AgeCat, colour=AgeCat, linetype = AgeCat), size = 0.8) + 
   theme_bw(base_size=18, base_family="sans")  + 
   theme(legend.box = "vertical", legend.position="top", legend.text=element_text(size=10), legend.title=element_text(size=10),
         axis.text = element_text(size = 10), axis.title = element_text(size = 10), 
@@ -457,13 +465,15 @@ acc2 <- ggplot() + #
         legend.box.margin=margin(-5,-10,-10,-10)) + 
   geom_errorbar(data=accPlotA[accPlotA$gp == "$G:$P = 1:1" & accPlotA$Ref == "Without initial TP",], 
                 aes(x=RealSc, y=Cor, ymin = Cor - ci, ymax = Cor + ci, colour=AgeCat), alpha = 0.5) + 
-  scale_colour_manual("", 
-                      values = c("skyblue2", "#e57691", "#0a488e", "#8e0a2a"),
-                      breaks =  c("Male candidates",  "Female candidates",   "Fathers", "Mothers" ),
-                      labels = c("Male\ncandidates", "Female\ncandidates", "Sires", "Dams")) + 
+  scale_colour_manual("",
+                      #values = viridis::plasma(10)[c(3,7,1,5)],
+                      #values = viridis::viridis(10)[c(4,8,1,6)],
+                     values = c("skyblue2", "#e57691", "#0a488e", "#8e0a2a"),
+                     breaks =  c("Male candidates",  "Female candidates",   "Fathers", "Mothers" ),
+                     labels = c("Male\ncandidates", "Female\ncandidates", "Sires", "Dams")) +
   scale_linetype_manual("", values=c("solid", "dashed", "solid", "dashed"),
-                        breaks =  c("Male candidates",  "Female candidates",   "Fathers", "Mothers" ),
-                        labels = c("Male\ncandidates", "Female\ncandidates", "Sires", "Dams")) +
+                       breaks =  c("Male candidates",  "Female candidates",   "Fathers", "Mothers" ),
+                       labels = c("Male\ncandidates", "Female\ncandidates", "Sires", "Dams")) +
   scale_shape_manual("", labels = c("Pre-selection", "Selection"), values = c(1, 16)) +
   ylab("Accuracy") + xlab("Scenario") + 
   guides(shape=guide_legend(nrow=1, keyheight = unit(0, "cm"))) +
@@ -594,20 +604,29 @@ gainrefM$RealSc <- factor(gainrefM$RealSc, levels = c("G1", "G2", "G5", "G8", "G
 gainrefM$scenario1 <- revalue(gainrefM$scenario, c("$G:$P = 1:1" = "$P:$G = 1:1","$G:$P = 2:1" = "$P:$G = 1:2","$G:$P = 1:2" = "$P:$G = 2:1"))
 
 
-g1 <- ggplot(data=gainrefM[gainrefM$Ref == "With initial TP",], aes(x=Generation, y=value, group=RealSc, colour=RealSc, linetype = BV)) +
+library(RColorBrewer)
+display.brewer.all(colorblindFriendly = TRUE)
+library(ggsci)
+
+g1 <- 
+ggplot(data=gainrefM[gainrefM$Ref == "With initial TP",], aes(x=Generation, y=value, group=RealSc, colour=RealSc, linetype = BV)) +
   theme_bw(base_size=10, base_family="sans")  + 
   theme(legend.position="top", legend.text=element_text(size=10), legend.title=element_text(size=12),
         axis.text = element_text(size = 10), axis.title = element_text(size = 12), axis.title.y = element_blank(),
         legend.margin=margin(0,0,0,0),
         legend.box.margin=margin(-5,-10,-10,-10)
         ) + 
-  scale_colour_manual("Scenario", 
-                      values = c("#7dcbf5", "#62bff0", "#41b4f0", "#17a3eb", "#076ea3", "#024263", "black")) + 
-  scale_fill_manual("Scenario", 
-                    values = c("#7dcbf5", "#62bff0", "#41b4f0", "#17a3eb", "#076ea3", "#024263", "black")) + 
+  # scale_colour_manual("Scenario",
+  #                      values = c(viridis::viridis(7)[6:1], "black")) +
+  # scale_fill_manual("Scenario",
+  #                    values = c(viridis::viridis(7)[6:1], "black")) +
+  scale_colour_manual("Scenario",
+                      values = c(viridis::plasma(7)[6:1], "black")) +
+  scale_fill_manual("Scenario",
+                    values = c(viridis::plasma(7)[6:1], "black")) +
   scale_linetype_manual("", values = c("dashed", "solid")) + xlab("Year") + 
   geom_ribbon(aes(ymin = value - CI, ymax = value + CI, fill = RealSc),  linetype = 0, alpha = 0.3) + 
-  geom_line(size = 1) + 
+  geom_line(size = 0.8) + 
   guides(linetype=guide_legend(nrow=2, keyheight = unit(.8, "cm"), keywidth = unit(2, "cm"), 
                                label.position = "left", override.aes = list(alpha = 1, size=1.2))) +
   guides(colour=guide_legend(byrow = TRUE, nrow=2, keywidth = unit(1.2, "cm"),label.position = "left", override.aes = list(alpha = 1, size=1.2))) +
@@ -636,9 +655,10 @@ G1 <- ggplotGrob(g1)
 G1$heights
 G1$heights[[10]] <- unit(5, "null")
 G1$heights[[12]] <- unit(3, "null")
-library(grid)
+#library(grid)
 
-tiff("/home/jana/Documents/PhD/Projects/inProgress/Phenotyping/Figures/Obsteter_1.tiff", res=1200, width=170, height=120, units="mm")
+png("/home/jana/Documents/PhD/Projects/inProgress/Phenotyping/Figures/Obsteter_1_viridis.png", res=1200, width=170, height=120, units="mm")
+png("/home/jana/Documents/PhD/Projects/inProgress/Phenotyping/Figures/Obsteter_1_plasma.png", res=1200, width=170, height=120, units="mm")
 grid.draw(G1)
 dev.off()
 
@@ -651,14 +671,18 @@ g2 <- ggplot(data=gainrefM[gainrefM$Ref == "Without initial TP" & gainrefM$scena
         axis.text = element_text(size = 10), axis.title = element_text(size = 10),  axis.title.y = element_blank(), legend.spacing.y = unit(0, "cm"),
         legend.margin=margin(0,0,0,0),
         legend.box.margin=margin(-5,-10,-10,-10)) + 
-  scale_colour_manual("Scenario", 
-                      values = c("#7dcbf5", "#62bff0", "#41b4f0", "#17a3eb", "#076ea3", "#024263", "black")) + 
-  scale_fill_manual("Scenario", 
-                    values = c("#7dcbf5", "#62bff0", "#41b4f0", "#17a3eb", "#076ea3", "#024263", "black")) + 
+  scale_colour_manual("Scenario",
+                      values = c(viridis::viridis(7)[6:1], "black")) +
+  scale_fill_manual("Scenario",
+                    values = c(viridis::viridis(7)[6:1], "black")) +
+  # scale_colour_manual("Scenario",
+  #                     values = c(viridis::plasma(7)[6:1], "black")) +
+  # scale_fill_manual("Scenario",
+  #                   values = c(viridis::plasma(7)[6:1], "black")) +
   scale_linetype_manual("", values = c("dashed", "solid")) + 
   ylab("Genetic mean") +xlab("Year") + 
   geom_ribbon(aes(ymin = value - CI, ymax = value + CI, fill = RealSc),  linetype = 0, alpha = 0.3) + 
-  geom_line(size = 1) + 
+  geom_line(size = 0.8) + 
   geom_hline(data = gainrefM[gainrefM$Ref == "Without initial TP" & gainrefM$variable == "TP Size" & gainrefM$scenario == "$G:$P = 1:1",], 
              aes(yintercept = 2000), colour = "red", size = 1) + 
   guides(linetype=guide_legend(nrow=1, keywidth = unit(1.2, "cm"), keyheight = unit(1, "cm"), override.aes = list(alpha = 1, size=1.2))) +
@@ -709,7 +733,10 @@ ACC2$heights[[12]] <- unit(0, "null")
 grid.draw(ACC2)
 
 a2 <- as_ggplot(ACC2)
-tiff("/home/jana/Documents/PhD/Projects/inProgress/Phenotyping/Figures/Obsteter_3.tiff", res=1200, width=170, height=120, units="mm")
+png("/home/jana/Documents/PhD/Projects/inProgress/Phenotyping/Figures/Obsteter_3_plasma.png", res=1200, width=170, height=120, units="mm")
+png("/home/jana/Documents/PhD/Projects/inProgress/Phenotyping/Figures/Obsteter_3_plasma_plasma.png", res=1200, width=170, height=120, units="mm")
+png("/home/jana/Documents/PhD/Projects/inProgress/Phenotyping/Figures/Obsteter_3_viridis.png", res=1200, width=170, height=120, units="mm")
+png("/home/jana/Documents/PhD/Projects/inProgress/Phenotyping/Figures/Obsteter_3_viridis_viridis.png", res=1200, width=170, height=120, units="mm")
 
 ggarrange(p2, a2, widths = c(20, 20))
 dev.off()
