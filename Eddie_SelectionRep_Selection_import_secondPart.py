@@ -12,7 +12,7 @@ import numpy as np
 import resource
 import ast
 
-WorkingDir = "/home/v1jobste/jobsteter/"
+WorkingDir = os.getcwd() + "/"
 
 #sys.argv: 1 = rep, 2 = scenario, 3 = strategy, 4 = reference size
 
@@ -23,7 +23,14 @@ class estimateBV:
         self.sel = sel
         self.codeDir = codeDir
 
-    def computeEBV(self):
+    def computeEBV(self, group = None, dataGroup = True, prepareSelPed = True):
+        """
+        A function to prepare input files, estimate breeding values with blupf90 and prepare output files
+        :param group: The group you are estimating the breeding values for
+        :param dataGroup: Use only group data for the estimation
+        :param prepareSelPed: Do you want to prepare selection ped = GenPed_EBV in this function
+        :return: 
+        """
         # pripravi fajle za blupf90
         blupFiles = blupf90(self.AlphaSimDir, self.codeDir, way=self.way)
         # listUnphenotyped = ['potomciNP', 'nr', 'telF', 'telM', 'pt', 'mladi', 'vhlevljeni', 'cak'] #list of unphenotyped categories (better ages?)
@@ -32,13 +39,26 @@ class estimateBV:
             blupFiles.makeDat_removePhen_milk()  # odstrani genotip moškim živali in pripravi dat file - repetabaility model
         if self.way == 'burnin_milk':  # če je takoj po burn inu - nimaš še kategorij (za prvih n burningeneracij brze dodane naslednje)
             blupFiles.makeDat_sex(2)
+        
         # skopiraj paramFile za renumf90
-        if self.sel == 'gen':
-            shutil.copy(blupFiles.blupgenParamFile,
-                        blupFiles.AlphaSimDir + 'renumf90.par')  # skopiraj template blupparam file
-        if self.sel == 'class':
-            shutil.copy(blupFiles.blupgenParamFile_Clas,
-                        blupFiles.AlphaSimDir + 'renumf90.par')  # skopiraj template blupparam file
+        if not dataGroup:
+            if self.sel == 'gen':
+                shutil.copy(blupFiles.blupgenParamFile,
+                            blupFiles.AlphaSimDir + 'renumf90.par')  # skopiraj template blupparam file
+            elif self.sel == 'class':
+                shutil.copy(blupFiles.blupgenParamFile_Clas,
+                            blupFiles.AlphaSimDir + 'renumf90.par')  # skopiraj template blupparam file
+        elif dataGroup:
+            #first split the .dat file (for the group)
+            blupf90.popSplitDat("Blupf90.dat", "PopulationSplit.txt")
+            if self.sel == 'gen':
+                shutil.copy(blupFiles.blupgenParamFile_group,
+                            blupFiles.AlphaSimDir + 'renumf90.par')  # skopiraj template blupparam file
+                os.system("sed -i 's/Blupf90_group.dat/Blupf90_" + group + ".dat/g' renumf90.par")
+            if sel.sel == 'class':            
+                shutil.copy(blupFiles.blupgenParamFile_Clas_group,
+                            blupFiles.AlphaSimDir + 'renumf90.par')  # skopiraj template blupparam file
+                os.system("sed -i 's/Blupf90_group.dat/Blupf90_" + group + ".dat/g' renumf90.par")
 
         # uredi blupparam file
         # get variance components from AlphaSim Output Files
@@ -70,11 +90,19 @@ class estimateBV:
         # renumber the solutions
         # copy the solution in a file that does not get overwritten
         os.system("bash Match_AFTERRenum.sh")
-        shutil.copy('renumbered_Solutions', 'renumbered_Solutions_' + str(blupFiles.gen))
+        if not group:
+            shutil.copy('renumbered_Solutions', 'renumbered_Solutions_' + str(blupFiles.gen))
+        if group:
+            shutil.copy('renumbered_Solutions', 'renumbered_Solutions_' + group + '_' + str(blupFiles.gen))
         # shutil.copy('solutions', 'renumbered_Solutions_' + str(blupFiles.gen))
 
-        blupFiles.prepareSelPed()  # obtain solution and add them to
-        # AlphaPed PedigreeAndGeneticValues files --> Write them to GenPed_EBV.txt, which is read by module selection
+        if not group:
+            blupFiles.prepareSelPed()  # obtain solution and add them to
+            # AlphaPed PedigreeAndGeneticValues files --> Write them to GenPed_EBV.txt, which is read by module selection
+        elif group:
+            blupfiles.prepareSelPed_group("PopulationSplit.txt")
+            
+            
 
 
 ######################################################################################
@@ -107,10 +135,11 @@ SelectionDir = scenarioHome + scenarioImport + str(rep) + "_" + str(percentageIm
 os.chdir(SelectionDir)
 
 print("Copying files to " + SelectionDir)
-#os.system('cp -r ' + WorkingDir + refSize + "/" + strategy + "_import/Class" + str(rep) + "_" + str(percentageImport_bm))
+print(WorkingDir + "/" + refSize + "/" + strategy + "_import/Class" + str(rep) + "_" + str(percentageImport_bm))
+os.system('cp -r ' + WorkingDir + "/" + refSize + "/" + strategy + "_import/Class" + str(rep) + "_" + str(percentageImport_bm) + '/*' + ' .')
 #os.system('cp -r ' + WorkingDir + '/Essentials/* .')
 #os.system('cp -r ' + WorkingDir + '/CodeDir/* .')
-os.system('mv IndForGeno_' + refSize + '.txt IndForGeno.txt')
+
 
 os.system("chmod a+x AlphaSim1.08")
 os.system("chmod a+x renumf90")
@@ -174,9 +203,9 @@ BurnInYN = "False"  # ali izvedeš tudi BurnIn
 SelYN = "True"  # ali izvedeš tudi BurnIn
 StNB = 17280
 StBurnInGen = 20
-StSelGen = 40
+StSelGen = 60
 StartSelGen = 21
-StopSelGen = 40
+StopSelGen = 80
 NumberOfSires = 30
 NumberOfDams = 8640
 AlphaSimDir = os.getcwd() + '/'
@@ -192,6 +221,12 @@ if selParimport['gEBV']:
 ##############################################################################
 print(AlphaSimDir)
 for roundNo in range(41,61): #za vsak krog selekcije
+    if roundNo == 41:
+        print("Creating and initial training population of all active cows and PT bulls.")
+        ped = pd.read_table('./SimulatedData/PedigreeAndGeneticValues_cat.txt', sep='\s+')
+        ped.loc[ped.cat.isin(["k", "pb"]), 'Indiv'].to_csv('IndForGeno.txt', index=None, header=None, sep='\n')
+
+
     # prestavi se v AlphaSim Dir
     if not os.path.isfile(AlphaSimDir + 'ReferenceSize.txt') and os.path.isfile(AlphaSimDir + "IndForGeno.txt"):
         os.system("less IndForGeno.txt | wc -l > ReferenceSize.txt")
@@ -203,7 +238,8 @@ for roundNo in range(41,61): #za vsak krog selekcije
     # pedigre se zapise v AlphaSimDir/SelectionFolder/ExternalPedigree.txt
 
     #tukaj razdeli populacijo na domačo in tujo
-    splitGenPed("PopulationSplit.txt")
+    #THis is now no longer needed, since prepareSelPed_groups does this
+    #splitGenPed("PopulationSplit.txt")
     #tukaj izvedi celotno selekcijo v tuji populaciji --> naknadno shrani še očete z izberi_ocete_PT
     #v domači odberi in nastavi matere --> očete (za bm) uvoziš
     pedI, cI, sI, aI = selekcija_total_TGV('GenPed_EBVimport.txt', externalPedName="ExternalPedigreeimport", group=True, groupNumber=1, noGroups=2,
@@ -257,11 +293,14 @@ for roundNo in range(41,61): #za vsak krog selekcije
     if seltype == 'gen':
         GenInt.prepareGenInts(['genTest', 'pt']) #pri klasični so izbrani potomci vsi genomsko testirani (pozTest in pripust) in plemenske telice
     blupNextGen = estimateBV(AlphaSimDir, WorkingDir + "/CodeDir",  way='milk', sel=seltype)
-    blupNextGen.computeEBV() #estimate EBV with added phenotypes only of animals of certain category (here = milk)
-    #Acc.saveAcc()
+    #estimate EBVs for home population with only domestic data
+    blupNextGen.computeEBV(group = "home", dataGroup = True, prepareSelPed = False)
+    #estimate EBVs for import population, use all data, create GenPed_EBVs.txt for both groups (only once, sinve it is one populationsplit file)
+    blupNextGen.computeEBV(group = "import", dataGroup = False, prepareSelPed = True)
+    Acc.saveAcc()
     #GenTrends.saveTrends()
     #zdaj za vsako zapiši, ker vsakič na novo prebereš
-    #Acc.writeAcc()
+    Acc.writeAcc()
     #GenTrends.writeTrends()
 
 

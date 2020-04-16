@@ -1096,7 +1096,7 @@ class pedigree(classPed):
                 if (len(sexDF_M) + len(updatedSex)) > (25000 - num_indGenoNew):
                     updatedSex = updatedSex.sample(25000 - num_indGenoNew - len(sexDF_M), replace = False)
 
-                pd_concat([updatedSex, sexDF_M]).sort_values(by='Indiv')['Indiv'].to_csv('IndForGeno.txt', index=None, header=False)
+                pd.concat([updatedSex, sexDF_M]).sort_values(by='Indiv')['Indiv'].to_csv('IndForGeno.txt', index=None, header=False)
 
             elif "M" in removesex and "F" in removesex:
                 sexDF_F = inds.loc[(inds.sex == "F")]
@@ -1280,7 +1280,9 @@ class blupf90:
     def __init__(self, AlphaSimDir, codeDir, way=None, permEnv = False, varPE = 0, herd = False, varH = 0):
         print("Initializing blupf90")
         self.blupgenParamFile = codeDir + '/renumf90.par'
+        self.blupgenParamFile_group = codeDir + '/renumf90_group.par'
         self.blupgenParamFile_Clas = codeDir + '/renumf90_Clas.par'
+        self.blupgenParamFile_Clas_group = codeDir + '/renumf90_Clas_group.par'
         self.blupgenParamFile_permEnv = codeDir + '/renumf90_permEnv.par'
         self.blupgenParamFile_Clas_permEnv = codeDir + '/renumf90_Clas_permEnv.par'
         self.blupgenParamFile_permEnv_herd = codeDir + '/renumf90_permEnv_herd.par'
@@ -1513,6 +1515,22 @@ class blupf90:
         AlphaSelPed = pd.merge(AlphaSelPed, blupSol[['Indiv', 'EBV']], on="Indiv", how="left")
         AlphaSelPed.to_csv(self.AlphaSimDir + 'GenPed_EBV.txt', index=None)
 
+    def prepareSelPed_group(self, splitfile):
+        """
+        A function that reads in pedigree and solutions separate for each group and prepares separate GenPed_EBVs
+        :param splitfile: Files with IDs and belonging groups
+        :return: writes GenPed_EBV_group.txt for each group
+        """
+        split = pd.read_csv(splitfile)
+        AlphaSelPed = self.AlphaPed.loc[:, ['Generation', 'Indiv', 'Father', 'Mother', 'gvNormUnres1']]
+
+        for group in set(splitfile.Group):
+            blupSol = pd.read_csv(self.AlphaSimDir + '/renumbered_Solutions_' + group + '_' + str(self.gen), header=None,
+                                  sep='\s+', names=['renID', 'Indiv', 'EBV'])
+            groupSelPed = AlphaSelPed[AlphaSelPed.Indiv.isin(list(split.ID[split.Group == group]))]
+            pd.merge(groupSelPed, blupSol[['Indiv', 'EBV']], on="Indiv", how="left").to_csv("GenPed_EBV" + str(group) + ".txt",  index=None)
+
+
     def preparePedDat_cat(self, listUnphenotyped):
         self.makePed()
         assert isinstance(listUnphenotyped, object)
@@ -1544,6 +1562,13 @@ class blupf90:
         self.setPermEnvVariance(permEnvvar, blupParamFile)
         self.setHerdVariance(herdvar, blupParamFile)
 
+    def popSplitDat(self, datFile, splitFile):
+        dat = pd.read_csv(self.AlphaSimDir + "/" + datFile, sep=" ", header = None)
+        dat.columns = ["ID"] + list(dat.columns[1:])
+        popSplit = pd.read_csv(self.AlphaSimDir + "/" + splitFile)
+        DAT = pd.merge(dat, popSplit, on="ID")
+        for group in set(DAT.Group):
+            DAT[DAT.Group == group][dat.columns].to_csv("Blupf90_" + group + ".dat", sep=" ", header=None, index=False)
 
 class repeatedPhenotypes(object):
     """
@@ -3211,7 +3236,7 @@ def nastavi_cat(PedFile, externalPedName = "ExternalPedigree", group=False, grou
     if not group:
         ped.add_new_gen_naive(kwargs.get('stNBn'), kwargs.get('potomciNPn') * 2)
     if group:
-	print("GROUP IS TRUE")
+        print("GROUP IS TRUE")
         ped.add_new_gen_naive_group(kwargs.get('stNBn'), kwargs.get('potomciNPn') * 2, groupNumber, numberOfGroups = noGroups)
 
     ped.compute_age()
