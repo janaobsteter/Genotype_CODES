@@ -435,7 +435,7 @@ ggplot() + #
   geom_errorbar(data=accPlotA[accPlotA$gp == "$G:$P = 1:1" & accPlotA$Ref == "With initial TP",], 
                 aes(x=RealSc, y=Cor, ymin = Cor - ci, ymax = Cor + ci, colour=AgeCat), alpha = 0.5) + 
   scale_colour_manual("", 
-                      values = viridis::plasma(10)[c(3,7,1,5)],
+                      #values = viridis::plasma(10)[c(3,7,1,5)],
                       # values = viridis::viridis(10)[c(4,8,1,6)],
                       #values = c("skyblue2", "#e57691", "#0a488e", "#8e0a2a"),
                       breaks =  c("Male candidates",  "Female candidates",   "Fathers", "Mothers" ),

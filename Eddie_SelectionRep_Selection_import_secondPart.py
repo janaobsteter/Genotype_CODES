@@ -39,26 +39,37 @@ class estimateBV:
             blupFiles.makeDat_removePhen_milk()  # odstrani genotip moškim živali in pripravi dat file - repetabaility model
         if self.way == 'burnin_milk':  # če je takoj po burn inu - nimaš še kategorij (za prvih n burningeneracij brze dodane naslednje)
             blupFiles.makeDat_sex(2)
-        
+
+        #make ped files
+        blupFiles.makePed_gen()  # make ped file for blup, no Code!
+
         # skopiraj paramFile za renumf90
         if not dataGroup:
             if self.sel == 'gen':
                 shutil.copy(blupFiles.blupgenParamFile,
                             blupFiles.AlphaSimDir + 'renumf90.par')  # skopiraj template blupparam file
+                #prepare genoFile
+                GenFiles = snpFiles(self.AlphaSimDir)
+                GenFiles.createBlupf90SNPFile()
             elif self.sel == 'class':
                 shutil.copy(blupFiles.blupgenParamFile_Clas,
                             blupFiles.AlphaSimDir + 'renumf90.par')  # skopiraj template blupparam file
         elif dataGroup:
             #first split the .dat file (for the group)
-            blupf90.popSplitDat("Blupf90.dat", "PopulationSplit.txt")
+            blupFiles.popSplitDat("Blupf90.dat", "PopulationSplit.txt")
             if self.sel == 'gen':
                 shutil.copy(blupFiles.blupgenParamFile_group,
                             blupFiles.AlphaSimDir + 'renumf90.par')  # skopiraj template blupparam file
                 os.system("sed -i 's/Blupf90_group.dat/Blupf90_" + group + ".dat/g' renumf90.par")
-            if sel.sel == 'class':            
+            if self.sel == 'class':
                 shutil.copy(blupFiles.blupgenParamFile_Clas_group,
                             blupFiles.AlphaSimDir + 'renumf90.par')  # skopiraj template blupparam file
+                #prepare genoFile
+                GenFiles = snpFiles(self.AlphaSimDir)
+                GenFiles.createBlupf90SNPFile(group = group)
                 os.system("sed -i 's/Blupf90_group.dat/Blupf90_" + group + ".dat/g' renumf90.par")
+                os.system("sed -i 's/GenoFile_group.txt/GenoFile" + group +".txt/g' renumf90.par")
+
 
         # uredi blupparam file
         # get variance components from AlphaSim Output Files
@@ -68,11 +79,7 @@ class estimateBV:
 
         blupFiles.prepareParamFiles(genvar, resvar,
                                     self.AlphaSimDir + '/renumf90.par')  # set levels of random aniaml effect, add var and res var
-        # the paramfile is now set
-        blupFiles.makePed_gen()  # make ped file for blup, no Code!
-        if self.sel == 'gen':
-            GenFiles = snpFiles(self.AlphaSimDir)
-            GenFiles.createBlupf90SNPFile()
+
 
         os.system("./renumf90 < renumParam")  # run renumf90
 
@@ -96,12 +103,13 @@ class estimateBV:
             shutil.copy('renumbered_Solutions', 'renumbered_Solutions_' + group + '_' + str(blupFiles.gen))
         # shutil.copy('solutions', 'renumbered_Solutions_' + str(blupFiles.gen))
 
-        if not group:
-            blupFiles.prepareSelPed()  # obtain solution and add them to
-            # AlphaPed PedigreeAndGeneticValues files --> Write them to GenPed_EBV.txt, which is read by module selection
-        elif group:
-            blupfiles.prepareSelPed_group("PopulationSplit.txt")
-            
+        if prepareSelPed:
+            if not group:
+                blupFiles.prepareSelPed()  # obtain solution and add them to
+                # AlphaPed PedigreeAndGeneticValues files --> Write them to GenPed_EBV.txt, which is read by module selection
+            elif group:
+                blupFiles.prepareSelPed_group("PopulationSplit.txt")
+
             
 
 
@@ -223,16 +231,29 @@ print(AlphaSimDir)
 for roundNo in range(41,61): #za vsak krog selekcije
     if roundNo == 41:
         print("Creating and initial training population of all active cows and PT bulls.")
-        ped = pd.read_table('./SimulatedData/PedigreeAndGeneticValues_cat.txt', sep='\s+')
-        ped.loc[ped.cat.isin(["k", "pb"]), 'Indiv'].to_csv('IndForGeno.txt', index=None, header=None, sep='\n')
+        ped = pd.read_csv('./SimulatedData/PedigreeAndGeneticValues_cat.txt', sep='\s+')
+        popSplit = pd.read_csv("PopulationSplit.txt")
+        #create a reference from both populations
+        pd.DataFrame({"ID" : ped.loc[ped.cat.isin(["k", "pb"]), 'Indiv']}).to_csv('IndForGeno.txt', index=None, header=None, sep='\n')
+        #create a "home" reference
+        pd.DataFrame({"ID" : ped.loc[ped.cat.isin(["k", "pb"]) & (ped.Indiv.isin(popSplit.ID[popSplit.Group == "home"])), 'Indiv']}).\
+            to_csv('IndForGenohome.txt', index=None, header=None, sep='\n')
+        #create a "import" reference
+        pd.DataFrame({"ID" : ped.loc[ped.cat.isin(["k", "pb"]) & (ped.Indiv.isin(popSplit.ID[popSplit.Group == "import"])), 'Indiv']}).\
+            to_csv('IndForGenoimport.txt', index=None, header=None, sep='\n')
 
 
     # prestavi se v AlphaSim Dir
     if not os.path.isfile(AlphaSimDir + 'ReferenceSize.txt') and os.path.isfile(AlphaSimDir + "IndForGeno.txt"):
         os.system("less IndForGeno.txt | wc -l > ReferenceSize.txt")
+    if not os.path.isfile(AlphaSimDir + 'ReferenceSize_home.txt') and os.path.isfile(AlphaSimDir + "IndForGenohome.txt"):
+        os.system("less IndForGenohome.txt | wc -l > ReferenceSizehome.txt")
+    if not os.path.isfile(AlphaSimDir + 'ReferenceSize_import.txt') and os.path.isfile(AlphaSimDir + "IndForGenoimport.txt"):
+        os.system("less IndForGenoimport.txt | wc -l > ReferenceSizeimport.txt")
 
     # Štartaj že po 20 gen kalsične selekcije
-    Acc = accuracies(AlphaSimDir)
+    AccHome = accuracies(AlphaSimDir, group = 'home')
+    AccImport = accuracies(AlphaSimDir, group = 'import')
     #GenTrends = TBVCat(AlphaSimDir)
     # izvedi selekcijo, doloci kategorije zivali, dodaj novo generacijo in dodeli starse
     # pedigre se zapise v AlphaSimDir/SelectionFolder/ExternalPedigree.txt
@@ -242,15 +263,16 @@ for roundNo in range(41,61): #za vsak krog selekcije
     #splitGenPed("PopulationSplit.txt")
     #tukaj izvedi celotno selekcijo v tuji populaciji --> naknadno shrani še očete z izberi_ocete_PT
     #v domači odberi in nastavi matere --> očete (za bm) uvoziš
-    pedI, cI, sI, aI = selekcija_total_TGV('GenPed_EBVimport.txt', externalPedName="ExternalPedigreeimport", group=True, groupNumber=1, noGroups=2,
-                        **selParimport)
+    pedI, cI, sI, aI = selekcija_total_TGV('GenPed_EBVimport.txt', externalPedName="ExternalPedigreeimport", group=True, groupNumber=1,
+                                           groupName = "import", noGroups=2, **selParimport)
     if selParimport['EBV']:
         Oce_import = pedI.izberi_ocete_PT(selParimport["pbUp"]) #tukaj so PT testirani očetje
     if selParimport['gEBV']:
-        Oce_import = pedI.izberi_ocete_gen(selParimport["pbUp"])  # tukaj so genomsko testirani očetje
+        Oce_import = pedI.izberiprepareSelPed_group_ocete_gen(selParimport["pbUp"])  # tukaj so genomsko testirani očetje
 
     #odberi starše domače populacije
-    pedH, cH, sH, aH = selekcija_importOcetov('GenPed_EBVhome.txt', externalPedName="ExternalPedigreehome", group=True, groupNumber=0, noGroups=2,
+    pedH, cH, sH, aH = selekcija_importOcetov('GenPed_EBVhome.txt', externalPedName="ExternalPedigreehome", group=True, groupNumber=0,
+                                              groupName = "home", noGroups=2,
                                                importBool=True, importGroup="bm", FatherList=Oce_import, **selParhome)
 
     joinExternalPeds(["ExternalPedigreehome", "ExternalPedigreeimport"], AlphaSimDir)
@@ -297,10 +319,12 @@ for roundNo in range(41,61): #za vsak krog selekcije
     blupNextGen.computeEBV(group = "home", dataGroup = True, prepareSelPed = False)
     #estimate EBVs for import population, use all data, create GenPed_EBVs.txt for both groups (only once, sinve it is one populationsplit file)
     blupNextGen.computeEBV(group = "import", dataGroup = False, prepareSelPed = True)
-    Acc.saveAcc()
+    AccHome.saveAcc()
+    AccImport.saveAcc()
     #GenTrends.saveTrends()
     #zdaj za vsako zapiši, ker vsakič na novo prebereš
-    Acc.writeAcc()
+    AccHome.writeAcc()
+    AccImport.writeAcc()
     #GenTrends.writeTrends()
 
 

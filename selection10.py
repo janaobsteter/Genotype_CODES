@@ -884,6 +884,7 @@ class pedigree(classPed):
         categoriesDF.to_csv('Categories_gen' + str(max(self.gens())) + 'DF.csv', index=None)
 
     def save_cat_DF_group(self, group):
+        print("Saving the cats for " + str(group) + "Generation " + str(max(self.gens)))
         categoriesDF = pd.DataFrame.from_dict(self.save_cat(), orient='index').transpose()
         categoriesDF.to_csv('Categories_gen' + str(max(self.gens())) + 'DF_' + str(group) + '.csv', index=None)
 
@@ -935,7 +936,7 @@ class pedigree(classPed):
             activeDict[active] = values
         return activeDict
 
-    def saveIndForGeno(self, genotypedCat, age=False, genotypedCatAge = None, initGenoAge = None):
+    def saveIndForGeno(self, genotypedCat, group = "", age=False, genotypedCatAge = None, initGenoAge = None):
         if not initGenoAge:
             if not age:
                 pd.DataFrame({0: sorted(list(set
@@ -944,7 +945,7 @@ class pedigree(classPed):
                                                      x, sex)) * xP)) if xP < 1 else int(xP))
                                                                    if xP != 1 else self.catCurrent_indiv_sex(x, sex) for
                                                                    (x, xP, xC, sex) in genotypedCat]))))}).to_csv(
-                    'IndForGeno_new.txt', index=None, header=None)
+                    'IndForGeno_new' + group + '.txt', index=None, header=None)
 
             elif age:
                 dfSex = pd.DataFrame({0: sorted(list(set
@@ -960,7 +961,7 @@ class pedigree(classPed):
                                                                    if xP != 1 else self.catCurrent_indiv_sex_age(x, sex, age) for
                                                                    (x, xP, xC, sex, age) in genotypedCatAge]))))})
 
-                pd.concat([dfSex, dfAge]).to_csv('IndForGeno_new.txt', index=None, header=None)
+                pd.concat([dfSex, dfAge]).to_csv('IndForGeno_new' + group + '.txt', index=None, header=None)
 
             elif initGenoAge:
                 pd.DataFrame({0: sorted(list(set
@@ -971,10 +972,10 @@ class pedigree(classPed):
                                               if xP != 1 else self.catCurrent_indiv_sex_age(x, sex,
                                                                                             age) for
                                               (x, xP, xC, sex, age) in initGenoAge]))))}).to_csv(
-                    'IndForGeno_new.txt', index=None, header=None)
+                    'IndForGeno_new' + group + '.txt', index=None, header=None)
 
 
-    def saveIndForGeno_limit(self, genotypedCat, age=False, genotypedCatAge = None, sexToKeep = None, initGenoAge = None):
+    def saveIndForGeno_limit(self, genotypedCat, group = "", age=False, genotypedCatAge = None, sexToKeep = None, initGenoAge = None):
         if not initGenoAge:
             print("initGenoAge is FALSE")
             if not age:
@@ -984,7 +985,7 @@ class pedigree(classPed):
                                                      x, sex)) * xP)) if xP < 1 else int(xP))
                                                                    if xP != 1 else self.catCurrent_indiv_sex(x, sex) for
                                                                    (x, xP, xC, sex) in genotypedCat]))))}).to_csv(
-                    'IndForGeno_new.txt', index=None, header=None)
+                    'IndForGeno_new' + group + '.txt', index=None, header=None)
     
             elif age:
                 dfSex = pd.DataFrame({0: sorted(list(set
@@ -1005,7 +1006,7 @@ class pedigree(classPed):
                 if (len(dfAge) + len(dfSex)) > 25000:
                     dfAge = dfAge.sample((25000 - len(dfSex)), replace = False)
     
-                pd.concat([dfSex, dfAge]).to_csv('IndForGeno_new.txt', index=None, header=None)
+                pd.concat([dfSex, dfAge]).to_csv('IndForGeno_new' + group + '.txt', index=None, header=None)
         
         elif initGenoAge:
             print("INITGENOAGE!!! TRUE!")
@@ -1016,15 +1017,15 @@ class pedigree(classPed):
                                                                if xP != 1 else self.catCurrent_indiv_sex_age(x, sex,
                                                                                                              age) for
                                                                (x, xP, xC, sex, age) in initGenoAge]))))}).to_csv(
-                'IndForGeno_new.txt', index=None, header=None)
+                'IndForGeno_new' + group + '.txt', index=None, header=None)
 
 
-        if os.path.isfile('IndForGeno.txt'):
+        if os.path.isfile('IndForGeno' + group + '.txt'):
             #check whether the summ exceeds 25K - if so, sample the old genotyped
-            old_geno = sum(1 for line in open('IndForGeno.txt'))
-            new_geno = sum(1 for line in open('IndForGeno_new.txt'))
+            old_geno = sum(1 for line in open('IndForGeno' + group + '.txt'))
+            new_geno = sum(1 for line in open('IndForGeno_new' + group + '.txt'))
             if (old_geno + new_geno) > 25000:
-                inds = pd.read_csv('IndForGeno.txt', header=None, names=['Indiv'])
+                inds = pd.read_csv('IndForGeno' + group + '.txt', header=None, names=['Indiv'])
                 ped = pd.read_csv('SimulatedData/PedigreeAndGeneticValues_cat.txt', sep='\s+')
                 inds = pd.merge(inds, ped[['Indiv', 'Generation', 'sex', 'cat']],
                                 on='Indiv')
@@ -1034,16 +1035,16 @@ class pedigree(classPed):
                      indsOtherSex = inds.loc[inds.sex == list({"F", "M"} - {sexToKeep})[0]].sort_values(by = "Generation", ascending = False)[:(25000 - (len(indsSex) + new_geno))]
                      indsSex = pd.concat([indsSex, indsOtherSex]).sort_values(by = "Indiv")
 
-                pd.DataFrame({"Indiv": indsSex.Indiv}).to_csv('IndForGeno.txt', index=None, header=None)
+                pd.DataFrame({"Indiv": indsSex.Indiv}).to_csv('IndForGeno' + group + '.txt', index=None, header=None)
 
-            os.system("grep -v -f IndForGeno.txt IndForGeno_new.txt > uniqNew && mv uniqNew IndForGeno_new.txt")
+            os.system("grep -v -f IndForGeno" + group + ".txt IndForGeno_new" + group + ".txt > uniqNew && mv uniqNew IndForGeno_new" + group + ".txt")
             os.system(
-                'cat IndForGeno_new.txt IndForGeno.txt | sort -n| uniq > IndGenTmp && mv IndGenTmp IndForGeno.txt')
+                'cat IndForGeno_new' + group + '.txt IndForGeno' + group + '.txt | sort -n| uniq > IndGenTmp && mv IndGenTmp IndForGeno' + group + '.txt')
 
         else:
-            os.system("mv IndForGeno_new.txt IndForGeno.txt")
+            os.system("mv IndForGeno_new" + group + ".txt IndForGeno" + group + ".txt")
 
-    def updateAndSaveIndForGeno(self, genotypedCat, rmNbGen, removesex, AlphaSimDir, age=False, genotypedCatAge = None):
+    def updateAndSaveIndForGeno(self, genotypedCat, rmNbGen, removesex, AlphaSimDir, group = "", age=False, genotypedCatAge = None):
         # first obtain new animals for genotypisation
         if not age:
             dfSex = pd.DataFrame({0: sorted(list(set
@@ -1055,7 +1056,7 @@ class pedigree(classPed):
                                                                (x, xP, xC, sex) in genotypedCat]))))})
 
             num_indGenoNew = len(dfSex)
-            dfSex.to_csv('IndForGeno_new.txt', index=None, header=None)
+            dfSex.to_csv('IndForGeno_new' + group + '.txt', index=None, header=None)
 
         elif age:
             dfSex = pd.DataFrame({0: sorted(list(set
@@ -1075,11 +1076,11 @@ class pedigree(classPed):
                 dfAge = dfAge.sample((25000 - len(dfSex)), replace = False)
 
             num_indGenoNew = len(dfAge) + len(dfSex)
-            pd.concat([dfSex, dfAge]).to_csv('IndForGeno_new.txt', index=None, header=None)
+            pd.concat([dfSex, dfAge]).to_csv('IndForGeno_new' + group + '.txt', index=None, header=None)
 
-        if os.path.isfile('IndForGeno.txt'):
+        if os.path.isfile('IndForGeno' + group + '.txt'):
             # then remove old animals from the previous file
-            inds = pd.read_csv('IndForGeno.txt', header=None, names=['Indiv'])
+            inds = pd.read_csv('IndForGeno' + group + '.txt', header=None, names=['Indiv'])
             ped = pd.read_csv(AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues_cat.txt', sep='\s+')
             fathers = list(set(ped.Father))
             inds = pd.merge(inds, ped[['Indiv', 'Generation', 'sex', 'cat']],
@@ -1096,7 +1097,7 @@ class pedigree(classPed):
                 if (len(sexDF_M) + len(updatedSex)) > (25000 - num_indGenoNew):
                     updatedSex = updatedSex.sample(25000 - num_indGenoNew - len(sexDF_M), replace = False)
 
-                pd.concat([updatedSex, sexDF_M]).sort_values(by='Indiv')['Indiv'].to_csv('IndForGeno.txt', index=None, header=False)
+                pd.concat([updatedSex, sexDF_M]).sort_values(by='Indiv')['Indiv'].to_csv('IndForGeno' + group + '.txt', index=None, header=False)
 
             elif "M" in removesex and "F" in removesex:
                 sexDF_F = inds.loc[(inds.sex == "F")]
@@ -1109,24 +1110,25 @@ class pedigree(classPed):
                     sexDF_F = sexDF_F.sample((25000 - num_indGenonew - len(sexDF_M)), replace = False)
 
                 pd.concat([sexDF_F, sexDF_M]).sort_values(by='Indiv')[
-                    'Indiv'].to_csv('IndForGeno.txt', index=None, header=False)
+                    'Indiv'].to_csv('IndForGeno' + group + '.txt', index=None, header=False)
 
             os.system(
-                "grep -v -f IndForGeno.txt IndForGeno_new.txt > uniqNew && mv uniqNew IndForGeno_new.txt")  # obtain only new ones - do you dont get duplicate cows - ni nepotrebno - to zato, da ti potegne le nove genotipe za GenoFiel
+                "grep -v -f IndForGeno" + group + ".txt IndForGeno_new" + group + ".txt > "
+                                                                                  "uniqNew && mv uniqNew IndForGeno_new" + group + ".txt")  # obtain only new ones - do you dont get duplicate cows - ni nepotrebno - to zato, da ti potegne le nove genotipe za GenoFiel
             os.system(
-                'cat IndForGeno_new.txt IndForGeno.txt | sort -n| uniq > IndGenTmp && mv IndGenTmp IndForGeno.txt')
+                'cat IndForGeno_new' + group + '.txt IndForGeno' + group + '.txt | sort -n| uniq > IndGenTmp && mv IndGenTmp IndForGeno' + group + '.txt')
         else:
-            os.system("mv IndForGeno_new.txt IndForGeno.txt")
+            os.system("mv IndForGeno_new" + group + ".txt IndForGeno" + group + ".txt")
 
 
 
-    def obtainNewGenotypedInd_sex(self, sex, AlphaSimDir, age = None):
+    def obtainNewGenotypedInd_sex(self, sex, AlphaSimDir, group = "", age = None):
         """
         A function to select the newly genotyped individuals of a particular gender
         :param sex: animals of which gender to select
         :return: list of individuals
         """
-        indGeno = pd.read_csv(AlphaSimDir + "/IndForGeno_new.txt", names=['Indiv'], header=None)
+        indGeno = pd.read_csv(AlphaSimDir + "/IndForGeno_new" + group + ".txt", names=['Indiv'], header=None)
         pedCat = pd.read_csv(AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues_cat.txt', sep='\s+')
         indCatSex = pd.merge(indGeno, pedCat[['Indiv', 'sex', 'age', 'cat']], on='Indiv')
         if age is not None:
@@ -1524,7 +1526,7 @@ class blupf90:
         split = pd.read_csv(splitfile)
         AlphaSelPed = self.AlphaPed.loc[:, ['Generation', 'Indiv', 'Father', 'Mother', 'gvNormUnres1']]
 
-        for group in set(splitfile.Group):
+        for group in set(split.Group):
             blupSol = pd.read_csv(self.AlphaSimDir + '/renumbered_Solutions_' + group + '_' + str(self.gen), header=None,
                                   sep='\s+', names=['renID', 'Indiv', 'EBV'])
             groupSelPed = AlphaSelPed[AlphaSelPed.Indiv.isin(list(split.ID[split.Group == group]))]
@@ -1603,11 +1605,12 @@ class repeatedPhenotypes(object):
         return repPhenoPed
 
 class accuracies:
-    def __init__(self, AlphaSimDir):
+    def __init__(self, AlphaSimDir, group = None):
         self.AlphaSimDir = AlphaSimDir
         self.accuracies = defaultdict()
-        if os.path.isfile(self.AlphaSimDir + 'Accuracies_CatAge.csv'):
-            self.accuraciesCatAge = pd.read_csv(self.AlphaSimDir + 'Accuracies_CatAge.csv', sep=",")
+        self.group = group
+        if os.path.isfile(self.AlphaSimDir + 'Accuracies_CatAge' + self.group + '.csv'):
+            self.accuraciesCatAge = pd.read_csv(self.AlphaSimDir + 'Accuracies_CatAge' + self.group + '.csv', sep=",")
         else:
             self.accuraciesCatAge = pd.DataFrame()
 
@@ -1616,9 +1619,13 @@ class accuracies:
         name = self.AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues_cat.txt'
         pdPed = pd.read_csv(name, sep=' ')
         gen = max(pdPed['Generation'])
-        EBV = pd.read_csv(self.AlphaSimDir + 'renumbered_Solutions_' + str(gen), header=None,
-                            sep='\s+', names=['renID', 'Indiv', 'EBV'])
-        pdPed = pdPed.merge(EBV, on="Indiv")
+        if not self.group:
+            EBV = pd.read_csv(self.AlphaSimDir + 'renumbered_Solutions_' + str(gen), header=None,
+                                sep='\s+', names=['renID', 'Indiv', 'EBV'])
+        if self.group:
+            EBV = pd.read_csv(self.AlphaSimDir + 'renumbered_Solutions_' + self.group + '_' + str(gen), header=None,
+                                sep='\s+', names=['renID', 'Indiv', 'EBV'])
+        pdPed = pdPed.merge(EBV, on="Indiv", how = "left")
         pdPed.loc[:, 'AgeCat'] = pdPed.cat + (gen - pdPed.Generation).map(str)
 
         corCatX = pd.DataFrame(
@@ -1629,7 +1636,7 @@ class accuracies:
         self.accuraciesCatAge = pd.concat([self.accuraciesCatAge, corCatX], ignore_index=True)
 
     def writeAcc(self):
-        self.accuraciesCatAge.to_csv(self.AlphaSimDir + 'Accuracies_CatAge.csv', sep=",", index=None)
+        self.accuraciesCatAge.to_csv(self.AlphaSimDir + 'Accuracies_CatAge' + self.group + '.csv', sep=",", index=None)
 
     def removeFiles(self):
         if os.path.isfile(self.AlphaSimDir + 'Accuracies_Cat.csv'):
@@ -1669,7 +1676,7 @@ def splitGenPed(splitfile): #split file contains two columns - first: animals ID
     for group in list(set(split.Group)):
         gen[gen.Indiv.isin(list(split.ID[split.Group == group]))].to_csv("GenPed_EBV" + str(group) + ".txt", index=None)
 
-def selekcija_total(pedFile, externalPedName = "ExternalPedigree",group=False, groupNumber=None, noGroups=1, **kwargs):
+def selekcija_total(pedFile, externalPedName = "ExternalPedigree",group=False, groupNumber=None, groupName = "", noGroups=1, **kwargs):
     print("THis is the latest")
     print(kwargs)
     ped = pedigree(pedFile)
@@ -2000,39 +2007,42 @@ def selekcija_total(pedFile, externalPedName = "ExternalPedigree",group=False, g
     if kwargs.get('gEBV'):
         if kwargs.get('UpdateGenRef'):
             ped.updateAndSaveIndForGeno(kwargs.get('genotyped'), kwargs.get('NbUpdatedGen'), kwargs.get('sexToUpdate'),
-                                        kwargs.get('AlphaSimDir'), age='genotypedAge' in kwargs.keys(), genotypedCatAge=kwargs.get('genotypedAge'))
+                                        kwargs.get('AlphaSimDir'), group = groupName, age='genotypedAge' in kwargs.keys(), genotypedCatAge=kwargs.get('genotypedAge'))
         if not kwargs.get('UpdateGenRef'):
             if kwargs.get('limitGeno'):
                 print("LIMITING")
-                ped.saveIndForGeno_limit(kwargs.get('genotyped'), age='genotypedAge' in kwargs.keys(),
+                ped.saveIndForGeno_limit(kwargs.get('genotyped'), group = groupName, age='genotypedAge' in kwargs.keys(),
                                    genotypedCatAge=kwargs.get('genotypedAge'), sexToKeep=kwargs.get("sexToKeepGeno"))
             else:
-                ped.saveIndForGeno(kwargs.get('genotyped'), age='genotypedAge' in kwargs.keys(), genotypedCatAge=kwargs.get('genotypedAge'))
+                ped.saveIndForGeno(kwargs.get('genotyped'), group = groupName, age='genotypedAge' in kwargs.keys(), genotypedCatAge=kwargs.get('genotypedAge'))
     
         os.system(
-            'less IndForGeno.txt | wc -l > ReferenceSize_new.txt && cat ReferenceSize_new.txt ReferenceSize.txt > Reftmp && mv Reftmp ReferenceSize.txt')
-    
+            'less IndForGeno' + groupName + '.txt | wc -l > ReferenceSize_new' + groupName + '.txt && '
+                                                                                     'cat ReferenceSize_new' + groupName + '.txt ReferenceSize' + groupName + '.txt > '
+                                                                                                                                                      'Reftmp && mv Reftmp ReferenceSize' + group + '.txt')
+
     elif kwargs.get('EBV'):
         if not kwargs.get("diffGenoSize"):
             pass
         elif kwargs.get("diffGenoSize"):
-            print("Diff GenoSize: creating IndForGeno.txt")
+            print("Diff GenoSize: creating IndForGeno" + groupName + ".txt")
             if kwargs.get('UpdateGenRef'):
                 ped.updateAndSaveIndForGeno(kwargs.get('genotyped'), kwargs.get('NbUpdatedGen'),
                                             kwargs.get('sexToUpdate'),
-                                            kwargs.get('AlphaSimDir'), age='genotypedAge' in kwargs.keys(),
+                                            kwargs.get('AlphaSimDir'), group = groupName, age='genotypedAge' in kwargs.keys(),
                                             genotypedCatAge=kwargs.get('genotypedAge'))
             if not kwargs.get('UpdateGenRef'):
                 if kwargs.get('limitGeno'):
-                    ped.saveIndForGeno_limit(kwargs.get('genotyped'), age='genotypedAge' in kwargs.keys(),
+                    ped.saveIndForGeno_limit(kwargs.get('genotyped'), group = groupName, age='genotypedAge' in kwargs.keys(),
                                              genotypedCatAge=kwargs.get('genotypedAge'),
-                                             sexToKeep=kwargs.get("sexToKeepGeno"), initGenoAge = kwargs.get("genotypedAgeInit"))
+                                             sexToKeep=kwargs.get("sexToKeepGeno"), initGenoAge = kwagroupNamergs.get("genotypedAgeInit"))
                 else:
-                    ped.saveIndForGeno(kwargs.get('genotyped'), age='genotypedAge' in kwargs.keys(),
+                    ped.saveIndForGeno(kwargs.get('genotyped'), group = groupName, age='genotypedAge' in kwargs.keys(),
                                        genotypedCatAge=kwargs.get('genotypedAge'), initGenoAge = kwargs.get("genotypedAgeInit"))
 
             os.system(
-                'less IndForGeno.txt | wc -l > ReferenceSize_new.txt && cat ReferenceSize_new.txt ReferenceSize.txt > Reftmp && mv Reftmp ReferenceSize.txt')
+                'less IndForGeno' + groupName + '.txt | wc -l > ReferenceSize_new' + groupName + '.txt && '
+                                                                                                 'cat ReferenceSize_new' + groupName +'+.txt ReferenceSize' + groupName + '.txt > Reftmp && mv Reftmp ReferenceSize.txt')
     
     
     
@@ -2042,7 +2052,7 @@ def selekcija_total(pedFile, externalPedName = "ExternalPedigree",group=False, g
 
     return ped, ped.save_cat(), ped.save_sex(), ped.save_active()
 
-def selekcija_importOcetov(pedFile, externalPedName="ExternalPedigree", group=False, groupNumber=None, noGroups=1,
+def selekcija_importOcetov(pedFile, externalPedName="ExternalPedigree", group=False, groupNumber=None, groupName = "", noGroups=1,
                            importBool=False, importGroup=None, FatherList=None, **kwargs):
     ped = pedigree(pedFile)
 
@@ -2342,11 +2352,13 @@ def selekcija_importOcetov(pedFile, externalPedName="ExternalPedigree", group=Fa
         if kwargs.get('UpdateGenRef'):
             ped.updateAndSaveIndForGeno(kwargs.get('genotyped'), kwargs.get('NbUpdatedGen'),
                                         kwargs.get('sexToUpdate'),
-                                        kwargs.get('AlphaSimDir'))
+                                        kwargs.get('AlphaSimDir'), group=groupName)
         if not kwargs.get('UpdateGenRef'):
-            ped.saveIndForGeno(kwargs.get('genotyped'))
+            ped.saveIndForGeno(kwargs.get('genotyped'), group = groupName)
         os.system(
-            'less IndForGeno.txt | wc -l > ReferenceSize_new.txt && cat ReferenceSize_new.txt ReferenceSize.txt > Reftmp && mv Reftmp ReferenceSize.txt')
+            'less IndForGeno' + groupName + '.txt | wc -l > ReferenceSize_new' + groupName + '.txt && '
+                                                                                     'cat ReferenceSize_new' + groupName + '.txt ReferenceSize' + groupName + '.txt > Reftmp && '
+                                                                                                                                                      'mv Reftmp ReferenceSize' + groupName + '.txt')
     ped.write_ped(kwargs.get('AlphaSimDir') + "/" + externalPedName + ".txt")
     ped.write_pedTotal(kwargs.get('AlphaSimDir') + "/" + externalPedName + "Total.txt")
     #    ped.write_pedTotal("/home/jana/PedTotal.txt")
@@ -2354,7 +2366,7 @@ def selekcija_importOcetov(pedFile, externalPedName="ExternalPedigree", group=Fa
     return ped, ped.save_cat(), ped.save_sex(), ped.save_active()
 
 #################
-def selekcija_total_TGV(pedFile, externalPedName = "ExternalPedigree", group=False, groupNumber=None, noGroups=1, **kwargs):
+def selekcija_total_TGV(pedFile, externalPedName = "ExternalPedigree", group=False, groupNumber=None, groupName = "", noGroups=1, **kwargs):
     print kwargs
     ped = pedigree(pedFile)
 
@@ -2641,11 +2653,13 @@ def selekcija_total_TGV(pedFile, externalPedName = "ExternalPedigree", group=Fal
     if kwargs.get('gEBV'):
         if kwargs.get('UpdateGenRef'):
             ped.updateAndSaveIndForGeno(kwargs.get('genotyped'), kwargs.get('NbUpdatedGen'), kwargs.get('sexToUpdate'),
-                                        kwargs.get('AlphaSimDir'))
+                                        kwargs.get('AlphaSimDir'), group=groupName)
         if not kwargs.get('UpdateGenRef'):
-            ped.saveIndForGeno(kwargs.get('genotyped'))
+            ped.saveIndForGeno(kwargs.get('genotyped'), group = groupName)
         os.system(
-            'less IndForGeno.txt | wc -l > ReferenceSize_new.txt && cat ReferenceSize_new.txt ReferenceSize.txt > Reftmp && mv Reftmp ReferenceSize.txt')
+            'less IndForGeno' + groupName + '.txt | wc -l > ReferenceSize_new' + groupName + '.txt && '
+                                                                                     'cat ReferenceSize_new' + groupName + '.txt ReferenceSize' + groupName + '.txt > '
+                                                                                                                                                      'Reftmp && mv Reftmp ReferenceSize' + groupName + '.txt')
     ped.write_ped(kwargs.get('AlphaSimDir') + "/" + externalPedName  + ".txt")
     ped.write_pedTotal(kwargs.get('AlphaSimDir') + "/" + externalPedName + "Total.txt")
 #    ped.write_pedTotal("/home/jana/PedTotal.txt")
@@ -3614,28 +3628,30 @@ class snpFiles:
         self.AlphaSimDir = AlphaSimDir
         self.chipFile = self.AlphaSimDir + '/SimulatedData/AllIndividualsSnpChips/Chip1Genotype.txt'
 
-    def createBlupf90SNPFile(self):
-        if os.path.isfile(
-                        self.AlphaSimDir + '/GenoFile.txt'):  # if GenoFile.txt exists, only add the newIndividuals for genotypisation
+    def createBlupf90SNPFile(self, group = ""):
+        if os.path.isfile(self.AlphaSimDir + '/GenoFile' + group + '.txt'):  # if GenoFile.txt exists, only add the newIndividuals for genotypisation
             os.system(
-                'grep -Fwaf IndForGeno_new.txt ' + self.chipFile + ' > ChosenInd.txt')  # only individuals chosen for genotypisation - ONLY NEW - LAST GEN!
+                'grep -Fwaf IndForGeno_new' + group + '.txt ' + self.chipFile + ' > ChosenInd.txt')  # only individuals chosen for genotypisation - ONLY NEW - LAST GEN!
             os.system("sed 's/^ *//' ChosenInd.txt > ChipFile.txt")  # Remove blank spaces at the beginning
             os.system("cut -f1 -d ' ' ChipFile.txt > Individuals.txt")  # obtain IDs
             os.system('''awk '{$1=""; print $0}' ChipFile.txt | sed 's/ //g' > Snps.txt''')  # obtain SNP genotypes
             os.system(
                 r'''paste Individuals.txt Snps.txt | awk '{printf "%- 10s %+ 15s\n",$1,$2}' > GenoFile_new.txt''')  # obtain SNP genotypes of the last generation
             os.system(
-                'grep -Fwf IndForGeno.txt GenoFile.txt  > GenoFile_Oldtmp && mv GenoFile_Oldtmp GenoFile.txt')  # here obtain updated old reference - removed one generation
-            os.system("cat GenoFile.txt GenoFile_new.txt > GenoFileTmp && mv GenoFileTmp GenoFile.txt")
-            os.system("less GenoFile.txt | sort -n | uniq > Genotmp && mv Genotmp GenoFile.txt")
+                'grep -Fwf IndForGeno' + group + '.txt GenoFile' + group + '.txt  > '
+                                                                           'GenoFile_Oldtmp && mv GenoFile_Oldtmp GenoFile' + group + '.txt')  # here obtain updated old reference - removed one generation
+            os.system("cat GenoFile" + group + ".txt GenoFile_new.txt > GenoFileTmp && mv GenoFileTmp GenoFile" + group + ".txt")
+            os.system("less GenoFile" + group + ".txt | sort -n | uniq > Genotmp && mv Genotmp GenoFile" + group + ".txt")
+            os.system("rm ChosenInd.txt ChipFile.txt Individuals.txt Snps.txt")
         else:  # else create a new GenoFile containg all the individuals in the IndForGeno.txt
             os.system(
-                'grep -Fwaf IndForGeno.txt ' + self.chipFile + ' > ChosenInd.txt')  # only individuals chosen for genotypisation - ALL
+                'grep -Fwaf IndForGeno' + group + '.txt ' + self.chipFile + ' > ChosenInd.txt')  # only individuals chosen for genotypisation - ALL
             os.system("sed 's/^ *//' ChosenInd.txt > ChipFile.txt")  # Remove blank spaces at the beginning
             os.system("cut -f1 -d ' ' ChipFile.txt > Individuals.txt")  # obtain IDs
             os.system('''awk '{$1=""; print $0}' ChipFile.txt | sed 's/ //g' > Snps.txt''')  # obtain SNP genotypes
             os.system(
-                r'''paste Individuals.txt Snps.txt | awk '{printf "%- 10s %+ 15s\n",$1,$2}' > GenoFile.txt''')  # obtain SNP genotypes of the last generation
+                r'''paste Individuals.txt Snps.txt | awk '{printf "%- 10s %+ 15s\n",$1,$2}' > GenoFile''' + group + '.txt')  # obtain SNP genotypes of the last generation
+            os.system("rm ChosenInd.txt ChipFile.txt Individuals.txt Snps.txt")
         snpmap = pd.read_csv(self.AlphaSimDir + '/SimulatedData/Chip1SnpInformation.txt', sep='\s+')[
             ["SnpId", "ChromId", "SnpSeqIdOnChrom"]]
         snpmap.columns = ['SNP_ID', 'CHR', 'POS']

@@ -32,12 +32,14 @@ acc <- data.frame(N = NA, h2 = NA, r = NA)
 
 for (her in c(0.03, 0.1, 0.25, 0.35, 0.5)) {
   for (num in c(1:11)) {
-    acc <- rbind(acc, c(num, her, r(num, her, t )))
+    acc <- rbind(acc, c(num, her, r(num, her, her )))
   }
 }
 
 acc <- acc[-1,]
 acc
+acc[acc$h2 == 0.25,]
+
 acc$h2 <- as.factor(acc$h2)
 acc$N <- as.factor(acc$N)
 ggplot(data=acc, aes(x=N, y=r, group=h2, colour=h2)) + geom_line() + ggtitle(paste0("Repeatability: ", round(t, 3))) + xlab("Number of records") + 

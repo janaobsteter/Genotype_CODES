@@ -18,7 +18,7 @@ founderPop = runMacs(nInd = nMales + nFemales,
 save.image(file = "~/KISdir/Documents/PhD/Projects/inProgress/AlphaPart/SimulationAccBlup.RData")
 #save(founderPop, file = "~/KISdir/Documents/PhD/Projects/inProgress/AlphaPart/FounderPop.RData")
 
-load("~/KISdir/Documents/PhD/Projects/inProgress/AlphaPart/FounderPop.RData")
+load("~/Documents/PhD/Projects/GenomicAlphaPart/FounderPopObject.RData")
 
 SP = SimParam$new(founderPop)
 VarA = matrix(data = rep(1.0, 100), nrow = 10); cov2cor(VarA)
@@ -39,7 +39,7 @@ Females = Base[!(Base@id %in% Males@id)]
 Females@gender = "F"
 
 # Create selection candidates
-selCand = randCross2(females = Females, males = Males, nCrosses = Females@nInd, nProgeny = 2)
+selCand = randCross2(females = Females, males = Males, nCrosses = Females@nInd, nProgeny = 20)
 # Set Phenotype for all 10 traits
 selCand = setPheno(selCand, varE = VarE)
 table(selCand@gender)
@@ -47,8 +47,8 @@ table(selCand@father[selCand@gender == "F"])
 # Select the daughters
 Daughters = selCand[selCand@gender == "F"]
 Daughters@nInd
-min(as.numeric(daughters@id))
-max(as.numeric(daughters@id))
+min(as.numeric(Daughters@id))
+max(as.numeric(Daughters@id))
 
 # -- Estimate EBVs --
 options(width=200)
@@ -77,7 +77,7 @@ accuracies1 <- data.frame(nRecords = NA, nDaughtersPerSire = NA, AccSires = NA, 
 
 for (nRecords in c(1, 2, 5, 10)) {
   print(paste0("Number of records is ", nRecords))
-  nDaughtersPerBull <- 10
+  nDaughtersPerBull <- 100
   PED <- data.frame(daughter = Daughters@id, father = Daughters@father)
   SelDaughters <- ddply(PED,.(father),function(x) x[sample(nrow(x),nDaughtersPerBull),])
   daughters <- Daughters[Daughters@id %in% SelDaughters$daughter]
@@ -284,13 +284,14 @@ for (nRecords in c(1, 2, 5, 10)) {
 
 accuracies1$PA <- sqrt(0.25*(accuracies1$AccSires**2 + accuracies1$AccDaughters**2))
 accuracies1 <- accuracies1[-1,]
+accuracies1
 ###################################################
 # funds for 10,000 phenotyping, vary the number of daughters with phenotype
 accuracies <- data.frame(nRecords = NA, nDaughtersPerSire = NA, AccSires = NA, AccDaughters = NA)
 
 for (nRecords in c(1, 2, 5, 10)) {
   print(paste0("Number of records is ", nRecords))
-  nDaughtersPerBull <- 10000/100/nRecords
+  nDaughtersPerBull <- 100000/100/nRecords
   PED <- data.frame(daughter = Daughters@id, father = Daughters@father)
   SelDaughters <- ddply(PED,.(father),function(x) x[sample(nrow(x),nDaughtersPerBull),])
   daughters <- Daughters[Daughters@id %in% SelDaughters$daughter]
@@ -433,7 +434,7 @@ for (nRecords in c(1, 2, 5, 10)) {
   r <- sqrt(r2)
   acc <- data.frame(id = 1:length(r), r = r)
   qplot(data = acc, x = id, y = r)
-  hist(r)
+  #hist(r)
   
   # (Z <- model.Matrix(~ individual - 1, data=dat, sparse=TRUE))
   # order <- paste0("individual", ped$individual)
@@ -496,8 +497,11 @@ for (nRecords in c(1, 2, 5, 10)) {
 }
 
 accuracies
+accuracies$Total <- accuracies$nDaughtersPerSire * 100
+accuracies$TotalPheno <- accuracies$Total * accuracies$nRecords
 accuracies$PA <- sqrt(0.25*(accuracies$AccSires**2 + accuracies$AccDaughters**2))
 accuracies <- accuracies[-1,]
+accuracies
 
 ped <- data.frame(individual = c(1,1,1,2,2,3,3,3,4,5,5), father = c(0, 0, 0, 1, 1, 1, 1, 1, 2, 4, 4), mother = rep(NA, 11), phenotype = rnorm(11))
 ped$individual <- as.factor(ped$individual)
