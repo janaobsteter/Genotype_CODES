@@ -1,0 +1,95 @@
+#Function to perform selection
+
+if this is your first selection generation:
+    set the categories()
+
+if this is not your first selection generation:
+    promote the animals ()
+
+
+1) #SET THE CATEGORIES
+#FEMALE SELECTION
+#age 0: select female calves
+female_calves = animals_age_0(sex = "female", number = XX)
+#age 1: select females for breeding
+breeding_females = animals_age_1(sex = "female", number = XX)
+#age 2: select cows remaining after 1st lactation
+cows2 = animals_age_2(sex = "female", number = XX)
+#age 3: select cows remaining after 2st lactation
+cows3 = animals_age_3(sex = "female", number = XX)
+#age 4: select cows remaining after 3st lactation
+cows4 = animals_age_4(sex = "female", number = XX)
+#age 5: select cows remaining after 4st lactation
+cows3 = animals_age_5(sex = "female", number = XX)
+#continue this for a given number of lactations
+
+#age XX: select bull dams
+#select top females from a given set of cows at a given age
+
+
+#MALE SELECTION
+#age 0: select males from elite matings for performance testing
+male_candidates = animals_age_o(sex = "male", number = XX)
+#age 1: select top males for progeny testins
+young_bulls = animals_age_1 (sex = "male", number = XX)
+#age 2: select top males in progeny testing
+young_bulls = animals_age_2(sex = "male", number = XX)
+#age 3: select top males in progeny testing
+young_bulls = animals_age_3(sex = "male", number = XX)
+#age 4: select top males in progeny testing
+young_bulls = animals_age_4(sex = "male", number = XX)
+#Do this for however logn your progeny testing lasts
+#age 5: select progeny tested males from CHOSEN years (thid depends on how long a bull is used for in your population)
+elite_bulls = animals_age_5(sex = "male", number = XX)
+elite_bulls = animals_age_6(sex = "male", number = XX)
+elite_bulls = animals_age_7(sex = "male", number = XX)
+elite_bulls = animals_age_8(sex = "male", number = XX)
+
+
+#INSEMINATION
+#cows with elite bulls + young bulls
+#bull dams with elite bulls
+#create newborns
+
+#PROMOTE THE ANIMALS
+#here you do the same as above, except you choose from previous years categories
+female_calves = select_from_previous_year_newborns(sex = "female", number = xx)
+#age 1: select females for breeding
+breeding_females = select_from_previous_years_female_calves(sex = "female", number = XX)
+#age 2: select cows remaining after 1st lactation
+cows2 = select_from_previous_years_breeding_females(sex = "female", number = XX)
+#age 3: select cows remaining after 2st lactation
+cows3 = select_from_previous_years_cows2(sex = "female", number = XX)
+#age 4: select cows remaining after 3st lactation
+cows4 = select_from_previous_years_cows3(sex = "female", number = XX)
+#age 5: select cows remaining after 4st lactation
+cows3 = select_from_previous_years_cows4(sex = "female", number = XX)
+#continue this for a given number of lactations
+
+#age XX: select bull dams
+#select top females from a given set of cows at a given age
+
+#MALE SELECTION
+#age 0: select males from elite matings for performance testing
+male_candidates = select_from_previous_year_newborns(sex = "male", number = xx)
+#age 1: select top males for progeny testins
+young_bulls1 = select_from_previous_male_candidates (sex = "male", number = XX)
+#age 2: select top males in progeny testing
+young_bulls2 = promote_previous_years_young_bulls1(sex = "male", number = XX)
+#age 3: select top males in progeny testing
+young_bulls3 = promote_previous_years_young_bulls2(sex = "male", number = XX)
+#age 4: select top males in progeny testing
+young_bulls4 = promote_previous_years_young_bulls3(sex = "male", number = XX)
+#Do this for however logn your progeny testing lasts
+#age 5: select progeny tested males from CHOSEN years (thid depends on how long a bull is used for in your population)
+elite_bulls5 = select_from_young_bulls4(sex = "male", number = XX)
+elite_bulls6 = promote_previous_years_elite_bulls5(sex = "male", number = XX)
+elite_bulls7 = promote_previous_years_elite_bulls6(sex = "male", number = XX)
+elite_bulls8 = promote_previous_years_elite_bulls7(sex = "male", number = XX)
+
+
+#INSEMINATION
+#cows with elite bulls + young bulls
+#bull dams with elite bulls
+#create newborns
+
