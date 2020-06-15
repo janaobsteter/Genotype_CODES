@@ -285,25 +285,25 @@ ggplot(data = part2Ma[(part2Ma$BV == "Tbv"),],
     facet_grid(. ~ Population + Trait)
 dev.off()
 
-png("/home/jana/Documents/PhD/Projects/inProgress/AlphaPart//Figures/Obsteter_5partial.png", res=600, width=170, height=100, units="mm")
+png("/home/jana/Documents/PhD/Projects/inProgress/AlphaPart//Figures/Obsteter_5partial.png", res=600, width=180, height=100, units="mm")
 ggplot(data = part2Ma[(part2Ma$BV == "Tbv" & part2Ma$Trait == "Trait 1"),], 
     aes(x=Generation, y = value, colour = variable, linetype = variable)) + 
-    geom_line(size = 1, aes(linetype = variable)) + 
-    #ggtitle("Program 2") +  
-    geom_ribbon(data = part2Ma[(part2Ma$BV == "Tbv" & part2Ma$Trait == "Trait 1"),], aes(ymin = min, ymax = max, x = Generation, fill = variable), linetype = 0, alpha = 0.3) + 
-  scale_colour_manual("\n\nSelection path", values=c("black", "#bd0b58", "#3ea4ed", "#bd0b58", "#3ea4ed"), 
-                      labels = c("Total", "Nucleus\nfemales", "Nucleus\nmales", "Multiplier\nfemales", "Multiplier\nmales")) +
-  scale_fill_manual("\n\nSelection path", values=c("black", "#bd0b58", "#3ea4ed", "#bd0b58", "#3ea4ed"), 
-                    labels = c("Total", "Nucleus\nfemales", "Nucleus\nmales", "Multiplier\nfemales", "Multiplier\nmales")) + 
+  geom_line(size = 1, aes(linetype = variable)) + 
+  #ggtitle("Program 2") +  
+  geom_ribbon(data = part2Ma[(part2Ma$BV == "Tbv"& part2Ma$Trait == "Trait 1"),], aes(ymin = min, ymax = max, x = Generation, fill = variable), linetype = 0, alpha = 0.3) + 
+  scale_colour_manual("\n\nSelection path", values=c("black", "#3ea4ed","#bd0b58",  "#3ea4ed","#bd0b58"), 
+                      labels = c("Total", "Nucleus\nmales", "Nucleus\nfemales", "Multiplier\nmales", "Multiplier\nfemales")) +
+  scale_fill_manual("\n\nSelection path", values=c("black", "#3ea4ed","#bd0b58",  "#3ea4ed","#bd0b58"), 
+                    labels = c("Total", "Nucleus\nmales", "Nucleus\nfemales", "Multiplier\nmales", "Multiplier\nfemales")) + 
   scale_linetype_manual("\n\nSelection path", values = c("solid", "solid", "solid", "twodash", "twodash"), 
-                        labels = c("Total", "Nucleus\nfemales", "Nucleus\nmales", "Multiplier\nfemales", "Multiplier\nmales")) +
-    ylab("Genetic trend") + xlab("Year") + 
-  theme_bw(base_size=10, base_family="Arial") + theme(legend.position="top", legend.text=element_text(size=10), legend.title=element_text(size=12), 
-                                                      axis.text=element_text(size=10),
-                                                      axis.title=element_text(size=12), strip.text = element_text(size = 10)) + 
-    scale_y_continuous(breaks = seq(0, 12, 3)) + 
-    guides(colour = guide_legend(keywidth = unit(2.5, "cm"), label.position =  "top")) +
-    facet_grid(. ~ Population )
+                        labels = c("Total", "Nucleus\nmales", "Nucleus\nfemales", "Multiplier\nmales", "Multiplier\nfemales")) +
+  ylab("Genetic trend") + xlab("Year") +
+  theme_bw(base_size=10, base_family="Arial") + theme(legend.position="top", legend.text=element_text(size=14), legend.title=element_text(size=14), 
+                                                      axis.text=element_text(size=14),
+                                                      axis.title=element_text(size=14), strip.text = element_text(size = 14)) + 
+  scale_y_continuous(breaks = seq(0, 12, 3)) + 
+  guides(colour = guide_legend(keywidth = unit(2.5, "cm"), label.position =  "top")) +
+  facet_grid(. ~ Population + Trait)
 dev.off()
 
 tiff("/home/jana/Documents/PhD/Projects/inProgress/AlphaPart//Figures/ObsteterLarge_5.tiff", res=1200, width=300, height=200, units="mm")
@@ -1128,3 +1128,33 @@ ggplot(data = data20, aes(x = value, colour = variable, linetype = variable)) +
   facet_grid(cols = c(vars(trait)), rows=c(vars(Generation),vars(Program)))
 dev.off()
 
+png("/home/jana/Documents/PhD/Projects/inProgress/AlphaPart//Figures/Obsteter_3partial.png", res=600, width=200, height=120, units="mm")
+ggplot(data = data20[data20$trait %in% c("Trait 1") & data20$Generation == "Year 40",], aes(x = value, colour = variable, linetype = variable)) + 
+  # stat_density_ci(
+  #   aes(y = ..scaled..)
+  #   n = 1024,
+  #   geom = "line",
+  #   position = "identity"
+  # ) +
+  #geom_posterior() +
+  stat_density(aes(y = ..scaled.., colour=variable),
+                position = "identity", geom="line", bw=0.7, size = 1) +
+  geom_vline(data = MEANVALUES20[MEANVALUES20$Generation == "Year 40" & MEANVALUES20$trait %in% c("Trait 1"),], aes(xintercept = Value)) + 
+  scale_colour_manual("\nSelection path", values=c("black", "#3ea4ed", "#bd0b58", "#3ea4ed", "#bd0b58"), 
+                      labels = c("Total", "Nucleus\nmales", "Nucleus\nfemales", "Multiplier\nmales", "Multiplier\nfemales")) +
+  scale_fill_manual("\nSelection path", values=c("black", "#bd0b58", "#3ea4ed", "#bd0b58", "#3ea4ed"), 
+                    labels = c("Total", "Nucleus\nmales", "Nucleus\nfemales", "Multiplier\nmales", "Multiplier\nfemales")) + 
+  scale_linetype_manual("\nSelection path", values = c("solid", "solid", "solid", "twodash", "twodash"), 
+                        labels = c("Total", "Nucleus\nmales", "Nucleus\nfemales", "Multiplier\nmales", "Multiplier\nfemales")) +
+  ylab("Density") + xlab("True breeding value") + xlim(c(-3.1, 13)) +
+  guides(colour = guide_legend(keywidth = unit(2.5, "cm"), nrow = 1, byrow = TRUE, label.position =  "top")) +
+  theme_bw(base_size=10, base_family="arial") + theme(legend.position="top", legend.text=element_text(size=14), legend.title=element_text(size=14), 
+                                                      axis.text=element_text(size=14),
+                                                      axis.title=element_text(size=14),
+                                                      axis.text.y  = element_blank(), 
+                                                      axis.ticks.y  = element_blank(), 
+                                                      strip.text = element_text(size = 14)) + 
+  guides(linetype = guide_legend(keywidth = unit(2.5, "cm"), nrow = 1, byrow = TRUE, label.position =  "top")) +
+  facet_grid(cols = c(vars(trait)), rows=c(vars(Generation),vars(Program)))
+dev.off()
+  

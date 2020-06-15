@@ -620,12 +620,12 @@ ggplot(data=gainrefM[gainrefM$Ref == "With initial TP",], aes(x=Generation, y=va
   #                      values = c(viridis::viridis(7)[6:1], "black")) +
   # scale_fill_manual("Scenario",
   #                    values = c(viridis::viridis(7)[6:1], "black")) +
-  scale_colour_manual("Scenario",
-                      values = c(viridis::plasma(7)[6:1], "black")) +
-  scale_fill_manual("Scenario",
-                    values = c(viridis::plasma(7)[6:1], "black")) +
-  scale_linetype_manual("", values = c("dashed", "solid")) + xlab("Year") + 
-  geom_ribbon(aes(ymin = value - CI, ymax = value + CI, fill = RealSc),  linetype = 0, alpha = 0.3) + 
+  # scale_colour_manual("Scenario",
+  #                     values = c(viridis::plasma(7)[6:1], "black")) +
+  # scale_fill_manual("Scenario",
+  #                   values = c(viridis::plasma(7)[6:1], "black")) +
+  # scale_linetype_manual("", values = c("dashed", "solid")) + xlab("Year") + 
+  # geom_ribbon(aes(ymin = value - CI, ymax = value + CI, fill = RealSc),  linetype = 0, alpha = 0.3) + 
   geom_line(size = 0.8) + 
   guides(linetype=guide_legend(nrow=2, keyheight = unit(.8, "cm"), keywidth = unit(2, "cm"), 
                                label.position = "left", override.aes = list(alpha = 1, size=1.2))) +
@@ -655,7 +655,7 @@ G1 <- ggplotGrob(g1)
 G1$heights
 G1$heights[[10]] <- unit(5, "null")
 G1$heights[[12]] <- unit(3, "null")
-#library(grid)
+library(grid)
 
 png("/home/jana/Documents/PhD/Projects/inProgress/Phenotyping/Figures/Obsteter_1_viridis.png", res=1200, width=170, height=120, units="mm")
 png("/home/jana/Documents/PhD/Projects/inProgress/Phenotyping/Figures/Obsteter_1_plasma.png", res=1200, width=170, height=120, units="mm")
