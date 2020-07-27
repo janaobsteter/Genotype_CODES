@@ -28,8 +28,8 @@ GenVarCols  = c("GenVarT1")
 # ---- Base population genomes ----
 
 founderPop = runMacs(nInd = nGNMales + nGNFemales,
-                     nChr = 10,
-                     segSites = 1000,
+                     nChr = 1,
+                     segSites = 10,
                      nThreads = 4,
                      # species = "GENERIC")
                      species = "CATTLE")
@@ -56,7 +56,7 @@ for (h2 in c(0.25)) {
   VarA = matrix(data = c(1.0), nrow = 1); cov2cor(VarA)
   VarE = matrix(data = c(3.0), nrow = 1); cov2cor(VarE)
   VarP = VarA + VarE; diag(VarA) / diag(VarP)
-  SP$addTraitA(nQtlPerChr = 1000, mean = c(0), var = diag(VarA), cor = cov2cor(VarA))
+  SP$addTraitA(nQtlPerChr = 10, mean = c(0), var = diag(VarA), cor = cov2cor(VarA))
   # SP$addSnpChip(nSnpPerChr = 1000)
   SP$setGender(gender = "yes_sys")
   
@@ -73,8 +73,8 @@ for (h2 in c(0.25)) {
   # ---- GN burn-in ----
   
   DataBurn = tibble(Generation = rep(1:nGenerationBurn, each=2), Gender = rep(c("F", "M"), nGenerationBurn),
-                    GenMeanT1 = NA, 
-                    GenVarT1  = NA)
+                    GenMeanT1 = NULL, 
+                    GenVarT1  = NULL)
   for (Generation in 1:nGenerationBurn) {
     # Generation = 1
     
@@ -84,8 +84,8 @@ for (h2 in c(0.25)) {
     
     # Save metrics
     for (gender in c("F", "M")) {
-      DataBurn[(DataBurn$Generation == Generation) & (DataBurn$Gender == gender), GenMeanCols] =
-        mean(SelCand@gv[SelCand@gender == gender,])
+      DataBurn[(DataBurn$Generation == Generation) & (DataBurn$Gender == gender), GenMeanCols] = 
+        round(mean(SelCand@gv[SelCand@gender == gender,]), 1)
       DataBurn[(DataBurn$Generation == Generation) & (DataBurn$Gender == gender), GenVarCols] =
         var(SelCand@gv[SelCand@gender == gender,])
     }
@@ -106,7 +106,7 @@ for (h2 in c(0.25)) {
   
   # Plot genetic means
   DataBurn %>%
-    gather(key = "Metric", value = "Value", GenMeanCols) %>%
+    gather(key = "Metric", value = "Value", "GenMeanT1") %>%
     ggplot(., aes(Generation, Value, color = Metric)) +
     geom_line() +
     ylab(label = "Genetic mean")

@@ -6,31 +6,37 @@
 ####################################################
 #all chips with be imputed but the concordance check will be for the SCHIP
 #LCHIP is the chip you want to impute to
-CONCCHIP=GGPv02 #<-- CHANGE!
-REFCHIP=GGPv04 #<-- CHANGE!
-IMPDATE=10012017
-mkdir ~/Genotipi/Genotipi_WORK/MSImp_$IMPDATE
-mkdir ~/Genotipi/Genotipi_WORK/MSImp_$IMPDATE/Ref${REFCHIP}_Conc${CONCCHIP}
-cd ~/Genotipi/Genotipi_WORK/MSImp_$IMPDATE/Ref${REFCHIP}_Conc${CONCCHIP}
+CONCCHIP=Versa50K #<-- CHANGE!
+REFCHIP=IDBv03 #<-- CHANGE!
+IMPDATE=13072020
+ImpDir=/home/jana/Genotipi/Genotipi_WORK/SNPImp_$IMPDATE
+mkdir $ImpDir
+ImpCipDir=/home/jana/Genotipi/Genotipi_WORK/MSImp_$IMPDATE/Ref${REFCHIP}_Conc${CONCCHIP}
+mkdir $ImpCipDir
+cd $ImpCipDir
 
-ADDCHIP1=GGPv03
-ADDCHIP2=HD
-ADDCHIP3=HDv02
-ADDCHIP4=50Kv01
-ADDCHIP5=50Kv02
+ADDCHIP1=GGPv02
+ADDCHIP2=GGPv03
+ADDCHIP3=GGPV04
+ADDCHIP4=HD
+ADDCHIP5=HDv02
+ADDCHIP6=50Kv01
+ADDCHIP7=50Kv02
 
 #REFERENCE CHIP = chip you are imputing to
 #CONCPLINK is the chip you are checking concordance for (each one has a different number of missing SNPs)
-REFPLINK=/home/janao/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/$REFCHIP/OUTPUT/PLINK_MERGED
-CONCPLINK=/home/janao/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/$CONCCHIP/OUTPUT/PLINK_MERGED
+REFPLINK=/home/janao/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/Top/$REFCHIP/OUTPUT/PLINK_MERGED
+CONCPLINK=/home/janao/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/Top/$CONCCHIP/OUTPUT/PLINK_MERGED
 
 
 #
-ADDPLINK1=/home/janao/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/$ADDCHIP1/OUTPUT/PLINK_MERGED 
-ADDPLINK2=/home/janao/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/$ADDCHIP2/OUTPUT/PLINK_MERGED
-ADDPLINK3=/home/janao/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/$ADDCHIP3/OUTPUT/PLINK_MERGED
-ADDPLINK4=/home/janao/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/$ADDCHIP4/OUTPUT/PLINK_MERGED
-ADDPLINK5=/home/janao/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/$ADDCHIP5/OUTPUT/PLINK_MERGED
+ADDPLINK1=/home/janao/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/Top/$ADDCHIP1/OUTPUT/PLINK_MERGED 
+ADDPLINK2=/home/janao/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/Top/$ADDCHIP2/OUTPUT/PLINK_MERGED
+ADDPLINK3=/home/janao/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/Top/$ADDCHIP3/OUTPUT/PLINK_MERGED
+ADDPLINK4=/home/janao/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/Top/$ADDCHIP4/OUTPUT/PLINK_MERGED
+ADDPLINK5=/home/janao/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/Top/$ADDCHIP5/OUTPUT/PLINK_MERGED
+ADDPLINK6=/home/janao/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/Top/$ADDCHIP5/OUTPUT/PLINK_MERGED
+ADDPLINK7=/home/janao/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/Top/$ADDCHIP5/OUTPUT/PLINK_MERGED
 
 #remove potential Concordance files left behind
 rm Conc*
@@ -46,16 +52,18 @@ rm Conc*
 ~/bin/plink --file ${ADDPLINK3} --cow --extract $REFCHIP.map --chr 1-29 --recode --out ${ADDCHIP3}_REF
 ~/bin/plink --file ${ADDPLINK4} --cow --extract $REFCHIP.map --chr 1-29 --recode --out ${ADDCHIP4}_REF
 ~/bin/plink --file ${ADDPLINK5} --cow --extract $REFCHIP.map --chr 1-29 --recode --out ${ADDCHIP5}_REF
+~/bin/plink --file ${ADDPLINK5} --cow --extract $REFCHIP.map --chr 1-29 --recode --out ${ADDCHIP6}_REF
+~/bin/plink --file ${ADDPLINK5} --cow --extract $REFCHIP.map --chr 1-29 --recode --out ${ADDCHIP7}_REF
 
 
 #prepare SNP_Cluster file - a list of common SNP on the REF and CONCHIP
 #Split the list into 10x datasets - CVSNPset#
-cp ~/Genotipi/Genotipi_CODES/Cluster_SNPs.R .
+cp /home/jana/Genotipi/Genotipi_CODES/Cluster_SNPs.R .
 sed -i "s/CONCMAP_REF/CONCPLINK_REF.map/g" Cluster_SNPs.R
 sed -i "s%CurrentImputationDir%$PWD%g" Cluster_SNPs.R
 
 #!/usr/bin/enc Rscript
-Rscript $PWD/Cluster_SNPs.R
+Rscript $PWD/Cluster_SNPs.R $ImpCipDir
 
 
 #SNPSETS=$PWD/CVSNPset
@@ -70,7 +78,7 @@ echo "CONCPLINK_REF.ped" "CONCPLINK_REF.map"$'\n'"${ADDCHIP1}_REF.ped" "${ADDCHI
 ~/bin/plink --file  $REFPLINK --cow --merge-list MERGELIST.txt --chr 1-29 --recode --out MERGEDOnto_$REFCHIP
 
 #Remove SNPs with different positions on different chromosomes
-grep Warning: MERGEDOnto_GGPv04.log | grep -o "'[^']\+'" | sed "s/'//g" > RemoveSNPs.txt
+grep Warning: MERGEDOnto_$REFCHIP.log | grep -o "'[^']\+'" | sed "s/'//g" > RemoveSNPs.txt
 
 
 
@@ -109,7 +117,7 @@ do
 #Impute all 10 Masked files
 #######################################################
 #REFCHIP is the REFPLINK file with 0,0 SNPs and sex chromosomes excluded
-	cp /home/janao/Genotipi/Genotipi_CODES/PARAMFILE.txt .
+	cp /home/jana/Genotipi/Genotipi_CODES/PARAMFILE.txt .
 	sed -i "s%PathToPed%$PWD/CONC_Masked$i.ped,$PWD/$REFCHIP.ped%g" PARAMFILE.txt #change ped file input 
 	sed -i "s%PathToMap%$PWD/CONC_Masked$i.map,$PWD/$REFCHIP.map%g" PARAMFILE.txt #change map file input
 	sed -i "s%OutputName%ImpMasked${i}%g" PARAMFILE.txt #change output name

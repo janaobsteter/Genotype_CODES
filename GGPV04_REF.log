@@ -1,0 +1,19 @@
+PLINK v1.90b3.36 64-bit (31 Mar 2016)
+Options in effect:
+  --chr 1-29
+  --cow
+  --extract IDBv03.map
+  --file /home/janao/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/Top/GGPV04/OUTPUT/PLINK_MERGED
+  --out GGPV04_REF
+  --recode
+
+Hostname: zivkis1701
+Working directory: /home/jana/Genotipi/Genotipi_CODES
+Start time: Fri Jul 17 11:44:38 2020
+
+Random number seed: 1594979078
+32076 MB RAM detected; reserving 16038 MB for main workspace.
+Error: Failed to open
+/home/janao/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/Top/GGPV04/OUTPUT/PLINK_MERGED.map.
+
+End time: Fri Jul 17 11:44:38 2020

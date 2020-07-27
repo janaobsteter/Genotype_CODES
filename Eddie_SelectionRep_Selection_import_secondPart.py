@@ -57,11 +57,11 @@ class estimateBV:
         elif dataGroup:
             #first split the .dat file (for the group)
             blupFiles.popSplitDat("Blupf90.dat", "PopulationSplit.txt")
-            if self.sel == 'gen':
+            if self.sel == 'class':
                 shutil.copy(blupFiles.blupgenParamFile_group,
                             blupFiles.AlphaSimDir + 'renumf90.par')  # skopiraj template blupparam file
                 os.system("sed -i 's/Blupf90_group.dat/Blupf90_" + group + ".dat/g' renumf90.par")
-            if self.sel == 'class':
+            if self.sel == 'gen':
                 shutil.copy(blupFiles.blupgenParamFile_Clas_group,
                             blupFiles.AlphaSimDir + 'renumf90.par')  # skopiraj template blupparam file
                 #prepare genoFile
@@ -228,8 +228,8 @@ if selParimport['gEBV']:
 #SELEKCIJA
 ##############################################################################
 print(AlphaSimDir)
-for roundNo in range(41,61): #za vsak krog selekcije
-    if roundNo == 41:
+for roundNo in range(40,61): #za vsak krog selekcije
+    if roundNo == 40:
         print("Creating and initial training population of all active cows and PT bulls.")
         ped = pd.read_csv('./SimulatedData/PedigreeAndGeneticValues_cat.txt', sep='\s+')
         popSplit = pd.read_csv("PopulationSplit.txt")
@@ -244,11 +244,13 @@ for roundNo in range(41,61): #za vsak krog selekcije
 
 
     # prestavi se v AlphaSim Dir
-    if not os.path.isfile(AlphaSimDir + 'ReferenceSize.txt') and os.path.isfile(AlphaSimDir + "IndForGeno.txt"):
+	#if not os.path.isfile(AlphaSimDir + 'ReferenceSize.txt') and os.path.isfile(AlphaSimDir + "IndForGeno.txt"):
         os.system("less IndForGeno.txt | wc -l > ReferenceSize.txt")
-    if not os.path.isfile(AlphaSimDir + 'ReferenceSize_home.txt') and os.path.isfile(AlphaSimDir + "IndForGenohome.txt"):
+#    if not os.path.isfile(AlphaSimDir + 'ReferenceSize_home.txt') and os.path.isfile(AlphaSimDir + "IndForGenohome.txt"):
+	    print("Creating new ReferenceSizeHome file " + str(roundNo))
         os.system("less IndForGenohome.txt | wc -l > ReferenceSizehome.txt")
-    if not os.path.isfile(AlphaSimDir + 'ReferenceSize_import.txt') and os.path.isfile(AlphaSimDir + "IndForGenoimport.txt"):
+#    if not os.path.isfile(AlphaSimDir + 'ReferenceSize_import.txt') and os.path.isfile(AlphaSimDir + "IndForGenoimport.txt"):
+	    print("Creating new ReferenceSizeImport file " + str(roundNo))
         os.system("less IndForGenoimport.txt | wc -l > ReferenceSizeimport.txt")
 
     # Štartaj že po 20 gen kalsične selekcije
@@ -268,7 +270,7 @@ for roundNo in range(41,61): #za vsak krog selekcije
     if selParimport['EBV']:
         Oce_import = pedI.izberi_ocete_PT(selParimport["pbUp"]) #tukaj so PT testirani očetje
     if selParimport['gEBV']:
-        Oce_import = pedI.izberiprepareSelPed_group_ocete_gen(selParimport["pbUp"])  # tukaj so genomsko testirani očetje
+        Oce_import = pedI.izberi_ocete_gen(selParimport["pbUp"])  # tukaj so genomsko testirani očetje
 
     #odberi starše domače populacije
     pedH, cH, sH, aH = selekcija_importOcetov('GenPed_EBVhome.txt', externalPedName="ExternalPedigreehome", group=True, groupNumber=0,
@@ -301,7 +303,7 @@ for roundNo in range(41,61): #za vsak krog selekcije
     # pozenes ALPHASIM
     os.system('./AlphaSim1.08')
     #tukaj odstrani chip2 genotype file in izračunaj heterozigotnost na nevtralnih lokusih (chip2 - chip1)
-    os.system("Rscript MeanHetMarker_Neutral_QTN_import.R " + str(roundNo+20) + " " + str(rep) + " " + str(scenarioHome) + str(scenarioImport) + " " + str(strategy))
+    os.system("/exports/cmvm/eddie/eb/groups/tier2_hickey_external/R-3.4.2/bin/Rscript MeanHetMarker_Neutral_QTN_import.R " + str(roundNo+20) + " " + str(rep) + " " + str(scenarioHome) + str(scenarioImport) + " " + str(strategy))
     os.system("bash ChangeChip2Geno_IDs.sh")    	
 	
     # tukaj dodaj kategorije k PedigreeAndGeneticValues (AlphaSim File)
@@ -318,7 +320,7 @@ for roundNo in range(41,61): #za vsak krog selekcije
     #estimate EBVs for home population with only domestic data
     blupNextGen.computeEBV(group = "home", dataGroup = True, prepareSelPed = False)
     #estimate EBVs for import population, use all data, create GenPed_EBVs.txt for both groups (only once, sinve it is one populationsplit file)
-    blupNextGen.computeEBV(group = "import", dataGroup = False, prepareSelPed = True)
+    blupNextGen.computeEBV(group = "import", dataGroup = True, prepareSelPed = True)
     AccHome.saveAcc()
     AccImport.saveAcc()
     #GenTrends.saveTrends()

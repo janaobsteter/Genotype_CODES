@@ -1,11 +1,11 @@
 #############################################################################3
 #10x CV for smaller chip --> larger chip
 ###############################################################################
-setwd("CurrentImputationDir")
+setwd("/home/jana/Genotipi/Genotipi_CODES")
 
 ############################################################################################################3
 #1)READ IN MAP file of the CONC CHIP - in CONCPLINK_REF are only SNPs that are also on REF chip
-Conc_Map <- read.table("CONCMAP_REF")
+Conc_Map <- read.table("CONCPLINK_REF.map")
 Conc_SNPs <- data.frame(SNPs=Conc_Map[,2])
 
 

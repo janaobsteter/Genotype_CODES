@@ -241,7 +241,7 @@ part1Ma <- part1Ma[-which(part1Ma$Population == "Nucleus" & part1Ma$variable %in
 part1Ma <- part1Ma[-which(part1Ma$Population == "Multiplier" & part1Ma$variable %in% c("PN1.M")),]
 part2Ma <- part2Ma[-which(part2Ma$Population == "Nucleus" & part2Ma$variable %in% c("PN2.M", "PN2.F")),]
 
-png("/home/jana/Documents/PhD/Projects/inProgress/AlphaPart//Figures/Obsteter_2.png", res=600, width=170, height=100, units="mm")
+png("/home/jana/Documents/PhD/Projects/inProgress/AlphaPart//Figures/Obsteter_2_revision.png", res=600, width=170, height=100, units="mm")
 #png("/home/jana/Documents/PhD/Projects/inProgress/AlphaPart//Figures/Obsteter_3lowRes.png", res=400, width=175, height=100, units="mm")
 ggplot(data = part1Ma[(part1Ma$BV == "Tbv") ,],  #$& (part1Ma$variable != "PN1.M")
     aes(x=Generation, y = value, colour = variable, linetype = variable)) + 
@@ -254,7 +254,7 @@ ggplot(data = part1Ma[(part1Ma$BV == "Tbv") ,],  #$& (part1Ma$variable != "PN1.M
                       labels = c("Total", "Nucleus\nmales", "Nucleus\nfemales",  "Multiplier\nfemales")) + 
     scale_linetype_manual("\n\nSelection path", values = c("solid", "solid", "solid", "twodash"), 
                           labels = c("Total", "Nucleus\nmales", "Nucleus\nfemales", "Multiplier\nfemales")) + 
-    ylab("Genetic trend") + xlab("Year") + 
+    ylab("Genetic trend") + xlab("Generation") + 
     theme_bw(base_size=10, base_family="arial") + theme(legend.position="top", legend.text=element_text(size=10), legend.title=element_text(size=12), 
     axis.text=element_text(size=10),
     axis.title=element_text(size=12),
@@ -263,7 +263,7 @@ ggplot(data = part1Ma[(part1Ma$BV == "Tbv") ,],  #$& (part1Ma$variable != "PN1.M
     facet_grid(. ~ Population + Trait)
 dev.off()
 
-png("/home/jana/Documents/PhD/Projects/inProgress/AlphaPart//Figures/Obsteter_4.png", res=600, width=170, height=100, units="mm")
+png("/home/jana/Documents/PhD/Projects/inProgress/AlphaPart//Figures/Obsteter_4_revision.png", res=600, width=170, height=100, units="mm")
 #tiff("/home/jana/Documents/PhD/Projects/inProgress/AlphaPart//Figures/Obsteter_5lowRes.tiff", res=400, width=175, height=100, units="mm")
 ggplot(data = part2Ma[(part2Ma$BV == "Tbv"),], 
     aes(x=Generation, y = value, colour = variable, linetype = variable)) + 
@@ -276,7 +276,7 @@ ggplot(data = part2Ma[(part2Ma$BV == "Tbv"),],
                     labels = c("Total", "Nucleus\nmales", "Nucleus\nfemales", "Multiplier\nmales", "Multiplier\nfemales")) + 
   scale_linetype_manual("\n\nSelection path", values = c("solid", "solid", "solid", "twodash", "twodash"), 
                         labels = c("Total", "Nucleus\nmales", "Nucleus\nfemales", "Multiplier\nmales", "Multiplier\nfemales")) +
-    ylab("Genetic trend") + xlab("Year") +
+    ylab("Genetic trend") + xlab("Generation") +
   theme_bw(base_size=10, base_family="Arial") + theme(legend.position="top", legend.text=element_text(size=10), legend.title=element_text(size=12), 
                                                       axis.text=element_text(size=10),
                                                       axis.title=element_text(size=12), strip.text = element_text(size = 10)) + 
@@ -797,7 +797,10 @@ as.data.frame(ped1 %>%
 
 
 ped <- read.table("/home/jana/PedEval1_0.25.csv", header=TRUE)
-ped <- ped[ped$Generation > 20,]
+library(knitr)
+library(kableExtra)
+kable(iris) %>%
+  kable_styling(latex_options = "striped")ped <- ped[ped$Generation > 20,]
 library(kinship2)
 pedig <- fixParents(ped$IId, ped$FId, ped$MId, ped$Gender)
 pedig <- pedig[1:100,]
@@ -1059,6 +1062,17 @@ meanValues1$Program <- "Multiplier"
 MEANVALUES <- rbind(meanValues, meanValues1)
 MEANVALUES$Program <- factor(MEANVALUES$Program, levels = c("Nucleus", "Multiplier"))
 
+meanValues20 <- gen30[gen30$variable == "Sum" & gen30$Program == "Nucleus" & gen30$scenario == "MaleFlow20",] %>% 
+  group_by(Generation, Program, trait) %>% summarise(Value = mean(value))
+meanValues20_1 <- meanValues20
+meanValues20_1$Program <- "Multiplier"
+MEANVALUES20 <- rbind(meanValues20, meanValues20_1)
+MEANVALUES20$Program <- factor(MEANVALUES20$Program, levels = c("Nucleus", "Multiplier"))
+MEANVALUES$scenario <- "MaleFlow100"
+MEANVALUES20$scenario <- "MaleFlow20"
+
+MEANVALUESTOTAL <- rbind(MEANVALUES, MEANVALUES20)
+
 table(gen30$trait, gen30$Program, gen30$Generation)
 library(ggplot2)
 library(ggridges)
@@ -1088,13 +1102,30 @@ ggplot(data = gen30[gen30$scenario == "MaleFlow100",], aes(x = value, colour = v
   facet_grid(cols = c(vars(trait)), rows=c(vars(Generation), vars(Program)))
 dev.off()
 
+#only one generation, only sum
+gen30n <- gen30[gen30$Generation == "Year 40" & gen30$variable == "Sum",]
+png("/home/jana/Documents/PhD/Projects/inProgress/AlphaPart//Figures/Obsteter_1_revision.png", res=1200, width=170, height=120, units="mm")
 
-meanValues20 <- gen30[gen30$variable == "Sum" & gen30$Program == "Nucleus" & gen30$scenario == "MaleFlow20",] %>% 
-  group_by(Generation, Program, trait) %>% summarise(Value = mean(value))
-meanValues20_1 <- meanValues20
-meanValues20_1$Program <- "Multiplier"
-MEANVALUES20 <- rbind(meanValues20, meanValues20_1)
-MEANVALUES20$Program <- factor(MEANVALUES20$Program, levels = c("Nucleus", "Multiplier"))
+ggplot(data = gen30n, aes(x = value, group = Program, linetype = Program)) +   
+  # geom_density_ridges(aes(y = Generation, height = ..density.., scale = 5), rel_min_height = 0.01, fill=NA) +
+  stat_density(aes(y = ..scaled..), position = "identity", geom="line", bw = 0.7) + 
+  geom_vline(data = MEANVALUESTOTAL[MEANVALUESTOTAL$Generation == "Year 40",], aes(xintercept = Value, group = )) + 
+  #geom_density(aes(y = ..scaled..), kernel = "gaussian") + 
+  scale_linetype_manual("\nSelection path", values = c("solid", "twodash"), 
+                        labels = c("Nucleus", "Multiplier")) +
+  ylab("Density") + xlim(c(0, 15)) + xlab("True breeding value") +
+  guides(colour = guide_legend(keywidth = unit(2.5, "cm"), nrow = 1, byrow = TRUE, label.position =  "top")) + 
+  theme_bw(base_size=10, base_family="arial") + theme(legend.position="top", legend.text=element_text(size=10), legend.title=element_text(size=12), 
+                                                      axis.text=element_text(size=10),
+                                                      axis.text.y  = element_blank(), 
+                                                      axis.ticks.y  = element_blank(), 
+                                                      axis.title=element_text(size=12),
+                                                      strip.text = element_text(size = 10)) + 
+  guides(linetype = guide_legend(keywidth = unit(2.5, "cm"), nrow = 1, byrow = TRUE, label.position =  "top")) +
+  facet_grid(cols = (vars(trait)), rows = vars(scenario))
+dev.off()
+
+
 data20 <-  gen30[gen30$scenario == "MaleFlow20",]
 library(ggdistribute)
 
@@ -1158,3 +1189,25 @@ ggplot(data = data20[data20$trait %in% c("Trait 1") & data20$Generation == "Year
   facet_grid(cols = c(vars(trait)), rows=c(vars(Generation),vars(Program)))
 dev.off()
   
+
+p <- plot(sumPartByGen)
+png("/home/jana/Documents/PhD/Projects/inProgress/AlphaPart//Figures/Obsteter_1_revision.png", res=600, width=85, height=50, units="mm")
+p$bv1
+dev.off()
+
+#Inbreeding partizion
+pedF <- read.csv("/home/jana/Documents/PhD/Projects/inProgress/AlphaPart/NewModel/Ped_Fped.csv")
+pedF$Program[pedF$Program == "BurnIn"] <- "GN"
+pedF$ProgramGender <- paste0(pedF$Program, pedF$Gender)
+library(AlphaPart)
+Part1 = AlphaPart(x = pedF, sort = FALSE,
+                  colId = "IId", colFid = "FId", colMid = "MId",
+                  colPath = "ProgramGender", colBV = "Fped")
+sumPart <- summary(Part1, by="Generation")
+plot(sumPart)
+
+
+meanF <- aggregate(pedF$Fped ~ pedF$ProgramGender + pedF$Generation, FUN="mean")
+colnames(meanF) <- c("ProgramGender", "Generation", "Fped")
+library(ggplot2)
+ggplot(data = meanF, aes(x = Generation, y = Fped, group = ProgramGender, colour = ProgramGender)) + geom_line()

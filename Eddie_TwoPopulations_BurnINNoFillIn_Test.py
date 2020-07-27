@@ -254,9 +254,9 @@ for roundNo in range(1,21):  # za vsak krog selekcije
         # izvedi selekcijo, doloci kategorije zivali, dodaj novo generacijo in dodeli starse
         # pedigre se zapise v AlphaSimDir/SelectionFolder/ExternalPedigree.txt
         splitGenPed("PopulationSplit.txt")
-	    print("HOME SELEKCIJA")
+	print("HOME SELEKCIJA")
         selekcija_total('GenPed_EBVhome.txt', externalPedName = "ExternalPedigreehome", group=True, groupNumber=0, noGroups = 2,**selParhome)
-	    print("IMPORT SELEKCIJA")
+	print("IMPORT SELEKCIJA")
         selekcija_total_TGV('GenPed_EBVimport.txt', externalPedName = "ExternalPedigreeimport", group=True, groupNumber=1,noGroups = 2, **selParimport)
         joinExternalPeds(["ExternalPedigreehome", "ExternalPedigreeimport"], AlphaSimDir)
         record_groups(["home", "import"],"PopulationSplit.txt")
