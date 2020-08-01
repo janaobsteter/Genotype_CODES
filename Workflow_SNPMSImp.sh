@@ -11,13 +11,14 @@ REFCHIP=IDBv03 #<-- CHANGE!
 IMPDATE=13072020
 ImpDir=/home/jana/Genotipi/Genotipi_WORK/SNPImp_$IMPDATE
 mkdir $ImpDir
-ImpCipDir=/home/jana/Genotipi/Genotipi_WORK/MSImp_$IMPDATE/Ref${REFCHIP}_Conc${CONCCHIP}
+ImpCipDir=/home/jana/Genotipi/Genotipi_WORK/SNPImp_$IMPDATE/Ref${REFCHIP}_Conc${CONCCHIP}
 mkdir $ImpCipDir
 cd $ImpCipDir
 
+
 ADDCHIP1=GGPv02
 ADDCHIP2=GGPv03
-ADDCHIP3=GGPV04
+ADDCHIP3=GGPv04
 ADDCHIP4=HD
 ADDCHIP5=HDv02
 ADDCHIP6=50Kv01
@@ -25,18 +26,18 @@ ADDCHIP7=50Kv02
 
 #REFERENCE CHIP = chip you are imputing to
 #CONCPLINK is the chip you are checking concordance for (each one has a different number of missing SNPs)
-REFPLINK=/home/janao/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/Top/$REFCHIP/OUTPUT/PLINK_MERGED
-CONCPLINK=/home/janao/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/Top/$CONCCHIP/OUTPUT/PLINK_MERGED
+REFPLINK=/home/jana/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/Top/$REFCHIP/PLINK_MERGED
+CONCPLINK=/home/jana/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/Top/$CONCCHIP/PLINK_MERGED
 
 
 #
-ADDPLINK1=/home/janao/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/Top/$ADDCHIP1/OUTPUT/PLINK_MERGED 
-ADDPLINK2=/home/janao/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/Top/$ADDCHIP2/OUTPUT/PLINK_MERGED
-ADDPLINK3=/home/janao/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/Top/$ADDCHIP3/OUTPUT/PLINK_MERGED
-ADDPLINK4=/home/janao/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/Top/$ADDCHIP4/OUTPUT/PLINK_MERGED
-ADDPLINK5=/home/janao/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/Top/$ADDCHIP5/OUTPUT/PLINK_MERGED
-ADDPLINK6=/home/janao/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/Top/$ADDCHIP5/OUTPUT/PLINK_MERGED
-ADDPLINK7=/home/janao/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/Top/$ADDCHIP5/OUTPUT/PLINK_MERGED
+ADDPLINK1=/home/jana/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/Top/$ADDCHIP1/PLINK_MERGED 
+ADDPLINK2=/home/jana/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/Top/$ADDCHIP2/PLINK_MERGED
+ADDPLINK3=/home/jana/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/Top/$ADDCHIP3/PLINK_MERGED
+ADDPLINK4=/home/jana/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/Top/$ADDCHIP4/PLINK_MERGED
+ADDPLINK5=/home/jana/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/Top/$ADDCHIP5/PLINK_MERGED
+ADDPLINK6=/home/jana/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/Top/$ADDCHIP5/PLINK_MERGED
+ADDPLINK7=/home/jana/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/Top/$ADDCHIP5/PLINK_MERGED
 
 #remove potential Concordance files left behind
 rm Conc*
@@ -67,8 +68,8 @@ Rscript $PWD/Cluster_SNPs.R $ImpCipDir
 
 
 #SNPSETS=$PWD/CVSNPset
-#CLUSTERFILE=/home/janao/Genotipi/Genotipi1_12042016/StepImputation/Step$STEP/SNP_Cluster.txt
-#NDCLUSTER=/home/janao/Genotipi/Genotipi1_12042016/StepImputation/Step$STEP
+#CLUSTERFILE=/home/jana/Genotipi/Genotipi1_12042016/StepImputation/Step$STEP/SNP_Cluster.txt
+#NDCLUSTER=/home/jana/Genotipi/Genotipi1_12042016/StepImputation/Step$STEP
 
 #create a merge-list txt file for PLINK to merge all the files onto REFCHIP
 echo "CONCPLINK_REF.ped" "CONCPLINK_REF.map"$'\n'"${ADDCHIP1}_REF.ped" "${ADDCHIP1}_REF.map"$'\n'"${ADDCHIP2}_REF.ped" "${ADDCHIP2}_REF.map"$'\n'"${ADDCHIP3}_REF.ped" "${ADDCHIP3}_REF.map"$'\n'"${ADDCHIP4}_REF.ped" "${ADDCHIP4}_REF.map"$'\n'"${ADDCHIP5}_REF.ped" "${ADDCHIP5}_REF.map" > MERGELIST.txt
@@ -117,11 +118,17 @@ do
 #Impute all 10 Masked files
 #######################################################
 #REFCHIP is the REFPLINK file with 0,0 SNPs and sex chromosomes excluded
+	echo "This is the working directory"
+	echo $PWD
+	ls $PWD
+	cp ~/Genotipi/Genotipi_CODES/Zanardi/* .
 	cp /home/jana/Genotipi/Genotipi_CODES/PARAMFILE.txt .
 	sed -i "s%PathToPed%$PWD/CONC_Masked$i.ped,$PWD/$REFCHIP.ped%g" PARAMFILE.txt #change ped file input 
 	sed -i "s%PathToMap%$PWD/CONC_Masked$i.map,$PWD/$REFCHIP.map%g" PARAMFILE.txt #change map file input
 	sed -i "s%OutputName%ImpMasked${i}%g" PARAMFILE.txt #change output name
-	python ~/Genotipi/Genotipi_CODES/Zanardi/Zanardi.py --save
+	cp PARAMFILE.txt PARAMFILE_Current.txt
+	python Zanardi.py
+#	python ~/Genotipi/Genotipi_CODES/Zanardi/Zanardi.py --save
 	
 	rm PARAMFILE.txt
 #########################################################################
@@ -131,7 +138,7 @@ do
 #############################################################################
 
 	~/bin/plink --file CONCPLINK_REF --extract CVSNPset${i}.txt --cow --recode --out Genotyped$i #extract masked SNPs from merged genotype file
-	~/bin/plink --file OUTPUT/FIMPUTE_ImpMasked$i --extract CVSNPset${i}.txt --cow --recode --out Imputed$i #extract masked and imputed SNPs from a file
+	~/bin/plink --file FIMPUTE_ImpMasked$i --extract CVSNPset${i}.txt --cow --recode --out Imputed$i #extract masked and imputed SNPs from a file
 	~/bin/plink --file Genotyped$i --merge Imputed$i.ped Imputed$i.map --merge-mode 7 --cow --recode --out Concordance$i 
 	grep "for a concordance rate" Concordance$i.log > Conc_num$i.txt
 done;
@@ -144,7 +151,7 @@ awk '{ sum += $1 } END { if (NR > 0) print sum / NR }' Conc_num.txt > Concordanc
 ##############################################
 #impute non-masked files to obtain imputated genotypes for all the SNPs
 ###############################################
-#cp /home/janao/Genotipi/Genotipi_CODES/PARAMFILE.txt .
+#cp /home/jana/Genotipi/Genotipi_CODES/PARAMFILE.txt .
 #sed -i "s%PathToPed%$PWD/${SCHIP}_exc.ped,$PWD/${LCHIP}.ped%g" PARAMFILE.txt #change ped file input 
 #sed -i "s%PathToMap%$PWD/${SCHIP}_exc.map,$PWD/${LCHIP}.map%g" PARAMFILE.txt #change map file input
 #sed -i "s%OutputName%Imputed%g" PARAMFILE.txt #change output name

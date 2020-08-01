@@ -126,14 +126,16 @@ rep = sys.argv[1]
 scenario = sys.argv[2]
 strategy = sys.argv[3]
 refSize = sys.argv[4]
+traitHome = int(sys.argv[5])
+traitImport = int(sys.argv[6])
 
 #####################################################################################################
 #####################################################################################################
 # FILL IN - 2x newborns
 #####################################################################################################
-if not os.path.isdir("BurnIn_TwoPop_" + str(rep)):
-    os.makedirs("BurnIn_TwoPop_" + str(rep))
-os.chdir("BurnIn_TwoPop_" + str(rep))  # prestavi se v FillInBurnin za ta replikat
+if not os.path.isdir("BurnIn_TwoPop_" + str(rep)+ "_" + str(traitHome) + str(traitImport)):
+    os.makedirs("BurnIn_TwoPop_" + str(rep) + "_" +  str(traitHome) + str(traitImport))
+os.chdir("BurnIn_TwoPop_" + str(rep) + "_" +  str(traitHome) + str(traitImport))  # prestavi se v FillInBurnin za ta replikat
 os.system('cp -r ' + WorkingDir + '/FillIn_TwoPop_' + str(rep) + '/* .')  # skopiraj vse iz Esentials
 os.system('cp -r ' + WorkingDir + '/Essentials/* .')  # skopiraj vse iz Esentials
 #os.system('cp -r ' + WorkingDir + '/CodeDir/* .')  # skopiraj vse iz CodeDir
@@ -223,7 +225,7 @@ if selParimport['gEBV']:
 # SELEKCIJA - 20 krogov klasične selekcije
 ##############################################################################
 
-for roundNo in range(1, 21):  # za vsak krog selekcije
+for roundNo in range(1, 21):
     if roundNo == 1:  # če je to prvi krog - nimaš še kategorij od prej, nimaš niti EBV-jev
         # odstrani Blupf90 fajle iz prejšnjih runov - ker se merge-a
         # enako tudi za generacijski interval in file z genotipi
@@ -246,21 +248,21 @@ for roundNo in range(1, 21):  # za vsak krog selekcije
             # if os.path.isfile(self.AlphaSimDir + 'AccuraciesBV.csv'):
             # os.remove(self.AlphaSimDir + 'AccuraciesBV.csv')
 
-        AccHome = accuracies(AlphaSimDir, group='home', trait = 1)
-        AccImport = accuracies(AlphaSimDir, group='import', trait = 3)
+        AccHome = accuracies(AlphaSimDir, group='home', trait = traitHome)
+        AccImport = accuracies(AlphaSimDir, group='import', trait = traitImport)
         # GenTrends = TBVCat(AlphaSimDir)
         # nimaš GenPed_EBV.txt
         print("Compute initial EBVs")
         blups = estimateBV(AlphaSimDir, WorkingDir + "/CodeDir", way='burnin_milk', sel='class')
         # estimate EBVs for home population with only domestic data
-        blups.computeEBV(traitEBV = 1, multipleTraitsTBV = [1,3])
+        blups.computeEBV(traitEBV = traitHome, multipleTraitsTBV = [traitHome,traitImport])
         # Acc.saveAcc()
         # tukaj sedaj določi populacije
         set_group_two(AlphaSimDir, "home", "import", int(selParimport["stNBn"]))
         splitGenPed("PopulationSplit.txt")
         nastavi_cat('GenPed_EBVhome.txt', externalPedName="ExternalPedigreehome", group=True, groupNumber=0, noGroups = 2,
                     **selParhome)  # nastavi cat za prvo skupino
-        nastavi_cat_TGV('GenPed_EBVimport.txt', externalPedName="ExternalPedigreeimport", group=True, groupNumber=1, noGroups = 2, trait = 3,
+        nastavi_cat_TGV('GenPed_EBVimport.txt', externalPedName="ExternalPedigreeimport", group=True, groupNumber=1, noGroups = 2, trait = traitImport,
                         **selParimport)  # nastavi cat za drugo skupino
         joinExternalPeds(["ExternalPedigreehome", "ExternalPedigreeimport"], AlphaSimDir)
         record_groups(['home', 'import'],"PopulationSplit.txt")
@@ -268,15 +270,15 @@ for roundNo in range(1, 21):  # za vsak krog selekcije
         #os.system("rm Blup*dat")
 
     else:
-        AccHome = accuracies(AlphaSimDir, group='home', trait=1)
-        AccImport = accuracies(AlphaSimDir, group='import', trait=3)
+        AccHome = accuracies(AlphaSimDir, group='home', trait=traitHome)
+        AccImport = accuracies(AlphaSimDir, group='import', trait=traitImport)
         GenTrends = TBVCat(AlphaSimDir)
         # izvedi selekcijo, doloci kategorije zivali, dodaj novo generacijo in dodeli starse
         # pedigre se zapise v AlphaSimDir/SelectionFolder/ExternalPedigree.txt
         #splitGenPed("PopulationSplit.txt") This is no longer needed, since you have prepareSelPed_group
         selekcija_total('GenPed_EBVhome.txt', externalPedName="ExternalPedigreehome", group=True, groupNumber=0, noGroups = 2,
                         **selParhome)
-        selekcija_total_TGV('GenPed_EBVimport.txt', externalPedName="ExternalPedigreeimport", group=True, groupNumber=1, noGroups = 2, trait = 3,
+        selekcija_total_TGV('GenPed_EBVimport.txt', externalPedName="ExternalPedigreeimport", group=True, groupNumber=1, noGroups = 2, trait = traitImport,
                             **selParimport)
         joinExternalPeds(["ExternalPedigreehome", "ExternalPedigreeimport"], AlphaSimDir)
         record_groups(["home", "import"], "PopulationSplit.txt")
@@ -304,7 +306,7 @@ for roundNo in range(1, 21):  # za vsak krog selekcije
     # pozenes ALPHASIM
     os.system('./AlphaSim1.08')
     #tukaj odstrani chip2 genotipe (pusti ID-je) in izračunaj heterozigotnost na nevtralnih lokusih (chip2 - chip1)
-    os.system("/exports/cmvm/eddie/eb/groups/tier2_hickey_external/R-3.4.2/bin/Rscript MeanHetMarker_Neutral_QTN_import.R " + str(roundNo+20) + " " + str(rep) + " " + str(scenarioHome) + str(scenarioImport) + " " + str(strategy))
+    os.system("/exports/cmvm/eddie/eb/groups/tier2_hickey_external/R-3.4.2/bin/Rscript MeanHetMarker_Neutral_QTN_import.R " + str(roundNo) + " " + str(rep) + " " + str(scenario) + str(scenario) + " " + str(strategy))
     os.system("bash ChangeChip2Geno_IDs.sh")
 
     # tukaj dodaj kategorije k PedigreeAndGeneticValues (AlphaSim File)
@@ -322,9 +324,9 @@ for roundNo in range(1, 21):  # za vsak krog selekcije
     print("Compute selection EBVs")
     blupNextGen = estimateBV(AlphaSimDir, WorkingDir + "/CodeDir", way='milk', sel=seltype)
     #estimate EBVs for home population with only domestic data
-    blupNextGen.computeEBV(group = "home", dataGroup = True, prepareSelPed = False, traitEBV = 1, multipleTraitsTBV=[1,3])
+    blupNextGen.computeEBV(group = "home", dataGroup = True, prepareSelPed = False, traitEBV = traitHome, multipleTraitsTBV=[traitHome,traitImport])
     #estimate EBVs for import population, use all data, create GenPed_EBVs.txt for both groups (only once, sinve it is one populationsplit file)
-    blupNextGen.computeEBV(group = "import", dataGroup = True, prepareSelPed = True, traitEBV = 3, multipleTraitsTBV=[1,3])
+    blupNextGen.computeEBV(group = "import", dataGroup = True, prepareSelPed = True, traitEBV = traitImport, multipleTraitsTBV=[traitHome,traitImport])
     AccHome.saveAcc()
     AccImport.saveAcc()
     #GenTrends.saveTrends()

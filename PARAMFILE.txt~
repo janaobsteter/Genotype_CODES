@@ -14,12 +14,12 @@
 ### ----------------------
 ### --- *ABSOLUTE* path to the required software for all the analyses within Zanardi
 ### --- If you don't have a required program installed please see README ( --download option)
-PGM_PLINK=/home/janao/bin
-PGM_FCGENE=/home/janao/Downloads/fcgene-1.0.7
-PGM_BEAGLE3=/home/janao/Downloads
-PGM_BEAGLE4=/home/janao/bin
-PGM_ADMIXTURE=/home/janao/Genotipi/Genotipi_CODES/Zanardi/UTILS//ADMIXTURE/admixture_linux-1.23/
-PGM_FIMPUTE=/home/janao/Genotipi/Genotipi_CODES/Zanardi/UTILS//FIMPUTE/FImpute
+PGM_PLINK=/home/jana/bin
+PGM_FCGENE=/home/jana/Downloads/fcgene-1.0.7
+PGM_BEAGLE3=/home/jana/Downloads
+PGM_BEAGLE4=/home/jana/bin
+PGM_ADMIXTURE=/home/jana/Genotipi/Genotipi_CODES/Zanardi/UTILS//ADMIXTURE/admixture_linux-1.23/
+PGM_FIMPUTE=/home/jana/Genotipi/Genotipi_CODES/Zanardi/UTILS//FIMPUTE/FImpute
 
 ### ---------------------------------------
 ### --- GENOTYPE & PEDIGREE INPUT FILES ---
@@ -30,7 +30,7 @@ INPUT_PED=PathToPed
 INPUT_MAP=PathToMap
 INPUT_705= 
 INPUT_705_MAP= 
-INPUT_PEDIG=/home/janao/Genotipi/Genotipi_DATA/CBPedigre_ZANARDI
+INPUT_PEDIG=/home/jana/Genotipi/Genotipi_DATA/CBPedigre_ZANARDI
 INPUT_PHENO= 
 OUTPUT_NAME=OutputName
 

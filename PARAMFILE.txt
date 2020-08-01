@@ -15,8 +15,8 @@
 ### --- *ABSOLUTE* path to the required software for all the analyses within Zanardi
 ### --- If you don't have a required program installed please see README ( --download option)
 PGM_PLINK=/home/jana/bin
-PGM_FCGENE=/home/jana/bin/fcgene-1.0.7
-PGM_BEAGLE3=/home/jana/bin
+PGM_FCGENE=/home/jana/Downloads/fcgene-1.0.7
+PGM_BEAGLE3=/home/jana/Downloads
 PGM_BEAGLE4=/home/jana/bin
 PGM_ADMIXTURE=/home/jana/Genotipi/Genotipi_CODES/Zanardi/UTILS//ADMIXTURE/admixture_linux-1.23/
 PGM_FIMPUTE=/home/jana/Genotipi/Genotipi_CODES/Zanardi/UTILS//FIMPUTE/FImpute
@@ -30,7 +30,7 @@ INPUT_PED=PathToPed
 INPUT_MAP=PathToMap
 INPUT_705= 
 INPUT_705_MAP= 
-INPUT_PEDIG=PedigreePath
+INPUT_PEDIG=/home/jana/Genotipi/Genotipi_DATA/RJPedigre_ZANARDI
 INPUT_PHENO= 
 OUTPUT_NAME=OutputName
 
@@ -71,7 +71,7 @@ BG_OTHOPT=
 ### --- PARAMETERS FOR IMPUTATION - fimpute OPTION  ---
 ### ---------------------------------------------------
 FMP_NJOB=1
-FMP_OTHOPT=FImputeOptions
+FMP_OTHOPT=
 
 ### -----------------------------------------
 ### --- PARAMETERS FOR roh & froh OPTIONS ---

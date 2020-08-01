@@ -1,7 +1,7 @@
 #############################################################################3
 #10x CV for smaller chip --> larger chip
 ###############################################################################
-setwd("/home/jana/Genotipi/Genotipi_CODES")
+#setwd("/home/jana/Genotipi/Genotipi_CODES")
 
 ############################################################################################################3
 #1)READ IN MAP file of the CONC CHIP - in CONCPLINK_REF are only SNPs that are also on REF chip
