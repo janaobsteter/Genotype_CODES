@@ -120,14 +120,15 @@ do
 #REFCHIP is the REFPLINK file with 0,0 SNPs and sex chromosomes excluded
 	echo "This is the working directory"
 	echo $PWD
-	ls $PWD
-	cp ~/Genotipi/Genotipi_CODES/Zanardi/* .
+	#ls $PWD
+	cp -r ~/Genotipi/Genotipi_CODES/Zanardi/* .
+        rm -r OUTPUT Example_data
 	cp /home/jana/Genotipi/Genotipi_CODES/PARAMFILE.txt .
 	sed -i "s%PathToPed%$PWD/CONC_Masked$i.ped,$PWD/$REFCHIP.ped%g" PARAMFILE.txt #change ped file input 
 	sed -i "s%PathToMap%$PWD/CONC_Masked$i.map,$PWD/$REFCHIP.map%g" PARAMFILE.txt #change map file input
 	sed -i "s%OutputName%ImpMasked${i}%g" PARAMFILE.txt #change output name
 	cp PARAMFILE.txt PARAMFILE_Current.txt
-	python Zanardi.py
+	python Zanardi.py --fimpute --save
 #	python ~/Genotipi/Genotipi_CODES/Zanardi/Zanardi.py --save
 	
 	rm PARAMFILE.txt

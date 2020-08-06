@@ -1839,7 +1839,7 @@ def selekcija_total(pedFile, externalPedName = "ExternalPedigree",group=False, g
     #ce odbiram od vseh genotipziranih moskih
     elif kwargs.get("maleGenSelAll") and kwargs.get('gEBV'): ##('genTest' in categories.keys()):
         #then put all genotyped males into "potomciNP" - the easiest solution
-        genoMale = ped.obtainNewGenotypedInd_sex("M", kwargs.get("AlphaSimDir"))
+        genoMale = ped.obtainNewGenotypedInd_sex("M", kwargs.get("AlphaSimDir"), group=groupName)
         ped.ped.loc[(ped.ped.Indiv.isin(genoMale)) & (ped.ped.age == 0), 'cat'] = "genTest"
         #you only have to proceed the number minus the one genoMales that are age 0
         genoNRM = sum(ped.ped.cat == "genTest")
@@ -1934,10 +1934,9 @@ def selekcija_total(pedFile, externalPedName = "ExternalPedigree",group=False, g
 
     # genomski test: potomciNP = genomsko testiranje -> pozitivno testirani
     if kwargs.get('gEBV'):  # v prvem letu so vsi potomciNP v genomskem testiranju oz. pridobivanju gEBV
-        if 'genTest' in categories.keys():
-            ped.set_cat_sex_old('M', "potomciNP", "genTest", categories)
-            print("The number of current genTest is {}".format(str(len(ped.catCurrent_indiv("genTest")))))
-            ped.set_active_cat('potomciNP', 1, categories)
+        ped.set_cat_sex_old('M', "potomciNP", "genTest", categories)
+        print("The number of current genTest is {}".format(str(len(ped.catCurrent_indiv("genTest")))))
+        ped.set_active_cat('potomciNP', 1, categories)
         # elif 'genTest' not in categories.keys(): #ce je to prva generacija!!!!!
         #     ped.set_cat_sex_old('M', "potomciNP", "potomciNP", categories) #so that they get genotyepd!!!! - THIS IS NOT OK! TO MANY GENOTYPED THEN
         #     print("The number of current potomciNP is {}".format(str(len(ped.catCurrent_indiv("potomciNP")))))
@@ -2040,7 +2039,7 @@ def selekcija_total(pedFile, externalPedName = "ExternalPedigree",group=False, g
         os.system(
             'less IndForGeno' + groupName + '.txt | wc -l > ReferenceSize_new' + groupName + '.txt && '
                                                                                      'cat ReferenceSize_new' + groupName + '.txt ReferenceSize' + groupName + '.txt > '
-                                                                                                                                                      'Reftmp && mv Reftmp ReferenceSize' + group + '.txt')
+                                                                                                                                                      'Reftmp && mv Reftmp ReferenceSize' + groupName + '.txt')
 
     elif kwargs.get('EBV'):
         if not kwargs.get("diffGenoSize"):

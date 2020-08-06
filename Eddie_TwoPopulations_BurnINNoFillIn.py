@@ -225,7 +225,7 @@ if selParimport['gEBV']:
 # SELEKCIJA - 20 krogov klasične selekcije
 ##############################################################################
 
-for roundNo in range(1, 21):
+for roundNo in range(1, 21):  # za vsak krog selekcije
     if roundNo == 1:  # če je to prvi krog - nimaš še kategorij od prej, nimaš niti EBV-jev
         # odstrani Blupf90 fajle iz prejšnjih runov - ker se merge-a
         # enako tudi za generacijski interval in file z genotipi
@@ -306,8 +306,11 @@ for roundNo in range(1, 21):
     # pozenes ALPHASIM
     os.system('./AlphaSim1.08')
     #tukaj odstrani chip2 genotipe (pusti ID-je) in izračunaj heterozigotnost na nevtralnih lokusih (chip2 - chip1)
-    os.system("/exports/cmvm/eddie/eb/groups/tier2_hickey_external/R-3.4.2/bin/Rscript MeanHetMarker_Neutral_QTN_import.R " + str(roundNo) + " " + str(rep) + " " + str(scenario) + str(scenario) + " " + str(strategy))
-    os.system("bash ChangeChip2Geno_IDs.sh")
+    os.system("/exports/cmvm/eddie/eb/groups/tier2_hickey_external/R-3.4.2/bin/Rscript MeanHetMarker_Neutral_QTN_import.R " +
+              str(roundNo+20) + " " + str(rep) + " " +
+              str(scenario) + str(scenario) + " " +
+              str(traitHome) + " " + str(traitImport) + " " + (strategy))
+#    os.system("bash ChangeChip2Geno_IDs.sh")
 
     # tukaj dodaj kategorije k PedigreeAndGeneticValues (AlphaSim File)
     PedCat = OrigPed(AlphaSimDir, WorkingDir + '/CodeDir')

@@ -23,14 +23,15 @@ WorkingDir = "/home/v1jobste/jobsteter/"
 REP = sys.argv[1]
 
 
+
 for rep in [REP]:
     #####################################################################################################
     #####################################################################################################
     #FILL IN - 2x newborns
     #####################################################################################################
-    if not os.path.isdir("FillInBurnIn_TwoPop_" + str(rep)):
-        os.makedirs("FillInBurnIn_TwoPop_" + str(rep))
-    os.chdir("FillInBurnIn" + str(rep)) #prestavi se v FillInBurnin za ta replikat
+    if not os.path.isdir("FillIn_TwoPop_" + str(rep)):
+        os.makedirs("FillIn_TwoPop_" + str(rep))
+    os.chdir("FillIn_TwoPop_" + str(rep)) #prestavi se v FillInBurnin za ta replikat
     os.system('cp -r ' + WorkingDir + '/Essentials/* .') # skopiraj vse iz Esentials
     os.system('cp -r ' + WorkingDir + '/CodeDir/* .') # skopiraj vse iz CodeDir
     seed =  randint(-100000000, -1)

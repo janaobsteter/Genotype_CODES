@@ -15,11 +15,27 @@ write.table(pedigreCB, "~/Genotipi/Genotipi_DATA/CBPedigre_ZANARDI", sep=";", ro
 
 
 
-pedigreRJ <- read.csv("~/Documents/Rjave_pedigre.csv", header=T)
-pedigreRJ <- read.csv("~/Genotipi/Genotipi_DATA/Rjava_pedigree11012017.csv", header=T)
+#pedigreRJ <- read.csv("~/Documents/Rjave_pedigre.csv", header=T)
+pedigreRJ <- read.csv("~/Genotipi/Rjava_pedigree.csv", header=T)
+#pedigreRJ <- read.csv("~/Genotipi/Genotipi_DATA/Rjava_pedigree11012017.csv", header=T)
 pedigreRJ <- pedigreRJ[,c(4,6,5,7,8)]
-pedigreRJ$DAT_ROJSTVO <- as.Date(pedigreRJ$DAT_ROJSTVO, format="%d.%m.%Y", origin="01-01-1920")
+pedigreRJ$DAT_ROJSTVO <- as.Date(pedigreRJ$DAT_ROJSTVO, format="%d-%m-%y", origin="01-01-1920")
 pedigreRJ$DAT_ROJSTVO <- format(pedigreRJ$DAT_ROJSTVO, format="%Y%m%d")
+
+########################################
+#fix pedigre
+
+missingFather <- data.frame(ZIVAL=unique(pedigreRJ$OCEST[!(pedigreRJ$OCEST %in% pedigreRJ$ZIVAL)]),
+                            OCEST=NA, MATIST=NA, DAT_ROJSTVO=NA, SIF_SPOL=1)
+missingMother <- data.frame(ZIVAL=unique(pedigreRJ$MATIST[!(pedigreRJ$MATIST %in% pedigreRJ$ZIVAL)]),
+                            OCEST=NA, MATIST=NA, DAT_ROJSTVO=NA, SIF_SPOL=2)
+nrow(missingFather)
+nrow(missingMother)
+
+pedigreRJ <- rbind(missingFather, missingMother, pedigreRJ)
+
+########################################
+
 pedigreRJ$SIF_SPOL[which(pedigreRJ$SIF_SPOL==1)] <- "M"
 pedigreRJ$SIF_SPOL[which(pedigreRJ$SIF_SPOL==2)] <- "F"
 pedigreRJ <- pedigreRJ[-c(which(pedigreRJ$SIF_SPOL==3)),]
