@@ -313,9 +313,10 @@ for roundNo in range(21,41): #za vsak krog selekcije
     # pozenes ALPHASIM
     os.system('./AlphaSim1.08')
     #tukaj odstrani chip2 genotype file in izračunaj heterozigotnost na nevtralnih lokusih (chip2 - chip1)
-    os.system("/exports/cmvm/eddie/eb/groups/tier2_hickey_external/R-3.4.2/bin/Rscript MeanHetMarker_Neutral_QTN_import.R " + str(roundNo+20) + " " + str(rep) + " " + str(scenarioHome) + str(scenarioImport) + " " + str(strategy))
+    os.system("/exports/cmvm/eddie/eb/groups/tier2_hickey_external/R-3.4.2/bin/Rscript MeanHetMarker_Neutral_QTN_import.R " +
+              str(roundNo+20) + " " + str(rep) + " " + str(scenarioHome) + " " + str(scenarioImport) + " " +
+              str(traitHome) + " " + str(traitImport) + " " + str(strategy))
     os.system("bash ChangeChip2Geno_IDs.sh")    	
-	
     # tukaj dodaj kategorije k PedigreeAndGeneticValues (AlphaSim File)
     PedCat = OrigPed(AlphaSimDir, WorkingDir + '/CodeDir')
     PedCat.addInfo() #to ti zapiše PedigreeAndGeneticValues_cat.txt v AlphaSim/SimualatedData

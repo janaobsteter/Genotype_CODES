@@ -13,7 +13,7 @@ os.chdir(WorkingDir)
 #scenario = "Class"
 scenario = "Gen"
 
-percentageImport_k = 0
+percentageImport_k = 50
 percentageImport_bm = 100
 
 #parhome = pd.read_csv(os.getcwd() + "/Essentials/SelectionParam_ClassTest.csv", header=None, names=["Keys", "Vals"])
@@ -162,7 +162,7 @@ record_groups(["home", "import"], "PopulationSplit.txt")
 krogov = 1
 for krog in range(krogov): #ponavljaj kolikor krogov selekcije hočeš
     # tukaj razdeli populacijo na domačo in tujo
-    splitGenPed("PopulationSplit.txt")
+    #splitGenPed("PopulationSplit.txt")
     # tukaj izvedi celotno selekcijo v tuji populaciji --> naknadno shrani še očete z izberi_ocete_PT
     # v domači odberi in nastavi matere --> očete (za bm) uvoziš
     pedI, cI, sI, aI = selekcija_total_TGV('GenPed_EBVimport.txt', externalPedName="ExternalPedigreeimport", noGroups=2, group=True, groupNumber=1,
@@ -175,7 +175,7 @@ for krog in range(krogov): #ponavljaj kolikor krogov selekcije hočeš
     #odberi starše domače populacije
     pedH, cH, sH, aH = selekcija_importOcetov('GenPed_EBVhome.txt', externalPedName="ExternalPedigreehome",
                                               group=True, groupNumber=0, noGroups=2,
-                                               importBool=True, importGroup="bm", FatherList=Oce_import, **selParhome)
+                                               importBool=True,  FatherList=Oce_import, **selParhome)
     pedI.write_pedTotal("/home/jana/PedTotalhome.txt")
     pedH.write_pedTotal("/home/jana/PedTotalimport.txt")
     os.system("Rscript /home/jana/Genotipi/Genotipi_CODES/Combine_PedTotals.R")
@@ -265,3 +265,12 @@ for krog in range(krogov): #ponavljaj kolikor krogov selekcije hočeš
 
     joinExternalPeds(["ExternalPedigreehome", "ExternalPedigreeimport"], AlphaSimDir)
     record_groups(["home", "import"], "PopulationSplit.txt")
+    
+    
+fathers = []
+for ind in list(pedH.ped.Father[pedH.ped.cat == "nr"]):
+    if ind in list(pedH.ped.Indiv):
+        fathers.append("home")
+    elif ind in list(pedI.ped.Indiv):
+        fathers.append("import")
+        

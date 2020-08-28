@@ -27,18 +27,33 @@ r_genomic <- function(h2, N, Me) {
   sqrt((h2 * N) / (h2 * N + Me))
 }
 
+r_genomic(0.78, 10000, 10000)
+r_genomic(0.67, 10000, 10000)
+r_genomic(0.49, 10000, 10000)
+r_genomic(0.38, 10000, 10000)
+
+r_genomic(0.89**2, 10000, 10000)
+r_genomic(0.82**2, 20000, 10000)
+r_genomic(0.71**2, 50000, 10000)
+r_genomic(0.63**2, 100000, 10000)
+
+
+0.62**2
+0.7**2
 
 acc <- data.frame(N = NA, h2 = NA, r = NA)
 
 for (her in c(0.03, 0.1, 0.25, 0.35, 0.5)) {
   for (num in c(1:11)) {
-    acc <- rbind(acc, c(num, her, r(num, her, her )))
+    acc <- rbind(acc, c(num, her, r(num, her, t )))
   }
 }
 
 acc <- acc[-1,]
 acc
 acc[acc$h2 == 0.25,]
+acc$r[acc$h2 == 0.25]**2
+
 
 acc$h2 <- as.factor(acc$h2)
 acc$N <- as.factor(acc$N)

@@ -18,7 +18,7 @@ founderPop = runMacs(nInd = nMales + nFemales,
 save.image(file = "~/KISdir/Documents/PhD/Projects/inProgress/AlphaPart/SimulationAccBlup.RData")
 #save(founderPop, file = "~/KISdir/Documents/PhD/Projects/inProgress/AlphaPart/FounderPop.RData")
 
-load("~/Documents/PhD/Projects/GenomicAlphaPart/FounderPopObject.RData")
+load("~/Documents/PhD/Projects/inProgress/GenomicAlphaPart/FounderPopObject.RData")
 
 SP = SimParam$new(founderPop)
 VarA = matrix(data = rep(1.0, 100), nrow = 10); cov2cor(VarA)

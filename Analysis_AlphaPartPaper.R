@@ -241,7 +241,10 @@ part1Ma <- part1Ma[-which(part1Ma$Population == "Nucleus" & part1Ma$variable %in
 part1Ma <- part1Ma[-which(part1Ma$Population == "Multiplier" & part1Ma$variable %in% c("PN1.M")),]
 part2Ma <- part2Ma[-which(part2Ma$Population == "Nucleus" & part2Ma$variable %in% c("PN2.M", "PN2.F")),]
 
-png("/home/jana/Documents/PhD/Projects/inProgress/AlphaPart//Figures/Obsteter_2_revision.png", res=600, width=170, height=100, units="mm")
+#correct the generations
+part1Ma$Generation[part1Ma$Population == "Multiplier" & part1Ma$Generation > 20] <- part1Ma$Generation[part1Ma$Population == "Multiplier" & part1Ma$Generation > 20] - 1
+png("/home/jana/Documents/PhD/Projects/inProgress/AlphaPart//Figures/Obsteter_3_revision_correction.png", res=600, width=170, height=100, units="mm")
+png("/home/jana/Documents/PhD/Projects/inProgress/AlphaPart//Figures/Obsteter_3_revision.png", res=600, width=170, height=100, units="mm")
 #png("/home/jana/Documents/PhD/Projects/inProgress/AlphaPart//Figures/Obsteter_3lowRes.png", res=400, width=175, height=100, units="mm")
 ggplot(data = part1Ma[(part1Ma$BV == "Tbv") ,],  #$& (part1Ma$variable != "PN1.M")
     aes(x=Generation, y = value, colour = variable, linetype = variable)) + 
@@ -263,6 +266,8 @@ ggplot(data = part1Ma[(part1Ma$BV == "Tbv") ,],  #$& (part1Ma$variable != "PN1.M
     facet_grid(. ~ Population + Trait)
 dev.off()
 
+part2Ma$Generation[part2Ma$Population == "Multiplier" & part2Ma$Generation > 20] <- part2Ma$Generation[part2Ma$Population == "Multiplier" & part2Ma$Generation > 20]  - 1
+png("/home/jana/Documents/PhD/Projects/inProgress/AlphaPart//Figures/Obsteter_4_revision_correction.png", res=600, width=170, height=100, units="mm")
 png("/home/jana/Documents/PhD/Projects/inProgress/AlphaPart//Figures/Obsteter_4_revision.png", res=600, width=170, height=100, units="mm")
 #tiff("/home/jana/Documents/PhD/Projects/inProgress/AlphaPart//Figures/Obsteter_5lowRes.tiff", res=400, width=175, height=100, units="mm")
 ggplot(data = part2Ma[(part2Ma$BV == "Tbv"),], 
@@ -306,6 +311,8 @@ ggplot(data = part2Ma[(part2Ma$BV == "Tbv" & part2Ma$Trait == "Trait 1"),],
   facet_grid(. ~ Population + Trait)
 dev.off()
 
+
+part1Ma$Generation[part1Ma$Population == "Multiplier" && part1Ma$Generation > 20] <- part1Ma$Generation - 1
 tiff("/home/jana/Documents/PhD/Projects/inProgress/AlphaPart//Figures/ObsteterLarge_5.tiff", res=1200, width=300, height=200, units="mm")
 ggplot(data = part2Ma[(part2Ma$BV == "Tbv"),], 
     aes(x=Generation, y = value, colour = variable, linetype = variable)) + 
@@ -979,8 +986,8 @@ pedDs <- summarySEm(data = pedDt, measurevar = "value", groupvars = c("Generatio
 library(dplyr)
 colnames(pedDs)[9] <- "qt2.5"
 colnames(pedDs)[10] <- "qt97.5"
-ped1Ds$qt2.5 <- as.numeric(ped1Ds$qt2.5)
-ped1Ds$qt97.5 <- as.numeric(ped1Ds$qt97.5)
+pedDs$qt2.5 <- as.numeric(pedDs$qt2.5)
+pedDs$qt97.5 <- as.numeric(pedDs$qt97.5)
 library(ggplot2)
 table(pedDs$variable)
 pedDs$variable <- factor(pedDs$variable, level = c("Sum", "GN-F", "GN-M", "PN-F", "PN-M"))
@@ -1036,7 +1043,7 @@ table(PEDDT$scenario, PEDDT$variable)
 table(PEDDT$Program, PEDDT$variable)
 table(PEDDT$Program, PEDDT$Population)
 PEDDT$Generation[PEDDT$Program == "Multiplier"] <- PEDDT$Generation[PEDDT$Program == "Multiplier"] - 1
-table(PEDDT$Generation)
+table(PEDDT$Generation, PEDDT$Program)
 gen30 <- PEDDT[PEDDT$Generation %in% c(23, 40),]
 table(gen30$Program, gen30$Generation)
 
@@ -1056,16 +1063,18 @@ gen30[gen30$value == max(gen30$value[gen30$variable == "PN-F" & gen30$scenario =
 gen30$Generation <- paste0("Year ", gen30$Generation)
 
 meanValues <- gen30[gen30$variable == "Sum" & gen30$Program == "Nucleus" & gen30$scenario == "MaleFlow100",] %>% 
-  group_by(Generation, Program, trait) %>% summarise(Value = mean(value))
+  group_by(Generation, Program, trait) %>% dplyr::summarise(Value = mean(value))
 meanValues1 <- meanValues
 meanValues1$Program <- "Multiplier"
+meanValues$Program <- "Nucleus"
 MEANVALUES <- rbind(meanValues, meanValues1)
 MEANVALUES$Program <- factor(MEANVALUES$Program, levels = c("Nucleus", "Multiplier"))
 
 meanValues20 <- gen30[gen30$variable == "Sum" & gen30$Program == "Nucleus" & gen30$scenario == "MaleFlow20",] %>% 
-  group_by(Generation, Program, trait) %>% summarise(Value = mean(value))
+  group_by(Generation, Program, trait) %>% dplyr::summarise(Value = mean(value))
 meanValues20_1 <- meanValues20
 meanValues20_1$Program <- "Multiplier"
+meanValues20$Program <- "Nucleus"
 MEANVALUES20 <- rbind(meanValues20, meanValues20_1)
 MEANVALUES20$Program <- factor(MEANVALUES20$Program, levels = c("Nucleus", "Multiplier"))
 MEANVALUES$scenario <- "MaleFlow100"
@@ -1077,7 +1086,8 @@ table(gen30$trait, gen30$Program, gen30$Generation)
 library(ggplot2)
 library(ggridges)
 
-png("/home/jana/Documents/PhD/Projects/inProgress/AlphaPart//Figures/Obsteter_1.png", res=1200, width=170, height=120, units="mm")
+gen30$Program <- factor(gen30$Program, levels = c("Nucleus", "Multiplier"))
+png("/home/jana/Documents/PhD/Projects/inProgress/AlphaPart//Revision2/Obsteter_S1.png", res=1200, width=170, height=120, units="mm")
 ggplot(data = gen30[gen30$scenario == "MaleFlow100",], aes(x = value, colour = variable, linetype = variable)) +   
  # geom_density_ridges(aes(y = Generation, height = ..density.., scale = 5), rel_min_height = 0.01, fill=NA) +
 
@@ -1090,6 +1100,32 @@ ggplot(data = gen30[gen30$scenario == "MaleFlow100",], aes(x = value, colour = v
                     labels = c("Total", "Nucleus\nmales", "Nucleus\nfemales",  "Multiplier\nfemales")) + 
   scale_linetype_manual("\nSelection path", values = c("solid", "solid", "solid", "twodash", "twodash"), 
                         labels = c("Total", "Nucleus\nmales", "Nucleus\nfemales",  "Multiplier\nfemales")) +
+  ylab("Density") + xlim(c(-3.1, 13)) + xlab("True breeding value") +
+  guides(colour = guide_legend(keywidth = unit(2.5, "cm"), nrow = 1, byrow = TRUE, label.position =  "top")) + 
+  theme_bw(base_size=10, base_family="arial") + theme(legend.position="top", legend.text=element_text(size=10), legend.title=element_text(size=12), 
+                                                      axis.text=element_text(size=10),
+                                                      axis.text.y  = element_blank(), 
+                                                      axis.ticks.y  = element_blank(), 
+                                                      axis.title=element_text(size=12),
+                                                      strip.text = element_text(size = 10)) + 
+  guides(linetype = guide_legend(keywidth = unit(2.5, "cm"), nrow = 1, byrow = TRUE, label.position =  "top")) +
+  facet_grid(cols = c(vars(trait)), rows=c(vars(Generation), vars(Program)))
+dev.off()
+
+png("/home/jana/Documents/PhD/Projects/inProgress/AlphaPart/Revision2/Obsteter_S2.png", res=1200, width=170, height=120, units="mm")
+
+ggplot(data = gen30[gen30$scenario == "MaleFlow20",], aes(x = value, colour = variable, linetype = variable)) +   
+  # geom_density_ridges(aes(y = Generation, height = ..density.., scale = 5), rel_min_height = 0.01, fill=NA) +
+  
+  stat_density(aes(y = ..scaled..), position = "identity", geom="line", bw = 0.7) + 
+  geom_vline(data = MEANVALUES20, aes(xintercept = Value)) + 
+  #geom_density(aes(y = ..scaled..), kernel = "gaussian") + 
+  scale_colour_manual("\nSelection path", values=c("black", "#3ea4ed", "#bd0b58", "#3ea4ed", "#bd0b58"), 
+                      labels = c("Total", "Nucleus\nmales", "Nucleus\nfemales",  "Multiplier\nmales", "Multiplier\nfemales")) +
+  scale_fill_manual("\nSelection path", values=c("black",  "#3ea4ed", "#bd0b58", "#3ea4ed", "#bd0b58"), 
+                    labels = c("Total", "Nucleus\nmales", "Nucleus\nfemales",  "Multiplier\nmales", "Multiplier\nfemales")) + 
+  scale_linetype_manual("\nSelection path", values = c("solid", "solid", "solid", "twodash", "twodash"), 
+                        labels = c("Total", "Nucleus\nmales", "Nucleus\nfemales", "Multiplier\nmales", "Multiplier\nfemales")) +
   ylab("Density") + xlim(c(-3.1, 13)) + xlab("True breeding value") +
   guides(colour = guide_legend(keywidth = unit(2.5, "cm"), nrow = 1, byrow = TRUE, label.position =  "top")) + 
   theme_bw(base_size=10, base_family="arial") + theme(legend.position="top", legend.text=element_text(size=10), legend.title=element_text(size=12), 
@@ -1211,3 +1247,49 @@ meanF <- aggregate(pedF$Fped ~ pedF$ProgramGender + pedF$Generation, FUN="mean")
 colnames(meanF) <- c("ProgramGender", "Generation", "Fped")
 library(ggplot2)
 ggplot(data = meanF, aes(x = Generation, y = Fped, group = ProgramGender, colour = ProgramGender)) + geom_line()
+
+
+
+
+
+#####################
+#check EBVs to see why the partition is decreasing
+###################
+ggplot(data = ped1, aes(x=Generation, y=TbvT1_s, colour=Program, group=Program)) + geom_point()
+ggplot(data = ped1, aes(x=Generation, y=EbvT1, colour=Program, group=Program)) + geom_point()
+
+
+#plot the MSTs to see if they are decreasing over time
+head(Part1$TbvT1_s)
+ggplot(data = Part1$TbvT1_s, aes(x=Generation, y=TbvT1_s_w, colour=Program, group=Program)) + geom_point()
+
+
+parents <- Part1$TbvT1_s[Part1$TbvT1_s$IId %in% c(Part1$TbvT1_s$FId, Part1$TbvT1_s$MId),]
+mst <- ggplot(data = parents, aes(x=Generation, y=TbvT1_s_w, colour=Program, group=Program)) + geom_point()
+pa <- ggplot(data = parents, aes(x=Generation, y=TbvT1_s_pa, colour=Program, group=Program)) + geom_point()
+multiplot(mst, pa)
+
+plotLine <- parents[,c("Generation", "IId", "Program", "TbvT1_s_pa",  "TbvT1_s_w",  "TbvT1_s_GN-F","TbvT1_s_GN-M", "TbvT1_s_PN1-F", "TbvT1_s_PN1-M")]
+plotLineM <- melt(plotLine, id.vars = c("Generation", "IId", "Program"))
+plotLineM$group <- "Gender-Tier"
+plotLineM$group[plotLineM$variable %in% c("TbvT1_s_pa",  "TbvT1_s_w")] <- "MST and PA"
+plotLineM$Program <- revalue(plotLineM$Program, c("GN" = "Nucleus", "PN1" = "Multiplier"))
+plotLineM$group <- factor(plotLineM$group, c("MST and PA", "Gender-Tier"))
+plotLineM$Program <- factor(plotLineM$Program, c("Nucleus", "Multiplier"))
+png("/home/jana/Documents/PhD/Projects/inProgress/AlphaPart/Revision2/Parents_MST_PA_Partition.png", res=600, width=170, height=100, units="mm")
+ggplot(data=plotLineM, aes(x=Generation, y=value, group=variable, colour=variable)) + geom_point(size=0.1) + facet_grid(cols = vars(group), rows = vars(Program)) +
+  theme_bw(base_size=12) + ggtitle("Partition of parents") + scale_color_manual("", breaks=c("TbvT1_s_pa",  "TbvT1_s_w","TbvT1_s_GN-M","TbvT1_s_GN-F","TbvT1_s_PN1-M", "TbvT1_s_PN1-F"),
+                                                                                labels=c("PA", "MST", "Nucleus males", "Nucleus females", "Multiplier males", "Multiplier females"),
+                                                                                values = c("#426e0d", "#99c95f", "#0f336e","#bd0b58", "#3ea4ed","#e386b0" )) +
+  guides(colour = guide_legend(override.aes = list(alpha = 1, size=2)))
+dev.off()
+
+table(parents$Generation, parents$Program)
+table(parents$Program[parents$IId %in% parents$MId[parents$Program == "PN1"]])
+table(parents$Program[parents$IId %in% parents$FId[parents$Program == "PN1"]])
+
+#parents of the mothers
+multMothers <- parents[parents$IId %in% parents$MId[parents$Program == "PN1"],]
+table(parents$Program[parents$IId %in% multMothers$MId])
+table(parents$Program[parents$IId %in% multMothers$FId])
+

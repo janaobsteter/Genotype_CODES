@@ -546,7 +546,9 @@ class pedigree(classPed):
                            'Father': [0] * stNR,
                            'active': [1] * stNR}, \
                           index=range(max(self.ped.index) + 1, max(self.ped.index) + 1 + stNR))
-        self.ped = pd.concat([self.ped, nr], sort = True)
+        ##self.ped = pd.concat([self.ped, nr], sort = True)
+        self.ped = pd.concat([self.ped, nr])
+        
 
     def set_mother(self, MotherList):
         first_blank_row = min(self.ped[(self.ped['Mother'] == 0) & ((self.ped.cat == 'nr'))].index)
@@ -751,7 +753,7 @@ class pedigree(classPed):
 
     def doloci_ocete(self, stNB, potomciNPn, cak, pbUp, pripustDoz, mladiDoz, pozitivnoTestDoz, NbGenTest,
                      EliteDamsPTBulls, EliteDamsGenBulls, EliteDamsPABulls, gen_mladi, gen_gpb, importPer = {'bm':0, 'k':0},
-                     importBool=False, importGroup=None, FatherList=None):
+                     importBool=False, FatherList=None, importBV='EBV'):
 
         # NAJPREJ BM!
         # set fathers for offspring of contracted mating
@@ -804,12 +806,23 @@ class pedigree(classPed):
         StaraElita = elita
 
         if importBool:  # povozi si spremenljivk, če ni importa, bo ostalo od zgoraj
-            if importGroup == "k":
-                if importPer["k"] == 100:
+            if "k" in importPer.keys():
+                cows = stNB - potomciNPn*2
+                if importPer["k"] == 100 and importBV == 'EBV':
                     testiraniOce = FatherList  # v času, ko določaš potomce, so že eno leto starjši!!!
+                elif importPer["k"] == 100 and importBV == 'gEBV':
+                    gentestiraniOce = FatherList  # v času, ko določaš potomce, so že eno leto starjši!!!
+                elif 0 < importPer["k"] < 100 and importBV == 'EBV':
+                    testiraniOce = list(np.random.choice(list(FatherList),  int(math.ceil(importPer['k'] * cows / 100)), replace = True)) + \
+                            list(np.random.choice(list(testiraniOce), int(math.floor((100 - importPer['k']) * cows / 100)), replace = True))
+                elif 0 < importPer["k"] < 100 and importBV == 'gEBV':
+                    gentestiraniOce = list(
+                        np.random.choice(list(FatherList), int(math.ceil(importPer['k'] * cows / 100)), replace=True)) + \
+                                   list(np.random.choice(list(gentestiraniOce),
+                                                         int(math.floor((100 - importPer['k']) * cows / 100)),
+                                                         replace=True))
 
-
-            elif importGroup == "bm":
+            if 'bm' in importPer.keys():
                 if importPer["bm"] == 100:
                     elita = np.random.choice(FatherList, bmMother, replace=True)
                 else:
@@ -829,15 +842,17 @@ class pedigree(classPed):
         ClassOcetje = list(
             testiraniOce * pozitivnoTestDoz + mladiOce * mladiDoz) if testiraniOce else []  # progeny teste fathers - keep the ratios between young / natural service / PT
         PripustOcetje = list(pripustOce * pripustDoz)
-        TujiOcetje = list(FatherList * importPer['k']) if FatherList else []
+       # TujiOcetje = list(FatherList * importPer['k']) if FatherList else []
+        #sedaj so tuji očetje že v gentestiraniOce!!!!!
         GenOcetje = list(gentestiraniOce * pozitivnoTestDoz) if 'gpb' in self.cat() else []
         # če naj bo kompletna splošna populacija semenjena samo z genomskimi (mlade, čakajoče si tako dala v gpb)
         # tukaj smo tako v genomski shemi
         if NbGenTest == stNB:
             # če uvažamo: 100% slo bikov v uporabi je genomskih, čeprav to predstavlja x% skupnega
             # ostalih 1-x% je uvoza, kakrpni biki pač so
-            Ocetje = list((100 - importPer['k']) * GenOcetje) + \
-                     list(importPer['k'] * TujiOcetje)
+            # TO JE SEDAJE ŽE ZGORAJ!!!
+            # Ocetje = list((100 - importPer['k']) * GenOcetje) + \
+            #          list(importPer['k'] * TujiOcetje)
 
             # dokler še imaš progene, uporabljaj mešano seme, potem ostanejo tako samo genomsko
             # če že imaš dovolj genomskih
@@ -850,13 +865,12 @@ class pedigree(classPed):
                 Ocetje = random.sample(GenOcetje + PripustOcetje, stNB - potomciNPn * 2)
         # če je % semenjenih z genomskimi 0, semeni samo z pb, mladimi in pripustom, to je klasična shema
         elif NbGenTest == 0:
-            Ocetje = random.sample(list((100 - importPer['k']) * ClassOcetje) + list(importPer['k'] * TujiOcetje)
-                                   + PripustOcetje, stNB - potomciNPn * 2)
+            Ocetje = random.sample(ClassOcetje + PripustOcetje, stNB - potomciNPn * 2)
         # če je odstotek nekje med 0 in 100, semeni točno določen del z genomskimi, preostalo mix klasike in pripusta
         elif NbGenTest > 0 and NbGenTest < stNB:
-            GenOcetje = list(np.random.choice(list((100 - importPer['k']) * GenOcetje + importPer['k'] * TujiOcetje), (NbGenTest),
+            GenOcetje = list(np.random.choice(GenOcetje, (NbGenTest),
                                               replace=True))
-            ClassOcetje = random.sample(list((100 - importPer['k']) * ClassOcetje + importPer['k'] * TujiOcetje + PripustOcetje),
+            ClassOcetje = random.sample(list(ClassOcetje + PripustOcetje),
                                         stNB - NbGenTest - potomciNPn * 2)
             Ocetje = list(GenOcetje + ClassOcetje)
 
@@ -866,6 +880,9 @@ class pedigree(classPed):
         #     TujiOcetje = list(FatherList  * pozitivnoTestDoz)
         #     Ocetje = np.random.choice(list(importPer * TujiOcetje) + list((100 - importPer) * Ocetje), stNB - potomciNPn * 2)
         print("DOločanje očetov navadnih parjenj")
+        if Ocetje and FatherList:
+            print("Stevilo importiranih ocetov za krave je " +
+                  str(sum([1 for x in list(Ocetje) if x in FatherList])))
         self.set_father_catPotomca(Ocetje, 'nr')
 
 
@@ -1547,8 +1564,7 @@ class blupf90:
         AlphaSelPed = pd.concat([AlphaSelPedInfo, AlphaSelPedTraits], axis=1)
 
         for group in set(split.Group):
-            blupSol = pd.read_csv(self.AlphaSimDir + '/renumbered_Solutions_' + group + '_' + str(self.gen), header=None,
-                                  sep='\s+', names=['renID', 'Indiv', 'EBV'])
+            blupSol = pd.read_csv('renumbered_Solutions_' + group + '_trait' + str(traitEBV) + "_" + str(gen), header=None, sep='\s+', names=['renID', 'Indiv', 'EBV'])
             groupSelPed = AlphaSelPed[AlphaSelPed.Indiv.isin(list(split.ID[split.Group == group]))]
             pd.merge(groupSelPed, blupSol[['Indiv', 'EBV']], on="Indiv", how="left").to_csv("GenPed_EBV" + str(group) + ".txt",  index=None)
 
@@ -2073,7 +2089,7 @@ def selekcija_total(pedFile, externalPedName = "ExternalPedigree",group=False, g
     return ped, ped.save_cat(), ped.save_sex(), ped.save_active()
 
 def selekcija_importOcetov(pedFile, externalPedName="ExternalPedigree", group=False, groupNumber=None, groupName = "", noGroups=1,
-                           importBool=False, importGroup=None, FatherList=None, **kwargs):
+                           importBool=False, FatherList=None, **kwargs):
     ped = pedigree(pedFile)
 
     # določi spol
@@ -2351,7 +2367,7 @@ def selekcija_importOcetov(pedFile, externalPedName="ExternalPedigree", group=Fa
                      kwargs.get('EliteDamsGenBulls'),
                      kwargs.get('EliteDamsPABulls'),
                      kwargs.get('genTest_mladi'), kwargs.get('genTest_gpb'), importPer=kwargs.get('importPer'),
-                     importBool=importBool, importGroup=importGroup, FatherList=FatherList)
+                     importBool=importBool, FatherList=FatherList, importBV='gEBV')
 
     # preveri - mora biti nič!!! - oz. če mater še ni dovolj, potem še ne!
     ped.mother_nr_blank()

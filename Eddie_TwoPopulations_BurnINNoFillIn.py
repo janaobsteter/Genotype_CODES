@@ -106,9 +106,9 @@ class estimateBV:
         # copy the solution in a file that does not get overwritten
         os.system("bash Match_AFTERRenum.sh")
         if not group:
-            shutil.copy('renumbered_Solutions', 'renumbered_Solutions_' + str(blupFiles.gen))
+            shutil.copy('renumbered_Solutions', 'renumbered_Solutions_trait' + str(traitEBV) + "_" + str(blupFiles.gen))
         if group:
-            shutil.copy('renumbered_Solutions', 'renumbered_Solutions_' + group + '_' + str(blupFiles.gen))
+            shutil.copy('renumbered_Solutions', 'renumbered_Solutions_' + group + '_trait' + str(traitEBV) + "_" + str(blupFiles.gen))
         # shutil.copy('solutions', 'renumbered_Solutions_' + str(blupFiles.gen))
 
         if prepareSelPed:
@@ -267,7 +267,7 @@ for roundNo in range(1, 21):  # za vsak krog selekcije
         joinExternalPeds(["ExternalPedigreehome", "ExternalPedigreeimport"], AlphaSimDir)
         record_groups(['home', 'import'],"PopulationSplit.txt")
 
-        #os.system("rm Blup*dat")
+        os.system("rm Blup*dat")
 
     else:
         AccHome = accuracies(AlphaSimDir, group='home', trait=traitHome)
