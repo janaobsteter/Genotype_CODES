@@ -751,7 +751,7 @@ class pedigree(classPed):
 
     #def uvozi_pb_za_bm(self):
 
-    def doloci_ocete(self, stNB, potomciNPn, cak, pbUp, pripustDoz, mladiDoz, pozitivnoTestDoz, NbGenTest,
+    def  doloci_ocete(self, stNB, potomciNPn, cak, pbUp, pripustDoz, mladiDoz, pozitivnoTestDoz, NbGenTest,
                      EliteDamsPTBulls, EliteDamsGenBulls, EliteDamsPABulls, gen_mladi, gen_gpb, importPer = {'bm':0, 'k':0},
                      importBool=False, FatherList=None, importBV='EBV'):
 
@@ -2367,7 +2367,7 @@ def selekcija_importOcetov(pedFile, externalPedName="ExternalPedigree", group=Fa
                      kwargs.get('EliteDamsGenBulls'),
                      kwargs.get('EliteDamsPABulls'),
                      kwargs.get('genTest_mladi'), kwargs.get('genTest_gpb'), importPer=kwargs.get('importPer'),
-                     importBool=importBool, FatherList=FatherList, importBV='gEBV')
+                     importBool=importBool, FatherList=FatherList, importBV='gEBV' if kwargs.get('gEBV') else 'EBV')
 
     # preveri - mora biti nič!!! - oz. če mater še ni dovolj, potem še ne!
     ped.mother_nr_blank()

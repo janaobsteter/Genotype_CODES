@@ -138,10 +138,10 @@ percentageImport_bm = sys.argv[9] if len(sys.argv) > 8 else 0
 
 os.chdir(refSize + "/" + strategy + "_import/")
 
-print("Creating directory " + scenarioHome + scenarioImport + str(rep) + "_" + str(percentageImport_k) + "_" + str(percentageImport_bm) + str(traitHome) + str(traitImport))
-if not os.path.isdir(scenarioHome + scenarioImport + str(rep) + "_" + str(percentageImport_k) + "_" + str(percentageImport_bm) + str(traitHome) + str(traitImport)):
-    os.makedirs(scenarioHome + scenarioImport + str(rep) + "_" + str(percentageImport_k) + "_" + str(percentageImport_bm) + str(traitHome) + str(traitImport))
-SelectionDir = scenarioHome + scenarioImport + str(rep) + "_" + str(percentageImport_k) + "_" + str(percentageImport_bm) + str(traitHome) + str(traitImport) + "/"
+print("Creating directory " + "Class" + scenarioImport + str(rep) + "_" + str(percentageImport_k) + "_" + str(percentageImport_bm) + str(traitHome) + str(traitImport))
+if not os.path.isdir("Class" + scenarioImport + str(rep) + "_" + str(percentageImport_k) + "_" + str(percentageImport_bm) + str(traitHome) + str(traitImport)):
+    os.makedirs("Class" + scenarioImport + str(rep) + "_" + str(percentageImport_k) + "_" + str(percentageImport_bm) + str(traitHome) + str(traitImport))
+SelectionDir = "Class" + scenarioImport + str(rep) + "_" + str(percentageImport_k) + "_" + str(percentageImport_bm) + str(traitHome) + str(traitImport) + "/"
 
 
 
@@ -151,8 +151,8 @@ SelectionDir = scenarioHome + scenarioImport + str(rep) + "_" + str(percentageIm
 #potem se prestavi nazaj v working directory
 os.chdir(SelectionDir)
 
-print("Copying files to " + SelectionDir)
-os.system('cp -r ' + WorkingDir + '/BurnIn_TwoPop_' + str(rep) + '_' +  str(traitHome) + str(traitImport) + '/*' + ' .')
+#print("Copying files to " + SelectionDir)
+#os.system('cp -r ' + WorkingDir + '/BurnIn_TwoPop_' + str(rep) + '_' +  str(traitHome) + str(traitImport) + '/*' + ' .')
 #os.system('cp -r ' + WorkingDir + '/Essentials/* .')
 #os.system('cp -r ' + WorkingDir + '/CodeDir/* .')
 
@@ -236,7 +236,7 @@ if selParimport['gEBV']:
 #SELEKCIJA
 ##############################################################################
 print(AlphaSimDir)
-for roundNo in range(21,41): #za vsak krog selekcije
+for roundNo in range(31,41): #za vsak krog selekcije
     if roundNo == 21:
         print("Creating and initial training population of all active cows and PT bulls.")
         ped = pd.read_csv('./SimulatedData/PedigreeAndGeneticValues_cat.txt', sep='\s+')
@@ -341,7 +341,7 @@ for roundNo in range(21,41): #za vsak krog selekcije
     #GenTrends.writeTrends()
 
 
-#os.system('rm -rf Chromosomes Selection && cp * ' + scenarioHome + scenarioImport +  str(rep))
-#os.system('rm SimulatedData/UnrestrictedQtnIndivGenotypes.txt')
-#os.system('rm SimulatedData/RestrictedQtnIndivGenotypes.txt')
+os.system('rm -rf Chromosomes Selection && cp * ' + scenarioHome + scenarioImport +  str(rep))
+os.system('rm SimulatedData/UnrestrictedQtnIndivGenotypes.txt')
+os.system('rm SimulatedData/RestrictedQtnIndivGenotypes.txt')
 

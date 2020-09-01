@@ -236,7 +236,7 @@ if selParimport['gEBV']:
 #SELEKCIJA
 ##############################################################################
 print(AlphaSimDir)
-for roundNo in range(21,41): #za vsak krog selekcije
+for roundNo in range(21,31): #za vsak krog selekcije
     if roundNo == 21:
         print("Creating and initial training population of all active cows and PT bulls.")
         ped = pd.read_csv('./SimulatedData/PedigreeAndGeneticValues_cat.txt', sep='\s+')
@@ -283,7 +283,7 @@ for roundNo in range(21,41): #za vsak krog selekcije
     #odberi starše domače populacije
     pedH, cH, sH, aH = selekcija_importOcetov('GenPed_EBVhome.txt', externalPedName="ExternalPedigreehome", group=True, groupNumber=0,
                                               groupName = "home", noGroups=2,
-                                               importBool=True, importGroup="bm", FatherList=Oce_import, **selParhome)
+                                               importBool=True, FatherList=Oce_import, **selParhome)
 
     joinExternalPeds(["ExternalPedigreehome", "ExternalPedigreeimport"], AlphaSimDir)
     record_groups(["home", "import"], "PopulationSplit.txt")
