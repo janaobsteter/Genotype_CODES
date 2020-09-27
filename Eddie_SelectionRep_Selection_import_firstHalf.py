@@ -275,10 +275,16 @@ for roundNo in range(21,31): #za vsak krog selekcije
     #v domači odberi in nastavi matere --> očete (za bm) uvoziš
     pedI, cI, sI, aI = selekcija_total('GenPed_EBVimport.txt', externalPedName="ExternalPedigreeimport", group=True, groupNumber=1,
                                            groupName = "import", noGroups=2, **selParimport)
+    #here set the variable whether to select the fathers for import from last pbUp years or just the one
+    # if this is the first year, select all. If not, select the last year and merge with the previous
+    numberOfYearsImport = selParimport["pbUp"] if roundNo == 21 else 1
+    OldOce = [] if roundNo == 21 else sorted(Oce_import)
     if selParimport['EBV']:
-        Oce_import = pedI.izberi_ocete_PT(selParimport["pbUp"]) #tukaj so PT testirani očetje
+        Oce_import_new = pedI.izberi_ocete_PT_randomNo(numberOfYearsImport, selParhome["pbn"]) #tukaj so PT testirani očetje
+        Oce_import = OldOce[selParhome["pbn"]: ] + Oce_import_new
     if selParimport['gEBV']:
-        Oce_import = pedI.izberi_ocete_gen(selParimport["pbUp"])  # tukaj so genomsko testirani očetje
+        Oce_import_new = pedI.izberi_ocete_gen_randomNo(numberOfYearsImport, selParhome["genpbn"])  # tukaj so genomsko testirani očetje
+        Oce_import = OldOce[selParhome["genpbn"]:] + Oce_import_new
 
     #odberi starše domače populacije
     pedH, cH, sH, aH = selekcija_importOcetov('GenPed_EBVhome.txt', externalPedName="ExternalPedigreehome", group=True, groupNumber=0,

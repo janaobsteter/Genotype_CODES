@@ -764,7 +764,7 @@ class pedigree(classPed):
         mladiOce = self.catCurrent_indiv('mladi')
         pripustOce = self.catCurrent_indiv('pripust1') + self.catCurrent_indiv('pripust2')
         testiraniOce = list(
-            chain.from_iterable([self.catCurrent_indiv_age('pb', (2 + cak + 1 + x)) for x in range(1,
+            chain.from_iterable([self.catCurrent_indiv_age('pb', (2 + cak + x)) for x in range(1,
                                                                                                    pbUp + 1)]))  # v času, ko določaš potomce, so že eno leto starjši!!!
         gentestiraniOce = list(chain.from_iterable([self.catCurrent_indiv_age('gpb', x + 1) for x in range(1,
                                                                                                            pbUp + 1)]))  # v času, ko določaš potomce, so že eno leto starjši!!!
@@ -890,10 +890,28 @@ class pedigree(classPed):
         # OČETJE
         testiraniOce = list(chain.from_iterable([self.catCurrent_indiv_age('pb', x + 1) for x in range(1, pbUp + 1)]))  # v času, ko določaš potomce, so že eno leto starjši!!!
         return (testiraniOce)
+    
+    def izberi_ocete_PT_randomNo(self,  pbUp, nOce):
+        # OČETJE
+        testiraniOce = list(chain.from_iterable([np.random.choice(self.catCurrent_indiv_age('pb', x + 1), nOce, replace=False)
+                                                 for x in range(1, pbUp + 1)]))  # v času, ko določaš potomce, so že eno leto starjši!!!
+        return (testiraniOce)
 
     def izberi_ocete_gen(self, pbUp):
         # OČETJE
         gentestiraniOce = list(chain.from_iterable([self.catCurrent_indiv_age('gpb', x + 1) for x in range(1, pbUp + 1)]))  # v času, ko določaš potomce, so že eno leto starjši!!!
+        return (gentestiraniOce)
+    
+    def izberi_ocete_gen_randomNo(self, pbUp, nOce):
+        """
+        Function to select "nOce" fathers from each year at random
+        :param pbUp: years back to select from
+        :param nOce: how many fathers to select from each year
+        :return: a list of selected fathers
+        """
+        # OČETJE
+        gentestiraniOce = list(chain.from_iterable([np.random.choice(self.catCurrent_indiv_age('gpb', x + 1), nOce, replace=False) 
+                                                    for x in range(1, pbUp + 1)]))  # v času, ko določaš potomce, so že eno leto starjši!!!
         return (gentestiraniOce)
 
     def save_cat_DF(self):
@@ -1549,7 +1567,7 @@ class blupf90:
         AlphaSelPed = pd.merge(AlphaSelPed, blupSol[['Indiv', 'EBV']], on="Indiv", how="left")
         AlphaSelPed.to_csv(self.AlphaSimDir + 'GenPed_EBV.txt', index=None)
 
-    def prepareSelPed_group(self, splitfile, multipleTraits = None):
+    def  prepareSelPed_group(self, splitfile, multipleTraits = None):
         """
         A function that reads in pedigree and solutions separate for each group and prepares separate GenPed_EBVs
         :param splitfile: Files with IDs and belonging groups
@@ -1564,7 +1582,7 @@ class blupf90:
         AlphaSelPed = pd.concat([AlphaSelPedInfo, AlphaSelPedTraits], axis=1)
 
         for group in set(split.Group):
-            blupSol = pd.read_csv('renumbered_Solutions_' + group + '_trait' + str(traitEBV) + "_" + str(gen), header=None, sep='\s+', names=['renID', 'Indiv', 'EBV'])
+            blupSol = pd.read_csv('renumbered_Solutions_' + group + '_' + str(self.gen), header=None, sep='\s+', names=['renID', 'Indiv', 'EBV'])
             groupSelPed = AlphaSelPed[AlphaSelPed.Indiv.isin(list(split.ID[split.Group == group]))]
             pd.merge(groupSelPed, blupSol[['Indiv', 'EBV']], on="Indiv", how="left").to_csv("GenPed_EBV" + str(group) + ".txt",  index=None)
 
@@ -3596,26 +3614,42 @@ class test:
 
 
 class genInterval():
-    def __init__(self, AlphaSimDir):
+    def __init__(self, AlphaSimDir, group=None):
         self.name = AlphaSimDir + '/SimulatedData/PedigreeAndGeneticValues_cat.txt'
         self.pdPed = pd.read_csv(self.name, sep='\s+')
         self.AlphaSimDir = AlphaSimDir
+        self.group = group
 
     def obtainSelInd_Parents(self, listCatOffspring):
-        i = self.pdPed.loc[self.pdPed.cat.isin(listCatOffspring)][
-            ['Generation', 'Indiv', 'cat', 'sex', 'Mother', 'Father']]
-        i.columns = ['GenerationInd', 'IID', 'cat', 'sex', 'MID', 'FID']
+        ps = pd.read_csv(AlphaSimDir + "/PopulationSplit.txt", names=['Group', 'Indiv'], header=1, low_memory=False)
+        self.pdPed = self.pdPed.merge(ps, on="Indiv")
+        if self.group:
+            i = self.pdPed.loc[self.pdPed.cat.isin(listCatOffspring)][
+                ['Generation', 'Indiv', 'cat', 'sex', 'Mother', 'Father', 'Group']]
+            i.columns = ['GenerationInd', 'IID', 'cat', 'sex', 'MID', 'FID', 'Group']
+        else:
+            i = self.pdPed.loc[self.pdPed.cat.isin(listCatOffspring)][
+                ['Generation', 'Indiv', 'cat', 'sex', 'Mother', 'Father']]
+            i.columns = ['GenerationInd', 'IID', 'cat', 'sex', 'MID', 'FID']
         return i
 
     def obtainFathers(self, listCatOffspring):  # argument catOffspring is a list
-        f = self.pdPed.loc[self.pdPed.Indiv.isin(self.pdPed.loc[self.pdPed.cat.isin(listCatOffspring)]['Father'])][
-            ['Generation', 'Indiv']]
+        if self.group:
+            f = self.pdPed.loc[self.pdPed.Indiv.isin(self.pdPed.loc[(self.pdPed.cat.isin(listCatOffspring)) & (self.pdPed.Group == self.group)]['Father'])][
+                ['Generation', 'Indiv']]
+        else:
+            f = self.pdPed.loc[self.pdPed.Indiv.isin(self.pdPed.loc[self.pdPed.cat.isin(listCatOffspring)]['Father'])][
+                ['Generation', 'Indiv']]
         f.columns = ['GenerationFather', 'FID']
         return f
 
     def obtainMothers(self, listCatOffspring):  # argument catOffspring is a list
-        m = self.pdPed.loc[self.pdPed.Indiv.isin(self.pdPed.loc[self.pdPed.cat.isin(listCatOffspring)]['Mother'])][
-            ['Generation', 'Indiv']]
+        if self.group:
+            m = self.pdPed.loc[self.pdPed.Indiv.isin(self.pdPed.loc[(self.pdPed.cat.isin(listCatOffspring)) & (self.pdPed.Group == self.group)]['Mother'])][
+                ['Generation', 'Indiv']]
+        else:
+            m = self.pdPed.loc[self.pdPed.Indiv.isin(self.pdPed.loc[self.pdPed.cat.isin(listCatOffspring)]['Mother'])][
+                ['Generation', 'Indiv']]
         m.columns = ['GenerationMother', 'MID']
         return m
 
@@ -3637,11 +3671,12 @@ class genInterval():
         genIntsF = pd.DataFrame({'Gen': FADF.GenerationInd, 'sex': FADF.sex, 'genInt': FADF.FAge, 'line': 'sire'})
         genIntsM = pd.DataFrame({'Gen': MADF.GenerationInd, 'sex': MADF.sex, 'genInt': MADF.MAge, 'line': 'dam'})
         genInts = pd.concat([genIntsM, genIntsF])
-        if os.path.isfile(self.AlphaSimDir + 'GenInts.txt'):
-            GenIntsOld = pd.read_csv(self.AlphaSimDir + 'GenInts.txt', sep=" ")
-            pd.concat([GenIntsOld, genInts]).to_csv(self.AlphaSimDir + 'GenInts.txt', index=False, sep=" ")
+        genInts.loc[:, "Group"] = self.group
+        if os.path.isfile(self.AlphaSimDir + 'GenInts' + self.group + '.txt'):
+            GenIntsOld = pd.read_csv(self.AlphaSimDir + 'GenInts' + self.group + '.txt', sep=" ")
+            pd.concat([GenIntsOld, genInts]).to_csv(self.AlphaSimDir + 'GenInts' + self.group + '.txt', index=False, sep=" ")
         else:
-            genInts.to_csv(self.AlphaSimDir + 'GenInts.txt', index=False, sep=" ")
+            genInts.to_csv(self.AlphaSimDir + 'GenInts' + self.group + '.txt', index=False, sep=" ")
 
     def prepareGenInts(self, listCatOffspring):
         i = self.obtainSelInd_Parents(listCatOffspring)

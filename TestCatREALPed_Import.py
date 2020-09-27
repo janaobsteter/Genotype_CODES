@@ -170,7 +170,7 @@ for krog in range(krogov): #ponavljaj kolikor krogov selekcije hočeš
     if selParimport['EBV']:
         Oce_import = pedI.izberi_ocete_PT(selParimport["pbUp"])  # tukaj so PT testirani očetje
     if selParimport['gEBV']:
-        Oce_import = pedI.izberi_ocete_gen(selParimport["pbUp"])  # tukaj so genomsko testirani očetje
+        Oce_import = pedI.izberi_ocete_gen_randomNo(selParimport["pbUp"], selParhome['genpbn'])  # tukaj so genomsko testirani očetje
 
     #odberi starše domače populacije
     pedH, cH, sH, aH = selekcija_importOcetov('GenPed_EBVhome.txt', externalPedName="ExternalPedigreehome",

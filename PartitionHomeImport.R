@@ -6,7 +6,7 @@ ped <- read.table("PedigreeAndGeneticValues_cat.txt", header=TRUE)
 #ped$gvNormUnres1 <- (ped$gvNormUnres1 - mean( ped$gvNormUnres1[ped$Generation == 40])) / sd( ped$gvNormUnres1[ped$Generation == 40])
 
 #check the fathers
-#gen 40 - 60
+#gen 40 - 60 
 ped <- merge(ped, popSplit, by="Indiv")
 ped1 <- ped[ped$Generation %in% 41:60,]
 table(ped1$cat[ped1$Indiv %in% ped1$Father[ped1$group == "home"]], ped1$group[ped1$Indiv %in% ped1$Father[ped1$group == "home"]])

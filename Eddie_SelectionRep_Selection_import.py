@@ -183,9 +183,9 @@ for key, val in zip(parhome.Keys, parhome.Vals):
         selParhome[key] = ast.literal_eval(val)
 
 if selParhome['EBV']:
-    seltype = 'class'
+    seltypehome = 'class'
 if selParhome['gEBV']:
-    seltype = 'gen'
+    seltypehome = 'gen'
 
 if percentageImport_k != 0 and percentageImport_bm != 0:
     selParhome['importPer'] = {'k': int(percentageImport_k), 'bm': int(percentageImport_bm)}
@@ -230,7 +230,7 @@ selParhome['AlphaSimDir'] = os.getcwd()
 if selParimport['EBV']:
     seltypeimport = 'class'
 if selParimport['gEBV']:
-    seltype = 'gen'
+    seltypeimport = 'gen'
 
 ##############################################################################
 #SELEKCIJA
@@ -275,10 +275,18 @@ for roundNo in range(21,41): #za vsak krog selekcije
     #v domači odberi in nastavi matere --> očete (za bm) uvoziš
     pedI, cI, sI, aI = selekcija_total('GenPed_EBVimport.txt', externalPedName="ExternalPedigreeimport", group=True, groupNumber=1,
                                            groupName = "import", noGroups=2, **selParimport)
+
+    #here set the variable whether to select the fathers for import from last pbUp years or just the one
+    # if this is the first year, select all. If not, select the last year and merge with the previous
+    numberOfYearsImport = selParimport["pbUp"] if roundNo == 21 else 1
+    OldOce = [] if roundNo == 21 else sorted(Oce_import)
     if selParimport['EBV']:
-        Oce_import = pedI.izberi_ocete_PT(selParimport["pbUp"]) #tukaj so PT testirani očetje
+        Oce_import_new = pedI.izberi_ocete_PT_randomNo(numberOfYearsImport, selParhome["pbn"]) #tukaj so PT testirani očetje
+        Oce_import = OldOce[selParhome["pbn"]: ] + Oce_import_new
     if selParimport['gEBV']:
-        Oce_import = pedI.izberi_ocete_gen(selParimport["pbUp"])  # tukaj so genomsko testirani očetje
+        Oce_import_new = pedI.izberi_ocete_gen_randomNo(numberOfYearsImport, selParhome["genpbn"])  # tukaj so genomsko testirani očetje
+        Oce_import = OldOce[selParhome["genpbn"]:] + Oce_import_new
+    
 
     #odberi starše domače populacije
     pedH, cH, sH, aH = selekcija_importOcetov('GenPed_EBVhome.txt', externalPedName="ExternalPedigreehome", group=True, groupNumber=0,
@@ -320,17 +328,24 @@ for roundNo in range(21,41): #za vsak krog selekcije
     PedCat.addInfo() #to ti zapiše PedigreeAndGeneticValues_cat.txt v AlphaSim/SimualatedData
 
     #tukaj pridobi podatke za generacijske intervale
-    GenInt = genInterval(AlphaSimDir) #tukaj preberi celoten pedigre
-    if seltype == 'class':
-        GenInt.prepareGenInts(['vhlevljeni', 'pt']) #pri klasični so izrbrani potomci vhlevljeni (test in pripust) in plemenske telice
-    if seltype == 'gen':
-        GenInt.prepareGenInts(['genTest', 'pt']) #pri klasični so izbrani potomci vsi genomsko testirani (pozTest in pripust) in plemenske telice
-    blupNextGen = estimateBV(AlphaSimDir, WorkingDir + "/CodeDir",  way='milk', sel=seltype)
+    GenIntHome = genInterval(AlphaSimDir, group="home") #tukaj preberi celoten pedigre
+    if seltypehome == 'class':
+        GenIntHome.prepareGenInts(['vhlevljeni', 'pt']) #pri klasični so izrbrani potomci vhlevljeni (test in pripust) in plemenske telice
+    if seltypehome == 'gen':
+        GenIntHome.prepareGenInts(['genTest', 'pt'])
+    GenIntImport = genInterval(AlphaSimDir, group="import") #tukaj preberi celoten pedigre
+    if seltypeimport == 'class':
+        GenIntImport.prepareGenInts(['vhlevljeni', 'pt']) #pri klasični so izrbrani potomci vhlevljeni (test in pripust) in plemenske telice
+    if seltypeimport == 'gen':
+        GenIntImport.prepareGenInts(['genTest', 'pt'])
+
+    blupNextGenHome = estimateBV(AlphaSimDir, WorkingDir + "/CodeDir",  way='milk', sel=seltypehome)
     #estimate EBVs for home population with only domestic data
-    blupNextGen.computeEBV(group="home", dataGroup=True, prepareSelPed=False, traitEBV=traitHome,
+    blupNextGenHome.computeEBV(group="home", dataGroup=True, prepareSelPed=False, traitEBV=traitHome,
                        multipleTraitsTBV=[traitHome, traitImport])
+    blupNextGenImport = estimateBV(AlphaSimDir, WorkingDir + "/CodeDir",  way='milk', sel=seltypeimport)
     #estimate EBVs for import population, use all data, create GenPed_EBVs.txt for both groups (only once, sinve it is one populationsplit file)
-    blupNextGen.computeEBV(group="import", dataGroup=True, prepareSelPed=True, traitEBV=traitImport,
+    blupNextGenImport.computeEBV(group="import", dataGroup=True, prepareSelPed=True, traitEBV=traitImport,
                        multipleTraitsTBV=[traitHome, traitImport])
     AccHome.saveAcc()
     AccImport.saveAcc()
