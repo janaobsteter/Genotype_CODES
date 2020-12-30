@@ -47,13 +47,13 @@ summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
 library(viridis)
 library(ggplot2)
 library(plyr)
-pheno <- read.csv("~/Documents/PhD/Projects/inProgress/Phenotyping/TGVsAll_pheno_15122019.csv", header=TRUE, sep=" ")
+pheno <- read.csv("~/Documents/PhD/Projects/inProgress/ResourceAllocation/ResourceAllocation_paper//TGVsAll_pheno_15122019.csv", header=TRUE, sep=" ")
 pheno$Ref <- "True"
-phenoF <- read.csv("~/Documents/PhD/Projects/inProgress/Phenotyping/TGVsAll_phenoFalse_15122019.csv", header=TRUE, sep=" ")
+phenoF <- read.csv("~/Documents/PhD/Projects/inProgress/ResourceAllocation/ResourceAllocation_paper//TGVsAll_phenoFalse_15122019.csv", header=TRUE, sep=" ")
 phenoF$Ref <- "False"
 pheno <- rbind(pheno, phenoF)
 table(pheno$Rep)
-class <- read.csv("~/Documents/PhD/Projects/inProgress/Phenotyping/TGVsAll_permEnvClass_SU55_15122019.csv", header=TRUE, sep=" ")
+class <- read.csv("~/Documents/PhD/Projects/inProgress/ResourceAllocation/ResourceAllocation_paper//TGVsAll_permEnvClass_SU55_15122019.csv", header=TRUE, sep=" ")
 class <- class[,-18]
 class$Ref <- "Class"
 pheno <- rbind(pheno, class)
@@ -301,13 +301,18 @@ phPar$MalePerYear <- phPar$PotomciNPPerYear + phPar$telMPerYear
 ########################################################
 ########################################################
 library(ggplot2)
-accC <- read.table("~/Documents/PhD/Projects/inProgress/Phenotyping/CombinedAcc_phenoClass_15122019.csv", header=TRUE)
+accC <- read.table("~/Documents/PhD/Projects/inProgress/ResourceAllocation/ResourceAllocation_paper//CombinedAcc_phenoClass_15122019.csv", header=TRUE)
+# THIS IS FOR CONVENTIONAL SCENRIOA - same acc for all
+table(accC$AgeCat)
+head(accC)
 accC1 <- accC
 accC1$gp <- "$G:$P = 1:1"
 accC1$Ref <- "True"
+head(accC1)
 accC2 <- accC
 accC2$gp <- "$G:$P = 1:2"
 accC2$Ref <- "True"
+head(accC2)
 accC3 <- accC
 accC3$gp <- "$G:$P = 2:1"
 accC3$Ref <- "True"
@@ -321,10 +326,12 @@ accC6 <- accC
 accC6$gp <- "$G:$P = 2:1"
 accC6$Ref <- "False"
 
-acc <- read.table("~/Documents/PhD/Projects/inProgress/Phenotyping/CombinedAcc_pheno_15122019.csv", header=TRUE)
+acc <- read.table("~/Documents/PhD/Projects/inProgress/ResourceAllocation/ResourceAllocation_paper//CombinedAcc_pheno_15122019.csv", header=TRUE)
+head(acc)
 acc$Ref <- "True"
-accF <- read.table("~/Documents/PhD/Projects/inProgress/Phenotyping/CombinedAcc_phenoFalse_15122019.csv", header=TRUE)
+accF <- read.table("~/Documents/PhD/Projects/inProgress/ResourceAllocation/ResourceAllocation_paper//CombinedAcc_phenoFalse_15122019.csv", header=TRUE)
 accF$Ref <- "False"
+
 acc <- rbind(acc, accF)
 acc <- rbind(acc, accC1)
 acc <- rbind(acc, accC2)
@@ -333,14 +340,15 @@ acc <- rbind(acc, accC4)
 acc <- rbind(acc, accC5)
 acc <- rbind(acc, accC6)
 
-acc$gp <- revalue(acc$gp, c("2_1" = "$G:$P = 2:1", "1_1" = "$G:$P = 1:1", "1_2" = "$G:$P = 1:2"))
+acc$gp <- plyr::revalue(acc$gp, c("2_1" = "$G:$P = 2:1", "1_1" = "$G:$P = 1:1", "1_2" = "$G:$P = 1:2"))
 acc$Cor <- as.numeric(acc$Cor)
 acc <- acc[acc$Gen %in% 40:60,]
+table(acc$AgeCat)
 #accA <- summarySE(data = acc, measurevar = "Cor", groupvars = c("AgeCat", "NoControl", "gp", "Ref"))
 #accA <- summarySE(data = acc, measurevar = "Cor", groupvars = c("AgeCat", "NoControl", "gp", "Ref", "Gen"))
 acc$NoControl <- as.factor(acc$NoControl)
 accPlot <- acc[acc$AgeCat %in% c("genTest1", "telF1",  "k3", "k4", "k5", "k6", "pBM4", "pBM5", "pBM6", "bm7", "gpb2", "gpb3", "gpb4", "gpb5", "gpb6", "pb6", "pb7", "pb8", "pbv9", "vhlevljeni1", "cak5"),]
-accPlot$AgeCat <- revalue(accPlot$AgeCat, c("genTest1" = "Male candidates", "telF1" = "Female candidates", 
+accPlot$AgeCat <- plyr::revalue(accPlot$AgeCat, c("genTest1" = "Male candidates", "telF1" = "Female candidates", ##"potomciNP0" = "nonPhenoOff", 
                                             "k3" = "Mothers", 
                                             "k4" = "Mothers", 
                                             "k5" = "Mothers",
@@ -364,8 +372,11 @@ accPlot$NoControl <- as.character(accPlot$NoControl)
 #accPlot$NoControl[accPlot$AgeCat == "Male candidates1"] <- "111"
 accPlot$NoControl <- as.factor(accPlot$NoControl)
 table(accPlot$NoControl)
+accPlot$NoControl <- factor(accPlot$NoControl, levels = c(11, 10, 9, 8, 5, 2, 1))
+table(accPlot$NoControl)
 accA <- summarySE(data = accPlot, measurevar = "Cor", groupvars = c("AgeCat", "NoControl", "gp", "Ref", "Rep"))
 accA <- summarySE(data = accA, measurevar = "Cor", groupvars = c("AgeCat", "NoControl", "gp", "Ref"))
+table(accA$NoControl)
 accPlotA <- accA
 accPlotA$BV <- ifelse(accPlotA$NoControl == 11, "Conventional", "Genomic")
 
@@ -392,21 +403,44 @@ ggplot(data=accPlotA, aes(x=AgeCat, y=Cor, group=NoControl, colour=NoControl)) +
   facet_grid(. ~ gp + Ref)
 
 #the plot with lines
+#accPlotA$AgeCat <- factor(accPlotA$AgeCat, levels =  c("nonPhenoOff", "Male candidates", "Male candidates1",  "Female candidates",   "Fathers", "Mothers" ))
 accPlotA$AgeCat <- factor(accPlotA$AgeCat, levels =  c("Male candidates", "Male candidates1",  "Female candidates",   "Fathers", "Mothers" ))
 accPlotA$Ref <- revalue(accPlotA$Ref, c("True" = "With initial TP", "False" = "Without initial TP"))
 
 accPlotA$Cor <- round(accPlotA$Cor, 2)
 accPlotA$sd <- round(accPlotA$sd, 2)
 accPlotA$ci <- round(accPlotA$ci, 2)
-table(accPlotA$NoControl)
-accPlotA[accPlotA$Ref  == "With initial TP" & accPlotA$gp == "$G:$P = 1:1",]
-accPlotA[accPlotA$Ref  == "With initial TP" & accPlotA$gp == "$G:$P = 2:1",]
-accPlotA[accPlotA$Ref  == "With initial TP" & accPlotA$gp == "$G:$P = 1:2",]
-accPlotA[accPlotA$Ref  == "Without initial TP" & accPlotA$gp == "$G:$P = 2:1",]
-accPlotA[accPlotA$Ref  == "Without initial TP" & accPlotA$gp == "$G:$P = 1:1",]
-accPlotA[accPlotA$Ref  == "Without initial TP" & accPlotA$gp == "$G:$P = 1:2",]
+table(accPlotA$NoControl, accPlotA$gp)
+accPlotA$accPA <- NA
+accPlotA$accPA[accPlotA$AgeCat == "Female candidates" & accPlotA$Ref  == "With initial TP" & accPlotA$gp == "$G:$P = 1:1"] <- 
+  round(sqrt(0.25*(accPlotA$Cor[accPlotA$AgeCat == "Mothers" & accPlotA$Ref  == "With initial TP" & accPlotA$gp == "$G:$P = 1:1"]**2 + 
+  accPlotA$Cor[accPlotA$AgeCat == "Fathers" & accPlotA$Ref  == "With initial TP" & accPlotA$gp == "$G:$P = 1:1"]**2)), 2)
 
+accPlotA[accPlotA$Ref  == "With initial TP" & accPlotA$gp == "$G:$P = 1:1",]
+accPlotA$accPA[accPlotA$AgeCat == "Female candidates" & accPlotA$Ref  == "With initial TP" & accPlotA$gp == "$G:$P = 2:1"] <- 
+  round(sqrt(0.25*(accPlotA$Cor[accPlotA$AgeCat == "Mothers" & accPlotA$Ref  == "With initial TP" & accPlotA$gp == "$G:$P = 2:1"]**2 + 
+                     accPlotA$Cor[accPlotA$AgeCat == "Fathers" & accPlotA$Ref  == "With initial TP" & accPlotA$gp == "$G:$P = 2:1"]**2)), 2)
+accPlotA[accPlotA$Ref  == "With initial TP" & accPlotA$gp == "$G:$P = 2:1",]
+accPlotA$accPA[accPlotA$AgeCat == "Female candidates" & accPlotA$Ref  == "With initial TP" & accPlotA$gp == "$G:$P = 1:2"] <- 
+  round(sqrt(0.25*(accPlotA$Cor[accPlotA$AgeCat == "Mothers" & accPlotA$Ref  == "With initial TP" & accPlotA$gp == "$G:$P = 1:2"]**2 + 
+                     accPlotA$Cor[accPlotA$AgeCat == "Fathers" & accPlotA$Ref  == "With initial TP" & accPlotA$gp == "$G:$P = 1:2"]**2)), 2)
+accPlotA[accPlotA$Ref  == "With initial TP" & accPlotA$gp == "$G:$P = 1:2",]
+accPlotA$accPA[accPlotA$AgeCat == "Female candidates" & accPlotA$Ref  == "Without initial TP" & accPlotA$gp == "$G:$P = 2:1"] <- 
+  round(sqrt(0.25*(accPlotA$Cor[accPlotA$AgeCat == "Mothers" & accPlotA$Ref  == "Without initial TP" & accPlotA$gp == "$G:$P = 2:1"]**2 + 
+                     accPlotA$Cor[accPlotA$AgeCat == "Fathers" & accPlotA$Ref  == "Without initial TP" & accPlotA$gp == "$G:$P = 2:1"]**2)), 2)
+accPlotA[accPlotA$Ref  == "Without initial TP" & accPlotA$gp == "$G:$P = 2:1",]
+accPlotA$accPA[accPlotA$AgeCat == "Female candidates" & accPlotA$Ref  == "Without initial TP" & accPlotA$gp == "$G:$P = 1:1"] <- 
+  round(sqrt(0.25*(accPlotA$Cor[accPlotA$AgeCat == "Mothers" & accPlotA$Ref  == "Without initial TP" & accPlotA$gp == "$G:$P = 1:1"]**2 + 
+                     accPlotA$Cor[accPlotA$AgeCat == "Fathers" & accPlotA$Ref  == "Without initial TP" & accPlotA$gp == "$G:$P = 1:1"]**2)), 2)
+accPlotA[accPlotA$Ref  == "Without initial TP" & accPlotA$gp == "$G:$P = 1:1",]
+accPlotA$accPA[accPlotA$AgeCat == "Female candidates" & accPlotA$Ref  == "Without initial TP" & accPlotA$gp == "$G:$P = 1:2"] <- 
+  round(sqrt(0.25*(accPlotA$Cor[accPlotA$AgeCat == "Mothers" & accPlotA$Ref  == "Without initial TP" & accPlotA$gp == "$G:$P = 1:2"]**2 + 
+                     accPlotA$Cor[accPlotA$AgeCat == "Fathers" & accPlotA$Ref  == "Without initial TP" & accPlotA$gp == "$G:$P = 1:2"]**2)), 2)
+accPlotA[accPlotA$Ref  == "Without initial TP" & accPlotA$gp == "$G:$P = 1:2",]
+diff <- accPlotA$Cor - accPlotA$accPA
+diff[!is.na(diff)]
 accPlotA$RealSc <- ifelse(accPlotA$NoControl != 11, paste0("G", accPlotA$NoControl), paste0("C", accPlotA$NoControl))
+write.csv(accPlotA, "~/Documents/PhD/Projects/inProgress/ResourceAllocation/ResourceAllocation_paper/Results/FinalPlotAccuracies.csv", quote=F, row.names=F)
 #accPlotA$RealSc <- factor(accPlotA$RealSc, levels = c("G1", "G2", "G5", "G8", "G9", "G10", "C11"))
 #accPlotA$RealSc <- factor(accPlotA$RealSc, levels = c("C111", "C11", "G10", "G9", "G8", "G5", "G2", "G1"))
 
@@ -419,9 +453,13 @@ table(accPlotA$shape)
 accPlotA$shape <- as.factor(accPlotA$shape)
 accPlotA$AgeCat[accPlotA$AgeCat == "Male candidates1"] <- "Male candidates"
 accPlotA$RealSc <- factor(accPlotA$RealSc, level = c("C11", paste0("G", c(10, 9, 8, 5, 2, 1))))
+head(accPlotA)
+table(accPlotA$AgeCat)
+summary(accPlotA$shape)
 
 png("/home/jana/Documents/PhD/Projects/inProgress/Phenotyping/Figures/Obsteter_2_plasma.png", res=1200, width=85, height=120, units="mm")
 png("/home/jana/Documents/PhD/Projects/inProgress/Phenotyping/Figures/Obsteter_2_viridis.png", res=1200, width=85, height=120, units="mm")
+png("/home/jana/Dropbox/Paper_ResourceAllocation/FIG_Submission/Revision/Obsteter_2.png", res=1200, width=85, height=120, units="mm")
 ggplot() + #
   geom_point(data=accPlotA[accPlotA$gp == "$G:$P = 1:1" & accPlotA$TPLabel == "a",], 
              aes(x=RealSc, y=Cor, group=AgeCat, colour=AgeCat, shape = shape), size = 1.5, stroke = 1)  +  
@@ -429,7 +467,7 @@ ggplot() + #
             aes(x=RealSc, y=Cor, group=AgeCat, colour=AgeCat, linetype = AgeCat), size = 0.8) + 
   theme_bw(base_size=18, base_family="sans")  + 
   theme(legend.box = "vertical", legend.position="top", legend.text=element_text(size=10), legend.title=element_text(size=10),
-        axis.text = element_text(size = 10), axis.title = element_text(size = 10), 
+        axis.text = element_text(size = 10), axis.title = element_text(size = 12), 
         legend.margin=margin(0,0,0,0),
         legend.box.margin=margin(-5,-10,-10,-10)) + 
   geom_errorbar(data=accPlotA[accPlotA$gp == "$G:$P = 1:1" & accPlotA$Ref == "With initial TP",], 
@@ -437,12 +475,12 @@ ggplot() + #
   scale_colour_manual("", 
                       #values = viridis::plasma(10)[c(3,7,1,5)],
                       # values = viridis::viridis(10)[c(4,8,1,6)],
-                      #values = c("skyblue2", "#e57691", "#0a488e", "#8e0a2a"),
+                      values = c("skyblue2", "#e57691", "#0a488e", "#8e0a2a"),
                       breaks =  c("Male candidates",  "Female candidates",   "Fathers", "Mothers" ),
-                      labels = c("Male\ncandidates", "Female\ncandidates", "Sires", "Dams")) + 
+                      labels = c("Candidate\nmales", "Candidate\nfemales", "Proven\nmales", "Proven\nfemales")) + 
   scale_linetype_manual("", values=c("solid", "dashed", "solid", "dashed"),
                         breaks =  c("Male candidates",  "Female candidates",   "Fathers", "Mothers" ),
-                        labels = c("Male\ncandidates", "Female\ncandidates", "Sires", "Dams")) +
+                        labels = c("Candidate\nmales", "Candidate\nfemales", "Proven\nmales", "Proven\nfemales")) + 
   scale_shape_manual("", labels = c("Pre-selection", "Selection"), values = c(1, 16)) +
   ylab("Accuracy") + xlab("Scenario") + 
   guides(shape=guide_legend(nrow=1, keyheight = unit(0, "cm"))) +
@@ -460,20 +498,20 @@ acc2 <- ggplot() + #
             aes(x=RealSc, y=Cor, group=AgeCat, colour=AgeCat, linetype = AgeCat), size = 0.8) + 
   theme_bw(base_size=18, base_family="sans")  + 
   theme(legend.box = "vertical", legend.position="top", legend.text=element_text(size=10), legend.title=element_text(size=10),
-        axis.text = element_text(size = 10), axis.title = element_text(size = 10), 
+        axis.text = element_text(size = 10), axis.title = element_text(size = 12), 
         legend.margin=margin(0,0,0,0),
         legend.box.margin=margin(-5,-10,-10,-10)) + 
   geom_errorbar(data=accPlotA[accPlotA$gp == "$G:$P = 1:1" & accPlotA$Ref == "Without initial TP",], 
                 aes(x=RealSc, y=Cor, ymin = Cor - ci, ymax = Cor + ci, colour=AgeCat), alpha = 0.5) + 
-  scale_colour_manual("",
+  scale_colour_manual("", 
                       #values = viridis::plasma(10)[c(3,7,1,5)],
-                      #values = viridis::viridis(10)[c(4,8,1,6)],
-                     values = c("skyblue2", "#e57691", "#0a488e", "#8e0a2a"),
-                     breaks =  c("Male candidates",  "Female candidates",   "Fathers", "Mothers" ),
-                     labels = c("Male\ncandidates", "Female\ncandidates", "Sires", "Dams")) +
+                      # values = viridis::viridis(10)[c(4,8,1,6)],
+                      values = c("skyblue2", "#e57691", "#0a488e", "#8e0a2a"),
+                      breaks =  c("Male candidates",  "Female candidates",   "Fathers", "Mothers" ),
+                      labels = c("Candidate\nmales", "Candidate\nfemales", "Proven\nmales", "Proven\nfemales")) + 
   scale_linetype_manual("", values=c("solid", "dashed", "solid", "dashed"),
-                       breaks =  c("Male candidates",  "Female candidates",   "Fathers", "Mothers" ),
-                       labels = c("Male\ncandidates", "Female\ncandidates", "Sires", "Dams")) +
+                        breaks =  c("Male candidates",  "Female candidates",   "Fathers", "Mothers" ),
+                        labels = c("Candidate\nmales", "Candidate\nfemales", "Proven\nmales", "Proven\nfemales")) + 
   scale_shape_manual("", labels = c("Pre-selection", "Selection"), values = c(1, 16)) +
   ylab("Accuracy") + xlab("Scenario") + 
   guides(shape=guide_legend(nrow=1, keyheight = unit(0, "cm"))) +
@@ -535,7 +573,7 @@ ggplot(data=accGen[accGen$Ref == "True",], aes(x=Gen, y=Cor, group=AgeCat, colou
 
 library(tidyr)
 library(reshape)
-refsize <- read.table("/home/jana/Documents/PhD/Projects/inProgress/Phenotyping/ReferenceSize.txt", header=TRUE)
+refsize <- read.table("/home/jana/Documents/PhD/Projects/inProgress/ResourceAllocation/ResourceAllocation_paper//ReferenceSize.txt", header=TRUE)
 refsizeM <- melt(refsize, id.vars = "Generation")
 refsizeM <- separate(refsizeM, col = variable, into = c("Rep", "Ref", "NoControls", "G", "P"), sep = "_")
 refsizeM$gp <- paste(refsizeM$G, refsizeM$P, sep="_")
