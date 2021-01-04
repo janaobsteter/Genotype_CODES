@@ -459,7 +459,7 @@ summary(accPlotA$shape)
 
 png("/home/jana/Documents/PhD/Projects/inProgress/Phenotyping/Figures/Obsteter_2_plasma.png", res=1200, width=85, height=120, units="mm")
 png("/home/jana/Documents/PhD/Projects/inProgress/Phenotyping/Figures/Obsteter_2_viridis.png", res=1200, width=85, height=120, units="mm")
-png("/home/jana/Dropbox/Paper_ResourceAllocation/FIG_Submission/Revision/Obsteter_2.png", res=1200, width=85, height=120, units="mm")
+jpeg("/home/jana/Dropbox/Paper_ResourceAllocation/FIG_Submission/Revision/Obsteter_2_FIG.jpeg", res=1200, width=85, height=120, units="mm")
 ggplot() + #
   geom_point(data=accPlotA[accPlotA$gp == "$G:$P = 1:1" & accPlotA$TPLabel == "a",], 
              aes(x=RealSc, y=Cor, group=AgeCat, colour=AgeCat, shape = shape), size = 1.5, stroke = 1)  +  
@@ -709,14 +709,14 @@ g2 <- ggplot(data=gainrefM[gainrefM$Ref == "Without initial TP" & gainrefM$scena
         axis.text = element_text(size = 10), axis.title = element_text(size = 10),  axis.title.y = element_blank(), legend.spacing.y = unit(0, "cm"),
         legend.margin=margin(0,0,0,0),
         legend.box.margin=margin(-5,-10,-10,-10)) + 
-  scale_colour_manual("Scenario",
-                      values = c(viridis::viridis(7)[6:1], "black")) +
-  scale_fill_manual("Scenario",
-                    values = c(viridis::viridis(7)[6:1], "black")) +
   # scale_colour_manual("Scenario",
-  #                     values = c(viridis::plasma(7)[6:1], "black")) +
+  #                     values = c(viridis::viridis(7)[6:1], "black")) +
   # scale_fill_manual("Scenario",
-  #                   values = c(viridis::plasma(7)[6:1], "black")) +
+  #                   values = c(viridis::viridis(7)[6:1], "black")) +
+  scale_colour_manual("Scenario",
+                      values = c(viridis::plasma(7)[6:1], "black")) +
+  scale_fill_manual("Scenario",
+                    values = c(viridis::plasma(7)[6:1], "black")) +
   scale_linetype_manual("", values = c("dashed", "solid")) + 
   ylab("Genetic mean") +xlab("Year") + 
   geom_ribbon(aes(ymin = value - CI, ymax = value + CI, fill = RealSc),  linetype = 0, alpha = 0.3) + 
@@ -761,6 +761,7 @@ grid.draw(G2)
 
 library(egg)
 library(ggpubr)
+library(grid)
 p2 <- as_ggplot(G2)
 
 ACC2 <- ggplotGrob(acc2)
@@ -775,6 +776,7 @@ png("/home/jana/Documents/PhD/Projects/inProgress/Phenotyping/Figures/Obsteter_3
 png("/home/jana/Documents/PhD/Projects/inProgress/Phenotyping/Figures/Obsteter_3_plasma_plasma.png", res=1200, width=170, height=120, units="mm")
 png("/home/jana/Documents/PhD/Projects/inProgress/Phenotyping/Figures/Obsteter_3_viridis.png", res=1200, width=170, height=120, units="mm")
 png("/home/jana/Documents/PhD/Projects/inProgress/Phenotyping/Figures/Obsteter_3_viridis_viridis.png", res=1200, width=170, height=120, units="mm")
+jpeg("/home/jana/Dropbox/Paper_ResourceAllocation/FIG_Submission/Revision//Obsteter_3_FIG.jpeg", res=1200, width=170, height=120, units="mm")
 
 ggarrange(p2, a2, widths = c(20, 20))
 dev.off()
