@@ -626,11 +626,12 @@ ggplot(data = TGVsStrategy, aes(x=SDGenicSt, y=zMeanGenic, group=group, linetype
 dev.off()
 
 #OCS brez 15 in 30 - PREDSTAVITVE
-tiff("/home/jana/Documents/PhD/Projects/inProgress/GenomicStrategies_SireUse/Figures/Obsteter_3.tiff", res=610, width=140, height=120, units="mm")
+tiff("/home/jana/Documents/PhD/Projects/Finished//GenomicStrategies_SireUse/Figures/Obsteter_3_ARRS.tiff", res=610, width=140, height=120, units="mm")
+png("/home/jana/Documents/PhD/Projects/Finished//GenomicStrategies_SireUse/Figures/Obsteter_3_ARRS.png", res=610, width=140, height=120, units="mm")
 TGVsStrategy$scenario <- factor(TGVsStrategy$scenario, levels = c("PT", "GT", 45, 50, 55, 60, 75))
 TGVsStrategy$PlotGroup <- factor(TGVsStrategy$PlotGroup, levels = c("SU55PT", "SU55GT", "SU51GT",  "OCS45",  "OCS50" , "OCS55"  ,"OCS60", "OCS75" ))
 
-ggplot(data = TGVsStrategy, aes(x=SDGenicSt, y=zMeanGenic, linetype = rev(PlotGroup), group=rev(group),colour=rev(PlotGroup))) +
+ggplot(data = TGVsStrategy, aes(x=SDGenicSt, y=zMeanGenic, linetype = PlotGroup, group=group,colour=PlotGroup)) +
   scale_x_reverse(sec.axis=sec_axis(trans=~ . - 1,
                                     #name="Converted/Lost genic standard deviation")) +
                                     name="Pretvorjena/izgubljena genska standardna deviacija")) +
@@ -638,38 +639,38 @@ ggplot(data = TGVsStrategy, aes(x=SDGenicSt, y=zMeanGenic, linetype = rev(PlotGr
   ylim(0,7) + coord_cartesian(xlim = c(1, 0.9)) + theme_bw() +
   scale_linetype_manual("",
                         breaks=c("SU55PT", "SU55GT", "SU51GT","OCS45","OCS50","OCS55","OCS60", "OCS75"),
-                        values=c( "solid", "solid", "solid", "dashed", "dashed", "dashed","dashed", "dashed"),
+                        values=c( "solid", "solid", "solid", "twodash", "twodash", "twodash","twodash", "twodash"),
                         labels=c(
                           #"5 sires/year, use 5 years, PT", "5 sires/year, use 5 years, GT", "5 sires/year, use 1 year, GT", 
-                          "5 bikov/5 let, PT", "5 bikov/5 let, GS", "5 bikov/1 leto, GS", 
-                        expression("OCS"["45"]),expression("OCS"["50"]),expression("OCS"["55"]),
-                                 expression("OCS"["60"]), expression("OCS"["75"]) )) +
+                          "5 bikov/5 let\nprogeni test", "5 bikov/5 let\ngenomski test", "5 bikov/1 leto\ngenomski test", 
+                          expression("Optimizirana\nselekcija 45"),expression("Optimizirana\nselekcija 50"),expression("Optimizirana\nselekcija 55"),
+                          expression("Optimizirana\nselekcija 60"), expression("Optimizirana\nselekcija 75"))) +
   scale_colour_manual("",
                       breaks=c("SU55PT", "SU55GT", "SU51GT", "OCS45","OCS50","OCS55", "OCS60", "OCS75"),
                       #values=c("black", "grey50", "grey70",  "#310154",  "#6107a3","#9f3ce8", "#b26ce6","#b573e6"),
-                      values=c("forestgreen", "#407cdb", "#0a48ab",  "#310154",  "#6107a3","#9f3ce8", "#b26ce6","#b573e6"),
+                      values=c("forestgreen", "#3790f0", "#07337a",  "#1f0136",  "#6c23a6","#a454e3", "#b033a1","#e874da"),
                       labels=c(
                         #"5 sires/year, use 5 years, PT", "5 sires/year, use 5 years, GT", "5 sires/year, use 1 year, GT", 
-                        "5 bikov/5 let, PT", "5 bikov/5 let, GS", "5 bikov/1 leto, GS", 
-                                              expression("OCS"["45"]),expression("OCS"["50"]),expression("OCS"["55"]),
-                               expression("OCS"["60"]), expression("OCS"["75"]))) +
-  guides(linetype=guide_legend(ncol=1,  label.position = "right", keyheight = unit(0.5, "cm"), keywidth = unit(2, "cm"), 
-                               override.aes = list(alpha = 1, size=2))) +
+                        "5 bikov/5 let\nprogeni test", "5 bikov/5 let\ngenomski test", "5 bikov/1 leto\ngenomski test", 
+                                              expression("Optimizirana\nselekcija 45"),expression("Optimizirana\nselekcija 50"),expression("Optimizirana\nselekcija 55"),
+                               expression("Optimizirana\nselekcija 60"), expression("Optimizirana\nselekcija 75"))) +
+  guides(linetype=guide_legend(label.position = "right", keyheight = unit(1, "cm"), keywidth = unit(1, "cm"), nrow=3,
+                               override.aes = list(alpha = 1, size=1))) +
   #xlab("Genic standard deviation") + ylab("Genetic Mean") +
   xlab("Genska standardna deviacija") + ylab("Genetski napredek") +
-  theme(axis.text=element_text(size=20), legend.position = "right",
-        axis.title.x=element_text(size=20, vjust=-1),
-        axis.title.y=element_text(size=20, vjust=2),
-        legend.text=element_text(size=20), legend.title=element_text(size=20), legend.box = "horizontal",
+  theme(axis.text=element_text(size=10), legend.position = "top",
+        axis.title.x=element_text(size=12, vjust=-1),
+        axis.title.y=element_text(size=12, vjust=2),
+        legend.text=element_text(size=10), legend.title=element_text(size=12), legend.box = "horizontal",
         plot.title = element_text(margin = margin(t = 0, r = 0, b = 40, l = 0), size=16, hjust=0.5),
         plot.margin = margin(t = 0, r = 10, b = 10, l = 10),
         legend.text.align = 0) + 
   geom_segment(data=maxminPT, mapping=aes(x=maxGenicSD, xend=minGenicSD,
                                           y=minTGV,  yend=maxTGV,
-                                          color=PlotGroup, linetype=PlotGroup, group=PlotGroup), arrow=arrow(), show.legend=FALSE, size=1.5) +
+                                          color=PlotGroup, linetype=PlotGroup, group=PlotGroup), arrow=arrow(type="open"), show.legend=FALSE, size=0.9) +
   geom_segment(data=maxminOCS, mapping=aes(x=maxGenicSD, xend=minGenicSD,
                                            y=minTGV,  yend=maxTGV,
-                                           color=PlotGroup, linetype=PlotGroup, group=PlotGroup), arrow=arrow(), show.legend=FALSE, size=1.5) 
+                                           color=PlotGroup, linetype=PlotGroup, group=PlotGroup), arrow=arrow(type="open"),  show.legend=FALSE, size=0.9) 
 dev.off()
 #Vse OCS in vse SU5x
 ggplot(data = TGVsStrategy, aes(x=SDGenicSt, y=zMeanGenic, group=group, colour=PlotGroup)) +
