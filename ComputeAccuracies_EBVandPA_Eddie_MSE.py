@@ -5,17 +5,20 @@ from collections import defaultdict
 import math
 import os
 import pandas as pd
+import sys
+
+strategy = sys.argv[1]
 
 WorkingDir = os.getcwd()
 
 
-for scenario in ["Gen"]:
+for scenario in ["Class", "GenSLO", "OtherCowsGen", "BmGen", "Gen"]:
 	for rep in range(0, 21):
 		print(scenario, rep)
 		os.chdir(WorkingDir + '/' +  scenario + str(rep))
 		#os.chdir(AlphaSimDir + 'REAL20GenSel_GenSplosnaPop/')
 		TBVs_all = pd.read_table('SimulatedData/PedigreeAndGeneticValues.txt', sep="\s+").loc[:, ['Generation', 'Indiv', 'Father', 'Mother', 'gvNormUnres1']]
-		accuraciesEBV = pd.DataFrame(columns = ['Rep', 'Cycle', 'Cat', 'mseEBV', 'msePA', 'meanEBV', 'meanTBV', 'meanPA'])
+		accuraciesEBV = pd.DataFrame(columns = ['Strategy', 'Scenario', 'Rep', 'Cycle', 'Cat', 'mseEBV', 'msePA', 'meanEBV', 'meanTBV', 'meanPA'])
 		ped = pd.read_csv("SimulatedData/PedigreeAndGeneticValues_cat.txt", sep=" ")
 
 		files =	os.listdir(os.getcwd())
@@ -34,6 +37,10 @@ for scenario in ["Gen"]:
 		    catDF = pd.read_csv(catDFEx)
 		    accuraciesEBV_temp.loc[:, 'Rep'] = [rep] * len(catDF.columns)	
 		    accuraciesEBV_temp.loc[:, 'Cycle'] = [i] * len(catDF.columns)
+                    accuraciesEBV_temp.loc[:, 'Strategy'] = [strategy] * len(catDF.columns)
+                    accuraciesEBV_temp.loc[:, 'Scenario'] = [scenario] * len(catDF.columns)
+
+
 		    accuraciesEBV_temp.loc[:,'Cat'] = list(catDF.columns)
 		    accuraciesEBV_temp.loc[:,'YOB'] = [""] * len(catDF.columns) 
 		    for cat in catDF.columns:
@@ -54,7 +61,7 @@ for scenario in ["Gen"]:
 		    
 		    
 	accuraciesEBV.loc[:, 'Cycle'] = accuraciesEBV.Cycle.astype(int)
-	accuraciesEBV.to_csv(WorkingDir + '/AccuraciesEBVPA_' + scenario + '.csv', index=None, sep=",")
+	accuraciesEBV.to_csv(WorkingDir + '/AccuraciesEBVPA_' + scenario + 'MSE.csv', index=None, sep=",")
 
 	
 	print 'Create Data Frame: AccuraciesEBVPA' + scenario + '.csv'

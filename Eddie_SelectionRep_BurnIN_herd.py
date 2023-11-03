@@ -226,9 +226,7 @@ for rep in [REP]:
     if selPar['gEBV']:
         seltype = 'gen'
 
-    print("Start " + str(StartSelGen))
-    print("Stop " + str(StopSelGen))
-    print(str(StopSelGen + 20))
+
 
 
     ##############################################################################

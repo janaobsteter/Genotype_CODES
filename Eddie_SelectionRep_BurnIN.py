@@ -75,85 +75,18 @@ class estimateBV:
         blupFiles.prepareSelPed()  # obtain solution and add them to
         # AlphaPed PedigreeAndGeneticValues files --> Write them to GenPed_EBV.txt, which is read by module selection
 
-    def computeEBV_permEnv(self, setVar=False, varPE=0.0, varE=0.0, repeats=1):
-        """
-        This function prepares blupf90 phenotypic .dat and pedigree .ped file according to the specification for a model with permanent Environemtn
-        It prepared different files whether we are in fill in or whether in selection gen
-        It also prepares different blupf90 spec file whether we are running conventional or genomic prediction
-        :param setVar: are you setting the variances manually (permanent env and residual)
-        :param varE: what is the proportion of residual variance towards additive genetic variance (Ve / Va)
-        :param varPE:what is the proportion of variance for permanent environment towards additive genetic variance (Vpe / Va)
-        :param repeats: how many times is the phenotypes measures on a animal in one selection cycle
-        :return: prepares .dat, .ped and parameter file and runs blupf90
-        """
-        # uredi blupparam file
-        # get variance components from AlphaSim Output Files
-        OutputFiles = AlphaSim_OutputFile(self.AlphaSimDir)
-        genvar = OutputFiles.getAddVar()  # dobi additivno varianco
-        resvar = OutputFiles.getResVar()  # dobi varianco za ostanek
-        permEvar = 0
-        if setVar:
-            resvar = genvar * varE
-            permEvar = genvar * varPE
-
-        # pripravi fajle za blupf90
-        blupFiles = blupf90(self.AlphaSimDir, self.codeDir, way=self.way, permEnv=True, varPE=permEvar)
-        if self.way == 'milk':
-            blupFiles.makeDat_removePhen_milk_repeatedPhenotype(resvar, repeats)
-        elif self.way == 'burnin_milk':
-            blupFiles.makeDat_sex(2)
-
-        # skopiraj paramFile za renumf90
-        if self.sel == 'gen':
-            shutil.copy(blupFiles.blupgenParamFile_permEnv,
-                        blupFiles.AlphaSimDir + 'renumf90.par')  # skopiraj template blupparam file
-        elif self.sel == 'class':
-            shutil.copy(blupFiles.blupgenParamFile_Clas_permEnv,
-                        blupFiles.AlphaSimDir + 'renumf90.par')  # skopiraj template blupparam file
-
-        blupFiles.prepareParamFiles_permEnv(genvar, permEvar, resvar,
-                                            self.AlphaSimDir + '/renumf90.par')  # set levels of random aniaml effect, add var and res var
-        # the paramfile is now set
-        blupFiles.makePed_gen()  # make ped file for blup, no Code!
-        if self.sel == 'gen':
-            GenFiles = snpFiles(self.AlphaSimDir)
-            GenFiles.createBlupf90SNPFile()
-
-        os.system("./renumf90 < renumParam")  # run renumf90
-
-        # if self.sel == 'class': #ZDJ TEGA NI, KER JE POSEBEJ FILE!
-        # if self.sel == 'class': #ZDJ TEGA NI, KER JE POSEBEJ FILE!
-        # os.system("head -n-3 renf90.par > tmp && mv tmp renf90.par")
-        # os.system("./blupf90 blupf90_Selection")  # run blupf90
-
-        resource.setrlimit(resource.RLIMIT_STACK, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
-        # os.system('./preGSf90 renf90.par')
-        os.system('./blupf90 renf90.par')
-        # os.system('./postGSf90 renf90.par')
-
-        # renumber the solutions
-        # copy the solution in a file that does not get overwritten
-        os.system("bash Match_AFTERRenum.sh")
-        shutil.copy('renumbered_Solutions', 'renumbered_Solutions_' + str(blupFiles.gen))
-        # shutil.copy('solutions', 'renumbered_Solutions_' + str(blupFiles.gen))
-
-        blupFiles.prepareSelPed()  # obtain solution and add them to
-        # AlphaPed PedigreeAndGeneticValues files --> Write them to GenPed_EBV.txt, which is read by module selection
-
 
 ######################################################################################
 ######################################################################################
 scenarios = ['Class']#, 'GenSLO', 'BmGen', 'OtherCowsGen', 'Gen']
 REP = sys.argv[1]
-repeats = int(sys.argv[2])
-varPE = float(sys.argv[3])
-varE = float(sys.argv[4])
+
 
 
 for rep in [REP]:
-    if not os.path.isdir("FillInBurnIn" + str(rep) + "_permEnv"):
-        os.makedirs("FillInBurnIn" + str(rep) + "_permEnv")
-    os.chdir("FillInBurnIn" + str(rep) + "_permEnv") #prestavi se v FillInBurnin za ta replikat
+    if not os.path.isdir("FillInBurnIn" + str(rep)):
+        os.makedirs("FillInBurnIn" + str(rep))
+    os.chdir("FillInBurnIn" + str(rep)) #prestavi se v FillInBurnin za ta replikat
     os.system('cp -r ' + WorkingDir + '/Essentials/* .') # skopiraj vse iz Esentials
     os.system('cp -r ' + WorkingDir + '/CodeDir/* .') # skopiraj vse iz CodeDir
     seed =  randint(-100000000, -1)
@@ -258,8 +191,6 @@ for rep in [REP]:
             blups.computeEBV()  # tukaj izbriši samo fenotipe moških - ne morš po kategorijah, ker jih nimaš
             # Acc.saveAcc()
             nastavi_cat('GenPed_EBV.txt', **selPar)
-            createHerds = Herds() #to ne naredi nič, samo prebere datotek
-            createHerds.create_herds()
 
         else:
             Acc = accuracies(AlphaSimDir)
@@ -267,9 +198,6 @@ for rep in [REP]:
             # izvedi selekcijo, doloci kategorije zivali, dodaj novo generacijo in dodeli starse
             # pedigre se zapise v AlphaSimDir/SelectionFolder/ExternalPedigree.txt
             selekcija_total('GenPed_EBV.txt', **selPar)
-            createHerds = Herds() #to ne naredi nič, samo prebere datotek
-            createHerds.add_herds()
-
 
         # kopiraj pedigre v selection folder
         if not os.path.exists(AlphaSimDir + '/Selection/SelectionFolder' + str(roundNo) + '/'):
@@ -308,8 +236,7 @@ for rep in [REP]:
             GenInt.prepareGenInts(['genTest',
                                    'pt'])  # pri klasični so izbrani potomci vsi genomsko testirani (pozTest in pripust) in plemenske telice
         blupNextGen = estimateBV(AlphaSimDir, WorkingDir + "/CodeDir", way='milk', sel=seltype)
-        blupNextGen.computeEBV_permEnv(setVar=True, varPE=varPE, varE=varE,
-                                       repeats=repeats)
+        blupNextGen.computeEBV()  # estimate EBV with added phenotypes only of animals of certain category (here = milk)
         Acc.saveAcc()
         #GenTrends.saveTrends()
         # zdaj za vsako zapiši, ker vsakič na novo prebereš
