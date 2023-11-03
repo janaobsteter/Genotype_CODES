@@ -14,7 +14,7 @@ import ast
 from random import randint
 
 
-WorkingDir = "/home/v1jobste/jobsteter/"
+WorkingDir = "/home/v1jobste/JanaO/"
 
 class estimateBV:
     def __init__(self, AlphaSimDir, codeDir, way, sel):
@@ -80,95 +80,110 @@ class estimateBV:
 ######################################################################################
 ######################################################################################
 #scenarios = ['Class_LargePop'] #, 'GenSLO', 'BmGen', 'OtherCowsGen', 'Gen']
-rep = sys.argv[1]
-scenario = sys.argv[2]
-strategy = sys.argv[3]
-refSize = sys.argv[4]
+REP = sys.argv[1]
 
 
 
+for rep in [REP]:
+    #####################################################################################################
+    #####################################################################################################
+    #FILL IN - 2x newborns
+    #####################################################################################################
+    if not os.path.isdir("FillInBurnIn_TwoPop_" + str(rep)):
+        os.makedirs("FillInBurnIn_TwoPop_" + str(rep))
+    os.chdir("FillInBurnIn" + str(rep)) #prestavi se v FillInBurnin za ta replikat
+    os.system('cp -r ' + WorkingDir + '/Essentials/* .') # skopiraj vse iz Esentials
+    os.system('cp -r ' + WorkingDir + '/CodeDir/* .') # skopiraj vse iz CodeDir
+    seed =  randint(-100000000, -1)
+    os.system("echo " + str(seed) + " > Seed.txt")
 
+    #first make a FILLIN
+    #nastavi AlphaSimSpec
+    print(os.getcwd())
+
+    SpecFile = AlphaSimSpec(os.getcwd(), WorkingDir + "/CodeDir")  # AlphaSimSpec je class iz selection, ki omogoča nastavljanje parametrov AlphaSimSpec fila
+    SpecFile.setPedType("Internal")  # pedigree je za burn in internal
+    SpecFile.setNB(17280)  # stevilo novorojenih
+    SpecFile.setBurnInGen(20)  # stevilo burnINGen
+    SpecFile.setSelGen(40)  # st selection gen
+    SpecFile.setNoSires(20)
+    SpecFile.setNoDams(8640)
+    SpecFile.turnOnGenFlex()
+    SpecFile.setFlexGenToFrom(1, 21)  # pozeni od generacije 1 do burnin+1
+    SpecFile.turnOnSelFlex()
+    SpecFile.setExtPedForGen(21)  # za katero generacijo uvozi external pedigre  - ena po burn in
+    SpecFile.setTBVComp(1)  # skomputiraj TBV
+    # pozenes ALPHASIM
+    os.system('./AlphaSim1.08')
 
 
     #####################################################################################################
     #####################################################################################################
         #THEN MAKE A BURN IN - classical selection!
-    parhome = pd.read_csv(WorkingDir + "/SelPar/10K/SU55SelPar/SelectionParam_" + scenario + ".csv", header=None, names=["Keys", "Vals"])
+    parhome = pd.read_csv(os.getcwd() + "/SelectionParam_Class.csv", header=None, names=["Keys", "Vals"])
     parhome.to_dict()
     selParhome = defaultdict()
-	for key, val in zip(parhome.Keys, parhome.Vals):
-	    if key not in ['BurnInYN', 'EBV', 'gEBV', 'PA', 'AlphaSimDir', 'genotyped', 'EliteDamsPTBulls',
-		           'EliteDamsPABulls', 'UpdateGenRef', 'sexToUpdate', 'EliteDamsGenBulls', 'gpb_pb',
-		           'genTest_mladi', 'genTest_gpb', 'importPer', 'genFemale']:
-		try:
-		    selParhome[key] = int(val)
-		except:
-		    selParhome[key] = float(val)
-	    if key in ['BurnInYN', 'EBV', 'gEBV', 'PA', 'AlphaSimDir', 'EliteDamsPTBulls',
-		       'EliteDamsPABulls', 'UpdateGenRef', 'sexToUpdate', 'EliteDamsGenBulls', 'gpb_pb',
-		       'genTest_mladi', 'genTest_gpb']:
-		if val in ['False', 'True']:
-		    selParhome[key] = bool(val == 'True')
-		else:
-		    selParhome[key] = val
-	    if key == 'genotyped':
-		selParhome[key] = ast.literal_eval(val)
+    for key, val in zip(parhome.Keys, parhome.Vals):
+        if key not in ['BurnInYN', 'EBV', 'gEBV', 'PA', 'AlphaSimDir', 'genotyped', 'EliteDamsPTBulls',
+                       'EliteDamsPABulls', 'UpdateGenRef', 'sexToUpdate', 'EliteDamsGenBulls', 'gpb_pb',
+                       'genTest_mladi', 'genTest_gpb', 'genFemale']:
+            try:
+                selParhome[key] = int(val)
+            except:
+                selParhome[key] = float(val)
+        if key in ['BurnInYN', 'EBV', 'gEBV', 'PA', 'AlphaSimDir', 'EliteDamsPTBulls',
+                   'EliteDamsPABulls', 'UpdateGenRef', 'sexToUpdate', 'EliteDamsGenBulls', 'gpb_pb',
+                   'genTest_mladi', 'genTest_gpb', 'genFemale']:
+            if val in ['False', 'True']:
+                selParhome[key] = bool(val == 'True')
+            else:
+                selParhome[key] = val
+        if key == 'genotyped':
+            selParhome[key] = ast.literal_eval(val)
 
-	BurnInYN = "False"  # ali izvedeš tudi BurnIn
-	SelYN = "True"  # ali izvedeš tudi BurnIn
-	StNB = 17280
-	StBurnInGen = 20
-	StSelGen = 40
-	StartSelGen = 21
-	StopSelGen = 40
-	NumberOfSires = 20
-	NumberOfDams = 8640
-	AlphaSimDir = os.getcwd() + '/'
-	selParhome['AlphaSimDir'] = os.getcwd()
-	AlphaSimPed = selParhome['AlphaSimDir'] + '/SimulatedData/PedigreeAndGeneticValues.txt'
-	if selParhome['EBV']:
-	    seltype = 'class'
-	if selParhome['gEBV']:
-	    seltype = 'gen'
+    if selParhome['EBV']:
+        seltype = 'class'
+    if selParhome['gEBV']:
+        seltype = 'gen'
 
-	# tukaj pa še parametri za "large" population
-	parimport = pd.read_csv(WorkingDir + "/SelPar/10K/SU55SelPar/SelectionParam_" + scenario + "_LargePop.csv", header=None, names=["Keys", "Vals"])
-	parimport.to_dict()
-	selParimport = defaultdict()
-	for key, val in zip(parimport.Keys, parimport.Vals):
-	    if key not in ['BurnInYN', 'EBV', 'gEBV', 'PA', 'AlphaSimDir', 'genotyped', 'EliteDamsPTBulls',
-		           'EliteDamsPABulls', 'UpdateGenRef', 'sexToUpdate', 'EliteDamsGenBulls', 'gpb_pb',
-		           'genTest_mladi', 'genTest_gpb', 'importPer', 'genFemale']:
-		try:
-		    selParimport[key] = int(val)
-		except:
-		    selParimport[key] = float(val)
-	    if key in ['BurnInYN', 'EBV', 'gEBV', 'PA', 'AlphaSimDir', 'EliteDamsPTBulls',
-		       'EliteDamsPABulls', 'UpdateGenRef', 'sexToUpdate', 'EliteDamsGenBulls', 'gpb_pb',
-		       'genTest_mladi', 'genTest_gpb']:
-		if val in ['False', 'True']:
-		    selParimport[key] = bool(val == 'True')
-		else:
-		    selParimport[key] = val
-	    if key == 'genotyped':
-		selParimport[key] = ast.literal_eval(val)
+     #tukaj pa še parametri za "large" population
+    parimport = pd.read_csv(os.getcwd() + "/SelectionParam_Class_LargePop.csv", header=None, names=["Keys", "Vals"])
+    parimport.to_dict()
+    selParimport = defaultdict()
+    for key, val in zip(parimport.Keys, parimport.Vals):
+        if key not in ['BurnInYN', 'EBV', 'gEBV', 'PA', 'AlphaSimDir', 'genotyped', 'EliteDamsPTBulls',
+                       'EliteDamsPABulls', 'UpdateGenRef', 'sexToUpdate', 'EliteDamsGenBulls', 'gpb_pb',
+                       'genTest_mladi', 'genTest_gpb', 'genFemale']:
+            try:
+                selParimport[key] = int(val)
+            except:
+                selParimport[key] = float(val)
+        if key in ['BurnInYN', 'EBV', 'gEBV', 'PA', 'AlphaSimDir', 'EliteDamsPTBulls',
+                   'EliteDamsPABulls', 'UpdateGenRef', 'sexToUpdate', 'EliteDamsGenBulls', 'gpb_pb',
+                   'genTest_mladi', 'genTest_gpb','genFemale']:
+            if val in ['False', 'True']:
+                selParimport[key] = bool(val == 'True')
+            else:
+                selParimport[key] = val
+        if key == 'genotyped':
+            selParimport[key] = ast.literal_eval(val)
 
-	BurnInYN = "False"  # ali izvedeš tudi BurnIn
-	SelYN = "True"  # ali izvedeš tudi BurnIn
-	StNB = 17280
-	StBurnInGen = 20
-	StSelGen = 40
-	StartSelGen = 21
-	StopSelGen = 40
-	NumberOfSires = 30
-	NumberOfDams = 8640
-	AlphaSimDir = os.getcwd() + '/'
-	selParimport['AlphaSimDir'] = os.getcwd()
-	AlphaSimPed = selParimport['AlphaSimDir'] + '/SimulatedData/PedigreeAndGeneticValues.txt'
-	if selParimport['EBV']:
-	    seltype = 'class'
-	if selParimport['gEBV']:
-	    seltype = 'gen'
+
+    BurnInYN = "False"  # ali izvedeš tudi BurnIn
+    SelYN = "True"  # ali izvedeš tudi BurnIn
+    StNB = 17280
+    StBurnInGen = 20
+    StSelGen = 40
+    StartSelGen = 21
+    StopSelGen = 40
+    NumberOfSires = 30
+    NumberOfDams = 8640
+    AlphaSimDir = os.getcwd() + '/'
+    selParimport['AlphaSimDir'] = os.getcwd()
+    if selParimport['EBV']:
+        seltype = 'class'
+    if selParimport['gEBV']:
+        seltype = 'gen'
 
 
 

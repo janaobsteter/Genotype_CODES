@@ -106,9 +106,9 @@ class estimateBV:
         # copy the solution in a file that does not get overwritten
         os.system("bash Match_AFTERRenum.sh")
         if not group:
-            shutil.copy('renumbered_Solutions', 'renumbered_Solutions_trait' + str(traitEBV) + "_" + str(blupFiles.gen))
+            shutil.copy('renumbered_Solutions', 'renumbered_Solutions_' + str(blupFiles.gen))
         if group:
-            shutil.copy('renumbered_Solutions', 'renumbered_Solutions_' + group + '_trait' + str(traitEBV) + "_" + str(blupFiles.gen))
+            shutil.copy('renumbered_Solutions', 'renumbered_Solutions_' + group + '_' + str(blupFiles.gen))
         # shutil.copy('solutions', 'renumbered_Solutions_' + str(blupFiles.gen))
 
         if prepareSelPed:
@@ -139,7 +139,8 @@ os.chdir("BurnIn_TwoPop_" + str(rep) + "_" +  str(traitHome) + str(traitImport))
 os.system('cp -r ' + WorkingDir + '/FillIn_TwoPop_' + str(rep) + '/* .')  # skopiraj vse iz Esentials
 os.system('cp -r ' + WorkingDir + '/Essentials/* .')  # skopiraj vse iz Esentials
 #os.system('cp -r ' + WorkingDir + '/CodeDir/* .')  # skopiraj vse iz CodeDir
-
+os.system("chmod a+x renumf90")
+os.system("chmod a+x blupf90")
 
 #####################################################################################################
 #####################################################################################################
@@ -178,9 +179,9 @@ AlphaSimDir = os.getcwd() + '/'
 selParhome['AlphaSimDir'] = os.getcwd()
 AlphaSimPed = selParhome['AlphaSimDir'] + '/SimulatedData/PedigreeAndGeneticValues.txt'
 if selParhome['EBV']:
-    seltype = 'class'
+    seltypehome = 'class'
 if selParhome['gEBV']:
-    seltype = 'gen'
+    seltypehome = 'gen'
 
 # tukaj pa še parametri za "large" population
 parimport = pd.read_csv(WorkingDir + "/SelPar/10K/SU55SelPar/SelectionParam_" + scenario + "_LargePop.csv", header=None, names=["Keys", "Vals"])
@@ -217,15 +218,15 @@ AlphaSimDir = os.getcwd() + '/'
 selParimport['AlphaSimDir'] = os.getcwd()
 AlphaSimPed = selParimport['AlphaSimDir'] + '/SimulatedData/PedigreeAndGeneticValues.txt'
 if selParimport['EBV']:
-    seltype = 'class'
+    seltypeimport = 'class'
 if selParimport['gEBV']:
-    seltype = 'gen'
+    seltypeimport = 'gen'
 
 ##############################################################################
 # SELEKCIJA - 20 krogov klasične selekcije
 ##############################################################################
 
-for roundNo in range(1, 21):  # za vsak krog selekcije
+for roundNo in range(1, 11):  # za vsak krog selekcije
     if roundNo == 1:  # če je to prvi krog - nimaš še kategorij od prej, nimaš niti EBV-jev
         # odstrani Blupf90 fajle iz prejšnjih runov - ker se merge-a
         # enako tudi za generacijski interval in file z genotipi
@@ -316,20 +317,29 @@ for roundNo in range(1, 21):  # za vsak krog selekcije
     PedCat = OrigPed(AlphaSimDir, WorkingDir + '/CodeDir')
     PedCat.addInfo()  # to ti zapiše PedigreeAndGeneticValues_cat.txt v AlphaSim/SimualatedData
 
-    # tukaj pridobi podatke za generacijske intervale
-    GenInt = genInterval(AlphaSimDir)  # tukaj preberi celoten pedigre
-    if seltype == 'class':
-        GenInt.prepareGenInts(['vhlevljeni',
-                               'pt'])  # pri klasični so izrbrani potomci vhlevljeni (test in pripust) in plemenske telice
-    if seltype == 'gen':
-        GenInt.prepareGenInts(['genTest',
-                               'pt'])  # pri klasični so izbrani potomci vsi genomsko testirani (pozTest in pripust) in plemenske telice
-    print("Compute selection EBVs")
-    blupNextGen = estimateBV(AlphaSimDir, WorkingDir + "/CodeDir", way='milk', sel=seltype)
+    #tukaj pridobi podatke za generacijske intervale
+    GenIntHome = genInterval(AlphaSimDir, group="home") #tukaj preberi celoten pedigre
+    if seltypehome == 'class':
+        GenIntHome.prepareGenInts(['vhlevljeni', 'pt']) #pri klasični so izrbrani potomci vhlevljeni (test in pripust) in plemenske telice
+    if seltypehome == 'gen':
+        GenIntHome.prepareGenInts(['genTest', 'pt'])
+    GenIntImport = genInterval(AlphaSimDir, group="import") #tukaj preberi celoten pedigre
+    if seltypeimport == 'class':
+        GenIntImport.prepareGenInts(['vhlevljeni', 'pt']) #pri klasični so izrbrani potomci vhlevljeni (test in pripust) in plemenske telice
+    if seltypeimport == 'gen':
+        GenIntImport.prepareGenInts(['genTest', 'pt'])
+
+    blupNextGenHome = estimateBV(AlphaSimDir, WorkingDir + "/CodeDir",  way='milk', sel=seltypehome)
     #estimate EBVs for home population with only domestic data
-    blupNextGen.computeEBV(group = "home", dataGroup = True, prepareSelPed = False, traitEBV = traitHome, multipleTraitsTBV=[traitHome,traitImport])
+    blupNextGenHome.computeEBV(group="home", dataGroup=True, prepareSelPed=False, traitEBV=traitHome,
+                       multipleTraitsTBV=[traitHome, traitImport])
+    blupNextGenImport = estimateBV(AlphaSimDir, WorkingDir + "/CodeDir",  way='milk', sel=seltypeimport)
     #estimate EBVs for import population, use all data, create GenPed_EBVs.txt for both groups (only once, sinve it is one populationsplit file)
-    blupNextGen.computeEBV(group = "import", dataGroup = True, prepareSelPed = True, traitEBV = traitImport, multipleTraitsTBV=[traitHome,traitImport])
+    blupNextGenImport.computeEBV(group="import", dataGroup=True, prepareSelPed=True, traitEBV=traitImport,
+                       multipleTraitsTBV=[traitHome, traitImport])
+
+
+
     AccHome.saveAcc()
     AccImport.saveAcc()
     #GenTrends.saveTrends()
