@@ -1,4 +1,4 @@
-cats = ['pb']
+cats = ['gpb']
 
 os.chdir('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_Class/')
 accuraciesEBV = pd.read_table('AccuraciesEBVPA.csv', sep=",")
@@ -12,23 +12,7 @@ legend(loc='upper left')
 plt.xticks(accuraciesEBV.Cycle)
 plt.title(cats)
 
-cats='genTest'
-os.chdir('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_GenSplosnaPop/')
-accuraciesEBV = pd.read_table('AccuraciesEBVPA.csv', sep=",")
-accuraciesEBV = accuraciesEBV[accuraciesEBV.Cycle.isin(range(40, 61))]
-for cat in cats:
-    trendCat = accuraciesEBV.loc[accuraciesEBV.Cat == cat]
-    plt.plot(trendCat.Cycle, trendCat.corEBV, label = 'corTGV_EBV')
-    plt.plot(trendCat.Cycle, trendCat.corPA, label = 'corTGV_PA')
-plt.xlabel('Selected Generation')
-plt.ylabel('Mean Generation TBV')
-legend(loc='upper left')
-plt.xticks(accuraciesEBV.Cycle)
-plt.title('genTest')
-
-
-
-os.chdir('/home/jana/bin/AlphaSim1.05Linux//')
+os.chdir('/home/jana/bin/AlphaSim1.05Linux/REAL20GenSel_Gen/')
 accuraciesEBV = pd.read_table('AccuraciesEBVPA.csv', sep=",")
 accuraciesEBV = accuraciesEBV[accuraciesEBV.Cycle.isin(range(40, 61))]
 for cat in cats:
