@@ -1864,13 +1864,12 @@ def selekcija_total(pedFile, externalPedName = "ExternalPedigree",group=False, g
     print("The parameter in kwargs for maleGenSelAll " + str(kwargs.get('maleGenSelAll')))
 
 
-
-    if not kwargs.get("maleGenSelAll") and not kwargs.get('gEBV'): ##('genTest' in categories.keys()):
-        ped.izberi_random("M", kwargs.get('telMn'), "nr", "telM", categories)  # izberi moška teleta, ki preživijo (random)
+    #ce odbiram od vseh genotipziranih moskih - ne samo potomcev načrtnih parjenj
+    if not kwargs.get("maleGenSelAll") and not kwargs.get('gEBV'):
+        ped.izberi_random("M", kwargs.get('telMn'), "nr", "telM",
+                          categories)  # izberi moška teleta, ki preživijo (random)
         ped.izloci_random("M", int(kwargs.get('nrMn') - kwargs.get('potomciNPn') - kwargs.get('telMn')), "nr",
                           categories)  # druga teleta izloči
-
-    #ce odbiram od vseh genotipziranih moskih
     elif kwargs.get("maleGenSelAll") and kwargs.get('gEBV'): ##('genTest' in categories.keys()):
         #then put all genotyped males into "potomciNP" - the easiest solution
         genoMale = ped.obtainNewGenotypedInd_sex("M", kwargs.get("AlphaSimDir"), group=groupName)
@@ -1888,6 +1887,7 @@ def selekcija_total(pedFile, externalPedName = "ExternalPedigree",group=False, g
         freeRow = int(len(ped.catCurrent_indiv_sex_age("", "M", 0)))
         ped.izloci_random("M", freeRow, "nr",
                           categories)  # druga teleta izloči
+
 
     if 'telM' in categories.keys():
         ped.izberi_random("M", kwargs.get('bik12n'), 'telM', 'bik12',
@@ -3621,7 +3621,7 @@ class genInterval():
         self.group = group
 
     def obtainSelInd_Parents(self, listCatOffspring):
-        ps = pd.read_csv(AlphaSimDir + "/PopulationSplit.txt", names=['Group', 'Indiv'], header=1, low_memory=False)
+        ps = pd.read_csv(self.AlphaSimDir + "/PopulationSplit.txt", names=['Group', 'Indiv'], header=1, low_memory=False)
         self.pdPed = self.pdPed.merge(ps, on="Indiv")
         if self.group:
             i = self.pdPed.loc[self.pdPed.cat.isin(listCatOffspring)][
