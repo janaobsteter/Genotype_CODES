@@ -1,0 +1,26 @@
+DATAFILE
+Blupf90.dat
+TRAITS
+2
+FIELDS_PASSED TO OUTPUT
+
+WEIGHT(S)
+
+RESIDUAL_VARIANCE 
+6.61997968064
+EFFECT
+5 cross	alpha #mean
+EFFECT
+3 cross alpha  #animal
+RANDOM
+animal
+FILE
+Blupf90.ped
+SNP_FILE
+GenoFile.txt
+PED_DEPTH
+0
+(CO)VARIANCES
+3.0553846384  
+OPTION map_file SnpMap.txt
+OPTION no_quality_control

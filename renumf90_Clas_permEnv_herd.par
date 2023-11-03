@@ -1,0 +1,33 @@
+DATAFILE
+Blupf90.dat
+TRAITS
+2
+FIELDS_PASSED TO OUTPUT
+
+WEIGHT(S)
+
+RESIDUAL_VARIANCE 
+ResidualVariance
+EFFECT
+5 cross alpha #Mean
+EFFECT
+3 cross alpha  #animal
+RANDOM
+animal
+OPTIONAL
+pe
+FILE
+Blupf90.ped
+PED_DEPTH
+0
+(CO)VARIANCES
+GeneticVariance  
+(CO)VARIANCES_PE
+PermEnvVariance
+EFFECT
+1 cross alpha
+RANDOM
+diagonal
+(CO)VARIANCES
+HerdVariance
+
