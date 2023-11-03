@@ -1,0 +1,12 @@
+GenderFile                  , GENDER.txt
+NrmMatrixFile               , KINSHIPMATRIX
+SelCriterionFile            , CRITERION.txt
+NumberOfMatings             , NoMating
+NumberOfMaleParents         , NoMaleParents 
+EqualizeMaleContributions   , No
+NumberOfFemaleParents       , NoFemaleParents
+EqualizeFemaleContributions , Yes
+TargetDegree                , SetDegree
+MateAllocation 		    , No
+LimitMaleContributions 	    , No
+Stop

@@ -1,0 +1,8 @@
+PedigreeFile       ,PEDIGREE.txt
+PedInbreeding      ,Yes
+PedNrm             ,Yes
+PedNrmSubsetFile   ,INDPED.txt
+OutputFormat       ,f16.12
+Stop
+
+

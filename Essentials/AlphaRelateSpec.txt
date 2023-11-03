@@ -1,0 +1,13 @@
+PedigreeFile       ,PEDIGREE.txt
+PedInbreeding      ,Yes
+PedNrm             ,Yes
+PedNrmSubsetFile   ,INDPED.txt
+OutputFormat       ,f16.12
+GenotypeFile       ,AlphaRelateGenotypes.txt
+NumberOfLoci       ,20000
+GenNrm             ,Yes
+GenNrmType         ,VanRaden
+
+Stop
+
+

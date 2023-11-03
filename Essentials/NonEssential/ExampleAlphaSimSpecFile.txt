@@ -1,0 +1,131 @@
+####################################################################################
+BOX 1 - PEDIGREE
+PedigreeStatus                                    ,Internal
+NumberGenerationsBurnIn                           ,1
+NumberGenerationsSelection                        ,0
+NumberOfIndividualsInEachGeneration               ,Constant, 1000
+####################################################################################
+BOX 2 - ANIMAL BREEDING OPTIONS
+AnimalBreedingOnOff                               ,On
+NumberOfSiresInEachGeneration                     ,Variable
+NumberOfDamsInEachGeneration                      ,Variable
+####################################################################################
+BOX 3 - PLANT BREEDING OPTIONS
+PlantBreedingOnOff                                ,Off
+PerformMatingsConsideringTheGenderYesNo           ,No
+NumberOfMaleParentsInEachGeneration               ,Variable
+NumberOfFemaleParentsInEachGeneration             ,Variable
+NumberOfParentsRegardlessTheGenderInEachGen       ,Variable
+PerformSelfingInAtLeastOneGenerationYesNo         ,No
+NumberOfSelfedParentsInEachGeneration             ,Variable
+NumberOfGenerationsIncludingDoubledHaploids       ,0
+CreateDoubledHaploidsInTheseGenerations           ,-1
+####################################################################################
+BOX 4 - FLEXABILITY
+GenerationFlexibilityOnOff                        ,Yes
+StartStopGeneration                               ,1,1
+SelectionFlexibilityOnOff                         ,No
+ImportAnExternalPedigreeForThisGeneration         ,0
+ImportStagePut1ToComputeBV2ToContinue             ,2
+MergeTypes                                        ,None
+NumberOfMergeRuns                                 ,0
+MergeFiles                                        ,none
+####################################################################################
+BOX 5 - CHROMOSOMES
+UserMaCSHaplotypesYesNo                           ,No
+PopulationHistoryMaCS                             ,InternalTest
+EffectivePopulationSizeBaseMaCs                   ,Internal,100
+MutationRateMaCS                                  ,Internal,0
+ChromosomeLengthBasesMaCS                         ,Internal,1
+ChromosomeLengthMorgansMaCS                       ,Internal,1.0
+ChromosomeLengthMorgansAlphaSim                   ,Internal,1.0
+NumberOfChromosomes                               ,1
+NumberOfHaplotypes                                ,400
+RecombinationHotspotsOnOff                        ,Off
+####################################################################################
+BOX 6 - SNP CHIPS
+UseSnpChipOnOff                                   ,Off
+NumberOfSnpChips                                  ,1
+nSnpPerChipPerChromosome                          , 200
+MinAlleleFreqForSnp                            ,0.0
+MaxAlleleFreqForSnp                            ,0.5
+SnpChipIncludesQtnYesNoRandom                     ,Yes
+SnpChipsAreNestedYesNo                            ,No
+IdOfChipUsedForSelection                          ,1
+####################################################################################
+BOX 7 - QTN
+NumberOfQtnPerChromosomeNormalDist                ,100
+NumberOfQtnPerChromosomeGammaDist                 ,0
+NumberOfMutationsPerChr                           ,0
+MutationalVarianceProportion                      ,0.0
+MinMaxAlleleFreqForModel2And4                     ,0.0,1.0
+ShapeAndScaleOfGammaDistForModel3And4             ,0.0,0.0
+DominanceDegreeMeanAndVariance                    ,0.0,0.0
+QtnClustersOnOff                                  ,Off
+####################################################################################
+BOX 8 - RECOMBINATION
+RecombinationOnOff                                ,Off
+HeritabilityOfRecombination                       ,0.0
+NumberOfQtnPerChromForRecombination               ,0
+InitialRecombinationIndexWeight                   ,0.0
+NumberGenerationsSelectionOnRecombination         ,0
+LaterGenRecombinationIndexWeight                  ,0.0
+DistributionOfQtnForRecombination                 ,Normal
+ShapeAndScaleOfGammaDist                          ,0.0,0.0
+####################################################################################
+BOX 9 - GENE EDITING
+GeneEditingOnOff                                  ,Off
+QtnEditSelectionMethod                            ,Additive
+EditFixedQtn                                      ,No
+SireEditMethod                                    ,Top
+DeltaFSiresEditOptContrib                         ,0.0
+NumberOfEditedIndividuals                         ,0
+NumberOfGeneEditsPerIndividual                    ,0
+EditToPlusOrMinus                                 ,Plus
+NumberOfGametesPerSireLdEditOnly                  ,0
+PerformGEOnUserQtnSelectionYesNo                  ,No
+GeneDriveOnOff                                    ,Off
+GeneDriveEditingThreshold                         ,0.0
+GeneticMapOnOff                                   ,Off
+####################################################################################
+BOX 10 - SELECTION
+SelectionBasedOnRestrictedOrUnrestrictedQtn       ,Restricted
+DistributionOfQtnOfSelectionTraits                ,Normal
+SelectionMethod                                   ,TBV
+AddQtnToTheSnpChipYesNo                           ,No
+UseExternalSnpSolutionsYesNo                      ,No
+SelectionPhenotypingStrategy                      ,RandomPhenotypes
+FirstAndLastTrainingGenForRandomPhenotypesStrat   ,1,1
+TrainingSetSizeForRandomPhenotypesStrat           ,500
+FixTheTrainingDataAcrossGenerationsOnOff          ,Off
+UseTrainingDataFromGeneration                     ,2
+ComputeAverageCoancestryYesNo                     ,No
+GenerationsOfPedigreePriorToTraining              ,0
+####################################################################################
+BOX 11 - OPTIMAL CONTRIBUTION SELECTION
+OptimalContributionSelectionOnOff                 ,Off
+SizeOfXvectPopulationAndMaxNbOfGenerations        ,0.0,0.0
+PercentageDifferenceInbreeding                    ,0.0
+####################################################################################
+BOX 12 - TRAITS
+NumberOfTraits                                    ,1
+IndexWeights                                      ,1.0
+TraitHeritability                                 ,0.3
+UseNarrowSenseHeritabilityYesNo                   ,Yes
+TraitGeneticVariance                              ,0.5
+####################################################################################
+BOX 13 - TRAIT CORRELATIONS
+Genetic Correlation Matrix
+1.0
+Residual Correlation Matrix
+1.0
+####################################################################################
+BOX 14 - OUTPUTS
+KeepChromosomesFolderYesNo                        ,Yes
+WriteFullSequenceOutOnOff                         ,Off
+ZipSequenceOutputFilesYesNo                       ,No
+####################################################################################
+BOX 15 - GENOME COMPRESSION
+GenomeCompressionOnOff                            ,Off
+GenomeCompression                                 , 0.0
+####################################################################################
