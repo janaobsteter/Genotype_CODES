@@ -1,4 +1,0 @@
-/home/janao/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/GGPv03/OUTPUT/PLINK_MERGED
-
-
-/home/janao/Genotipi/Genotipi_DATA/Genotipi_latest/Rjava/GGPv03/OUTPUT/PLINK_MERGED
