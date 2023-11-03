@@ -9,6 +9,8 @@ WEIGHT(S)
 RESIDUAL_VARIANCE 
 ResidualVariance
 EFFECT
+4 cross alph #mean
+EFFECT
 1 cross alpha  #animal
 RANDOM
 animal

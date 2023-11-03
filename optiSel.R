@@ -1,7 +1,9 @@
 
 # ---- Code requirements ----
 
-# install.packages(pkg=c("tidyverse", "optiSel", mipfp"))
+#install.packages("tidyverse")
+#install.packages("optiSel")
+#install.packages("mipfp")
 library(package = "tidyverse") # for tidy data handling
 library(package = "optiSel") # for Optimum Contribution Selection via quadratic programming
 #library(package = "mipfp") # for Iterative proportional fitting (used in MateAtRandom)
@@ -12,7 +14,7 @@ args <- commandArgs(TRUE)
 DEGREE <- as.numeric(args[1])
 # ---- Data ----
 
-setwd("/home/jana/bin/AlphaMateLinux/OCSSloPop/CowSample/")
+#setwd("/home/jana/bin/AlphaMateLinux/OCSSloPop/CowSample/")
 # Breeding values
 Data = read.table(file="CRITERION.txt", sep=",")
 colnames(Data) = c("Indiv", "Ebv1")
@@ -61,9 +63,9 @@ ContributionsMaxSelCriterion = opticont(method="max.Ebv1", cand=Candidates, con=
 ContributionsMaxSelCriterion$info
 ContributionsMaxSelCriterion$mean
 ContributionsMaxSelCriterion$parent$nOff = noffspring(ContributionsMaxSelCriterion$parent, N=400)$nOff 
-#ContributionsMaxSelCriterion$parent %>%
-#  filter(nOff > 0) %>%
-#  arrange(desc(nOff))
+ContributionsMaxSelCriterion$parent %>%
+  filter(nOff > 0) %>%
+  arrange(desc(nOff))
 
 
 
@@ -74,9 +76,9 @@ ContributionsMinCoancestry = opticont(method="min.sKin", cand=Candidates, con=Co
 ContributionsMinCoancestry$info
 ContributionsMinCoancestry$mean
 ContributionsMinCoancestry$parent$nOff = noffspring(ContributionsMinCoancestry$parent, N=400)$nOff
-#ContributionsMinCoancestry$parent %>%
-#  filter(nOff > 0) %>%
-#  arrange(desc(nOff))
+ContributionsMinCoancestry$parent %>%
+  filter(nOff > 0) %>%
+  arrange(desc(nOff))
 
 # ---- Penalty degrees ----
 
@@ -118,9 +120,9 @@ ContributionsOpt$info
 ContributionsOpt$mean
 #nF <- sum(Data$Sex=="female")
 ContributionsOpt$parent$nOff = noffspring(ContributionsOpt$parent, N=8640)$nOff
-#ContributionsOpt$parent %>%
-#  filter(nOff > 0) %>%
-#  arrange(desc(nOff))
+ContributionsOpt$parent %>%
+  filter(nOff > 0) %>%
+  arrange(desc(nOff))
 
 fathers <- ContributionsOpt$parent[(ContributionsOpt$parent$Sex=="male") & (ContributionsOpt$parent$nOff != 0), c("Indiv", "nOff")]
 Ocetje <- sample(rep(fathers$Indiv, fathers$nOff))
