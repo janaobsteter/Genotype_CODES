@@ -5,7 +5,8 @@ from selection10 import *
 import resource
 import pandas as pd
 
-variances = sys.argv[1].split(",")
+repeats = int(sys.argv[1])
+variances = sys.argv[2].split(",")
 varPE = float(variances[0])
 varH = float(variances[1])
 varHY = float(variances[2])
@@ -19,7 +20,41 @@ class estimateBV:
         self.way = way
         self.sel = sel
         self.codeDir = codeDir
+   
+    def computeEBV(self):
+        # pripravi fajle za blupf90
+        blupFiles = blupf90(self.AlphaSimDir, self.codeDir, way=self.way)
+        # listUnphenotyped = ['potomciNP', 'nr', 'telF', 'telM', 'pt', 'mladi', 'vhlevljeni', 'cak'] #list of unphenotyped categories (better ages?)
+        # blupFiles.preparePedDat_cat(listUnphenotyped) #pripravi ped, dat file za blup #skopiraj generičen paramfile v AlphaSim Directory
+        if self.sel == 'gen':
+            shutil.copy(blupFiles.blupgenParamFile,
+                        blupFiles.AlphaSimDir + 'renumf90.par')  # skopiraj template blupparam file
+        if self.sel == 'class':
+            shutil.copy(blupFiles.blupgenParamFile_Clas,
+                        blupFiles.AlphaSimDir + 'renumf90.par')  # skopiraj template blupparam file
 
+        # uredi blupparam file
+        # get variance components from AlphaSim Output Files
+        OutputFiles = AlphaSim_OutputFile(self.AlphaSimDir)
+        genvar = OutputFiles.getAddVar()  # dobi additivno varianco
+        resvar = OutputFiles.getResVar()  # dobi varianco za ostanek
+
+        blupFiles.prepareParamFiles(genvar, resvar,
+                                    self.AlphaSimDir + '/renumf90.par')  # set levels of random aniaml effect, add var and res var
+        # the paramfile is now set
+        if self.sel == 'gen':
+            GenFiles = snpFiles(self.AlphaSimDir)
+            GenFiles.createBlupf90SNPFile()
+
+        os.system("./renumf90 < renumParam")  # run renumf90
+
+        # if self.sel == 'class': #ZDJ TEGA NI, KER JE POSEBEJ FILE!
+        # if self.sel == 'class': #ZDJ TEGA NI, KER JE POSEBEJ FILE!
+        # os.system("head -n-3 renf90.par > tmp && mv tmp renf90.par")
+	
+	resource.setrlimit(resource.RLIMIT_STACK, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
+        # os.system('./preGSf90 renf90.par')
+        os.system('./blupf90 renf90.par')
 
     def computeEBV_permEnv_herd(self, setVar=False, varPE=0.0, varE=0.0, herd=True, varH = 0.0, repeats=1):
         """
@@ -55,7 +90,7 @@ class estimateBV:
             shutil.copy(blupFiles.blupgenParamFile_Clas_permEnv_herd,
                         blupFiles.AlphaSimDir + 'renumf90.par')  # skopiraj template blupparam file
 
-        blupFiles.prepareParamFiles_permEnv_herd(genvar, permEvar, resvar, herdvar,
+        blupFiles.prepareParamFiles_permEnv_herd(genvar, permEvar, resvar, herdvar*2,
                                             self.AlphaSimDir + '/renumf90.par')  # set levels of random aniaml effect, add var and res var
         # the paramfile is now set
         blupFiles.makePed_gen()  # make ped file for blup, no Code!
@@ -79,26 +114,33 @@ class estimateBV:
         # copy the solution in a file that does not get overwritten
 
 
-
 homeDir = os.getcwd()
+WorkingDir = "/home/v1jobste/JanaO/"
 
-
-for reference in ["1K", "2K", "3K", "4K", "5K"]:
-    for rep in [0, 1, 2]:
+for reference in ["1K", "5K"]: ##, "2K", "3K", "4K", "5K", "6K", "7K", "8K", "9K"]:
+    for rep in [0, 1, 2]: ##, 3, 4]:
         AlphaSimDir = homeDir + "/FillInBurnIn" + str(rep) + "_permEnv/"
+#        AlphaSimDir = homeDir + "/FillInBurnIn" + str(rep) + "/"
+
+        os.chdir(AlphaSimDir)
+        print str(os.getcwd())
+
         #move correspodning IndForGeno_xK.txt to IndForGeno.txt
+	os.system("rm IndForGeno.txt")
+        os.system("rm GenoFile.txt")
+        os.system("cp IndForGeno_" + reference + ".txt  IndForGeno.txt")
 
-        GenFiles = snpFiles(AlphaSimDir)
-        GenFiles.createBlupf90SNPFile()
-
-        blupNextGen = estimateBV(AlphaSimDir, WorkingDir + "/CodeDir", way='milk', sel=seltype)
+	#use module to estimate BV
+        blupNextGen = estimateBV(AlphaSimDir, WorkingDir + "/CodeDir", way='milk', sel='gen')
         varEest = varE + varH + varHTD
+#	blupNextGen.computeEBV()
         blupNextGen.computeEBV_permEnv_herd(setVar=True, varPE=varPE, varE=varEest, varH=varHY,
                                             repeats=repeats)
 
+
         #run MatchAfterRenum --> label as renumbered_SOlutions_xK
         os.system("bash Match_AFTERRenum.sh")
-        os.system("mv renumbered_Solutions renumbered_Solutions_" + reference)
+        os.system("mv renumbered_Solutions renumbered_Solutions_" + reference + "_newModel")
 
 
 

@@ -49,20 +49,20 @@ print(args)
 homedir <- getwd()
 
 TGVsAll <- data.frame()
-for (rep in 11:12) {
-  for (trait2 in c(2,3)) {
-    for (scenarioHome in c("Gen")) {
+for (rep in 6:9) {
+  for (trait2 in c(2, 3)) {
+    for (scenarioHome in c("Gen", "Class")) {
       for (import in c("100_100", "50_50", "25_25", "10_10", "0_100", "0_0")) {
         scenario = paste0(scenarioHome, "Gen")
 	print(paste0(rep, "_", scenarioHome, "_", trait2, "_", import))
 	print(scenario)
         print(import)
 	print(scenarioHome)
-        WorkingDir = paste0(homedir, "/10K/SU55_import/", scenario, rep, "_", import, trait1, trait2, "/SimulatedData/")
-        UpDir = paste0(homedir, "/10K/SU55_import/", scenario, rep, "_", import, trait1, trait2, "/")
+        WorkingDir = paste0(homedir, "/MissingFiles/", scenario, rep, "_", import, trait2, "/")
+        UpDir = paste0(homedir, "/MissingFiles/", scenario, rep, "_", import,  trait2, "/")
 	if (file.exists(paste0(WorkingDir,'/PedigreeAndGeneticValues.txt'))) {
 		ped <- read.table(paste0(WorkingDir,'/PedigreeAndGeneticValues.txt'), header=TRUE)
-		popsplit <- read.csv(paste0(UpDir, "PopulationSplit.txt"))
+		popsplit <- read.csv(paste0(UpDir, "/PopulationSplit.txt"))
 		colnames(popsplit) <- c("Group", "Indiv")
 		#to standardise onto the generation 40 - which is the generation of comparison
 		ped <- ped[ped$Generation %in% 20:60,]

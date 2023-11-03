@@ -40,20 +40,19 @@ summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
 library(reshape)
 args = commandArgs(trailingOnly=TRUE)
 date = args[1]
-#trait1 = args[2]
-#trait2 = args[3]
-#import = args[2]
+trait1 = args[2]
+trait2 = args[3]
+import = args[4]
 print(args)
 print(args)
 
 homedir <- getwd()
 
 TGVsAll <- data.frame()
-for (rep in 7:9) {
+for (rep in 0:4) {
   for (scenario in c("Class")) {
-    for (trait2 in c(2,3)) {
-    WorkingDir = paste0(homedir, "/BurnIn_TwoPop_", rep, "_1", trait2, "/SimulatedData/")
-    UpDir = paste0(homedir, "/BurnIn_TwoPop_", rep, "_1", trait2, "/")
+    WorkingDir = paste0(homedir, "/BurnIn_TwoPop_", rep, "_", trait1, trait2, "/SimulatedData/")
+    UpDir = paste0(homedir, "/BurnIn_TwoPop_", rep, "_", trait1, trait2, "/")
     ped <- read.table(paste0(WorkingDir,'/PedigreeAndGeneticValues.txt'), header=TRUE)
     popsplit <- read.csv(paste0(UpDir, "PopulationSplit.txt"))
     colnames(popsplit) <- c("Group", "Indiv")
@@ -62,7 +61,7 @@ for (rep in 7:9) {
     print("Merging ped and pop")
     ped <- unique(merge(ped, popsplit, by="Indiv", all.x=TRUE))
     #obtain mean and sd of genetic values
-    TGV <- ped[,c("Generation", "Group", "gvNormUnres1", paste0("gvNormUnres", trait2))]
+    TGV <- ped[,c("Generation", "Group", paste0("gvNormUnres", trait1), paste0("gvNormUnres", trait2))]
     TGVm <- melt(TGV, id.vars = c("Generation", "Group"))
     TGVsum <- summarySE(TGVm, measurevar = "value", groupvars = c("Generation", "variable", "Group"))[,c(1,2,3,5,6)]
 
@@ -75,54 +74,27 @@ for (rep in 7:9) {
     Var <- read.csv(paste0(UpDir,'GenicVariance_import.csv'), header=T)[-1,]
 
     for (group in c("home", "import")) {
-      for (trait in c(1, trait2)) {
+      for (trait in c(trait1, trait2)) {
         TGVGroup <- TGVsum[TGVsum$Group == group & TGVsum$variable == paste0('gvNormUnres', trait),]
         TGVGroup <- TGVGroup[order(TGVGroup$Generation),]
         TGVGroup$SDSt <- TGVGroup$sd / TGVGroup$sd[1]
         #standardise genetic values with genetic standard deviation
         TGVGroup$zMean <- (TGVGroup$value - TGVGroup$value[1]) / TGVGroup$sd[1]
         #TGVs <- merge(TGVs, TGV, by="Generation")
-        
-#        #variation
-#        VarGroup <- Var[Var$Group == group & Var$Trait == trait,]
-#        colnames(VarGroup)[5] <- "Generation"
-#        print("Merging TGV and Var")
-#        TGVGroup <- merge(TGVGroup, VarGroup, by=c("Generation", "Group"))
-#        
-#        #obtain genic standard deviation
-#        TGVGroup$SDGenic <- (sqrt(TGVGroup$GenVar))
-#        
-#        #standarise genic standard devistion
-#        TGVGroup$SDGenicSt <- TGVGroup$SDGenic / TGVGroup$SDGenic[1]
-#        #standardise genetic values with genic standard devistion
-#        TGVGroup$zMeanGenic <- (TGVGroup$value - TGVGroup$value[1]) / TGVGroup$SDGenic[1]
-##        #reciprocated genic standard deviation
-#        TGVGroup$SDGenicStNeg <- 1 - (TGVGroup$SDGenic / TGVGroup$SDGenic[1])
-#        #genic variance standardised onto genetic variance
-#        koef <- TGVGroup$var[1] / TGVGroup$GenVar[1]
-#        TGVGroup$Genic_Genetic_VAR <- TGVGroup$GenVar * koef
-#        TGVGroup$Genic_Genetic_SD <- sqrt(TGVGroup$Genic_Genetic_VAR)
-#        #standardise genic_genetic standard deviation
-#        TGVGroup$Genic_Genetic_SDSt <- TGVGroup$Genic_Genetic_SD / TGVGroup$Genic_Genetic_SD[1]
-#        #standarise genetic values with genic_genetic standard deviation
-#        TGVGroup$zMeanGenic_Genetic <- (TGVGroup$value - TGVGroup$value[1]) / TGVGroup$Genic_Genetic_SD[1]
-#        #TGVsAll$zSdGenic <- (sqrt(TGVsAll$AdditGenicVar1) - sqrt(TGVsAll$))
-
         TGVs <- rbind(TGVs, TGVGroup )     
       }
     }
     
     TGVs$scenario <- scenario
     TGVs$Rep <- rep
-    TGVs$Import <- "BurnIn"
-    TGVs$Trait <- trait2
+    TGVs$Import <- import
 
 
     #colnames(TGVs) < c("Generation", paste0("TGV_mean", scenario), paste0("TGV_sd", scenario), paste0("zMean_", scenario), paste0("GenicVar_", scenario), paste0("zMeanGenic_", scenario))
     TGVsAll <- rbind(TGVsAll, TGVs)
   }
 }
-}
+
 
 
 write.table(TGVsAll, paste0("TGVsAll_import_BurnIn_",  date, ".csv"), quote=FALSE, row.names=FALSE)
